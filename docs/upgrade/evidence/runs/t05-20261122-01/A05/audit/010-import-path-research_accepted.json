@@ -1,0 +1,25 @@
+{
+  "seq": 10,
+  "project_id": "import-path",
+  "label": "research_accepted",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "import-path",
+    "expected_version": 5,
+    "idempotency_key": "research_accepted",
+    "event": "research_accepted",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "import-path",
+    "state": "SCRIPT_RUNNING",
+    "version": 6,
+    "event_count": 5,
+    "event_id": "evt-847a3a67-b3a1-4107-8abb-19d95169c12c",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "rig": "simulated-2d",
+  "version": "1.0",
+  "canvas": {
+    "width": 240,
+    "height": 270
+  },
+  "colors": {
+    "hair": [
+      70,
+      40,
+      30,
+      255
+    ],
+    "skin": [
+      245,
+      215,
+      190,
+      255
+    ],
+    "coat": [
+      30,
+      45,
+      90,
+      255
+    ],
+    "eye": [
+      30,
+      30,
+      40,
+      255
+    ],
+    "mouth": [
+      150,
+      50,
+      60,
+      255
+    ]
+  },
+  "poses": {
+    "neutral": {
+      "ParamAngleX": 0,
+      "ParamArmR": 0,
+      "ParamEyeOpen": 1,
+      "ParamMouthOpenY": 0
+    },
+    "lean": {
+      "ParamAngleX": -0.3,
+      "ParamArmR": 0.2,
+      "ParamEyeOpen": 1,
+      "ParamMouthOpenY": 0
+    }
+  },
+  "angles": {
+    "front": {
+      "ParamAngleX": 0
+    },
+    "three_quarter": {
+      "ParamAngleX": 0.6
+    }
+  },
+  "expressions": {
+    "explaining": {
+      "ParamEyeOpen": 1
+    }
+  },
+  "gestures": {
+    "idle": {
+      "ParamArmR": 0
+    },
+    "point_right": {
+      "ParamArmR": 0.6
+    },
+    "wave": {
+      "ParamArmR": 0.8,
+      "oscillate": {
+        "amplitude": 0.15,
+        "period_frames": 12
+      }
+    }
+  },
+  "visemes": {
+    "closed": 0,
+    "rest": 0.1,
+    "rounded": 0.5,
+    "open": 1
+  },
+  "physics": {
+    "hair": {
+      "stiffness": 60,
+      "damping": 8
+    }
+  },
+  "blink": {
+    "chance": 0.05,
+    "frames": 3
+  }
+}

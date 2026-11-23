@@ -1,0 +1,32 @@
+{
+  "seq": 52,
+  "label": "draft-sample-render-requested",
+  "project_id": "cache-draft",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-draft",
+    "expected_version": 12,
+    "idempotency_key": "sample_render_requested-12",
+    "event": "sample_render_requested",
+    "payload": {}
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "cache-draft",
+    "state": "COMPILED",
+    "version": 12,
+    "event_count": 11,
+    "issues": [
+      {
+        "code": "TRANSITION_INVALID",
+        "state": "COMPILED",
+        "event": "sample_render_requested",
+        "mode": "draft",
+        "message": "draft 模式下状态 COMPILED 不接受事件 sample_render_requested"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

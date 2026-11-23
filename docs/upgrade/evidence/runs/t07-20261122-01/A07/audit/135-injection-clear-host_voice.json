@@ -1,0 +1,33 @@
+{
+  "seq": 135,
+  "label": "injection/clear-host_voice",
+  "op": "clear",
+  "session": "human:owner",
+  "request": {
+    "project_id": "direct-demo",
+    "asset_ref": "asset://direct-demo/host_voice/v1",
+    "usage": "cleared",
+    "notes": "代码生成的占位素材"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "direct-demo",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "asset": {
+      "asset_ref": "asset://direct-demo/host_voice/v1",
+      "kind": "voice",
+      "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2",
+      "media": {
+        "media_type": "audio/wav",
+        "ext": "wav"
+      },
+      "usage": "cleared"
+    },
+    "reviewer_id": "owner",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

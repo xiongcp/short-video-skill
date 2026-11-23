@@ -1,0 +1,122 @@
+{
+  "project_id": "direct-demo",
+  "version": 1,
+  "script_version": 1,
+  "audio_version": 1,
+  "sample_rate_hz": 48000,
+  "tokens": [
+    {
+      "word_id": "sec_001-w001",
+      "section_id": "sec_001",
+      "text": "先",
+      "start_sample": 0,
+      "end_sample": 2399,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_001-w002",
+      "section_id": "sec_001",
+      "text": "看",
+      "start_sample": 2399,
+      "end_sample": 2400,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_001-w003",
+      "section_id": "sec_001",
+      "text": "第一段",
+      "start_sample": 2400,
+      "end_sample": 40000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_002-w001",
+      "section_id": "sec_002",
+      "text": "浏览器",
+      "start_sample": 50400,
+      "end_sample": 60000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_002-w002",
+      "section_id": "sec_002",
+      "text": "有",
+      "start_sample": 60000,
+      "end_sample": 64000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_002-w003",
+      "section_id": "sec_002",
+      "text": "副本",
+      "start_sample": 64000,
+      "end_sample": 74000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_002-w004",
+      "section_id": "sec_002",
+      "text": "再",
+      "start_sample": 78000,
+      "end_sample": 82000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_002-w005",
+      "section_id": "sec_002",
+      "text": "看",
+      "start_sample": 82000,
+      "end_sample": 86000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_002-w006",
+      "section_id": "sec_002",
+      "text": "副本",
+      "start_sample": 86000,
+      "end_sample": 96000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_002-w007",
+      "section_id": "sec_002",
+      "text": "是否",
+      "start_sample": 96000,
+      "end_sample": 104000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    },
+    {
+      "word_id": "sec_002-w008",
+      "section_id": "sec_002",
+      "text": "新鲜",
+      "start_sample": 104000,
+      "end_sample": 118000,
+      "confidence": 0.95,
+      "manually_corrected": false
+    }
+  ],
+  "cue_map": [
+    {
+      "cue_id": "cue_copy_1",
+      "word_ids": [
+        "sec_002-w003"
+      ]
+    },
+    {
+      "cue_id": "cue_copy_2",
+      "word_ids": [
+        "sec_002-w006"
+      ]
+    }
+  ]
+}

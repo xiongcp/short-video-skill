@@ -1,0 +1,24 @@
+{
+  "seq": 18,
+  "label": "research-accepted",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "expected_version": 7,
+    "idempotency_key": "research-accepted",
+    "event": "research_accepted",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-speed",
+    "state": "SCRIPT_RUNNING",
+    "version": 8,
+    "event_count": 7,
+    "event_id": "evt-353632b1-c311-4f47-803b-889a026d44df",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "seq": 38,
+  "label": "cache-speed/scene-studio_host",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "name": "studio_host",
+    "template": "host",
+    "focus": "主持人双眼和手势",
+    "props": [
+      "camera",
+      "board"
+    ],
+    "layers": [
+      {
+        "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+        "element_ids": []
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "cache-speed",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "scene": {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/studio_host/v1",
+      "template": "host",
+      "focus": "主持人双眼和手势",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        }
+      ],
+      "props": [
+        "camera",
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://cache-speed/studio_host/v1",
+      "kind": "scene",
+      "sha256": "sha256:a2c9a5db0bca17f6b646af5964cf78f9c1ceb5f00d88ae213da3c74c0621c66d",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

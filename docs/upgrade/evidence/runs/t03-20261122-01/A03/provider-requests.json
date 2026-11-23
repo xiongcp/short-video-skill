@@ -1,0 +1,50 @@
+{
+  "budget-race": [
+    {
+      "method": "POST",
+      "url": "/jobs",
+      "key": "budget-race:tts-b",
+      "drop_receipt": true,
+      "query_enabled": true
+    },
+    {
+      "method": "GET",
+      "url": "/jobs/budget-race%3Atts-b",
+      "key": "budget-race:tts-b",
+      "drop_receipt": false,
+      "query_enabled": true
+    }
+  ],
+  "no-lookup": [
+    {
+      "method": "POST",
+      "url": "/jobs",
+      "key": "no-lookup:tts-1",
+      "drop_receipt": true,
+      "query_enabled": false
+    },
+    {
+      "method": "GET",
+      "url": "/jobs/no-lookup%3Atts-1",
+      "key": "no-lookup:tts-1",
+      "drop_receipt": true,
+      "query_enabled": false
+    }
+  ],
+  "repeat-intent": [
+    {
+      "method": "POST",
+      "url": "/jobs",
+      "key": "repeat-intent:tts-1",
+      "drop_receipt": false,
+      "query_enabled": true
+    },
+    {
+      "method": "POST",
+      "url": "/jobs",
+      "key": "repeat-intent:tts-2",
+      "drop_receipt": false,
+      "query_enabled": true
+    }
+  ]
+}

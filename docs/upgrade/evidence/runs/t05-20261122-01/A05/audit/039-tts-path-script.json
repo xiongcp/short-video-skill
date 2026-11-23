@@ -1,0 +1,108 @@
+{
+  "seq": 39,
+  "project_id": "tts-path",
+  "label": "script",
+  "op": "script",
+  "session": null,
+  "request": {
+    "project_id": "tts-path",
+    "expected_version": 6,
+    "idempotency_key": "script",
+    "script_id": "episode",
+    "sections": [
+      {
+        "section_id": "sec_001",
+        "title": "开场",
+        "narration": "先看第一段。",
+        "claim_ids": [],
+        "pronunciation": [],
+        "visual_intent": "标题卡",
+        "duration_estimate_frames": 30,
+        "cues": []
+      },
+      {
+        "section_id": "sec_002",
+        "title": "副本",
+        "narration": "浏览器有副本，再看副本是否新鲜。",
+        "claim_ids": [],
+        "pronunciation": [
+          {
+            "term": "副本",
+            "reading": "fù běn"
+          }
+        ],
+        "visual_intent": "副本卡片",
+        "duration_estimate_frames": 60,
+        "cues": [
+          {
+            "cue_id": "cue_copy_1",
+            "text": "副本"
+          },
+          {
+            "cue_id": "cue_copy_2",
+            "text": "副本"
+          }
+        ]
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "tts-path",
+    "state": "SCRIPT_REVIEW",
+    "version": 7,
+    "event_count": 6,
+    "event_id": "evt-894b3215-cbb2-4eee-bdde-f2cc63abdfb2",
+    "content_hash": "sha256:6584dd08312f7edaddef0983583e71f2bc995ea7afee1320ffd0412baf5c119e",
+    "document": {
+      "project_id": "tts-path",
+      "version": 1,
+      "script_id": "episode",
+      "evidence_version": 1,
+      "review_status": "pending",
+      "sections": [
+        {
+          "section_id": "sec_001",
+          "title": "开场",
+          "narration": "先看第一段。",
+          "claim_ids": [],
+          "pronunciation": [],
+          "visual_intent": "标题卡",
+          "duration_estimate_frames": 30,
+          "cues": []
+        },
+        {
+          "section_id": "sec_002",
+          "title": "副本",
+          "narration": "浏览器有副本，再看副本是否新鲜。",
+          "claim_ids": [],
+          "pronunciation": [
+            {
+              "term": "副本",
+              "reading": "fù běn"
+            }
+          ],
+          "visual_intent": "副本卡片",
+          "duration_estimate_frames": 60,
+          "cues": [
+            {
+              "cue_id": "cue_copy_1",
+              "text": "副本"
+            },
+            {
+              "cue_id": "cue_copy_2",
+              "text": "副本"
+            }
+          ]
+        }
+      ]
+    },
+    "audition_terms": [
+      "副本"
+    ],
+    "planned_frames": 90,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

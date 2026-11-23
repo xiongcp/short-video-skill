@@ -1,0 +1,50 @@
+[
+  {
+    "section_id": "sec_001",
+    "change": "edited",
+    "claim_ids": [
+      "reuse"
+    ],
+    "duration_estimate_frames": 200
+  },
+  {
+    "section_id": "sec_002",
+    "change": "unchanged",
+    "claim_ids": [
+      "reuse"
+    ],
+    "duration_estimate_frames": 507
+  },
+  {
+    "section_id": "sec_006",
+    "change": "added",
+    "claim_ids": [],
+    "duration_estimate_frames": 220
+  },
+  {
+    "section_id": "sec_003",
+    "change": "unchanged",
+    "claim_ids": [
+      "reuse",
+      "fresh"
+    ],
+    "duration_estimate_frames": 894
+  },
+  {
+    "section_id": "sec_004",
+    "change": "unchanged",
+    "claim_ids": [
+      "validate"
+    ],
+    "duration_estimate_frames": 854
+  },
+  {
+    "section_id": "sec_005",
+    "change": "unchanged",
+    "claim_ids": [
+      "fresh",
+      "validate"
+    ],
+    "duration_estimate_frames": 394
+  }
+]

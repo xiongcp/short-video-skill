@@ -1,0 +1,390 @@
+{
+  "task_id": "T07",
+  "case_id": "A07",
+  "run_id": "t07-20261122-01",
+  "status": "PASS",
+  "evidence_level": "RUNTIME",
+  "environment": {
+    "node": "v26.9.0",
+    "platform": "darwin-arm64",
+    "python": "Python 3.14.4"
+  },
+  "commands_and_exit_codes": [
+    {
+      "command": "node docs/upgrade/evidence/replay_t07.mjs t07-20261122-01 python",
+      "note": "each CLI call is saved under audit/ with request, exit code and response; large documents are saved once and referenced by hash"
+    },
+    {
+      "command": "python -B -c <validate storyboards, timelines and alignments>",
+      "exit_code": 0,
+      "saved_as": "schema-check.txt"
+    }
+  ],
+  "input_hashes": [
+    {
+      "path": "schemas/storyboard.schema.json",
+      "sha256": "sha256:26c5cbcda65ef7dee3ee8ebc3ea6f432da6047ac32ebed5d818247dd89e8ad1f"
+    },
+    {
+      "path": "schemas/common.schema.json",
+      "sha256": "sha256:1a7fb129885835f2a20b83c3497babcc662b9ed930e2fdef3c5b2d7d9a36d07f"
+    },
+    {
+      "path": "schemas/workflow.schema.json",
+      "sha256": "sha256:01e59870477a9c4a02938f05d7dc90447ecf3d0c9eb22b93b355eab27fabfc6a"
+    },
+    {
+      "path": "workflows/topic-to-video.yaml",
+      "sha256": "sha256:7440e2e317bab93716bff025638789b02a39dcebec08c02e3be59661d6239760"
+    },
+    {
+      "path": "examples/topic-cache-speed/storyboard.json",
+      "sha256": "sha256:44592d6b067e0adfa816b3eccd541e16c213ba1bfeb586a91e02ea2ab1ffcd6d"
+    },
+    {
+      "path": "examples/topic-cache-speed/script.json",
+      "sha256": "sha256:e21526fc3f4268cf7df28601dbcc5c17cbc8344a2eee7c72b08cdcb9c006fd34"
+    },
+    {
+      "path": "examples/topic-cache-speed/assets.json",
+      "sha256": "sha256:dc395cc534fba99d58407754b69f7300254736467bd1091f4ce9c4d8a782bf75"
+    },
+    {
+      "path": "examples/topic-cache-speed/brief.json",
+      "sha256": "sha256:6469570aade962feb47de91e17a220c8e0468fc1169c0c5c20a161a66f72dd32"
+    },
+    {
+      "path": "examples/topic-cache-speed/evidence-set.json",
+      "sha256": "sha256:a4a0c45aa71b0f1ef9fef05f692a684e9baf23e2d33f71928dcc5473086b5d5b"
+    },
+    {
+      "path": "examples/topic-kafka-to-doris/storyboard.json",
+      "sha256": "sha256:dd1981212422b331036adf32c518d10f51489a23a77f282fb0d45aa5c513b055"
+    },
+    {
+      "path": "examples/topic-kafka-to-doris/script.json",
+      "sha256": "sha256:82de1c6214dcf278e657d0d4e0eca86046724d47e3715705b08337d77a5410de"
+    },
+    {
+      "path": "examples/topic-kafka-to-doris/assets.json",
+      "sha256": "sha256:76d1b614197f751ef5486c256c48121b5e3683f648d1b456559b928227cb71bf"
+    },
+    {
+      "path": "examples/topic-kafka-to-doris/brief.json",
+      "sha256": "sha256:da4a7019e7a5b00aab77ef11633cbe4872f9f68b9bb3e5da10051c07f146749d"
+    },
+    {
+      "path": "examples/topic-kafka-to-doris/evidence-set.json",
+      "sha256": "sha256:67573d4024cac10ca95b8576796f1365387d00ac227a440d1ef3e426c2125f19"
+    },
+    {
+      "path": "fixture cache-speed/sec_001.wav",
+      "sha256": "sha256:00be6552c6321727fc7bafe3c5a50d785970f360154cab91fa57394ed4c6455b"
+    },
+    {
+      "path": "fixture cache-speed/sec_002.wav",
+      "sha256": "sha256:520a93385c59d38084accc58d4ab4cf04eb22818888278f8a9939616c4dcdc5e"
+    },
+    {
+      "path": "fixture cache-speed/sec_003.wav",
+      "sha256": "sha256:21fb86300aeadad3069ccf3c50b371983fd08186c81414db7ee3244337b7b5c7"
+    },
+    {
+      "path": "fixture cache-speed/sec_004.wav",
+      "sha256": "sha256:5b7f9b3aa7705a8ebb06aa3fc4614aef4f519bede307ba4614a4a9ef9aeefaa6"
+    },
+    {
+      "path": "fixture cache-speed/sec_005.wav",
+      "sha256": "sha256:87c71ddb1591da332957d297224db2154608d9d43aeb63947b6f5b99fd176bc7"
+    },
+    {
+      "path": "fixture cache-speed/host_main.png",
+      "sha256": "sha256:18f5ccb9bd8d3aef251b38867cdda4c6df87e7811167ea75b2dbc1575855d403"
+    },
+    {
+      "path": "fixture cache-speed/host_rig.json",
+      "sha256": "sha256:8072a7b252ce4e3dfc6460be97f82b2672062cf3ec2ca2edf4a4ec0fbce585e6"
+    },
+    {
+      "path": "fixture cache-speed/host_voice.wav",
+      "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2"
+    },
+    {
+      "path": "fixture cache-speed/studio_backdrop.png",
+      "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9"
+    },
+    {
+      "path": "fixture cache-speed/layer_illustration_ch_001.png",
+      "sha256": "sha256:13b985843206b2c44383bb7699e33ec01c4c09968e461e5d5d3ecb159651927d"
+    },
+    {
+      "path": "fixture cache-speed/layer_diagram_ch_002.json",
+      "sha256": "sha256:aafa2298c4a3ba5ba94d55a2fa0942c700ae427b727b494f1bcfa355f98c0d39"
+    },
+    {
+      "path": "fixture cache-speed/layer_diagram_ch_003.json",
+      "sha256": "sha256:c05c200a810430057e4176cee0ca9990a1447d0bb2526beef421b09284a0eff8"
+    },
+    {
+      "path": "fixture cache-speed/layer_illustration_ch_004.png",
+      "sha256": "sha256:13b985843206b2c44383bb7699e33ec01c4c09968e461e5d5d3ecb159651927d"
+    },
+    {
+      "path": "fixture cache-speed/layer_diagram_ch_004.json",
+      "sha256": "sha256:43fdf642efc4522a68eb52ca19681a76107c12af94049e83b999bcf9b7936a27"
+    },
+    {
+      "path": "fixture cache-speed/layer_diagram_ch_005.json",
+      "sha256": "sha256:93754bf54d19dcd70c84e9f7599cb654ec7dc3040765625a1ca4c6506b897df6"
+    },
+    {
+      "path": "fixture kafka-to-doris/sec_001.wav",
+      "sha256": "sha256:2c5276f8943d16b96e9a526b39a6578c3a5401063ac950771229a361d86bdbf7"
+    },
+    {
+      "path": "fixture kafka-to-doris/sec_002.wav",
+      "sha256": "sha256:2639b5c28d51dd6a7fdb24492f747228f6c1b5b0cd43bbd66d0bf666f8810a58"
+    },
+    {
+      "path": "fixture kafka-to-doris/sec_003.wav",
+      "sha256": "sha256:28af05212987b6dc6b99a4e8cb284f59e1dc0af75c9c413e1be6e4298fb97554"
+    },
+    {
+      "path": "fixture kafka-to-doris/sec_004.wav",
+      "sha256": "sha256:c8feb6b8024c727e7e20261939c380b53a06deb9de09ee1d621455bd09dacd4c"
+    },
+    {
+      "path": "fixture kafka-to-doris/sec_005.wav",
+      "sha256": "sha256:be662098126034a642e1e257d37513afd15c0b70ad60c3ce11e7a28143f841fc"
+    },
+    {
+      "path": "fixture kafka-to-doris/sec_006.wav",
+      "sha256": "sha256:af21d1bad97e12a0a142af2b306802ef25a8e23df7e60b9ea8f93464f4a32242"
+    },
+    {
+      "path": "fixture kafka-to-doris/sec_007.wav",
+      "sha256": "sha256:0edc5a5f27c8a819d465617dcb9043d0871b5d01bc91fd7aa3640ab5d52f2110"
+    },
+    {
+      "path": "fixture kafka-to-doris/host_main.png",
+      "sha256": "sha256:18f5ccb9bd8d3aef251b38867cdda4c6df87e7811167ea75b2dbc1575855d403"
+    },
+    {
+      "path": "fixture kafka-to-doris/host_rig.json",
+      "sha256": "sha256:8072a7b252ce4e3dfc6460be97f82b2672062cf3ec2ca2edf4a4ec0fbce585e6"
+    },
+    {
+      "path": "fixture kafka-to-doris/host_voice.wav",
+      "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2"
+    },
+    {
+      "path": "fixture kafka-to-doris/studio_backdrop.png",
+      "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_illustration_ch_001.png",
+      "sha256": "sha256:13b985843206b2c44383bb7699e33ec01c4c09968e461e5d5d3ecb159651927d"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_diagram_ch_002.json",
+      "sha256": "sha256:c209337000a03964bc67858a85ba9cd5ebad1929c016733b3d57e9dbd56f2e64"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_diagram_ch_003.json",
+      "sha256": "sha256:e4c11d714d6c29ae2000376e2f47d3cdf2ac25e45aa07c78e3f9460d176fd5f9"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_illustration_ch_003.png",
+      "sha256": "sha256:13b985843206b2c44383bb7699e33ec01c4c09968e461e5d5d3ecb159651927d"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_diagram_ch_004.json",
+      "sha256": "sha256:2a4cd81b08433458cafa448a817a392e9d9146600ffc2be9282236781cbde830"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_illustration_ch_004.png",
+      "sha256": "sha256:13b985843206b2c44383bb7699e33ec01c4c09968e461e5d5d3ecb159651927d"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_illustration_ch_005.png",
+      "sha256": "sha256:13b985843206b2c44383bb7699e33ec01c4c09968e461e5d5d3ecb159651927d"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_diagram_ch_005.json",
+      "sha256": "sha256:beb48e525cd4eb13e7dda747ffe967b2fec8ca9cba4b6b0e7992bb0ac4fedaec"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_diagram_ch_006.json",
+      "sha256": "sha256:7ddcdd264648e2df8648dca4f6c1ce3b255ed9c02224fd9922de8d3cdfc45161"
+    },
+    {
+      "path": "fixture kafka-to-doris/layer_diagram_ch_007.json",
+      "sha256": "sha256:7e7306c3acd6430f27d0d0cd48b7496e0f93176732ca57890130e54293ac4752"
+    },
+    {
+      "path": "fixture injection/sec_001.wav",
+      "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2"
+    },
+    {
+      "path": "fixture injection/sec_002.wav",
+      "sha256": "sha256:a33765a10ec6af0d56bf7ab0257f3bf823a175dbe360bd76e66efd74a7280382"
+    },
+    {
+      "path": "fixture injection/backdrop.png",
+      "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9"
+    },
+    {
+      "path": "fixture injection/rig.json",
+      "sha256": "sha256:8072a7b252ce4e3dfc6460be97f82b2672062cf3ec2ca2edf4a4ec0fbce585e6"
+    },
+    {
+      "path": "fixture injection/voice.wav",
+      "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2"
+    },
+    {
+      "path": "fixture injection/host.png",
+      "sha256": "sha256:18f5ccb9bd8d3aef251b38867cdda4c6df87e7811167ea75b2dbc1575855d403"
+    },
+    {
+      "path": "fixture injection/diagram.json",
+      "sha256": "sha256:18bff4f9699889dbcb7cf0a89a50da76aaf00b8d1be6e6b9a74e90d35df93816"
+    },
+    {
+      "path": "fixture injection/pending.png",
+      "sha256": "sha256:44a46e01f30dfceb166bc01019b1bf3d697eba2badfdf01fc1013de5e66af8bd"
+    }
+  ],
+  "output_hashes": [
+    {
+      "path": "cache-speed/alignment.json",
+      "sha256": "sha256:2ae988770f09db004b109b519bcc72a02eb879c2fb38757ab1815466006f5bc9"
+    },
+    {
+      "path": "cache-speed/cuts.json",
+      "sha256": "sha256:6fbcf79b7329530a37f3d7697c9d06b72f271fde5b6cf7816b191685c6e5078f"
+    },
+    {
+      "path": "cache-speed/dependencies.json",
+      "sha256": "sha256:37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "cache-speed/dsl.json",
+      "sha256": "sha256:03e4f65153ef8632e62be327a8ea6ab524870809807d321617500956608c145a"
+    },
+    {
+      "path": "cache-speed/planned-read.json",
+      "sha256": "sha256:c4700d9e98affda386ccafdfc998c2133e44ca5dc8da347f6a704cde21b609d5"
+    },
+    {
+      "path": "cache-speed/storyboard.json",
+      "sha256": "sha256:8012b23ee9ebc08d5da553ca188ee94cd9261cef16a4a08775870cb7874738e9"
+    },
+    {
+      "path": "cache-speed/studio.sqlite",
+      "sha256": "sha256:1b830bb952ef8eaf43f82b9ada0778fe50eb5cc4b8e60f143c9f59350937b9bb"
+    },
+    {
+      "path": "cache-speed/timeline.json",
+      "sha256": "sha256:7c46e7681708e933a2c7961f52616fd19a51bb96755449e7881ab9020025c1b6"
+    },
+    {
+      "path": "injection/alignment.json",
+      "sha256": "sha256:b65086478d0d8f3b70b92d46b11a00c453446ca622d5917d0e2894d3050a9e72"
+    },
+    {
+      "path": "injection/cuts.json",
+      "sha256": "sha256:e4a1282ca73350c07c1eaba45d7e77cc80d5856a2ff7c7207202d41024494b3d"
+    },
+    {
+      "path": "injection/dsl.json",
+      "sha256": "sha256:a5663c852d763f209d529838083f4a78bd99f1c2e56f1fdcc260a2867aa3e751"
+    },
+    {
+      "path": "injection/rejections.json",
+      "sha256": "sha256:ee4416f92a7482daee847d534229f654820803105f0034032cbb06250837c78c"
+    },
+    {
+      "path": "injection/storyboard.json",
+      "sha256": "sha256:fd5751e989415d3247249dc634709d205fa04b36db0dc3dcaaf06aa5df21ed30"
+    },
+    {
+      "path": "injection/studio.sqlite",
+      "sha256": "sha256:05a449f1bb11e41d4b8c103c0c93cc6bf9400144277b943fdb4881ec74de410d"
+    },
+    {
+      "path": "injection/timeline.json",
+      "sha256": "sha256:531cf95c9d813a35a1304e772284e5a7ccbaeafcc9a1750240f1325fb423b1cc"
+    },
+    {
+      "path": "kafka-to-doris/alignment.json",
+      "sha256": "sha256:b7dbc23f6e3ce253a1cb1b4c09ab2bd21d1c8bd9c213d171920f15fdc58747a4"
+    },
+    {
+      "path": "kafka-to-doris/cuts.json",
+      "sha256": "sha256:518013bf5863621508cd64414fc0b06edc426abfab14fc1a23c18b798ea5d8fe"
+    },
+    {
+      "path": "kafka-to-doris/dependencies.json",
+      "sha256": "sha256:af790bc92fd99cc493d3a7668e072d29baded9adbaed4f827042dd061f0fb025"
+    },
+    {
+      "path": "kafka-to-doris/dsl.json",
+      "sha256": "sha256:c7ae7c5a66ec81c2ca344b97fbe6c5285984f248c48cbe762be08e294903db4f"
+    },
+    {
+      "path": "kafka-to-doris/planned-read.json",
+      "sha256": "sha256:88815cfc0ce91e0cc146290686bfe3e8612b99e796a8048fe03c000a5eaad87e"
+    },
+    {
+      "path": "kafka-to-doris/storyboard.json",
+      "sha256": "sha256:f57fc0c38c635c1c21ba6cfee1b34811769b8c279ebb3505d0b3b8e6601f8e51"
+    },
+    {
+      "path": "kafka-to-doris/studio.sqlite",
+      "sha256": "sha256:11a31ff965e57ea1c4ef61d2aa186802167bd54644f69afc1d44bd8ff0805814"
+    },
+    {
+      "path": "kafka-to-doris/timeline.json",
+      "sha256": "sha256:b84cdaf400c92a7ec710fc5a24c55dbf160e91330183e4cce8a4df47ebea8ebf"
+    },
+    {
+      "path": "schema-check.txt",
+      "sha256": "sha256:51e92931d9e1515a377ff5f5956115f9912d078b5f74baba32825227ffdf5c01"
+    }
+  ],
+  "observations": [
+    "checks: {\"cache-speed\":{\"planned_readable\":true,\"compiled\":true,\"covers_from_zero\":true,\"last_sample_covered\":true,\"shared_cuts\":true,\"references_resolve\":true,\"fixed_cues_kept\":true,\"total_frames\":3600,\"planned_frames\":3600,\"duration_samples\":5758790},\"kafka-to-doris\":{\"planned_readable\":true,\"compiled\":true,\"covers_from_zero\":true,\"last_sample_covered\":true,\"shared_cuts\":true,\"references_resolve\":true,\"fixed_cues_kept\":true,\"total_frames\":14400,\"planned_frames\":14400,\"duration_samples\":23039499},\"injection\":{\"boundaries_2399_2400\":true,\"last_sample_padding\":true,\"repeated_words_distinct\":true,\"negatives_named\":true,\"backwards_named\":true,\"fixed_frames_named\":true,\"unsupported_blocks\":true,\"rejections_block\":true,\"compiled\":true},\"schemas_valid\":true}",
+    "aligned copies: draft projects; section audio is synthetic with measured lengths = planned frames × 1,600 + a deterministic −1,200…+1,199 samples; the fixture aligner places one word per character over 97% of each section",
+    "cut policy for the copies: the first shot of a section cuts on the section start, later shots on the word at the planned proportional position; planned visual cues keep their fixed local frames; host shots inherit the previous host shot of the chapter",
+    "all bitmaps are solid-colour PNGs generated in code and cleared by an owner session created by this script; they exercise references, pins and clearance only",
+    "scope: real speech and its alignment (A05), original art (A06/A11), CharacterActionPlan and baking (T08) and rendering (T09) are NOT_RUN"
+  ],
+  "evidence_paths": [
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/cache-speed/alignment.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/cache-speed/cuts.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/cache-speed/dependencies.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/cache-speed/dsl.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/cache-speed/planned-read.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/cache-speed/storyboard.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/cache-speed/studio.sqlite",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/cache-speed/timeline.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/injection/alignment.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/injection/cuts.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/injection/dsl.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/injection/rejections.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/injection/storyboard.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/injection/studio.sqlite",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/injection/timeline.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/kafka-to-doris/alignment.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/kafka-to-doris/cuts.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/kafka-to-doris/dependencies.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/kafka-to-doris/dsl.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/kafka-to-doris/planned-read.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/kafka-to-doris/storyboard.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/kafka-to-doris/studio.sqlite",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/kafka-to-doris/timeline.json",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/schema-check.txt",
+    "docs/upgrade/evidence/runs/t07-20261122-01/A07/audit/"
+  ],
+  "reviewer": null
+}

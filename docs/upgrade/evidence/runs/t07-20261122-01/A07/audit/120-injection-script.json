@@ -1,0 +1,58 @@
+{
+  "seq": 120,
+  "label": "injection/script",
+  "op": "script",
+  "session": null,
+  "request": {
+    "project_id": "direct-demo",
+    "expected_version": 5,
+    "idempotency_key": "script",
+    "script_id": "episode",
+    "sections": [
+      {
+        "section_id": "sec_001",
+        "title": "开场",
+        "narration": "先看第一段。",
+        "claim_ids": [],
+        "pronunciation": [],
+        "visual_intent": "主持人",
+        "duration_estimate_frames": 30,
+        "cues": []
+      },
+      {
+        "section_id": "sec_002",
+        "title": "副本",
+        "narration": "浏览器有副本，再看副本是否新鲜。",
+        "claim_ids": [],
+        "pronunciation": [],
+        "visual_intent": "副本卡片",
+        "duration_estimate_frames": 60,
+        "cues": [
+          {
+            "cue_id": "cue_copy_1",
+            "text": "副本"
+          },
+          {
+            "cue_id": "cue_copy_2",
+            "text": "副本"
+          }
+        ]
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "direct-demo",
+    "state": "SCRIPT_REVIEW",
+    "version": 6,
+    "event_count": 5,
+    "event_id": "evt-c49c6b83-2bac-453a-a0fa-fdc8fe042ffc",
+    "content_hash": "sha256:a737957183bfa02209c2ca6b5164cfb9592f31ddcc6c4422f1c33d6a84935386",
+    "document": "<saved separately; content_hash sha256:a737957183bfa02209c2ca6b5164cfb9592f31ddcc6c4422f1c33d6a84935386>",
+    "audition_terms": [],
+    "planned_frames": 90,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

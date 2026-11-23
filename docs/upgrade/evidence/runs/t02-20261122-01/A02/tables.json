@@ -1,0 +1,616 @@
+{
+  "quality": {
+    "projects": [
+      {
+        "project_id": "cache-demo",
+        "title": "缓存原理",
+        "mode": "quality",
+        "state": "PACKAGING",
+        "version": 28
+      }
+    ],
+    "events": [
+      {
+        "event_id": "evt-7e948af7-33b0-4773-bd68-1ee754ac8794",
+        "version": 2,
+        "idempotency_key": "brief-1",
+        "event": "brief_saved",
+        "from_state": "NEW",
+        "to_state": "BRIEF_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:12.717Z"
+      },
+      {
+        "event_id": "evt-42b5a464-7cf3-4a53-b11c-0fada16f4de4",
+        "version": 3,
+        "idempotency_key": "research_started-2",
+        "event": "research_started",
+        "from_state": "BRIEF_READY",
+        "to_state": "RESEARCH_RUNNING",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:13.062Z"
+      },
+      {
+        "event_id": "evt-01676c22-fd54-4a64-a584-2104c99cceb9",
+        "version": 4,
+        "idempotency_key": "evidence_saved-3",
+        "event": "evidence_saved",
+        "from_state": "RESEARCH_RUNNING",
+        "to_state": "RESEARCH_REVIEW",
+        "actor": "agent",
+        "payload": "{\"artifact_hash\":\"sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"}",
+        "recorded_at": "2026-11-23T02:38:13.335Z"
+      },
+      {
+        "event_id": "evt-740a078c-4fc7-4ddf-8148-fade63d9587b",
+        "version": 5,
+        "idempotency_key": "G1-approve-4",
+        "event": "approval_recorded",
+        "from_state": "RESEARCH_REVIEW",
+        "to_state": "RESEARCH_REVIEW",
+        "actor": "human:owner",
+        "payload": "{\"gate\":\"G1\",\"target_hash\":\"sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"decision\":\"approve\",\"notes\":\"G1 approve\"}",
+        "recorded_at": "2026-11-23T02:38:13.607Z"
+      },
+      {
+        "event_id": "evt-4c639056-8dc9-4d9a-9fd1-546083cd0e28",
+        "version": 6,
+        "idempotency_key": "research_accepted-5",
+        "event": "research_accepted",
+        "from_state": "RESEARCH_REVIEW",
+        "to_state": "SCRIPT_RUNNING",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:13.743Z"
+      },
+      {
+        "event_id": "evt-eb4d9bbc-4e2d-4958-bf71-1df9dd958314",
+        "version": 7,
+        "idempotency_key": "script_saved-6",
+        "event": "script_saved",
+        "from_state": "SCRIPT_RUNNING",
+        "to_state": "SCRIPT_REVIEW",
+        "actor": "agent",
+        "payload": "{\"artifact_hash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}",
+        "recorded_at": "2026-11-23T02:38:13.880Z"
+      },
+      {
+        "event_id": "evt-4baf78cb-98da-470f-bbb8-72e2857f931a",
+        "version": 8,
+        "idempotency_key": "G2-approve-7",
+        "event": "approval_recorded",
+        "from_state": "SCRIPT_REVIEW",
+        "to_state": "SCRIPT_REVIEW",
+        "actor": "human:owner",
+        "payload": "{\"gate\":\"G2\",\"target_hash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"decision\":\"approve\",\"notes\":\"G2 approve\"}",
+        "recorded_at": "2026-11-23T02:38:14.017Z"
+      },
+      {
+        "event_id": "evt-db7f674e-dbed-48dc-b834-5d908960eac8",
+        "version": 9,
+        "idempotency_key": "G2-reject-8",
+        "event": "approval_recorded",
+        "from_state": "SCRIPT_REVIEW",
+        "to_state": "SCRIPT_RUNNING",
+        "actor": "human:owner",
+        "payload": "{\"gate\":\"G2\",\"target_hash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"decision\":\"reject\",\"notes\":\"G2 reject\"}",
+        "recorded_at": "2026-11-23T02:38:14.156Z"
+      },
+      {
+        "event_id": "evt-198cecb8-41da-4a54-9db6-2c33fdb00304",
+        "version": 10,
+        "idempotency_key": "script_saved-9",
+        "event": "script_saved",
+        "from_state": "SCRIPT_RUNNING",
+        "to_state": "SCRIPT_REVIEW",
+        "actor": "agent",
+        "payload": "{\"artifact_hash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"}",
+        "recorded_at": "2026-11-23T02:38:14.295Z"
+      },
+      {
+        "event_id": "evt-a35cae38-6553-428b-98dd-d29fcc7cebf5",
+        "version": 11,
+        "idempotency_key": "G2-approve-10",
+        "event": "approval_recorded",
+        "from_state": "SCRIPT_REVIEW",
+        "to_state": "SCRIPT_REVIEW",
+        "actor": "human:owner",
+        "payload": "{\"gate\":\"G2\",\"target_hash\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"decision\":\"approve\",\"notes\":\"G2 approve\"}",
+        "recorded_at": "2026-11-23T02:38:14.571Z"
+      },
+      {
+        "event_id": "evt-682dfa88-44a2-4089-86b6-acbbb9bb365e",
+        "version": 12,
+        "idempotency_key": "script_accepted-11",
+        "event": "script_accepted",
+        "from_state": "SCRIPT_REVIEW",
+        "to_state": "AUDIO_RUNNING",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:14.707Z"
+      },
+      {
+        "event_id": "evt-75036321-5c77-40a3-8371-c594700bc617",
+        "version": 13,
+        "idempotency_key": "audio_verified-12",
+        "event": "audio_verified",
+        "from_state": "AUDIO_RUNNING",
+        "to_state": "AUDIO_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:14.843Z"
+      },
+      {
+        "event_id": "evt-6ca86c8e-8665-47a9-9451-05348d9e5b02",
+        "version": 14,
+        "idempotency_key": "alignment_verified-13",
+        "event": "alignment_verified",
+        "from_state": "AUDIO_READY",
+        "to_state": "ALIGNMENT_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:14.979Z"
+      },
+      {
+        "event_id": "evt-543e9448-31d4-4e14-90d8-b10687bf5f45",
+        "version": 15,
+        "idempotency_key": "storyboard_saved-14",
+        "event": "storyboard_saved",
+        "from_state": "ALIGNMENT_READY",
+        "to_state": "STORYBOARD_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:15.115Z"
+      },
+      {
+        "event_id": "evt-35630b8c-3784-44f8-a7d2-71ab305b3c9b",
+        "version": 16,
+        "idempotency_key": "assets_resolved-15",
+        "event": "assets_resolved",
+        "from_state": "STORYBOARD_READY",
+        "to_state": "ASSET_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:15.252Z"
+      },
+      {
+        "event_id": "evt-f7484164-c759-479d-bfd5-9647d86394f1",
+        "version": 17,
+        "idempotency_key": "snapshot_compiled-16",
+        "event": "snapshot_compiled",
+        "from_state": "ASSET_READY",
+        "to_state": "COMPILED",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:15.390Z"
+      },
+      {
+        "event_id": "evt-4c87e1ac-6aa2-4682-a5e7-26b9a8608f68",
+        "version": 18,
+        "idempotency_key": "sample_render_requested-17",
+        "event": "sample_render_requested",
+        "from_state": "COMPILED",
+        "to_state": "RENDERING",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:15.534Z"
+      },
+      {
+        "event_id": "evt-4d7f7fb9-ed97-452a-9985-33cf9d954629",
+        "version": 19,
+        "idempotency_key": "sample_rendered-18",
+        "event": "sample_rendered",
+        "from_state": "RENDERING",
+        "to_state": "QA_RUNNING",
+        "actor": "agent",
+        "payload": "{\"artifact_hash\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\"}",
+        "recorded_at": "2026-11-23T02:38:15.670Z"
+      },
+      {
+        "event_id": "evt-a10426ed-9dc8-4f2d-82cc-3de740da919f",
+        "version": 20,
+        "idempotency_key": "sample_checked-19",
+        "event": "sample_checked",
+        "from_state": "QA_RUNNING",
+        "to_state": "SAMPLE_REVIEW",
+        "actor": "agent",
+        "payload": "{\"checks\":{\"sample_qa_pass\":true}}",
+        "recorded_at": "2026-11-23T02:38:15.806Z"
+      },
+      {
+        "event_id": "evt-832eba25-1ff9-4fad-a734-1e1e0e02f94a",
+        "version": 21,
+        "idempotency_key": "G3-approve-20",
+        "event": "approval_recorded",
+        "from_state": "SAMPLE_REVIEW",
+        "to_state": "SAMPLE_REVIEW",
+        "actor": "human:owner",
+        "payload": "{\"gate\":\"G3\",\"target_hash\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"decision\":\"approve\",\"notes\":\"G3 approve\"}",
+        "recorded_at": "2026-11-23T02:38:15.942Z"
+      },
+      {
+        "event_id": "evt-ade9bb63-9b8f-45b5-96ca-cbea650f37a4",
+        "version": 22,
+        "idempotency_key": "sample_accepted-21",
+        "event": "sample_accepted",
+        "from_state": "SAMPLE_REVIEW",
+        "to_state": "FINAL_RENDER",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:16.083Z"
+      },
+      {
+        "event_id": "evt-9fd2ba7e-d2e2-41c0-8c39-9eae4ded0d06",
+        "version": 23,
+        "idempotency_key": "master_checked-22",
+        "event": "master_checked",
+        "from_state": "FINAL_RENDER",
+        "to_state": "FINAL_REVIEW",
+        "actor": "agent",
+        "payload": "{\"artifact_hash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"checks\":{\"final_qa_pass\":true}}",
+        "recorded_at": "2026-11-23T02:38:16.356Z"
+      },
+      {
+        "event_id": "evt-d33d809f-f70f-4966-a3b6-7939f944a312",
+        "version": 24,
+        "idempotency_key": "G4-approve-23",
+        "event": "approval_recorded",
+        "from_state": "FINAL_REVIEW",
+        "to_state": "FINAL_REVIEW",
+        "actor": "human:owner",
+        "payload": "{\"gate\":\"G4\",\"target_hash\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"decision\":\"approve\",\"notes\":\"G4 approve\"}",
+        "recorded_at": "2026-11-23T02:38:17.044Z"
+      },
+      {
+        "event_id": "evt-852bcf0d-a340-4426-badf-d0b7037a1f6b",
+        "version": 25,
+        "idempotency_key": "master_accepted-24",
+        "event": "master_accepted",
+        "from_state": "FINAL_REVIEW",
+        "to_state": "APPROVED",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:17.182Z"
+      },
+      {
+        "event_id": "evt-5103b4a7-28ef-4507-942a-29495237eb0f",
+        "version": 26,
+        "idempotency_key": "manifest_prepared-25",
+        "event": "manifest_prepared",
+        "from_state": "APPROVED",
+        "to_state": "EXPORT_REVIEW",
+        "actor": "agent",
+        "payload": "{\"artifact_hash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\"}",
+        "recorded_at": "2026-11-23T02:38:17.321Z"
+      },
+      {
+        "event_id": "evt-e9a16d0e-50ea-4134-aef1-42e9a0a2720c",
+        "version": 27,
+        "idempotency_key": "G5-approve-26",
+        "event": "approval_recorded",
+        "from_state": "EXPORT_REVIEW",
+        "to_state": "EXPORT_REVIEW",
+        "actor": "human:owner",
+        "payload": "{\"gate\":\"G5\",\"target_hash\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"decision\":\"approve\",\"notes\":\"G5 approve\"}",
+        "recorded_at": "2026-11-23T02:38:17.597Z"
+      },
+      {
+        "event_id": "evt-2e543449-aa1e-4e42-ab9c-94f894a9762c",
+        "version": 28,
+        "idempotency_key": "export_authorized-27",
+        "event": "export_authorized",
+        "from_state": "EXPORT_REVIEW",
+        "to_state": "PACKAGING",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:17.735Z"
+      }
+    ],
+    "approvals": [
+      {
+        "approval_id": "apv-5fe9949b-021c-4575-b46f-1e1c1278e61c",
+        "project_id": "cache-demo",
+        "version": 5,
+        "gate": "G1",
+        "target_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "reviewer_id": "owner",
+        "decision": "approve",
+        "recorded_at": "2026-11-23T02:38:13.608Z",
+        "notes": "G1 approve",
+        "session_id": "ses-a13e7910-56be-470c-9183-185cd9d9d1bc",
+        "event_id": "evt-740a078c-4fc7-4ddf-8148-fade63d9587b"
+      },
+      {
+        "approval_id": "apv-9455793f-db92-49ed-91ab-7d9ac67ab226",
+        "project_id": "cache-demo",
+        "version": 8,
+        "gate": "G2",
+        "target_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "reviewer_id": "owner",
+        "decision": "approve",
+        "recorded_at": "2026-11-23T02:38:14.018Z",
+        "notes": "G2 approve",
+        "session_id": "ses-a13e7910-56be-470c-9183-185cd9d9d1bc",
+        "event_id": "evt-4baf78cb-98da-470f-bbb8-72e2857f931a"
+      },
+      {
+        "approval_id": "apv-69e4c22c-b1c6-4958-8a3c-712be5e2b669",
+        "project_id": "cache-demo",
+        "version": 9,
+        "gate": "G2",
+        "target_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "reviewer_id": "owner",
+        "decision": "reject",
+        "recorded_at": "2026-11-23T02:38:14.157Z",
+        "notes": "G2 reject",
+        "session_id": "ses-a13e7910-56be-470c-9183-185cd9d9d1bc",
+        "event_id": "evt-db7f674e-dbed-48dc-b834-5d908960eac8"
+      },
+      {
+        "approval_id": "apv-394d509a-b204-4886-aa4c-e2a13572f8ee",
+        "project_id": "cache-demo",
+        "version": 11,
+        "gate": "G2",
+        "target_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "reviewer_id": "owner",
+        "decision": "approve",
+        "recorded_at": "2026-11-23T02:38:14.572Z",
+        "notes": "G2 approve",
+        "session_id": "ses-a13e7910-56be-470c-9183-185cd9d9d1bc",
+        "event_id": "evt-a35cae38-6553-428b-98dd-d29fcc7cebf5"
+      },
+      {
+        "approval_id": "apv-5f148aba-8472-42a4-a7bb-560680d417b6",
+        "project_id": "cache-demo",
+        "version": 21,
+        "gate": "G3",
+        "target_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "reviewer_id": "owner",
+        "decision": "approve",
+        "recorded_at": "2026-11-23T02:38:15.943Z",
+        "notes": "G3 approve",
+        "session_id": "ses-a13e7910-56be-470c-9183-185cd9d9d1bc",
+        "event_id": "evt-832eba25-1ff9-4fad-a734-1e1e0e02f94a"
+      },
+      {
+        "approval_id": "apv-7974deee-78a7-4dc1-be4d-9c96425e42ab",
+        "project_id": "cache-demo",
+        "version": 24,
+        "gate": "G4",
+        "target_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "reviewer_id": "owner",
+        "decision": "approve",
+        "recorded_at": "2026-11-23T02:38:17.045Z",
+        "notes": "G4 approve",
+        "session_id": "ses-a13e7910-56be-470c-9183-185cd9d9d1bc",
+        "event_id": "evt-d33d809f-f70f-4966-a3b6-7939f944a312"
+      },
+      {
+        "approval_id": "apv-809cbfc3-cdf9-49d1-981c-60bab0ce482d",
+        "project_id": "cache-demo",
+        "version": 27,
+        "gate": "G5",
+        "target_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "reviewer_id": "owner",
+        "decision": "approve",
+        "recorded_at": "2026-11-23T02:38:17.598Z",
+        "notes": "G5 approve",
+        "session_id": "ses-a13e7910-56be-470c-9183-185cd9d9d1bc",
+        "event_id": "evt-e9a16d0e-50ea-4134-aef1-42e9a0a2720c"
+      }
+    ],
+    "sessions": [
+      {
+        "session_id": "ses-a13e7910-56be-470c-9183-185cd9d9d1bc",
+        "reviewer_id": "owner",
+        "kind": "human",
+        "created_at": "2026-11-23T02:38:12.580Z"
+      },
+      {
+        "session_id": "ses-a8ae8bc3-ad06-4a0d-8d13-f36201a28f8c",
+        "reviewer_id": "writer-bot",
+        "kind": "agent",
+        "created_at": "2026-11-23T02:38:12.581Z"
+      }
+    ]
+  },
+  "draft": {
+    "projects": [
+      {
+        "project_id": "cache-draft",
+        "title": "缓存原理",
+        "mode": "draft",
+        "state": "DRAFT_READY",
+        "version": 14
+      }
+    ],
+    "events": [
+      {
+        "event_id": "evt-0a6df04a-117b-4a63-a75e-cfb9dbf1b395",
+        "version": 2,
+        "idempotency_key": "brief_saved-1",
+        "event": "brief_saved",
+        "from_state": "NEW",
+        "to_state": "BRIEF_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:17.941Z"
+      },
+      {
+        "event_id": "evt-09f0f2da-aacb-48d7-bfe9-6a4f01163a28",
+        "version": 3,
+        "idempotency_key": "research_started-2",
+        "event": "research_started",
+        "from_state": "BRIEF_READY",
+        "to_state": "RESEARCH_RUNNING",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:18.081Z"
+      },
+      {
+        "event_id": "evt-cfafef00-b360-484e-8c82-1310f09d14e8",
+        "version": 4,
+        "idempotency_key": "evidence_saved-3",
+        "event": "evidence_saved",
+        "from_state": "RESEARCH_RUNNING",
+        "to_state": "RESEARCH_REVIEW",
+        "actor": "agent",
+        "payload": "{\"artifact_hash\":\"sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"}",
+        "recorded_at": "2026-11-23T02:38:18.216Z"
+      },
+      {
+        "event_id": "evt-49c9c60e-9195-4655-909b-9e7ef2c5e3d9",
+        "version": 5,
+        "idempotency_key": "draft_script_requested-4",
+        "event": "draft_script_requested",
+        "from_state": "RESEARCH_REVIEW",
+        "to_state": "SCRIPT_RUNNING",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:18.355Z"
+      },
+      {
+        "event_id": "evt-647a9de7-eefe-4375-b8b6-4f53d5017a61",
+        "version": 6,
+        "idempotency_key": "script_saved-5",
+        "event": "script_saved",
+        "from_state": "SCRIPT_RUNNING",
+        "to_state": "SCRIPT_REVIEW",
+        "actor": "agent",
+        "payload": "{\"artifact_hash\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}",
+        "recorded_at": "2026-11-23T02:38:18.494Z"
+      },
+      {
+        "event_id": "evt-a2f41ab6-e76d-4c8b-909c-50dbe4d4a3f1",
+        "version": 7,
+        "idempotency_key": "draft_audio_requested-6",
+        "event": "draft_audio_requested",
+        "from_state": "SCRIPT_REVIEW",
+        "to_state": "AUDIO_RUNNING",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:18.631Z"
+      },
+      {
+        "event_id": "evt-bcf1d740-8ebf-4bc6-afee-3aaea74a1446",
+        "version": 8,
+        "idempotency_key": "audio_verified-7",
+        "event": "audio_verified",
+        "from_state": "AUDIO_RUNNING",
+        "to_state": "AUDIO_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:18.767Z"
+      },
+      {
+        "event_id": "evt-3005834a-ff7f-45b9-a111-8944c2169031",
+        "version": 9,
+        "idempotency_key": "alignment_verified-8",
+        "event": "alignment_verified",
+        "from_state": "AUDIO_READY",
+        "to_state": "ALIGNMENT_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:18.904Z"
+      },
+      {
+        "event_id": "evt-6d2c5ca2-7b67-4df6-ab07-66d7361c56e9",
+        "version": 10,
+        "idempotency_key": "storyboard_saved-9",
+        "event": "storyboard_saved",
+        "from_state": "ALIGNMENT_READY",
+        "to_state": "STORYBOARD_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:19.041Z"
+      },
+      {
+        "event_id": "evt-23b180d8-e383-4551-bf71-26ce7368d273",
+        "version": 11,
+        "idempotency_key": "assets_resolved-10",
+        "event": "assets_resolved",
+        "from_state": "STORYBOARD_READY",
+        "to_state": "ASSET_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:19.179Z"
+      },
+      {
+        "event_id": "evt-384a6372-f004-4c50-bdf4-e1671107422f",
+        "version": 12,
+        "idempotency_key": "snapshot_compiled-11",
+        "event": "snapshot_compiled",
+        "from_state": "ASSET_READY",
+        "to_state": "COMPILED",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:19.319Z"
+      },
+      {
+        "event_id": "evt-4a4919d3-e65a-4bad-afd8-6465f837a313",
+        "version": 13,
+        "idempotency_key": "draft_render_requested-12",
+        "event": "draft_render_requested",
+        "from_state": "COMPILED",
+        "to_state": "DRAFT_RENDER",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:19.599Z"
+      },
+      {
+        "event_id": "evt-142bee5c-195d-4034-b9db-1f95980c3727",
+        "version": 14,
+        "idempotency_key": "labeled_draft_checked-13",
+        "event": "labeled_draft_checked",
+        "from_state": "DRAFT_RENDER",
+        "to_state": "DRAFT_READY",
+        "actor": "agent",
+        "payload": "{\"checks\":{\"playable\":true,\"draft_marked\":true,\"issues_recorded\":true}}",
+        "recorded_at": "2026-11-23T02:38:19.736Z"
+      }
+    ],
+    "approvals": [],
+    "sessions": [
+      {
+        "session_id": "ses-adf8175c-c08a-4eee-aded-3291fd364df9",
+        "reviewer_id": "owner",
+        "kind": "human",
+        "created_at": "2026-11-23T02:38:17.743Z"
+      },
+      {
+        "session_id": "ses-893ed975-623a-4a99-989c-1cdc103fddfa",
+        "reviewer_id": "writer-bot",
+        "kind": "agent",
+        "created_at": "2026-11-23T02:38:17.743Z"
+      }
+    ]
+  },
+  "race": {
+    "projects": [
+      {
+        "project_id": "race",
+        "title": "race",
+        "mode": "quality",
+        "state": "BRIEF_READY",
+        "version": 2
+      }
+    ],
+    "events": [
+      {
+        "event_id": "evt-f6612d35-d2ad-4e3f-93e4-0f851f320de3",
+        "version": 2,
+        "idempotency_key": "race-6",
+        "event": "brief_saved",
+        "from_state": "NEW",
+        "to_state": "BRIEF_READY",
+        "actor": "agent",
+        "payload": "{}",
+        "recorded_at": "2026-11-23T02:38:20.326Z"
+      }
+    ],
+    "approvals": [],
+    "sessions": []
+  }
+}

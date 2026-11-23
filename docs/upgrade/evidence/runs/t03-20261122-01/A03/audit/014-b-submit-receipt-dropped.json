@@ -1,0 +1,56 @@
+{
+  "seq": 14,
+  "label": "b-submit-receipt-dropped",
+  "op": "submit",
+  "session": null,
+  "request": {
+    "project_id": "no-lookup",
+    "idempotency_key": "tts-1",
+    "skill_id": "audio-production",
+    "tool": "generate_tts",
+    "provider": "test-provider",
+    "quote_minor": 70,
+    "payload": {
+      "section_id": "tts-1"
+    }
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "UNKNOWN",
+    "project_id": "no-lookup",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "job_id": "job-5d9c4c0a-ea5d-4ebf-9ba6-eec3d7491339",
+    "tool_result": {
+      "status": "unknown",
+      "job_id": "job-5d9c4c0a-ea5d-4ebf-9ba6-eec3d7491339",
+      "artifact_refs": [],
+      "warnings": [],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 70,
+        "actual_minor": null
+      },
+      "retryable": false,
+      "next_action": "reconcile"
+    },
+    "balance": {
+      "currency": "CNY",
+      "limit_minor": 100,
+      "held_minor": 70,
+      "spent_minor": 0,
+      "pending_verification_minor": 70,
+      "available_minor": 30
+    },
+    "issues": [
+      {
+        "code": "RECEIPT_UNKNOWN",
+        "job_id": "job-5d9c4c0a-ea5d-4ebf-9ba6-eec3d7491339",
+        "detail": "UND_ERR_SOCKET",
+        "message": "作业 job-5d9c4c0a-ea5d-4ebf-9ba6-eec3d7491339 回执未知，预留保留，须按原键对账，不得重新提交"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "seq": 2,
+  "label": "a-budget-by-agent",
+  "op": "budget",
+  "session": "agent:writer-bot",
+  "request": {
+    "project_id": "budget-race",
+    "currency": "CNY",
+    "project_limit_minor": 100
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "budget-race",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [
+      {
+        "code": "HUMAN_REQUIRED",
+        "action": "authorize_budget_increase",
+        "message": "authorize_budget_increase 仅限已认证的人类会话"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

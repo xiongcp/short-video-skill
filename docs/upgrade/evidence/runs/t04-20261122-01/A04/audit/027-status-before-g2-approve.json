@@ -1,0 +1,19 @@
+{
+  "seq": 27,
+  "label": "status-before-g2-approve",
+  "op": "status",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "cache-speed",
+    "state": "SCRIPT_REVIEW",
+    "version": 11,
+    "event_count": 10,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

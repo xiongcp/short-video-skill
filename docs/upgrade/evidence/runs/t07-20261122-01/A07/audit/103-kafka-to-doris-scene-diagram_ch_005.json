@@ -1,0 +1,98 @@
+{
+  "seq": 103,
+  "label": "kafka-to-doris/scene-diagram_ch_005",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris",
+    "name": "diagram_ch_005",
+    "template": "diagram",
+    "focus": "以 A17 为例并排显示原始字段、作业状态、目标行。",
+    "props": [
+      "board"
+    ],
+    "layers": [
+      {
+        "asset_ref": "asset://kafka-to-doris/studio_backdrop/v1",
+        "element_ids": []
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/layer_diagram_ch_005/v1",
+        "element_ids": [
+          "beat_022",
+          "beat_023",
+          "beat_024",
+          "beat_025",
+          "beat_027"
+        ],
+        "claim_ids": [
+          "mapping",
+          "progress",
+          "task"
+        ]
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "kafka-to-doris",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "scene": {
+      "project_id": "kafka-to-doris",
+      "version": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_005/v1",
+      "template": "diagram",
+      "focus": "以 A17 为例并排显示原始字段、作业状态、目标行。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://kafka-to-doris/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://kafka-to-doris/layer_diagram_ch_005/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "beat_022",
+            "beat_023",
+            "beat_024",
+            "beat_025",
+            "beat_027"
+          ],
+          "claim_ids": [
+            "mapping",
+            "progress",
+            "task"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://kafka-to-doris/diagram_ch_005/v1",
+      "kind": "scene",
+      "sha256": "sha256:1833ce87bab9bf0d168368a367410249b16a6ecf6f9c9cca609e3edef5e750eb",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

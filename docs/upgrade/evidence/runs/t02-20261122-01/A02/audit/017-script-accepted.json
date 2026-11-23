@@ -1,0 +1,25 @@
+{
+  "seq": 17,
+  "label": "script-accepted",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 11,
+    "idempotency_key": "script_accepted-11",
+    "event": "script_accepted",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "AUDIO_RUNNING",
+    "version": 12,
+    "event_count": 11,
+    "event_id": "evt-682dfa88-44a2-4089-86b6-acbbb9bb365e",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

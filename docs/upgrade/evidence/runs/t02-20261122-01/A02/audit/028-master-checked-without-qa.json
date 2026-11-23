@@ -1,0 +1,32 @@
+{
+  "seq": 28,
+  "label": "master-checked-without-qa",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 22,
+    "idempotency_key": "master_checked-22",
+    "event": "master_checked",
+    "payload": {
+      "artifact_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+    }
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "cache-demo",
+    "state": "FINAL_RENDER",
+    "version": 22,
+    "event_count": 21,
+    "issues": [
+      {
+        "code": "REQUIREMENT_UNMET",
+        "requirement": "final_qa_pass",
+        "message": "前置条件 final_qa_pass 未满足"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

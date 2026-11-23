@@ -1,0 +1,38 @@
+{
+  "seq": 14,
+  "project_id": "import-path",
+  "label": "g2",
+  "op": "decide",
+  "session": "human:owner",
+  "request": {
+    "project_id": "import-path",
+    "expected_version": 7,
+    "idempotency_key": "g2",
+    "gate": "G2",
+    "target_hash": "sha256:61528d5c4e91a0ad3f3e7a4e5bf93c0e03f3ac40f9b6dd916d4fb8d1a2893ac3",
+    "decision": "approve",
+    "notes": "文稿与 60 秒目标确认"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "import-path",
+    "state": "SCRIPT_REVIEW",
+    "version": 8,
+    "event_count": 7,
+    "event_id": "evt-ed0d818f-2ae0-4a1a-926f-4395dfa00b79",
+    "approval": {
+      "project_id": "import-path",
+      "version": 8,
+      "approval_id": "apv-5897c2e3-a040-4b72-97af-e69969e49677",
+      "gate": "G2",
+      "target_hash": "sha256:61528d5c4e91a0ad3f3e7a4e5bf93c0e03f3ac40f9b6dd916d4fb8d1a2893ac3",
+      "reviewer_id": "owner",
+      "decision": "approve",
+      "recorded_at": "2026-11-23T03:22:02.171Z",
+      "notes": "文稿与 60 秒目标确认"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

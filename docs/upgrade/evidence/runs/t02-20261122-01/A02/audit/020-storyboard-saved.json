@@ -1,0 +1,25 @@
+{
+  "seq": 20,
+  "label": "storyboard-saved",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 14,
+    "idempotency_key": "storyboard_saved-14",
+    "event": "storyboard_saved",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "STORYBOARD_READY",
+    "version": 15,
+    "event_count": 14,
+    "event_id": "evt-543e9448-31d4-4e14-90d8-b10687bf5f45",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

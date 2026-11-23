@@ -1,0 +1,151 @@
+{
+  "status": "READY",
+  "project_id": "host-demo",
+  "state": "NEW",
+  "version": 1,
+  "event_count": 0,
+  "resolved": [
+    {
+      "shot_id": "shot_host",
+      "scene_ref": "asset://host-demo/studio_host/v1",
+      "zoom": 1.5,
+      "assets": [
+        {
+          "asset_ref": "asset://host-demo/studio_host/v1",
+          "kind": "scene",
+          "sha256": "sha256:04f67008e9036226e6ce8f34f0212a166ed732b608283ab0023bfa16b2d5c354",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/studio_backdrop/v1",
+          "kind": "background",
+          "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/host_main/v1",
+          "kind": "character",
+          "sha256": "sha256:18f5ccb9bd8d3aef251b38867cdda4c6df87e7811167ea75b2dbc1575855d403",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/host_rig/v1",
+          "kind": "rig",
+          "sha256": "sha256:8072a7b252ce4e3dfc6460be97f82b2672062cf3ec2ca2edf4a4ec0fbce585e6",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/host_voice/v1",
+          "kind": "voice",
+          "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2",
+          "usage": "cleared"
+        }
+      ],
+      "character": {
+        "project_id": "host-demo",
+        "version": 1,
+        "character_ref": "asset://host-demo/host_main/v1",
+        "character_id": "host_main",
+        "style_lock": [
+          "墨蓝短外套",
+          "栗色齐肩发",
+          "琥珀色发夹的位置固定"
+        ],
+        "rig_ref": "asset://host-demo/host_rig/v1",
+        "voice_ref": "asset://host-demo/host_voice/v1",
+        "supported_angles": [
+          "front",
+          "three_quarter"
+        ],
+        "expressions": [
+          "neutral",
+          "curious",
+          "explaining"
+        ],
+        "gestures": [
+          "idle",
+          "explain",
+          "point_right"
+        ],
+        "parameters": [
+          {
+            "parameter_id": "ParamMouthOpenY",
+            "min": 0,
+            "max": 1
+          }
+        ]
+      }
+    },
+    {
+      "shot_id": "shot_diagram",
+      "scene_ref": "asset://host-demo/diagram_ch_002/v1",
+      "zoom": 1,
+      "assets": [
+        {
+          "asset_ref": "asset://host-demo/diagram_ch_002/v1",
+          "kind": "scene",
+          "sha256": "sha256:65e6a36b8f3bcd5164a158fb58d3ea01ff3e194ec378d53a7df40b9fff6e6181",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/studio_backdrop/v1",
+          "kind": "background",
+          "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/diagram_cache/v1",
+          "kind": "diagram",
+          "sha256": "sha256:18bff4f9699889dbcb7cf0a89a50da76aaf00b8d1be6e6b9a74e90d35df93816",
+          "usage": "cleared"
+        }
+      ]
+    },
+    {
+      "shot_id": "shot_illustration",
+      "scene_ref": "asset://host-demo/illustration_ch_001/v1",
+      "zoom": 1.2,
+      "assets": [
+        {
+          "asset_ref": "asset://host-demo/illustration_ch_001/v1",
+          "kind": "scene",
+          "sha256": "sha256:d740bcf81189ac7cdb35d069284b438996b8c734a01d9e181004ec3401d9ffdc",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/studio_backdrop/v1",
+          "kind": "background",
+          "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/layer_illustration/v1",
+          "kind": "illustration",
+          "sha256": "sha256:13b985843206b2c44383bb7699e33ec01c4c09968e461e5d5d3ecb159651927d",
+          "usage": "cleared"
+        }
+      ]
+    },
+    {
+      "shot_id": "shot_hd_static",
+      "scene_ref": "asset://host-demo/studio_hd/v1",
+      "zoom": 1,
+      "assets": [
+        {
+          "asset_ref": "asset://host-demo/studio_hd/v1",
+          "kind": "scene",
+          "sha256": "sha256:e91b9e81ae603459bcb1eb41359cdd34599a401954dffa7738151a95fe193137",
+          "usage": "cleared"
+        },
+        {
+          "asset_ref": "asset://host-demo/backdrop_hd/v1",
+          "kind": "background",
+          "sha256": "sha256:5fa9f825bd9a23267242861eabf8220b62a7457795a222af9f2b2a7487ed47e7",
+          "usage": "cleared"
+        }
+      ]
+    }
+  ],
+  "issues": [],
+  "locale": "zh-CN"
+}

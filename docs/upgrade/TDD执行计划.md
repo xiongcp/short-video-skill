@@ -6,7 +6,7 @@
 
 **架构**　一个 Orchestrator 管状态和授权。Node.js / TypeScript 服务消费现有 JSON Schema，SQLite 保存项目及作业。角色、图解和音频按镜头编译，再由确定性 Worker 生产。Python 保留为离线验收入口。
 
-**给接手模型**　先读[项目计划](项目计划书.md)、[升级设计](升级详细设计.md)、[验收计划](验收计划.md)与[当前状态](交接状态与证据.md)。T00 已实际完成，首个生产任务是 T01。当前仓库尚无 package.json、Studio 或生产 Worker。以下 `runtime/`、`studio/` 和 `tests/runtime/` 路径是实施时创建的位置，现有 `schemas/`、`skills/`、`policies/` 和 `tools/` 继续作为权威入口。
+**给接手模型**　先读[项目计划](项目计划书.md)、[升级设计](升级详细设计.md)、[验收计划](验收计划.md)与[当前状态](交接状态与证据.md)。T00–T04 已实际完成，T05 的数据通路、T06 的资产目录、T07 的编译器与 T08 的烘焙器已在 RUNTIME 级完成（真实语音的 A05、原创美术的 A06/A11 验收待办），下一张卡是 T09。`runtime/cli.ts`、`runtime/doctor.ts`、`runtime/preview.ts`、`runtime/i18n.ts` 与 `tests/runtime/` 由 T01 建立，`runtime/project-store.ts`、`runtime/orchestrator.ts`、`runtime/approvals.ts` 由 T02 建立，`runtime/jobs.ts`、`runtime/ledger.ts` 由 T03 建立，`runtime/content.ts`、`tools/search_sources/adapter.ts` 由 T04 建立，`runtime/audio.ts`、`runtime/assets.ts`、`tools/align_audio/adapter.ts`、`tools/generate_tts/adapter.ts` 由 T05 建立，T06 在 `runtime/assets.ts` 中加入资产登记、授权、场景模板与装配前检查，`runtime/compiler.ts`、`runtime/timebase.ts` 由 T07 建立，`runtime/baker.ts`、`tools/bake_character/adapter.ts`、`tests/runtime/studio-fixture.mjs` 由 T08 建立；仓库尚无 package.json、Studio 或生产 Worker。以下 `runtime/`、`studio/` 和 `tests/runtime/` 路径是实施时创建的位置，现有 `schemas/`、`skills/`、`policies/` 和 `tools/` 继续作为权威入口。
 
 ## 开工与每张卡的闭环
 
@@ -52,67 +52,67 @@ python3 -B -m unittest discover -s evals -p 'test_*.py' -v
 
 创建 `runtime/cli.ts`、`runtime/doctor.ts`、`runtime/preview.ts` 和 `tests/runtime/T01-doctor.test.mjs`。复用 `profiles/duration.yaml` 与 `tools/inspect_media/contract.yaml`。第一步只创建诊断入口，随后接入本地画面、WAV、合成与实际预览探针。
 
-- [ ] **RED 1**　在临时目录放一份确有内容的字体和 WAV，再把约定字体移走。调用 doctor，断言输出列出缺失字体和该能力状态。测试从返回项判断，避免只匹配日志文字。
-- [ ] **GREEN 1**　实现本地依赖、字体、渲染和编码能力探针，保留工具版本、实际图形后端及缺口。缺图形后端时仍可报告音频和编码能力。
-- [ ] **RED 2**　用 48 kHz 本地 WAV 和可分发的角色夹具，生成 12 秒技术片。断言 360 个解码视频帧、存在可听声轨、首中末三帧有正样本画面差。
-- [ ] **GREEN 2**　将一个角色层和一层程序图解通过拟用生产合成路径输出母版。归档源轨、渲染配置、探针和三帧。尚无原创 Rig 时在报告写明夹具身份。
-- [ ] 复验命令为 `node --test tests/runtime/T01-doctor.test.mjs`。把 12 秒 PoC 的证据挂在 A01，正式短片命令留给 60 秒以上的节目。
+- [x] **RED 1**　在临时目录放一份确有内容的字体和 WAV，再把约定字体移走。调用 doctor，断言输出列出缺失字体和该能力状态。测试从返回项判断，避免只匹配日志文字。
+- [x] **GREEN 1**　实现本地依赖、字体、渲染和编码能力探针，保留工具版本、实际图形后端及缺口。缺图形后端时仍可报告音频和编码能力。
+- [x] **RED 2**　用 48 kHz 本地 WAV 和可分发的角色夹具，生成 12 秒技术片。断言 360 个解码视频帧、存在可听声轨、首中末三帧有正样本画面差。
+- [x] **GREEN 2**　将一个角色层和一层程序图解通过拟用生产合成路径输出母版。归档源轨、渲染配置、探针和三帧。尚无原创 Rig 时在报告写明夹具身份。
+- [x] 复验命令为 `node --test tests/runtime/T01-doctor.test.mjs`。把 12 秒 PoC 的证据挂在 A01，正式短片命令留给 60 秒以上的节目。
 
 ## T02　项目状态、审查与幂等事件
 
 创建 `runtime/project-store.ts`、`runtime/orchestrator.ts`、`runtime/approvals.ts`、`tests/runtime/T02-state.test.mjs`。读取 `workflows/topic-to-video.yaml` 和 `policies/approval-gates.yaml`。
 
-- [ ] **RED**　同一事件同一输入提交两次应取得同一事件 ID。同键不同载荷和旧 expected_version 应拒绝。再构造已过期的 G2、草稿直接导出、代理请求自签 G4 三个反例。
-- [ ] **GREEN**　单个 SQLite 事务比较版本、读取真正的审核人身份、查目标哈希、插入事件和推进状态。唯一键覆盖项目和幂等键。批准证据及旧版本保留。
-- [ ] **REFACTOR**　让 CLI 和后续 UI 使用同一个状态服务。重启进程后读取原项目，比较阶段和事件数量。运行 `node --test tests/runtime/T02-state.test.mjs`，将数据库快照和拒绝记录留 A02。
+- [x] **RED**　同一事件同一输入提交两次应取得同一事件 ID。同键不同载荷和旧 expected_version 应拒绝。再构造已过期的 G2、草稿直接导出、代理请求自签 G4 三个反例。
+- [x] **GREEN**　单个 SQLite 事务比较版本、读取真正的审核人身份、查目标哈希、插入事件和推进状态。唯一键覆盖项目和幂等键。批准证据及旧版本保留。
+- [x] **REFACTOR**　让 CLI 和后续 UI 使用同一个状态服务。重启进程后读取原项目，比较阶段和事件数量。运行 `node --test tests/runtime/T02-state.test.mjs`，将数据库快照和拒绝记录留 A02。
 
 ## T03　预算、供应商作业与未知回执
 
 创建 `runtime/jobs.ts`、`runtime/ledger.ts`、`tests/runtime/T03-jobs.test.mjs`。使用 RenderJob、ToolResult 和 `policies/budget.yaml`，费用统一使用最小货币单位。
 
-- [ ] **RED**　余额上限 100，并发发起两个不同的 70 单位意图，断言有效预留只有一个。同一意图重复发送时，测试端接单次数应为 1。注入接单后回执丢失与进程重启。
-- [ ] **GREEN**　在事务中写 reserve 和待提交意图，再用原键联系供应商。未知时查询原业务键或回执。对账确认后结算一次。无查询接口时保留 UNKNOWN 和待核验余额。
-- [ ] **REFACTOR**　将记账写入从供应商响应解析中分离。运行 `node --test tests/runtime/T03-jobs.test.mjs`，保存预留、结算、供应商请求计数、授权拒绝与重启日志到 A03。
+- [x] **RED**　余额上限 100，并发发起两个不同的 70 单位意图，断言有效预留只有一个。同一意图重复发送时，测试端接单次数应为 1。注入接单后回执丢失与进程重启。
+- [x] **GREEN**　在事务中写 reserve 和待提交意图，再用原键联系供应商。未知时查询原业务键或回执。对账确认后结算一次。无查询接口时保留 UNKNOWN 和待核验余额。
+- [x] **REFACTOR**　将记账写入从供应商响应解析中分离。运行 `node --test tests/runtime/T03-jobs.test.mjs`，保存预留、结算、供应商请求计数、授权拒绝与重启日志到 A03。
 
 ## T04　主题、来源与可审核脚本
 
 创建 `runtime/content.ts`、`tools/search_sources/adapter.ts`、`tests/runtime/T04-content.test.mjs`。调用入口、选题、研究、编剧四个 Skill。复用短片样例的 brief、evidence-set、script。
 
-- [ ] **RED**　让两个版本来源各支持不同结论，再加入无支持的关键断言。断言冲突保留原文定位，unsupported 无法当作已确认事实继续。已有稿件的段落 ID 经非实质文字修订保持不变。
-- [ ] **GREEN**　以固定版本保存来源、论点关联、限定、分段口播和需试听术语。对真实来源核查的结果由 G1 审核，G2 固定文稿和片长。无网络时可读取用户已授权的材料。
-- [ ] **REFACTOR**　提取入口和恢复路径共用的默认值合并。测试显式 120 秒、新项目 180 秒、standard8 默认 480 秒。运行 `node --test tests/runtime/T04-content.test.mjs` → A04。
+- [x] **RED**　让两个版本来源各支持不同结论，再加入无支持的关键断言。断言冲突保留原文定位，unsupported 无法当作已确认事实继续。已有稿件的段落 ID 经非实质文字修订保持不变。
+- [x] **GREEN**　以固定版本保存来源、论点关联、限定、分段口播和需试听术语。对真实来源核查的结果由 G1 审核，G2 固定文稿和片长。无网络时可读取用户已授权的材料。
+- [x] **REFACTOR**　提取入口和恢复路径共用的默认值合并。测试显式 120 秒、新项目 180 秒、standard8 默认 480 秒。运行 `node --test tests/runtime/T04-content.test.mjs` → A04。
 
 ## T05　音频、词对齐、嘴型与 SRT
 
 创建 `runtime/audio.ts`、`tools/align_audio/adapter.ts`、`tools/generate_tts/adapter.ts`、`tests/runtime/T05-audio.test.mjs`。复用 AudioManifest、Alignment 和 SubtitleTrack。先通导入 WAV，再接获准的配音渠道。
 
-- [ ] **RED**　段落起始为 48,000 采样，局部词起始为 2,400，断言母带中的词起始是 50,400。同一术语出现两次时用 ID 对齐。加入低置信词和一个手校修订。
-- [ ] **GREEN**　保存原始 WAV、文本/音色版本、采样时间和对齐置信度。用同一份修订生成字幕和视素驱动。导入 WAV 和 TTS 产生相同的下游合同。
-- [ ] **REFACTOR**　计费与重试重用 T03。运行 `node --test tests/runtime/T05-audio.test.mjs`。另用至少 100 个手标锚点及真实音色完成 A05，分别记是否已校准。
+- [x] **RED**　段落起始为 48,000 采样，局部词起始为 2,400，断言母带中的词起始是 50,400。同一术语出现两次时用 ID 对齐。加入低置信词和一个手校修订。
+- [x] **GREEN**　保存原始 WAV、文本/音色版本、采样时间和对齐置信度。用同一份修订生成字幕和视素驱动。导入 WAV 和 TTS 产生相同的下游合同。
+- [ ] **REFACTOR**　计费与重试重用 T03。运行 `node --test tests/runtime/T05-audio.test.mjs`。另用至少 100 个手标锚点及真实音色完成 A05，分别记是否已校准。（计费复用与聚焦测试已完成；真实语音的 A05 尚未执行，故本项未勾选。）
 
 ## T06　原创角色和三类可编辑场景
 
 创建 `runtime/assets.ts`、`tests/runtime/T06-assets.test.mjs`。实际素材按权利人许可存入项目资产库。测试目录只放允许复分发的资产及指纹。更新 character、scene 合同前先测既有样例。
 
-- [ ] **RED**　缺 Rig 版本、未授权素材、未登记 90 度视角在正式装配时应返回对应资产 ID。输入全幅 1920×1080 位图并要求 1.5 倍无损推近，预检应报告覆盖不足。
-- [ ] **GREEN**　登记原画、拆层、Rig、许可、支持的动作/视角与音色。保留旧版本，按场景安全区和推近倍率检查可用像素，建立主持人、程序图解、主题插画三类模板。
-- [ ] **REFACTOR**　角色画面和纯图解共享同一资产解析。运行 `node --test tests/runtime/T06-assets.test.mjs`，制作 45–60 秒原创美术样片并记录三底、极值姿态和美术决定 → A06、A11。
+- [x] **RED**　缺 Rig 版本、未授权素材、未登记 90 度视角在正式装配时应返回对应资产 ID。输入全幅 1920×1080 位图并要求 1.5 倍无损推近，预检应报告覆盖不足。
+- [x] **GREEN**　登记原画、拆层、Rig、许可、支持的动作/视角与音色。保留旧版本，按场景安全区和推近倍率检查可用像素，建立主持人、程序图解、主题插画三类模板。
+- [ ] **REFACTOR**　角色画面和纯图解共享同一资产解析。运行 `node --test tests/runtime/T06-assets.test.mjs`，制作 45–60 秒原创美术样片并记录三底、极值姿态和美术决定 → A06、A11。（共享资产解析与聚焦测试已完成；原创美术样片尚未制作，故本项未勾选。）
 
 ## T07　导演 DSL、词锚编译与时间基
 
 创建 `runtime/compiler.ts`、`tests/runtime/T07-compiler.test.mjs`。使用 storyboard、common、workflow 三份合同，输入两个示例及实测对齐副本，保留已有 planned 样例的读取能力。
 
-- [ ] **RED**　对 2,399 与 2,400 两个采样断言输出帧 1、2。相邻镜头共享一个切点，末端包含最后一个有效采样。非法动作、跨段 cue、循环依赖或越界动画应返回对象和字段。
-- [ ] **GREEN**　解析稳定引用，对共享边界只量化一次。编译器给出每镜绝对/局部区间、已绑定的动效、音频引用、快照哈希与层级依赖。正式编译只接受 aligned 和获准资产。
-- [ ] **REFACTOR**　使两档复用同一量化代码。运行 `node --test tests/runtime/T07-compiler.test.mjs`，随后跑 Python 的两组样例回归。保存输入、编译结果和每个负例诊断 → A07。
+- [x] **RED**　对 2,399 与 2,400 两个采样断言输出帧 1、2。相邻镜头共享一个切点，末端包含最后一个有效采样。非法动作、跨段 cue、循环依赖或越界动画应返回对象和字段。
+- [x] **GREEN**　解析稳定引用，对共享边界只量化一次。编译器给出每镜绝对/局部区间、已绑定的动效、音频引用、快照哈希与层级依赖。正式编译只接受 aligned 和获准资产。
+- [x] **REFACTOR**　使两档复用同一量化代码。运行 `node --test tests/runtime/T07-compiler.test.mjs`，随后跑 Python 的两组样例回归。保存输入、编译结果和每个负例诊断 → A07。
 
 ## T08　顺序角色烘焙与确定性帧读取
 
 创建 `tools/bake_character/adapter.ts`、`runtime/baker.ts`、`tests/runtime/T08-bake.test.mjs`。接已有角色能力表、CharacterActionPlan 和已编译局部帧数。
 
-- [ ] **RED**　用同一 Rig、种子、初始状态依次请求局部帧 29、0、15，再按顺序请求 0、15、29，逐个比较无损 RGBA 的哈希。改变显式继承的上一镜末态时缓存键必须变化。
-- [ ] **GREEN**　固定步长顺序烘焙，合成端只查该帧。将姿态、嘴型和次级运动按固定顺序应用，快照包含 Rig 与物理配置。
-- [ ] **REFACTOR**　将镜头初态解析与帧读取分开。运行 `node --test tests/runtime/T08-bake.test.mjs`，留实际图像、像素差及锁定环境。模拟 Rig 只记为开发用例 → A08。
+- [x] **RED**　用同一 Rig、种子、初始状态依次请求局部帧 29、0、15，再按顺序请求 0、15、29，逐个比较无损 RGBA 的哈希。改变显式继承的上一镜末态时缓存键必须变化。
+- [x] **GREEN**　固定步长顺序烘焙，合成端只查该帧。将姿态、嘴型和次级运动按固定顺序应用，快照包含 Rig 与物理配置。
+- [x] **REFACTOR**　将镜头初态解析与帧读取分开。运行 `node --test tests/runtime/T08-bake.test.mjs`，留实际图像、像素差及锁定环境。模拟 Rig 只记为开发用例 → A08。
 
 ## T09　逐镜渲染、局部返修与崩溃恢复
 

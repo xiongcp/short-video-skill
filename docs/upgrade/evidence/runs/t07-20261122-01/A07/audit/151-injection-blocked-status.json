@@ -1,0 +1,19 @@
+{
+  "seq": 151,
+  "label": "injection-blocked/status",
+  "op": "status",
+  "session": null,
+  "request": {
+    "project_id": "direct-demo"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "direct-demo",
+    "state": "STORYBOARD_READY",
+    "version": 10,
+    "event_count": 9,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "seq": 44,
+  "project_id": "tts-path",
+  "label": "budget",
+  "op": "budget",
+  "session": "human:owner",
+  "request": {
+    "project_id": "tts-path",
+    "currency": "CNY",
+    "project_limit_minor": 1000
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "tts-path",
+    "state": "AUDIO_RUNNING",
+    "version": 9,
+    "event_count": 8,
+    "budget": {
+      "currency": "CNY",
+      "limit_minor": 1000,
+      "held_minor": 0,
+      "spent_minor": 0,
+      "pending_verification_minor": 0,
+      "available_minor": 1000
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "seq": 148,
+  "label": "injection/compile-missing",
+  "op": "compile",
+  "session": null,
+  "request": {
+    "project_id": "direct-demo",
+    "expected_version": 9,
+    "idempotency_key": "compile-missing"
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "direct-demo",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "issues": [
+      {
+        "code": "STORYBOARD_MISSING",
+        "storyboard_version": null,
+        "message": "还没有已保存的对齐分镜（版本 {storyboard_version}），无法正式编译"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "seq": 5,
+  "label": "a-race-left",
+  "op": "submit",
+  "session": null,
+  "request": {
+    "project_id": "budget-race",
+    "idempotency_key": "tts-a",
+    "skill_id": "audio-production",
+    "tool": "generate_tts",
+    "provider": "test-provider",
+    "quote_minor": 70,
+    "payload": {
+      "section_id": "tts-a"
+    }
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "budget-race",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [
+      {
+        "code": "BUDGET_EXCEEDED",
+        "quote_minor": 70,
+        "available_minor": 30,
+        "message": "报价 70 超出可用余额 30"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

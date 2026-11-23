@@ -1,0 +1,83 @@
+{
+  "seq": 12,
+  "label": "p5-bake-shot_002",
+  "op": "bake",
+  "session": null,
+  "request": {
+    "project_id": "direct-demo",
+    "plan_ref": "asset://direct-demo/character_plan/v1",
+    "shot_id": "shot_002",
+    "seed": 7,
+    "frames": [
+      0,
+      60
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "BAKED",
+    "project_id": "direct-demo",
+    "state": "COMPILED",
+    "version": 12,
+    "event_count": 11,
+    "bake": {
+      "shot_id": "shot_002",
+      "cache_key": "sha256:7d044b75d12dccbd6b2d1836140de14a532c1d9e116722a381a7ae3ba89a2712",
+      "asset_ref": "asset://direct-demo/character_bake/v2",
+      "path": "assets/character_bake/v2.json",
+      "frame_count": 61,
+      "initial_state_hash": "sha256:00c1a9a89502f71a8aefac653d9e7e30850d0e651449607af17b8c3712df87ca",
+      "end_state_hash": "sha256:c1871a3a6af8061488edfbcca995d41a5aa4e0b2a5e73fa5d307d3fb51166131",
+      "inherited_from": {
+        "shot_id": "shot_001",
+        "cache_key": "sha256:fdf74d3efa421ababd965b8a83443a409851210831fcd9a9f08195a4f9a67b73",
+        "end_state_hash": "sha256:00c1a9a89502f71a8aefac653d9e7e30850d0e651449607af17b8c3712df87ca"
+      }
+    },
+    "baked": [
+      {
+        "shot_id": "shot_001",
+        "cache_key": "sha256:fdf74d3efa421ababd965b8a83443a409851210831fcd9a9f08195a4f9a67b73",
+        "cached": false,
+        "asset_ref": "asset://direct-demo/character_bake/v1",
+        "end_state_hash": "sha256:00c1a9a89502f71a8aefac653d9e7e30850d0e651449607af17b8c3712df87ca"
+      },
+      {
+        "shot_id": "shot_002",
+        "cache_key": "sha256:7d044b75d12dccbd6b2d1836140de14a532c1d9e116722a381a7ae3ba89a2712",
+        "cached": false,
+        "asset_ref": "asset://direct-demo/character_bake/v2",
+        "end_state_hash": "sha256:c1871a3a6af8061488edfbcca995d41a5aa4e0b2a5e73fa5d307d3fb51166131"
+      }
+    ],
+    "frames": [
+      {
+        "frame": 0,
+        "rgba_sha256": "sha256:a45f7406116976aa0ca00079aaa1c2c8088aba952c85b9ff2edd9a0613c39fcd",
+        "png": "frames/7d044b75d12dccbd/f00000.png"
+      },
+      {
+        "frame": 60,
+        "rgba_sha256": "sha256:bb2b3738c6a3a290a4e97cecef55c763718452b21a32378d1e816ec504742a83",
+        "png": "frames/7d044b75d12dccbd/f00060.png"
+      }
+    ],
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "bake-7d044b75d12d",
+      "artifact_refs": [
+        "asset://direct-demo/character_bake/v2"
+      ],
+      "warnings": [],
+      "cost": {
+        "currency": "XXX",
+        "estimated_minor": 0,
+        "actual_minor": 0
+      },
+      "retryable": false,
+      "next_action": "continue"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

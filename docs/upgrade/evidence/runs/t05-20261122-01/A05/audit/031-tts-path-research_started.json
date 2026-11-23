@@ -1,0 +1,25 @@
+{
+  "seq": 31,
+  "project_id": "tts-path",
+  "label": "research_started",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "tts-path",
+    "expected_version": 2,
+    "idempotency_key": "research_started",
+    "event": "research_started",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "tts-path",
+    "state": "RESEARCH_RUNNING",
+    "version": 3,
+    "event_count": 2,
+    "event_id": "evt-ab1b5f82-0bfd-4671-89f6-79882b740d1d",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

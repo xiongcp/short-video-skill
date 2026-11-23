@@ -1,0 +1,63 @@
+{
+  "seq": 138,
+  "label": "injection/scene-studio_host",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "direct-demo",
+    "name": "studio_host",
+    "template": "host",
+    "focus": "主持人",
+    "layers": [
+      {
+        "asset_ref": "asset://direct-demo/studio_backdrop/v1"
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "direct-demo",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "scene": {
+      "project_id": "direct-demo",
+      "version": 1,
+      "scene_ref": "asset://direct-demo/studio_host/v1",
+      "template": "host",
+      "focus": "主持人",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://direct-demo/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        }
+      ],
+      "props": [
+        "camera",
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://direct-demo/studio_host/v1",
+      "kind": "scene",
+      "sha256": "sha256:0e84c37078ea8026d9db57d0c0f8f96e47ce754ad4cfad93a6faa622f951e739",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

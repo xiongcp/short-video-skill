@@ -1,0 +1,122 @@
+[
+  {
+    "seq": 3,
+    "label": "same-key-different-request",
+    "codes": [
+      "IDEMPOTENCY_CONFLICT"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 4,
+    "label": "stale-expected-version",
+    "codes": [
+      "VERSION_CONFLICT"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 6,
+    "label": "evidence-without-hash",
+    "codes": [
+      "ARTIFACT_HASH_REQUIRED"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 8,
+    "label": "research-accepted-without-g1",
+    "codes": [
+      "APPROVAL_MISSING"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 15,
+    "label": "script-accepted-with-expired-g2",
+    "codes": [
+      "APPROVAL_STALE"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 28,
+    "label": "master-checked-without-qa",
+    "codes": [
+      "REQUIREMENT_UNMET"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 30,
+    "label": "g4-forged-reviewer-field",
+    "codes": [
+      "REVIEWER_IN_REQUEST"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 31,
+    "label": "g4-agent-session",
+    "codes": [
+      "APPROVAL_UNAUTHENTICATED"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 32,
+    "label": "g4-no-session",
+    "codes": [
+      "APPROVAL_UNAUTHENTICATED"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 33,
+    "label": "master-accepted-without-g4",
+    "codes": [
+      "APPROVAL_MISSING"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 37,
+    "label": "g5-bound-to-master-hash",
+    "codes": [
+      "APPROVAL_TARGET_MISMATCH"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 52,
+    "label": "draft-sample-render-requested",
+    "codes": [
+      "TRANSITION_INVALID"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 55,
+    "label": "draft-manifest-prepared",
+    "codes": [
+      "TRANSITION_INVALID"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 56,
+    "label": "draft-export-authorized",
+    "codes": [
+      "TRANSITION_INVALID"
+    ],
+    "version_unchanged": true
+  },
+  {
+    "seq": 57,
+    "label": "draft-archive-verified",
+    "codes": [
+      "TRANSITION_INVALID"
+    ],
+    "version_unchanged": true
+  }
+]

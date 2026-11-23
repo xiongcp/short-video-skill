@@ -1,0 +1,35 @@
+{
+  "seq": 18,
+  "label": "clear-layer_illustration",
+  "op": "clear",
+  "session": "human:owner",
+  "request": {
+    "project_id": "host-demo",
+    "asset_ref": "asset://host-demo/layer_illustration/v1",
+    "usage": "cleared",
+    "notes": "代码生成的测试素材，权利归项目所有者"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "host-demo",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "asset": {
+      "asset_ref": "asset://host-demo/layer_illustration/v1",
+      "kind": "illustration",
+      "sha256": "sha256:13b985843206b2c44383bb7699e33ec01c4c09968e461e5d5d3ecb159651927d",
+      "media": {
+        "media_type": "image/png",
+        "ext": "png",
+        "width": 2880,
+        "height": 1620
+      },
+      "usage": "cleared"
+    },
+    "reviewer_id": "owner",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

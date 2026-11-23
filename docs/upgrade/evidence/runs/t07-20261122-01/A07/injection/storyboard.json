@@ -1,0 +1,150 @@
+{
+  "project_id": "direct-demo",
+  "version": 1,
+  "script_version": 1,
+  "timing_basis": "aligned",
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "sample_rate_hz": 48000
+  },
+  "total_frames": 91,
+  "chapters": [
+    {
+      "chapter_id": "ch_001",
+      "title": "开场",
+      "section_ids": [
+        "sec_001"
+      ],
+      "continuity_in": "空舞台",
+      "continuity_out": "主持人站定",
+      "frame_range": {
+        "start": 0,
+        "end": 30
+      }
+    },
+    {
+      "chapter_id": "ch_002",
+      "title": "副本",
+      "section_ids": [
+        "sec_002"
+      ],
+      "continuity_in": "主持人站定",
+      "continuity_out": "两张副本卡亮起",
+      "frame_range": {
+        "start": 30,
+        "end": 91
+      }
+    }
+  ],
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "chapter_id": "ch_001",
+      "section_id": "sec_001",
+      "frame_range": {
+        "start": 0,
+        "end": 1
+      },
+      "purpose": "shot_001",
+      "camera": "medium",
+      "scene_ref": "asset://direct-demo/studio_host/v1",
+      "scene_layers": [
+        "asset://direct-demo/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://direct-demo/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "point_right",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": []
+    },
+    {
+      "shot_id": "shot_002",
+      "chapter_id": "ch_001",
+      "section_id": "sec_001",
+      "frame_range": {
+        "start": 1,
+        "end": 2
+      },
+      "purpose": "shot_002",
+      "camera": "close",
+      "scene_ref": "asset://direct-demo/studio_host/v1",
+      "scene_layers": [
+        "asset://direct-demo/studio_backdrop/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": []
+    },
+    {
+      "shot_id": "shot_003",
+      "chapter_id": "ch_001",
+      "section_id": "sec_001",
+      "frame_range": {
+        "start": 2,
+        "end": 30
+      },
+      "purpose": "shot_003",
+      "camera": "medium",
+      "scene_ref": "asset://direct-demo/studio_host/v1",
+      "scene_layers": [
+        "asset://direct-demo/studio_backdrop/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": []
+    },
+    {
+      "shot_id": "shot_004",
+      "chapter_id": "ch_002",
+      "section_id": "sec_002",
+      "frame_range": {
+        "start": 30,
+        "end": 91
+      },
+      "purpose": "shot_004",
+      "camera": "wide",
+      "scene_ref": "asset://direct-demo/diagram_ch_002/v1",
+      "scene_layers": [
+        "asset://direct-demo/studio_backdrop/v1",
+        "asset://direct-demo/diagram_cache/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_copy_1",
+        "cue_copy_2"
+      ],
+      "approval": "pending",
+      "visual_cues": [
+        {
+          "target_ref": "asset://direct-demo/diagram_cache/v1",
+          "element_id": "browser",
+          "operation": "highlight",
+          "at_local_frame": 10
+        },
+        {
+          "target_ref": "asset://direct-demo/diagram_cache/v1",
+          "element_id": "server",
+          "operation": "highlight",
+          "at_local_frame": 24
+        },
+        {
+          "target_ref": "asset://direct-demo/diagram_cache/v1",
+          "element_id": "server",
+          "operation": "show",
+          "at_local_frame": 0
+        }
+      ]
+    }
+  ]
+}

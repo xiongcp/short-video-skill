@@ -1,0 +1,138 @@
+{
+  "seq": 20,
+  "project_id": "import-path",
+  "label": "audio-import",
+  "op": "audio",
+  "session": null,
+  "request": {
+    "project_id": "import-path",
+    "expected_version": 9,
+    "idempotency_key": "audio-1",
+    "sections": [
+      {
+        "section_id": "sec_001",
+        "import": {
+          "path": "incoming/sec_001.wav",
+          "recordist": "owner",
+          "voice_ref": "asset://import-path/voice-owner/v1"
+        }
+      },
+      {
+        "section_id": "sec_002",
+        "import": {
+          "path": "incoming/sec_002.wav",
+          "recordist": "owner",
+          "voice_ref": "asset://import-path/voice-owner/v1"
+        }
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "import-path",
+    "state": "AUDIO_READY",
+    "version": 10,
+    "event_count": 9,
+    "event_id": "evt-a153c815-a133-4dcd-a8f8-65d690864b34",
+    "content_hash": "sha256:aa99f9527bdd08ab6a6afb681eb61ee13095390f3579eca32adc9f7adb696bf4",
+    "document": {
+      "project_id": "import-path",
+      "version": 1,
+      "script_version": 1,
+      "master_ref": "asset://import-path/voice-master/v1",
+      "sample_rate_hz": 48000,
+      "duration_samples": 144000,
+      "segments": [
+        {
+          "section_id": "sec_001",
+          "audio_ref": "asset://import-path/take-sec_001/v1",
+          "start_sample": 0,
+          "end_sample": 48000,
+          "voice_ref": "asset://import-path/voice-owner/v1",
+          "origin": "import",
+          "provider_or_recordist": "owner",
+          "settings_ref": "asset://import-path/settings-sec_001/v1"
+        },
+        {
+          "section_id": "sec_002",
+          "audio_ref": "asset://import-path/take-sec_002/v1",
+          "start_sample": 48000,
+          "end_sample": 144000,
+          "voice_ref": "asset://import-path/voice-owner/v1",
+          "origin": "import",
+          "provider_or_recordist": "owner",
+          "settings_ref": "asset://import-path/settings-sec_002/v1"
+        }
+      ]
+    },
+    "assets": [
+      {
+        "asset_ref": "asset://import-path/take-sec_001/v1",
+        "name": "take-sec_001",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_001/v1.wav",
+        "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2",
+        "meta": {
+          "section_id": "sec_001",
+          "origin": "import",
+          "recordist": "owner",
+          "voice_ref": "asset://import-path/voice-owner/v1",
+          "text_hash": "sha256:f23d4f02ecfcd5ecb7dd55d742cd7101936caa91681a841293e58158a3fccd80",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://import-path/settings-sec_001/v1",
+        "name": "settings-sec_001",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_001/v1.json",
+        "sha256": "sha256:7f831a983d3d482f61282bbcd357d45dab0b7eee4c22fed263ff686d960bf532",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://import-path/take-sec_002/v1",
+        "name": "take-sec_002",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_002/v1.wav",
+        "sha256": "sha256:ab50a725d28716b8b416e32f78400c9314d10a5a961c7890b2142796444e702c",
+        "meta": {
+          "section_id": "sec_002",
+          "origin": "import",
+          "recordist": "owner",
+          "voice_ref": "asset://import-path/voice-owner/v1",
+          "text_hash": "sha256:7344ca03b20a89b59b5ff49dfecdeceb12c87a315fec208f6819b201bf5ce6a6",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://import-path/settings-sec_002/v1",
+        "name": "settings-sec_002",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_002/v1.json",
+        "sha256": "sha256:b3aca1caa523576ab1703ba178474df34678ca4351b342778a309607e1d5d40e",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://import-path/voice-master/v1",
+        "name": "voice-master",
+        "version": 1,
+        "kind": "voice-master",
+        "path": "assets/voice-master/v1.wav",
+        "sha256": "sha256:d20438c54d3fb538c0e12101b52b0f42a1233ca9129d4987403a7f8683285f60",
+        "meta": {
+          "audio_version": 1
+        }
+      }
+    ],
+    "measured_frames": 90,
+    "planned_frames": 90,
+    "difference_frames": 0,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

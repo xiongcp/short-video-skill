@@ -1,0 +1,180 @@
+{
+  "seq": 52,
+  "project_id": "tts-path",
+  "label": "ledger",
+  "op": "ledger",
+  "session": null,
+  "request": {
+    "project_id": "tts-path"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "tts-path",
+    "state": "AUDIO_READY",
+    "version": 10,
+    "event_count": 9,
+    "currency": "CNY",
+    "limit_minor": 1000,
+    "held_minor": 0,
+    "spent_minor": 180,
+    "pending_verification_minor": 0,
+    "available_minor": 820,
+    "entries": [
+      {
+        "project_id": "tts-path",
+        "version": 1,
+        "entry_id": "led-521383ab-0f65-4e43-a1f4-02326e679914",
+        "job_id": "job-793c8f69-8438-4641-8483-984a7de8769a",
+        "reservation_id": "res-a80a90a8-7031-4ae8-94c1-4db8c7cfaf43",
+        "operation": "reserve",
+        "currency": "CNY",
+        "amount_minor": 70,
+        "recorded_at": "2026-11-23T03:22:04.692Z",
+        "external_receipt": null
+      },
+      {
+        "project_id": "tts-path",
+        "version": 2,
+        "entry_id": "led-b59bcbdd-9e5f-44fe-98e8-a668bf212a5a",
+        "job_id": "job-793c8f69-8438-4641-8483-984a7de8769a",
+        "reservation_id": "res-a80a90a8-7031-4ae8-94c1-4db8c7cfaf43",
+        "operation": "settle",
+        "currency": "CNY",
+        "amount_minor": 60,
+        "recorded_at": "2026-11-23T03:22:04.893Z",
+        "external_receipt": "rcpt-1"
+      },
+      {
+        "project_id": "tts-path",
+        "version": 3,
+        "entry_id": "led-b429b123-62be-4291-9ef9-40dec7d42e8f",
+        "job_id": "job-793c8f69-8438-4641-8483-984a7de8769a",
+        "reservation_id": "res-a80a90a8-7031-4ae8-94c1-4db8c7cfaf43",
+        "operation": "release",
+        "currency": "CNY",
+        "amount_minor": 70,
+        "recorded_at": "2026-11-23T03:22:04.893Z",
+        "external_receipt": null
+      },
+      {
+        "project_id": "tts-path",
+        "version": 4,
+        "entry_id": "led-ebebca6e-7a95-4332-90c6-dde8c24007f9",
+        "job_id": "job-a79cbd8c-a4da-44ad-abe3-3ef2407460d8",
+        "reservation_id": "res-8edb40cf-9fc6-4a22-971b-20ffcdf69473",
+        "operation": "reserve",
+        "currency": "CNY",
+        "amount_minor": 70,
+        "recorded_at": "2026-11-23T03:22:04.973Z",
+        "external_receipt": null
+      },
+      {
+        "project_id": "tts-path",
+        "version": 5,
+        "entry_id": "led-353e1f91-a3bc-4b80-8438-ea60885e3d05",
+        "job_id": "job-a79cbd8c-a4da-44ad-abe3-3ef2407460d8",
+        "reservation_id": "res-8edb40cf-9fc6-4a22-971b-20ffcdf69473",
+        "operation": "settle",
+        "currency": "CNY",
+        "amount_minor": 60,
+        "recorded_at": "2026-11-23T03:22:04.998Z",
+        "external_receipt": "rcpt-2"
+      },
+      {
+        "project_id": "tts-path",
+        "version": 6,
+        "entry_id": "led-70bb2404-bc16-4d7e-8662-2c85284332d8",
+        "job_id": "job-a79cbd8c-a4da-44ad-abe3-3ef2407460d8",
+        "reservation_id": "res-8edb40cf-9fc6-4a22-971b-20ffcdf69473",
+        "operation": "release",
+        "currency": "CNY",
+        "amount_minor": 70,
+        "recorded_at": "2026-11-23T03:22:04.998Z",
+        "external_receipt": null
+      },
+      {
+        "project_id": "tts-path",
+        "version": 7,
+        "entry_id": "led-b40737fc-c9ad-457e-8cbc-8852904254fa",
+        "job_id": "job-620cbed5-7b0d-4c85-9aa9-c41f224c62bb",
+        "reservation_id": "res-4ef1fa50-2cac-4da9-b4e4-45c62b7c72ff",
+        "operation": "reserve",
+        "currency": "CNY",
+        "amount_minor": 70,
+        "recorded_at": "2026-11-23T03:22:05.081Z",
+        "external_receipt": null
+      },
+      {
+        "project_id": "tts-path",
+        "version": 8,
+        "entry_id": "led-825c9324-4379-4946-a2f3-5fc4fc8f0d58",
+        "job_id": "job-620cbed5-7b0d-4c85-9aa9-c41f224c62bb",
+        "reservation_id": "res-4ef1fa50-2cac-4da9-b4e4-45c62b7c72ff",
+        "operation": "settle",
+        "currency": "CNY",
+        "amount_minor": 60,
+        "recorded_at": "2026-11-23T03:22:05.106Z",
+        "external_receipt": "rcpt-3"
+      },
+      {
+        "project_id": "tts-path",
+        "version": 9,
+        "entry_id": "led-a09bbb59-5fac-4640-96a5-5fdd924837fe",
+        "job_id": "job-620cbed5-7b0d-4c85-9aa9-c41f224c62bb",
+        "reservation_id": "res-4ef1fa50-2cac-4da9-b4e4-45c62b7c72ff",
+        "operation": "release",
+        "currency": "CNY",
+        "amount_minor": 70,
+        "recorded_at": "2026-11-23T03:22:05.106Z",
+        "external_receipt": null
+      }
+    ],
+    "jobs": [
+      {
+        "job_id": "job-793c8f69-8438-4641-8483-984a7de8769a",
+        "idempotency_key": "tts-1",
+        "skill_id": "audio-production",
+        "tool": "generate_tts",
+        "provider": "test-provider",
+        "provider_job_id": "pj-1",
+        "state": "SUCCEEDED",
+        "reservation_id": "res-a80a90a8-7031-4ae8-94c1-4db8c7cfaf43",
+        "quote_minor": 70,
+        "cost_minor": 60,
+        "external_receipt": "rcpt-1",
+        "attempt": 1
+      },
+      {
+        "job_id": "job-a79cbd8c-a4da-44ad-abe3-3ef2407460d8",
+        "idempotency_key": "tts-2",
+        "skill_id": "audio-production",
+        "tool": "generate_tts",
+        "provider": "test-provider",
+        "provider_job_id": "pj-2",
+        "state": "SUCCEEDED",
+        "reservation_id": "res-8edb40cf-9fc6-4a22-971b-20ffcdf69473",
+        "quote_minor": 70,
+        "cost_minor": 60,
+        "external_receipt": "rcpt-2",
+        "attempt": 1
+      },
+      {
+        "job_id": "job-620cbed5-7b0d-4c85-9aa9-c41f224c62bb",
+        "idempotency_key": "tts-3",
+        "skill_id": "audio-production",
+        "tool": "generate_tts",
+        "provider": "test-provider",
+        "provider_job_id": "pj-3",
+        "state": "SUCCEEDED",
+        "reservation_id": "res-4ef1fa50-2cac-4da9-b4e4-45c62b7c72ff",
+        "quote_minor": 70,
+        "cost_minor": 60,
+        "external_receipt": "rcpt-3",
+        "attempt": 1
+      }
+    ],
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

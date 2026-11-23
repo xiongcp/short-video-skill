@@ -1,0 +1,95 @@
+{
+  "cuts": [
+    {
+      "sample": 0,
+      "frame": 0,
+      "before": null,
+      "after": "shot_001"
+    },
+    {
+      "sample": 185658,
+      "frame": 116,
+      "before": "shot_001",
+      "after": "shot_002"
+    },
+    {
+      "sample": 382800,
+      "frame": 239,
+      "before": "shot_002",
+      "after": "shot_003"
+    },
+    {
+      "sample": 665706,
+      "frame": 416,
+      "before": "shot_003",
+      "after": "shot_004"
+    },
+    {
+      "sample": 1029444,
+      "frame": 643,
+      "before": "shot_004",
+      "after": "shot_005"
+    },
+    {
+      "sample": 1438319,
+      "frame": 899,
+      "before": "shot_005",
+      "after": "shot_006"
+    },
+    {
+      "sample": 1910926,
+      "frame": 1194,
+      "before": "shot_006",
+      "after": "shot_007"
+    },
+    {
+      "sample": 2369634,
+      "frame": 1481,
+      "before": "shot_007",
+      "after": "shot_008"
+    },
+    {
+      "sample": 2925642,
+      "frame": 1829,
+      "before": "shot_008",
+      "after": "shot_009"
+    },
+    {
+      "sample": 3358557,
+      "frame": 2099,
+      "before": "shot_009",
+      "after": "shot_010"
+    },
+    {
+      "sample": 3829881,
+      "frame": 2394,
+      "before": "shot_010",
+      "after": "shot_011"
+    },
+    {
+      "sample": 4428591,
+      "frame": 2768,
+      "before": "shot_011",
+      "after": "shot_012"
+    },
+    {
+      "sample": 5039514,
+      "frame": 3150,
+      "before": "shot_012",
+      "after": "shot_013"
+    },
+    {
+      "sample": 5406100,
+      "frame": 3379,
+      "before": "shot_013",
+      "after": "shot_014"
+    },
+    {
+      "sample": 5758790,
+      "frame": 3600,
+      "before": "shot_014",
+      "after": null
+    }
+  ],
+  "padding_samples": 1210
+}

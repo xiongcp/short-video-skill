@@ -1,0 +1,80 @@
+{
+  "seq": 96,
+  "label": "kafka-to-doris/scene-illustration_ch_001",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris",
+    "name": "illustration_ch_001",
+    "template": "illustration",
+    "focus": "主持人展示蓝色订单卡，全程固定从左到右的图例。",
+    "props": [
+      "board"
+    ],
+    "layers": [
+      {
+        "asset_ref": "asset://kafka-to-doris/studio_backdrop/v1",
+        "element_ids": []
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/layer_illustration_ch_001/v1",
+        "element_ids": [
+          "beat_002"
+        ]
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "kafka-to-doris",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "scene": {
+      "project_id": "kafka-to-doris",
+      "version": 1,
+      "scene_ref": "asset://kafka-to-doris/illustration_ch_001/v1",
+      "template": "illustration",
+      "focus": "主持人展示蓝色订单卡，全程固定从左到右的图例。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://kafka-to-doris/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://kafka-to-doris/layer_illustration_ch_001/v1",
+          "role": "illustration",
+          "z": 1,
+          "element_ids": [
+            "beat_002"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://kafka-to-doris/illustration_ch_001/v1",
+      "kind": "scene",
+      "sha256": "sha256:eb8e59237a9c59757b275bbc55531be50ce2d9f7f2deeda46329255228f481fe",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

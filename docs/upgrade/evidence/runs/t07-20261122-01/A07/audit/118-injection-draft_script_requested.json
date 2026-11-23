@@ -1,0 +1,24 @@
+{
+  "seq": 118,
+  "label": "injection/draft_script_requested",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "direct-demo",
+    "expected_version": 4,
+    "idempotency_key": "draft_script_requested",
+    "event": "draft_script_requested",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "direct-demo",
+    "state": "SCRIPT_RUNNING",
+    "version": 5,
+    "event_count": 4,
+    "event_id": "evt-595efe78-7fd5-418e-b8fe-5bb86823a0be",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

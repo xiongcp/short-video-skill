@@ -1,0 +1,24 @@
+{
+  "seq": 9,
+  "label": "cache-speed/draft_script_requested",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "expected_version": 4,
+    "idempotency_key": "draft_script_requested",
+    "event": "draft_script_requested",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-speed",
+    "state": "SCRIPT_RUNNING",
+    "version": 5,
+    "event_count": 4,
+    "event_id": "evt-c310f6ae-95da-4f14-969b-389ab1e7bb7e",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

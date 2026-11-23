@@ -1,0 +1,134 @@
+{
+  "task_id": "T01",
+  "case_id": "A01",
+  "run_id": "t01-20261122-01",
+  "status": "PASS",
+  "evidence_level": "RUNTIME",
+  "environment": {
+    "node": "v26.9.0",
+    "platform": "darwin-arm64",
+    "ffmpeg": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "ffprobe": "ffprobe version 9.0.2 Copyright (c) 2007-2026 the FFmpeg developers",
+    "python": "Python 3.14.4",
+    "graphics_backend": "software-rgb24"
+  },
+  "commands_and_exit_codes": [
+    {
+      "command": "node --experimental-strip-types --no-warnings runtime/cli.ts doctor --project <project> --request <project>/requests/doctor.json",
+      "exit_code": 0,
+      "saved_as": "doctor-ready.json"
+    },
+    {
+      "command": "node --experimental-strip-types --no-warnings runtime/cli.ts doctor --project <project> --request <project>/requests/doctor.json --lang zh-CN",
+      "exit_code": 1,
+      "saved_as": "doctor-missing-font.zh-CN.json"
+    },
+    {
+      "command": "node --experimental-strip-types --no-warnings runtime/cli.ts doctor --project <project> --request <project>/requests/doctor.json --lang en",
+      "exit_code": 1,
+      "saved_as": "doctor-missing-font.en.json"
+    },
+    {
+      "command": "node --experimental-strip-types --no-warnings runtime/cli.ts preview --project <project> --request <project>/requests/preview.json",
+      "exit_code": 0,
+      "saved_as": "preview-report.json"
+    },
+    {
+      "command": "python -B evals/check_design.py --media docs/upgrade/evidence/runs/t01-20261122-01/A01/renders/t01/master.mp4 --profile short",
+      "exit_code": 1,
+      "saved_as": "media-check.json"
+    }
+  ],
+  "input_hashes": [
+    {
+      "path": "audio/tech.wav",
+      "sha256": "sha256:f8fb9e01b99dafcbab8649972df634d4d6d14064ac42716ebf10aaaa39dcf10d"
+    },
+    {
+      "path": "assets/fonts/caption-zh.ttc",
+      "source": "/System/Library/Fonts/Supplemental/Songti.ttc",
+      "sha256": "sha256:dd2f0628d302f322a2e9c3cf3253d5e73f418275e1f1421c84a7c65ce5a87777",
+      "redistributed": false
+    }
+  ],
+  "output_hashes": [
+    {
+      "path": "doctor-missing-font.en.json",
+      "sha256": "sha256:0bbf6300964af9f10b27bc97444b6d4acd13a8c6d749d1674b5de6a29033775b"
+    },
+    {
+      "path": "doctor-missing-font.zh-CN.json",
+      "sha256": "sha256:feb954d33e1b30909a6a7df9124925eade38e77ef925e6483d39dca23f248c05"
+    },
+    {
+      "path": "doctor-ready.json",
+      "sha256": "sha256:f7daf20ba9931651e57566bd6f6e7ffcf649dde75e686d6e8048077045989066"
+    },
+    {
+      "path": "media-check.json",
+      "sha256": "sha256:8a93c84feb614317f03807b5686e20f974da2d9b34a4cfaa606e92c0d4fdd034"
+    },
+    {
+      "path": "preview-report.json",
+      "sha256": "sha256:d1fac04984b27d00eafec80b7c649237d7c603c506573bf3b9c743db6a92f45d"
+    },
+    {
+      "path": "renders/t01/frames/frame-0000.png",
+      "sha256": "sha256:71dd0c5a702869fea88cfebd58cc31af9629b039e58e362e5899e2535408ea16"
+    },
+    {
+      "path": "renders/t01/frames/frame-0180.png",
+      "sha256": "sha256:f9e44c2b1b9c30db13ec8373ebc40f2029a47dd74c688449c9491cea7373d18a"
+    },
+    {
+      "path": "renders/t01/frames/frame-0359.png",
+      "sha256": "sha256:ceeedb8d91b567665a080d171f859393508e720cbfcc4eb0173beee10c0cd4f8"
+    },
+    {
+      "path": "renders/t01/master.mp4",
+      "sha256": "sha256:1c2b79980bc9bf0d2a08da7dd9b5e63c768f40ee764d02e55819b3d7d93fc6df"
+    },
+    {
+      "path": "renders/t01/probe.json",
+      "sha256": "sha256:1f489ebf6e62b24e9fcce392c2b45ea10709cdfcb1d95c7e11c32d17e6e7bd36"
+    },
+    {
+      "path": "renders/t01/render-config.json",
+      "sha256": "sha256:4a31481c93af084f3ffcf1a5b3b384761f5dd9f549acb7e8f2d277657dafbfe7"
+    },
+    {
+      "path": "renders/t01/source.wav",
+      "sha256": "sha256:f8fb9e01b99dafcbab8649972df634d4d6d14064ac42716ebf10aaaa39dcf10d"
+    },
+    {
+      "path": "requests/doctor.json",
+      "sha256": "sha256:7423a9e4f8ad769afb304e269283da7fe193983e39c4021f9a072b07891f225a"
+    },
+    {
+      "path": "requests/preview.json",
+      "sha256": "sha256:e34457d9fbd6e5ba09f1552288bd78a2d23cad5870d6aa5684f6ac38f7d04d77"
+    }
+  ],
+  "observations": [
+    "timeline 360 frames / 576000 samples; decoded 360 frames",
+    "media check issues: [\"DURATION_PROFILE\"] (technical clip is exempt from the 60 s short minimum per A01)",
+    "character layer is the procedural placeholder host, not original art; the caption font is a host system font and is not redistributed"
+  ],
+  "evidence_paths": [
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/doctor-missing-font.en.json",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/doctor-missing-font.zh-CN.json",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/doctor-ready.json",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/media-check.json",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/preview-report.json",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/renders/t01/frames/frame-0000.png",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/renders/t01/frames/frame-0180.png",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/renders/t01/frames/frame-0359.png",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/renders/t01/master.mp4",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/renders/t01/probe.json",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/renders/t01/render-config.json",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/renders/t01/source.wav",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/requests/doctor.json",
+    "docs/upgrade/evidence/runs/t01-20261122-01/A01/requests/preview.json"
+  ],
+  "reviewer": null
+}

@@ -1,0 +1,20 @@
+{
+  "seq": 40,
+  "project_id": "tts-path",
+  "label": "status-g2",
+  "op": "status",
+  "session": null,
+  "request": {
+    "project_id": "tts-path"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "tts-path",
+    "state": "SCRIPT_REVIEW",
+    "version": 7,
+    "event_count": 6,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

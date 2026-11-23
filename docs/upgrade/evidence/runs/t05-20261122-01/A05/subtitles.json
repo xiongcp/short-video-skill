@@ -1,0 +1,30 @@
+{
+  "project_id": "import-path",
+  "version": 1,
+  "script_version": 1,
+  "alignment_version": 1,
+  "style_ref": "asset://import-path/subtitle-style/v1",
+  "cues": [
+    {
+      "section_id": "sec_001",
+      "cue_ids": [],
+      "range": {
+        "start": 0,
+        "end": 25
+      },
+      "text": "先看第一段。"
+    },
+    {
+      "section_id": "sec_002",
+      "cue_ids": [
+        "cue_copy_1",
+        "cue_copy_2"
+      ],
+      "range": {
+        "start": 32,
+        "end": 74
+      },
+      "text": "浏览器有副本，再看副本是否新鲜。"
+    }
+  ]
+}

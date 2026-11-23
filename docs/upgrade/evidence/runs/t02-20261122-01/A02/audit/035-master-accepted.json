@@ -1,0 +1,25 @@
+{
+  "seq": 35,
+  "label": "master-accepted",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 24,
+    "idempotency_key": "master_accepted-24",
+    "event": "master_accepted",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "APPROVED",
+    "version": 25,
+    "event_count": 24,
+    "event_id": "evt-852bcf0d-a340-4426-badf-d0b7037a1f6b",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

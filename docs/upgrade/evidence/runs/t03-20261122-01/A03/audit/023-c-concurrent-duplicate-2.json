@@ -1,0 +1,49 @@
+{
+  "seq": 23,
+  "label": "c-concurrent-duplicate-2",
+  "op": "submit",
+  "session": null,
+  "request": {
+    "project_id": "repeat-intent",
+    "idempotency_key": "tts-2",
+    "skill_id": "audio-production",
+    "tool": "generate_tts",
+    "provider": "test-provider",
+    "quote_minor": 70,
+    "payload": {
+      "section_id": "tts-2"
+    }
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "SUBMITTING",
+    "project_id": "repeat-intent",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "job_id": "job-35af458f-1aa9-4c7b-a8a1-416618e07e26",
+    "tool_result": {
+      "status": "unknown",
+      "job_id": "job-35af458f-1aa9-4c7b-a8a1-416618e07e26",
+      "artifact_refs": [],
+      "warnings": [],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 70,
+        "actual_minor": null
+      },
+      "retryable": false,
+      "next_action": "reconcile"
+    },
+    "balance": {
+      "currency": "CNY",
+      "limit_minor": 1000,
+      "held_minor": 70,
+      "spent_minor": 60,
+      "pending_verification_minor": 70,
+      "available_minor": 870
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

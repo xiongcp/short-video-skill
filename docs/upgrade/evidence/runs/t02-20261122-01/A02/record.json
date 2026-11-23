@@ -1,0 +1,381 @@
+{
+  "task_id": "T02",
+  "case_id": "A02",
+  "run_id": "t02-20261122-01",
+  "status": "PASS",
+  "evidence_level": "RUNTIME",
+  "environment": {
+    "node": "v26.9.0",
+    "platform": "darwin-arm64",
+    "sqlite": "3.53.4",
+    "python": "Python 3.14.4"
+  },
+  "commands_and_exit_codes": [
+    {
+      "command": "node docs/upgrade/evidence/replay_t02.mjs t02-20261122-01 python",
+      "note": "each CLI call is saved under audit/ with request, exit code and response"
+    },
+    {
+      "command": "python -B -c <validate approvals.json against workflow#Approval>",
+      "exit_code": 0,
+      "saved_as": "approval-schema-check.txt"
+    }
+  ],
+  "input_hashes": [
+    {
+      "path": "workflows/topic-to-video.yaml",
+      "sha256": "sha256:7440e2e317bab93716bff025638789b02a39dcebec08c02e3be59661d6239760"
+    },
+    {
+      "path": "policies/approval-gates.yaml",
+      "sha256": "sha256:1722714404b2607c5508152f92e728ebe4bd1ebc3238f3252b05b9e54917ff50"
+    }
+  ],
+  "output_hashes": [
+    {
+      "path": "approval-schema-check.txt",
+      "sha256": "sha256:47e111f733b90d65c7902e5761cd3e8d19f8ad572d7fc383f8237b62b41d09e8"
+    },
+    {
+      "path": "approvals.json",
+      "sha256": "sha256:851202707d3ce727e19fd025d7049c4a483392b42bfae716c0a670b3592bb762"
+    },
+    {
+      "path": "audit/000-cache-demo-init.json",
+      "sha256": "sha256:1e92a3b009df1feddc831383222dd235c1e14eec33ace754f5b16e71d23f6d52"
+    },
+    {
+      "path": "audit/001-replay-first.json",
+      "sha256": "sha256:1d5f1298fcadd4333488462e9b41795753d8da2ae930c96ae05c15ed275a7f23"
+    },
+    {
+      "path": "audit/002-replay-same-key-same-request.json",
+      "sha256": "sha256:ff061325173b66b914e0d959ded226f2800023bbf6eafe568a2defc8a8571687"
+    },
+    {
+      "path": "audit/003-same-key-different-request.json",
+      "sha256": "sha256:54af1cebc2a571346319a363cd54bcadfb9e5f90b45e4174238b9151168ba884"
+    },
+    {
+      "path": "audit/004-stale-expected-version.json",
+      "sha256": "sha256:bcd3b1a33033536fab6c9f1bfc0eebae2e058e7e1d20ad0609a63b871992a894"
+    },
+    {
+      "path": "audit/005-research-started.json",
+      "sha256": "sha256:16fe0913511b3a815f588cdb79fbd99559685ad7595f97a7398eacab05cb27dd"
+    },
+    {
+      "path": "audit/006-evidence-without-hash.json",
+      "sha256": "sha256:24ede12da9cb0da826ac9490aa29d86bc206aea5dd7dbfb2951f817ace5cec81"
+    },
+    {
+      "path": "audit/007-evidence-saved.json",
+      "sha256": "sha256:73ea424e2896c253a415bd16151da15da4c853b75b989101d220d76fef7c8c7f"
+    },
+    {
+      "path": "audit/008-research-accepted-without-g1.json",
+      "sha256": "sha256:e42dc00c012b6c296b556bbf642d285574b5d05adf239478067e7f1fe2414b2f"
+    },
+    {
+      "path": "audit/009-g1-approve-owner.json",
+      "sha256": "sha256:692ef2b0bc2dfc24b0b4e4477d2e411e8d65367aed1ad7b8cb58cde5defe4c08"
+    },
+    {
+      "path": "audit/010-research-accepted.json",
+      "sha256": "sha256:7009fe5863f3fda20c7bf38e889b8ec9c6ec97d9c7c46a57f424c0202c640ac9"
+    },
+    {
+      "path": "audit/011-script-v1-saved.json",
+      "sha256": "sha256:2acdd146b94f1f40fef36f6656e162e39530537995af17ceb2af275a981e48b8"
+    },
+    {
+      "path": "audit/012-g2-approve-v1.json",
+      "sha256": "sha256:81121222a8d96151bd51f9a2765e9801b91a7be1949b152021fd1059297e4896"
+    },
+    {
+      "path": "audit/013-g2-reject-v1-reopens-script.json",
+      "sha256": "sha256:c0c9d8c312e2bc23e59b854db96344d5e3a404b979b558689421879efa625bd1"
+    },
+    {
+      "path": "audit/014-script-v2-saved.json",
+      "sha256": "sha256:60fb4b37e465c3209e8b1f53e3cfd26394494104ff3af1648affde0c09df5244"
+    },
+    {
+      "path": "audit/015-script-accepted-with-expired-g2.json",
+      "sha256": "sha256:24b961a654d441951e4580fb3fbc54d8af97c239d21c52601c21aee48f629182"
+    },
+    {
+      "path": "audit/016-g2-approve-v2.json",
+      "sha256": "sha256:e31e127f5180e7e03ca54ae9bc2ee3479432c6240dc3ee322b8b3cb5208e45e4"
+    },
+    {
+      "path": "audit/017-script-accepted.json",
+      "sha256": "sha256:a922c3c080ede428b55770dbd4b18b21a0635eb1e1d37189f374dc5325c4de68"
+    },
+    {
+      "path": "audit/018-audio-verified.json",
+      "sha256": "sha256:0f70764eecf3286117299ed14f00eb100c57d24df560ded5ccd62605cc65481a"
+    },
+    {
+      "path": "audit/019-alignment-verified.json",
+      "sha256": "sha256:90348051338c0a1e45dfe070150e48f830f87442e095eef5b3b350630909e1b5"
+    },
+    {
+      "path": "audit/020-storyboard-saved.json",
+      "sha256": "sha256:aa0cba8d6ec25d8ee5e4de85fee3e52f97f69e571d104b88aef6bbcf6435df16"
+    },
+    {
+      "path": "audit/021-assets-resolved.json",
+      "sha256": "sha256:9c53094ae5592bfa8024e971d7d13c8286a0bd6797c1ce7f1c57c990b8f8436b"
+    },
+    {
+      "path": "audit/022-snapshot-compiled.json",
+      "sha256": "sha256:c03f9c89cc8177835cbd43c931e3b19282fa7dd840b900711b16c7fd57d53179"
+    },
+    {
+      "path": "audit/023-sample-render-requested.json",
+      "sha256": "sha256:644ff9a7c38893a110943889aeb23f7765d94dc77547fdb12e1800fd80357018"
+    },
+    {
+      "path": "audit/024-sample-rendered.json",
+      "sha256": "sha256:74b00f31fa6e154e425d6f2b2b42dcf18caced18de51482feb6d29cafd89ff5e"
+    },
+    {
+      "path": "audit/025-sample-checked.json",
+      "sha256": "sha256:997c267213e8ab32cbf8c4ad9ef39abf126700d560fe265cabc4ed7a34901b59"
+    },
+    {
+      "path": "audit/026-g3-approve.json",
+      "sha256": "sha256:dedf462d3f5ff3e9c07915cab7cb2d67a7eece9b46cc58ac0f018f6ddcaa49d9"
+    },
+    {
+      "path": "audit/027-sample-accepted.json",
+      "sha256": "sha256:7f6e046029f7944cfbac8ecce6d8ae298bc4948bbb67940ddfd8408bea93682d"
+    },
+    {
+      "path": "audit/028-master-checked-without-qa.json",
+      "sha256": "sha256:e28a650f77f9a4d5c20fa81b2ae6396017f229498a828f58af9f3680193142a8"
+    },
+    {
+      "path": "audit/029-master-checked.json",
+      "sha256": "sha256:0501b0f7cd2dff0ab92e487cd607db23959bef41f2dae24a89a78187a20bddaa"
+    },
+    {
+      "path": "audit/030-g4-forged-reviewer-field.json",
+      "sha256": "sha256:8c667a0ec3c8a3f7e7cdb79bd32b897518ada91b8427e544cf0de830d6df707c"
+    },
+    {
+      "path": "audit/031-g4-agent-session.json",
+      "sha256": "sha256:e9e3b113c3264469e13e01361149b1ded041949f4d61153e2e2fad749947e243"
+    },
+    {
+      "path": "audit/032-g4-no-session.json",
+      "sha256": "sha256:8a803d3a3428fa201578dc8f58a02004c061783131f6bc298186bd8444b8a691"
+    },
+    {
+      "path": "audit/033-master-accepted-without-g4.json",
+      "sha256": "sha256:7fdc248db995ad48e2af3acfed5af2bc033486c1f47c4cd840af46aa30b088b0"
+    },
+    {
+      "path": "audit/034-g4-approve-owner.json",
+      "sha256": "sha256:fb6943947b6a4a7d21684b8b73cd503b0f3e5cf40c8fcdd465398ad1cbe8a9a6"
+    },
+    {
+      "path": "audit/035-master-accepted.json",
+      "sha256": "sha256:19afcf7d640a5ad04cbac3506bfa2e7eae05db45c2090ae3f1e26d361f70fe5c"
+    },
+    {
+      "path": "audit/036-manifest-prepared.json",
+      "sha256": "sha256:1ec0e028c697d574c00eacd4303ce1bb0d014c4f913bd8da27bd66f44eba1cde"
+    },
+    {
+      "path": "audit/037-g5-bound-to-master-hash.json",
+      "sha256": "sha256:0ae304a36e27b7f8443f9648060aa56d1deced6ec8990da4c363c652a65f7caf"
+    },
+    {
+      "path": "audit/038-g5-approve-manifest.json",
+      "sha256": "sha256:6aa398256c31ac494321a8e4b35c64dea03e98c54d4b7e76f37849391c48b5bf"
+    },
+    {
+      "path": "audit/039-export-authorized.json",
+      "sha256": "sha256:150c0ac36b59ee88561660283e605691da9bf2e3d91718d3ef61cf0518a9cac8"
+    },
+    {
+      "path": "audit/040-cache-draft-init.json",
+      "sha256": "sha256:65aa85a02a355cecb66681af9ceccf20a8e1823040f753b0f44e4b23c60d4f58"
+    },
+    {
+      "path": "audit/041-draft-brief-saved.json",
+      "sha256": "sha256:a30e9af12c982c5beccf061f3aa77a72cb5916e01c7f48a1ade8cf2ae3d69939"
+    },
+    {
+      "path": "audit/042-draft-research-started.json",
+      "sha256": "sha256:28c9774ddcd016ca45639ed83a2926c661f2e11a3785c26dc5d927c72464c1cf"
+    },
+    {
+      "path": "audit/043-draft-evidence-saved.json",
+      "sha256": "sha256:07ba5537461568b1ec17332ab053f46aeab27d473e7908a6a35c9a093347de0f"
+    },
+    {
+      "path": "audit/044-draft-draft-script-requested.json",
+      "sha256": "sha256:c970db3c5991c61f12fbdaf3df34b03033bd0837200f489728bd89e62f0527f7"
+    },
+    {
+      "path": "audit/045-draft-script-saved.json",
+      "sha256": "sha256:ce74959d5ea4c541eb58c10c1afd6185a253901687dcb40b0b2e121e29c1b6cd"
+    },
+    {
+      "path": "audit/046-draft-draft-audio-requested.json",
+      "sha256": "sha256:096db2d4c12688825238278927bd8dbdba6df77ccffca5b26b09655e10ad210d"
+    },
+    {
+      "path": "audit/047-draft-audio-verified.json",
+      "sha256": "sha256:900b13ded358d464668d8e518c7d64e667aeac3b9c558bd8823f9892b7e83fe0"
+    },
+    {
+      "path": "audit/048-draft-alignment-verified.json",
+      "sha256": "sha256:ae8732e38b36b852dc2a94ced8410a77cc5b5429f7ea2507734f097950d74a80"
+    },
+    {
+      "path": "audit/049-draft-storyboard-saved.json",
+      "sha256": "sha256:bef1c1a28aaaf0f709d50d8e0b29ff5c2ed22e12c7a7e7851495d2df9b6488a0"
+    },
+    {
+      "path": "audit/050-draft-assets-resolved.json",
+      "sha256": "sha256:33e94768fe46fe72683f6d99e6c76720007c3eedea0f544164229e1f2378d7ed"
+    },
+    {
+      "path": "audit/051-draft-snapshot-compiled.json",
+      "sha256": "sha256:9e4522bcc2908cc7236bc78caaefc29c3429ad0ec3e6ed751d9a252b4f278315"
+    },
+    {
+      "path": "audit/052-draft-sample-render-requested.json",
+      "sha256": "sha256:af3fe9e6fba6248302f6ffa7bbe595a11688fdec79eba0c95dadcfaf233bfa57"
+    },
+    {
+      "path": "audit/053-draft-render-requested.json",
+      "sha256": "sha256:82c1a1cf3fdd24c5347c82c18e3fc254641aee0d83551eb968b6a9b82eb28e43"
+    },
+    {
+      "path": "audit/054-draft-labeled-checked.json",
+      "sha256": "sha256:815fcbc9a0418b073ca8c7cbe6b640b0925c2f01ddecd8155a546583ad680350"
+    },
+    {
+      "path": "audit/055-draft-manifest-prepared.json",
+      "sha256": "sha256:01c66c1801b2e205487182a45af2661e89a8edd1209ba8d5750bdff097e48f81"
+    },
+    {
+      "path": "audit/056-draft-export-authorized.json",
+      "sha256": "sha256:d82f3f4dbbef2ae53ceb3ce05e93f4764dabf2d0abe62f5fedb1197a78e32f58"
+    },
+    {
+      "path": "audit/057-draft-archive-verified.json",
+      "sha256": "sha256:7f76aa45944938e88cd029e995c72eaeedb0fdd21d611f54e3d56c4d1abd3db5"
+    },
+    {
+      "path": "audit/058-race-init.json",
+      "sha256": "sha256:e02380469901abb3961784a971ee7e21145647f500c455c1b5637f26fcf29233"
+    },
+    {
+      "path": "concurrency.json",
+      "sha256": "sha256:cbff720b69d26b367faae985e0e7f380659a9c2a1ea0ba88bcfc4778d53c6c84"
+    },
+    {
+      "path": "draft.sqlite",
+      "sha256": "sha256:163979f7cc83187aee848a008df12485cc737ca77146e5a0410e80c64ac39586"
+    },
+    {
+      "path": "quality.sqlite",
+      "sha256": "sha256:4bcb9d146f0c1c427a6e55db9f46ccd3cabf970893fe7a1e2fe3644faf80cdfc"
+    },
+    {
+      "path": "race.sqlite",
+      "sha256": "sha256:ed2421266938f583b687b396b74e1b9194cb70c775bf2c7abb6be0fc501fb479"
+    },
+    {
+      "path": "rejections.json",
+      "sha256": "sha256:678f973866faad9734e901e2c921c783360711a45d5152d9f7431067eb76d835"
+    },
+    {
+      "path": "tables.json",
+      "sha256": "sha256:99acff9938bb9e01d6844c466096341ec6364c71146b10df73ba089383c4218e"
+    }
+  ],
+  "observations": [
+    "59 CLI calls, 15 rejected; every rejection left version and event count unchanged: true",
+    "quality project ended at PACKAGING v28 with 27 events and 7 human decisions",
+    "draft project ended at DRAFT_READY; manifest_prepared/export_authorized/archive_verified rejected",
+    "8 concurrent writers: 1 applied, 7 rejected, 0 crashed",
+    "human and agent sessions were created through the host-side createSession hook (simulated authentication); a real authenticated UI session arrives with T11, so UI receipts are NOT_RUN"
+  ],
+  "evidence_paths": [
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/approval-schema-check.txt",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/approvals.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/000-cache-demo-init.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/001-replay-first.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/002-replay-same-key-same-request.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/003-same-key-different-request.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/004-stale-expected-version.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/005-research-started.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/006-evidence-without-hash.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/007-evidence-saved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/008-research-accepted-without-g1.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/009-g1-approve-owner.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/010-research-accepted.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/011-script-v1-saved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/012-g2-approve-v1.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/013-g2-reject-v1-reopens-script.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/014-script-v2-saved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/015-script-accepted-with-expired-g2.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/016-g2-approve-v2.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/017-script-accepted.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/018-audio-verified.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/019-alignment-verified.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/020-storyboard-saved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/021-assets-resolved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/022-snapshot-compiled.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/023-sample-render-requested.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/024-sample-rendered.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/025-sample-checked.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/026-g3-approve.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/027-sample-accepted.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/028-master-checked-without-qa.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/029-master-checked.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/030-g4-forged-reviewer-field.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/031-g4-agent-session.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/032-g4-no-session.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/033-master-accepted-without-g4.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/034-g4-approve-owner.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/035-master-accepted.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/036-manifest-prepared.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/037-g5-bound-to-master-hash.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/038-g5-approve-manifest.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/039-export-authorized.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/040-cache-draft-init.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/041-draft-brief-saved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/042-draft-research-started.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/043-draft-evidence-saved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/044-draft-draft-script-requested.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/045-draft-script-saved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/046-draft-draft-audio-requested.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/047-draft-audio-verified.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/048-draft-alignment-verified.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/049-draft-storyboard-saved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/050-draft-assets-resolved.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/051-draft-snapshot-compiled.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/052-draft-sample-render-requested.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/053-draft-render-requested.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/054-draft-labeled-checked.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/055-draft-manifest-prepared.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/056-draft-export-authorized.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/057-draft-archive-verified.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/audit/058-race-init.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/concurrency.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/draft.sqlite",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/quality.sqlite",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/race.sqlite",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/rejections.json",
+    "docs/upgrade/evidence/runs/t02-20261122-01/A02/tables.json"
+  ],
+  "reviewer": null
+}

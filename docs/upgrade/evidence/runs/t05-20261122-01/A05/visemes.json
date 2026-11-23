@@ -1,0 +1,117 @@
+{
+  "project_id": "import-path",
+  "alignment_version": 1,
+  "fps": 30,
+  "total_frames": 90,
+  "ranges": [
+    {
+      "word_id": "sec_001-w001",
+      "shape": "open",
+      "range": {
+        "start": 0,
+        "end": 5
+      }
+    },
+    {
+      "word_id": "sec_001-w002",
+      "shape": "open",
+      "range": {
+        "start": 5,
+        "end": 10
+      }
+    },
+    {
+      "word_id": "sec_001-w003",
+      "shape": "open",
+      "range": {
+        "start": 10,
+        "end": 25
+      }
+    },
+    {
+      "shape": "rest",
+      "range": {
+        "start": 25,
+        "end": 32
+      }
+    },
+    {
+      "word_id": "sec_002-w001",
+      "shape": "open",
+      "range": {
+        "start": 32,
+        "end": 38
+      }
+    },
+    {
+      "word_id": "sec_002-w002",
+      "shape": "open",
+      "range": {
+        "start": 38,
+        "end": 40
+      }
+    },
+    {
+      "word_id": "sec_002-w003",
+      "shape": "open",
+      "range": {
+        "start": 40,
+        "end": 46
+      }
+    },
+    {
+      "shape": "rest",
+      "range": {
+        "start": 46,
+        "end": 49
+      }
+    },
+    {
+      "word_id": "sec_002-w004",
+      "shape": "open",
+      "range": {
+        "start": 49,
+        "end": 51
+      }
+    },
+    {
+      "word_id": "sec_002-w005",
+      "shape": "open",
+      "range": {
+        "start": 51,
+        "end": 54
+      }
+    },
+    {
+      "word_id": "sec_002-w006",
+      "shape": "closed",
+      "range": {
+        "start": 54,
+        "end": 60
+      }
+    },
+    {
+      "word_id": "sec_002-w007",
+      "shape": "open",
+      "range": {
+        "start": 60,
+        "end": 65
+      }
+    },
+    {
+      "word_id": "sec_002-w008",
+      "shape": "open",
+      "range": {
+        "start": 65,
+        "end": 74
+      }
+    },
+    {
+      "shape": "rest",
+      "range": {
+        "start": 74,
+        "end": 90
+      }
+    }
+  ]
+}

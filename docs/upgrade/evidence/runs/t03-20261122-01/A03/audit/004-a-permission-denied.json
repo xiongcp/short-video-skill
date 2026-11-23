@@ -1,0 +1,34 @@
+{
+  "seq": 4,
+  "label": "a-permission-denied",
+  "op": "submit",
+  "session": null,
+  "request": {
+    "project_id": "budget-race",
+    "idempotency_key": "tts-x",
+    "skill_id": "script-writer",
+    "tool": "generate_tts",
+    "provider": "test-provider",
+    "quote_minor": 70,
+    "payload": {
+      "section_id": "tts-x"
+    }
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "budget-race",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [
+      {
+        "code": "TOOL_NOT_PERMITTED",
+        "skill_id": "script-writer",
+        "tool": "generate_tts",
+        "message": "Skill script-writer 无权调用 generate_tts"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

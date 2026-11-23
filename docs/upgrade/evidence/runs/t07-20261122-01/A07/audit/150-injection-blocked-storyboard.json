@@ -1,0 +1,20 @@
+{
+  "seq": 150,
+  "label": "injection-blocked/storyboard",
+  "op": "storyboard",
+  "session": null,
+  "request": "<request sha256 sha256:dacc386d002bdcab77dd53808892116a19a79bef7998938e0f53d4b4e81d565b>",
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "direct-demo",
+    "state": "STORYBOARD_READY",
+    "version": 10,
+    "event_count": 9,
+    "event_id": "evt-a381b00f-ab1e-4429-b2f7-19c50684753b",
+    "content_hash": "sha256:eafa31d98ec384cf9766d38faaeab99805ff720a63b84d1915d74b6dd93562e9",
+    "document": "<saved separately; content_hash sha256:eafa31d98ec384cf9766d38faaeab99805ff720a63b84d1915d74b6dd93562e9>",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

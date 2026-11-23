@@ -1,0 +1,24 @@
+{
+  "seq": 58,
+  "label": "kafka-to-doris/draft_script_requested",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris",
+    "expected_version": 4,
+    "idempotency_key": "draft_script_requested",
+    "event": "draft_script_requested",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "kafka-to-doris",
+    "state": "SCRIPT_RUNNING",
+    "version": 5,
+    "event_count": 4,
+    "event_id": "evt-650bd17c-043e-4ced-a2bb-d62524427bf8",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "seq": 92,
+  "label": "kafka-to-doris/clear-layer_diagram_ch_006",
+  "op": "clear",
+  "session": "human:owner",
+  "request": {
+    "project_id": "kafka-to-doris",
+    "asset_ref": "asset://kafka-to-doris/layer_diagram_ch_006/v1",
+    "usage": "cleared",
+    "notes": "代码生成的占位素材，权利归项目所有者"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "kafka-to-doris",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "asset": {
+      "asset_ref": "asset://kafka-to-doris/layer_diagram_ch_006/v1",
+      "kind": "diagram",
+      "sha256": "sha256:7ddcdd264648e2df8648dca4f6c1ce3b255ed9c02224fd9922de8d3cdfc45161",
+      "media": {
+        "media_type": "application/json",
+        "ext": "json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "reviewer_id": "owner",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

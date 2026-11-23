@@ -1,0 +1,39 @@
+{
+  "seq": 109,
+  "label": "kafka-to-doris/compile",
+  "op": "compile",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris",
+    "expected_version": 10,
+    "idempotency_key": "compile",
+    "storyboard_version": 1
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "kafka-to-doris",
+    "state": "COMPILED",
+    "version": 12,
+    "event_count": 11,
+    "event_id": "evt-ed53a983-5507-4fe2-89c5-92b70369ca90",
+    "content_hash": "sha256:902b9fe0c0c5a3407ea80956e8528af401adc40faa5935b53367061bf53805bc",
+    "document": "<saved separately; content_hash sha256:902b9fe0c0c5a3407ea80956e8528af401adc40faa5935b53367061bf53805bc>",
+    "assets": [
+      {
+        "asset_ref": "asset://kafka-to-doris/alignment/v1",
+        "name": "alignment",
+        "version": 1,
+        "kind": "alignment",
+        "path": "assets/alignment/v1.json",
+        "sha256": "sha256:0d184a555b9cf19b0f5cc90f16ed804c382be85d5c0cfaa59f1625f449933179",
+        "meta": {
+          "alignment_hash": "sha256:b4a9196641505e76097b61918820fc1e9c2709591e098495b3307ac77eea9a43",
+          "alignment_version": 1
+        }
+      }
+    ],
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

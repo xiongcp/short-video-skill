@@ -1,0 +1,273 @@
+{
+  "seq": 64,
+  "label": "kafka-to-doris/audio",
+  "op": "audio",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris",
+    "expected_version": 7,
+    "idempotency_key": "audio",
+    "sections": [
+      {
+        "section_id": "sec_001",
+        "import": {
+          "path": "incoming/sec_001.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1"
+        }
+      },
+      {
+        "section_id": "sec_002",
+        "import": {
+          "path": "incoming/sec_002.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1"
+        }
+      },
+      {
+        "section_id": "sec_003",
+        "import": {
+          "path": "incoming/sec_003.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1"
+        }
+      },
+      {
+        "section_id": "sec_004",
+        "import": {
+          "path": "incoming/sec_004.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1"
+        }
+      },
+      {
+        "section_id": "sec_005",
+        "import": {
+          "path": "incoming/sec_005.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1"
+        }
+      },
+      {
+        "section_id": "sec_006",
+        "import": {
+          "path": "incoming/sec_006.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1"
+        }
+      },
+      {
+        "section_id": "sec_007",
+        "import": {
+          "path": "incoming/sec_007.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1"
+        }
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "kafka-to-doris",
+    "state": "AUDIO_READY",
+    "version": 8,
+    "event_count": 7,
+    "event_id": "evt-1bb9b5ac-e62d-4cdc-a9dc-a4b046c224da",
+    "content_hash": "sha256:b2d50ac9833b541f99dcac0fdb9a4522e886278abd1dead4ad30a8ef09e71291",
+    "document": "<saved separately; content_hash sha256:b2d50ac9833b541f99dcac0fdb9a4522e886278abd1dead4ad30a8ef09e71291>",
+    "assets": [
+      {
+        "asset_ref": "asset://kafka-to-doris/take-sec_001/v1",
+        "name": "take-sec_001",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_001/v1.wav",
+        "sha256": "sha256:2c5276f8943d16b96e9a526b39a6578c3a5401063ac950771229a361d86bdbf7",
+        "meta": {
+          "section_id": "sec_001",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1",
+          "text_hash": "sha256:c19d26e68189357867983636b8b8a84e3e50a9f0a26cea0949f73483dd71ecfe",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/settings-sec_001/v1",
+        "name": "settings-sec_001",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_001/v1.json",
+        "sha256": "sha256:47f2bf68eb914a6cea739ec26dc71749d85afafe99b164af29a9e894a7be2150",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/take-sec_002/v1",
+        "name": "take-sec_002",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_002/v1.wav",
+        "sha256": "sha256:2639b5c28d51dd6a7fdb24492f747228f6c1b5b0cd43bbd66d0bf666f8810a58",
+        "meta": {
+          "section_id": "sec_002",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1",
+          "text_hash": "sha256:769c496ac1e9346d1e9ea37c939cc4e100a84b23c3e7fbcdbbed1ba2ef97b963",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/settings-sec_002/v1",
+        "name": "settings-sec_002",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_002/v1.json",
+        "sha256": "sha256:0493d2d36993997e568e081e0aa425b2a9869ecc9b4c2e89edc62e3ce2c7373c",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/take-sec_003/v1",
+        "name": "take-sec_003",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_003/v1.wav",
+        "sha256": "sha256:28af05212987b6dc6b99a4e8cb284f59e1dc0af75c9c413e1be6e4298fb97554",
+        "meta": {
+          "section_id": "sec_003",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1",
+          "text_hash": "sha256:56b40531710b3ad7c7ddf6f60763897fc2777927c62b1ae8014de55235586081",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/settings-sec_003/v1",
+        "name": "settings-sec_003",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_003/v1.json",
+        "sha256": "sha256:36abdb4e77d9e19dd8e6651e5c5b6a6ddcfa111f763d280ffc91a5c6360cd119",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/take-sec_004/v1",
+        "name": "take-sec_004",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_004/v1.wav",
+        "sha256": "sha256:c8feb6b8024c727e7e20261939c380b53a06deb9de09ee1d621455bd09dacd4c",
+        "meta": {
+          "section_id": "sec_004",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1",
+          "text_hash": "sha256:b5e5e9f356bdd954fd5b4d74699977723b2ed569ccff21a53e91456dd3b94cf4",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/settings-sec_004/v1",
+        "name": "settings-sec_004",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_004/v1.json",
+        "sha256": "sha256:b3ab3f6a7284a9c8b5ae20f590289b40519cd7e59223030b49eba09146283081",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/take-sec_005/v1",
+        "name": "take-sec_005",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_005/v1.wav",
+        "sha256": "sha256:be662098126034a642e1e257d37513afd15c0b70ad60c3ce11e7a28143f841fc",
+        "meta": {
+          "section_id": "sec_005",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1",
+          "text_hash": "sha256:bf7de06eae7609a9de9d2398e69833db6a49b3c27facf9eba104e00ea213bd85",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/settings-sec_005/v1",
+        "name": "settings-sec_005",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_005/v1.json",
+        "sha256": "sha256:25e33c87ad5597f3fc4b4e951d465e5438b74d67b22970121f8df29fd0b40b25",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/take-sec_006/v1",
+        "name": "take-sec_006",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_006/v1.wav",
+        "sha256": "sha256:af21d1bad97e12a0a142af2b306802ef25a8e23df7e60b9ea8f93464f4a32242",
+        "meta": {
+          "section_id": "sec_006",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1",
+          "text_hash": "sha256:87c684d1543145d4de45e921e62e201e983a331f225fad4320efbe33e66b66a1",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/settings-sec_006/v1",
+        "name": "settings-sec_006",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_006/v1.json",
+        "sha256": "sha256:6dc49c02c363cb83ae17c36cbd3411f6a44839e967c16c3dae3f47ddd14a7b32",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/take-sec_007/v1",
+        "name": "take-sec_007",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_007/v1.wav",
+        "sha256": "sha256:0edc5a5f27c8a819d465617dcb9043d0871b5d01bc91fd7aa3640ab5d52f2110",
+        "meta": {
+          "section_id": "sec_007",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://kafka-to-doris/host_voice/v1",
+          "text_hash": "sha256:82afdd1a9be0a68c74a5a5daf7c9d09c8291e76a603c38cf0bc50cc5e2427e83",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/settings-sec_007/v1",
+        "name": "settings-sec_007",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_007/v1.json",
+        "sha256": "sha256:7fc1f352014c2f990c6386d504b6ae6728bd144e322f3eae272a6553cbf82146",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/voice-master/v1",
+        "name": "voice-master",
+        "version": 1,
+        "kind": "voice-master",
+        "path": "assets/voice-master/v1.wav",
+        "sha256": "sha256:5766b5ab2ad8d93f480c7dbddbc222881e233ec2b4a5c8d928e2cff4b0c12751",
+        "meta": {
+          "audio_version": 1
+        }
+      }
+    ],
+    "measured_frames": 14400,
+    "planned_frames": 14400,
+    "difference_frames": 0,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

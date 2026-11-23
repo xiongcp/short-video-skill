@@ -1,0 +1,21 @@
+{
+  "seq": 0,
+  "label": "budget-race-init",
+  "op": "init",
+  "session": null,
+  "request": {
+    "project_id": "budget-race",
+    "title": "budget-race",
+    "mode": "quality"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "budget-race",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

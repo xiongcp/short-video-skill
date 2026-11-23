@@ -1,0 +1,34 @@
+{
+  "seq": 37,
+  "label": "g5-bound-to-master-hash",
+  "project_id": "cache-demo",
+  "op": "decide",
+  "session": "human:owner",
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 26,
+    "idempotency_key": "G5-approve-26",
+    "gate": "G5",
+    "target_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "decision": "approve",
+    "notes": "G5 approve"
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "cache-demo",
+    "state": "EXPORT_REVIEW",
+    "version": 26,
+    "event_count": 25,
+    "issues": [
+      {
+        "code": "APPROVAL_TARGET_MISMATCH",
+        "gate": "G5",
+        "target_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "current_target_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "message": "G5 的目标哈希 sha256:4444444444444444444444444444444444444444444444444444444444444444 与当前材料 sha256:6666666666666666666666666666666666666666666666666666666666666666 不一致"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

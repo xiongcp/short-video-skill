@@ -1,0 +1,317 @@
+{
+  "seq": 27,
+  "label": "preflight-negative",
+  "op": "preflight",
+  "session": null,
+  "request": {
+    "project_id": "host-demo",
+    "shots": [
+      {
+        "shot_id": "shot_001",
+        "scene_ref": "asset://host-demo/studio_host/v1",
+        "character": {
+          "character_ref": "asset://host-demo/host_alt/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "point_right",
+          "gaze": "camera"
+        },
+        "camera": {
+          "zoom": 1
+        }
+      },
+      {
+        "shot_id": "shot_002",
+        "scene_ref": "asset://host-demo/studio_pending/v1",
+        "camera": {
+          "zoom": 1
+        }
+      },
+      {
+        "shot_id": "shot_003",
+        "scene_ref": "asset://host-demo/studio_host/v1",
+        "character": {
+          "character_ref": "asset://host-demo/host_main/v1",
+          "angle": "side_90",
+          "expression": "explaining",
+          "gesture": "point_right",
+          "gaze": "camera"
+        },
+        "camera": {
+          "zoom": 1
+        }
+      },
+      {
+        "shot_id": "shot_004",
+        "scene_ref": "asset://host-demo/studio_hd/v1",
+        "camera": {
+          "zoom": 1.5
+        }
+      },
+      {
+        "shot_id": "shot_005",
+        "scene_ref": "asset://host-demo/diagram_ch_002/v1",
+        "camera": {
+          "zoom": 1.5
+        }
+      }
+    ]
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "host-demo",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "resolved": [
+      {
+        "shot_id": "shot_001",
+        "scene_ref": "asset://host-demo/studio_host/v1",
+        "zoom": 1,
+        "assets": [
+          {
+            "asset_ref": "asset://host-demo/studio_host/v1",
+            "kind": "scene",
+            "sha256": "sha256:04f67008e9036226e6ce8f34f0212a166ed732b608283ab0023bfa16b2d5c354",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/studio_backdrop/v1",
+            "kind": "background",
+            "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/host_alt/v1",
+            "kind": "character",
+            "sha256": "sha256:877167eca6896d948b9687c78d811ee02ce9e6cfa4ffe789ad3cc800f545b8b3",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/host_voice/v1",
+            "kind": "voice",
+            "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2",
+            "usage": "cleared"
+          }
+        ],
+        "character": {
+          "project_id": "host-demo",
+          "version": 1,
+          "character_ref": "asset://host-demo/host_alt/v1",
+          "character_id": "host_main",
+          "style_lock": [
+            "墨蓝短外套",
+            "栗色齐肩发",
+            "琥珀色发夹的位置固定"
+          ],
+          "rig_ref": "asset://host-demo/host_rig/v2",
+          "voice_ref": "asset://host-demo/host_voice/v1",
+          "supported_angles": [
+            "front",
+            "three_quarter"
+          ],
+          "expressions": [
+            "neutral",
+            "curious",
+            "explaining"
+          ],
+          "gestures": [
+            "idle",
+            "explain",
+            "point_right"
+          ],
+          "parameters": [
+            {
+              "parameter_id": "ParamMouthOpenY",
+              "min": 0,
+              "max": 1
+            }
+          ]
+        }
+      },
+      {
+        "shot_id": "shot_002",
+        "scene_ref": "asset://host-demo/studio_pending/v1",
+        "zoom": 1,
+        "assets": [
+          {
+            "asset_ref": "asset://host-demo/studio_pending/v1",
+            "kind": "scene",
+            "sha256": "sha256:3772056c5b12fba4a5e0e6e117a96ef640f3cb7f4f7683b09c79f1bd77e865be",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/backdrop_pending/v1",
+            "kind": "background",
+            "sha256": "sha256:b5987aec4bdba1c51511d1ed8960dd1bb8be3d4b5001202b8566dbe28789516f",
+            "usage": "pending"
+          }
+        ]
+      },
+      {
+        "shot_id": "shot_003",
+        "scene_ref": "asset://host-demo/studio_host/v1",
+        "zoom": 1,
+        "assets": [
+          {
+            "asset_ref": "asset://host-demo/studio_host/v1",
+            "kind": "scene",
+            "sha256": "sha256:04f67008e9036226e6ce8f34f0212a166ed732b608283ab0023bfa16b2d5c354",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/studio_backdrop/v1",
+            "kind": "background",
+            "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/host_main/v1",
+            "kind": "character",
+            "sha256": "sha256:18f5ccb9bd8d3aef251b38867cdda4c6df87e7811167ea75b2dbc1575855d403",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/host_rig/v1",
+            "kind": "rig",
+            "sha256": "sha256:8072a7b252ce4e3dfc6460be97f82b2672062cf3ec2ca2edf4a4ec0fbce585e6",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/host_voice/v1",
+            "kind": "voice",
+            "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2",
+            "usage": "cleared"
+          }
+        ],
+        "character": {
+          "project_id": "host-demo",
+          "version": 1,
+          "character_ref": "asset://host-demo/host_main/v1",
+          "character_id": "host_main",
+          "style_lock": [
+            "墨蓝短外套",
+            "栗色齐肩发",
+            "琥珀色发夹的位置固定"
+          ],
+          "rig_ref": "asset://host-demo/host_rig/v1",
+          "voice_ref": "asset://host-demo/host_voice/v1",
+          "supported_angles": [
+            "front",
+            "three_quarter"
+          ],
+          "expressions": [
+            "neutral",
+            "curious",
+            "explaining"
+          ],
+          "gestures": [
+            "idle",
+            "explain",
+            "point_right"
+          ],
+          "parameters": [
+            {
+              "parameter_id": "ParamMouthOpenY",
+              "min": 0,
+              "max": 1
+            }
+          ]
+        }
+      },
+      {
+        "shot_id": "shot_004",
+        "scene_ref": "asset://host-demo/studio_hd/v1",
+        "zoom": 1.5,
+        "assets": [
+          {
+            "asset_ref": "asset://host-demo/studio_hd/v1",
+            "kind": "scene",
+            "sha256": "sha256:e91b9e81ae603459bcb1eb41359cdd34599a401954dffa7738151a95fe193137",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/backdrop_hd/v1",
+            "kind": "background",
+            "sha256": "sha256:5fa9f825bd9a23267242861eabf8220b62a7457795a222af9f2b2a7487ed47e7",
+            "usage": "cleared"
+          }
+        ]
+      },
+      {
+        "shot_id": "shot_005",
+        "scene_ref": "asset://host-demo/diagram_ch_002/v1",
+        "zoom": 1.5,
+        "assets": [
+          {
+            "asset_ref": "asset://host-demo/diagram_ch_002/v1",
+            "kind": "scene",
+            "sha256": "sha256:65e6a36b8f3bcd5164a158fb58d3ea01ff3e194ec378d53a7df40b9fff6e6181",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/studio_backdrop/v1",
+            "kind": "background",
+            "sha256": "sha256:7ab275c88238cf237a8aa373d4857c345e5c5db9bd64d0a1a34fc1ea58865ea9",
+            "usage": "cleared"
+          },
+          {
+            "asset_ref": "asset://host-demo/diagram_cache/v1",
+            "kind": "diagram",
+            "sha256": "sha256:18bff4f9699889dbcb7cf0a89a50da76aaf00b8d1be6e6b9a74e90d35df93816",
+            "usage": "cleared"
+          }
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "code": "ASSET_NOT_FOUND",
+        "shot_id": "shot_001",
+        "asset_ref": "asset://host-demo/host_rig/v2",
+        "message": "镜头 shot_001 引用的资产 asset://host-demo/host_rig/v2 不存在（版本未登记）"
+      },
+      {
+        "code": "ASSET_NOT_CLEARED",
+        "shot_id": "shot_002",
+        "asset_ref": "asset://host-demo/backdrop_pending/v1",
+        "usage": "pending",
+        "message": "镜头 shot_002 的资产 asset://host-demo/backdrop_pending/v1 使用授权为 pending，正式装配要求 cleared"
+      },
+      {
+        "code": "ANGLE_UNREGISTERED",
+        "shot_id": "shot_003",
+        "asset_ref": "asset://host-demo/host_main/v1",
+        "angle": "side_90",
+        "message": "镜头 shot_003 请求的角度 side_90 不在角色 asset://host-demo/host_main/v1 已登记的角度内"
+      },
+      {
+        "code": "COVERAGE_INSUFFICIENT",
+        "shot_id": "shot_004",
+        "asset_ref": "asset://host-demo/backdrop_hd/v1",
+        "width": 1920,
+        "height": 1080,
+        "required_width": 2880,
+        "required_height": 1620,
+        "zoom": 1.5,
+        "message": "镜头 shot_004 的 asset://host-demo/backdrop_hd/v1 为 1920×1080，1.5× 原生推镜至少需要 2880×1620"
+      },
+      {
+        "code": "ELEMENT_OUTSIDE_SAFE_AREA",
+        "shot_id": "shot_005",
+        "asset_ref": "asset://host-demo/diagram_cache/v1",
+        "element_id": "browser",
+        "message": "镜头 shot_005 中 asset://host-demo/diagram_cache/v1 的元素 browser 在该缩放下越出安全区"
+      },
+      {
+        "code": "ELEMENT_OUTSIDE_SAFE_AREA",
+        "shot_id": "shot_005",
+        "asset_ref": "asset://host-demo/diagram_cache/v1",
+        "element_id": "server",
+        "message": "镜头 shot_005 中 asset://host-demo/diagram_cache/v1 的元素 server 在该缩放下越出安全区"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

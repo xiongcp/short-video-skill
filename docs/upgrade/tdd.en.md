@@ -6,7 +6,7 @@
 
 **Architecture.** One orchestrator owns state and authorization. A Node.js/TypeScript service consumes the existing JSON schemas. SQLite persists projects and jobs. Deterministic workers render shot-level character, diagram and audio plans from compiled timelines. Python remains the offline acceptance entry point.
 
-**Handoff.** Read the [project plan](project-plan.en.md), [upgrade design](design.en.md), [acceptance plan](acceptance.en.md) and [current status](handoff-status.en.md). T00 is complete. T01 is the first production task. This baseline has no `package.json`, Studio or production worker. Paths under `runtime/`, `studio/` and `tests/runtime/` below are planned files. The existing `schemas/`, `skills/`, `policies/` and `tools/` define the starting interfaces.
+**Handoff.** Read the [project plan](project-plan.en.md), [upgrade design](design.en.md), [acceptance plan](acceptance.en.md) and [current status](handoff-status.en.md). T00–T04 are complete and the T05 data path, T06 asset catalog, T07 compiler and T08 baker are complete at RUNTIME level (the real-voice A05 and original-art A06/A11 acceptances are open); T09 is the next card. T01 created `runtime/cli.ts`, `runtime/doctor.ts`, `runtime/preview.ts`, `runtime/i18n.ts` and `tests/runtime/`; T02 created `runtime/project-store.ts`, `runtime/orchestrator.ts` and `runtime/approvals.ts`; T03 created `runtime/jobs.ts` and `runtime/ledger.ts`; T04 created `runtime/content.ts` and `tools/search_sources/adapter.ts`; T05 created `runtime/audio.ts`, `runtime/assets.ts`, `tools/align_audio/adapter.ts` and `tools/generate_tts/adapter.ts`; T06 added registration, clearance, scene templates and preflight to `runtime/assets.ts`; T07 created `runtime/compiler.ts` and `runtime/timebase.ts`; T08 created `runtime/baker.ts`, `tools/bake_character/adapter.ts` and `tests/runtime/studio-fixture.mjs`; there is still no `package.json`, Studio or production worker. Paths under `runtime/`, `studio/` and `tests/runtime/` below are planned files. The existing `schemas/`, `skills/`, `policies/` and `tools/` define the starting interfaces.
 
 ## Starting work and closing each card
 
@@ -52,67 +52,67 @@ The implementation is in `evals/check_design.py`, `evals/media_acceptance.py` an
 
 Create `runtime/cli.ts`, `runtime/doctor.ts`, `runtime/preview.ts` and `tests/runtime/T01-doctor.test.mjs`. Reuse `profiles/duration.yaml` and `tools/inspect_media/contract.yaml`. Establish diagnostics first, then connect local picture, WAV, composition and a probe of the actual preview.
 
-- [ ] **RED 1** Put a real test font and WAV in a temporary project, then remove the configured font. Call doctor and assert that its structured result names the missing font and reports the capability status.
-- [ ] **GREEN 1** Probe dependencies, font, renderer and encoder. Retain versions, actual graphics backend and gaps. Audio and encoding capabilities remain reportable when graphics is unavailable.
-- [ ] **RED 2** Use a local 48 kHz WAV and redistributable host fixture. Require exactly 360 decoded frames in a 12-second clip, audible sound and positive image differences across its first, middle and last sample frames.
-- [ ] **GREEN 2** Compose one character layer and one procedural diagram through the intended production path. Archive the source audio, render configuration, probe and three frames. Identify the fixture if original art is pending.
-- [ ] Run `node --test tests/runtime/T01-doctor.test.mjs` and attach the proof to A01. The normal short acceptance command applies to programs of 60 seconds and above.
+- [x] **RED 1** Put a real test font and WAV in a temporary project, then remove the configured font. Call doctor and assert that its structured result names the missing font and reports the capability status.
+- [x] **GREEN 1** Probe dependencies, font, renderer and encoder. Retain versions, actual graphics backend and gaps. Audio and encoding capabilities remain reportable when graphics is unavailable.
+- [x] **RED 2** Use a local 48 kHz WAV and redistributable host fixture. Require exactly 360 decoded frames in a 12-second clip, audible sound and positive image differences across its first, middle and last sample frames.
+- [x] **GREEN 2** Compose one character layer and one procedural diagram through the intended production path. Archive the source audio, render configuration, probe and three frames. Identify the fixture if original art is pending.
+- [x] Run `node --test tests/runtime/T01-doctor.test.mjs` and attach the proof to A01. The normal short acceptance command applies to programs of 60 seconds and above.
 
 ## T02 · Project state, human decisions and idempotent events
 
 Create `runtime/project-store.ts`, `runtime/orchestrator.ts`, `runtime/approvals.ts` and `tests/runtime/T02-state.test.mjs`. Read `workflows/topic-to-video.yaml` and `policies/approval-gates.yaml`.
 
-- [ ] **RED** Two identical submissions return one event ID. Reject the same key with another payload and a stale `expected_version`. Add expired G2, direct draft export and a model attempting to sign G4.
-- [ ] **GREEN** In one SQLite transaction, compare revision, read authenticated identity, verify target hash, append the event and advance state. Scope unique keys by project and idempotency key. Retain old versions and approvals.
-- [ ] **REFACTOR** Share the service between CLI and future UI. Restart and compare stage and event count. Run `node --test tests/runtime/T02-state.test.mjs` and save the database snapshot and denial events for A02.
+- [x] **RED** Two identical submissions return one event ID. Reject the same key with another payload and a stale `expected_version`. Add expired G2, direct draft export and a model attempting to sign G4.
+- [x] **GREEN** In one SQLite transaction, compare revision, read authenticated identity, verify target hash, append the event and advance state. Scope unique keys by project and idempotency key. Retain old versions and approvals.
+- [x] **REFACTOR** Share the service between CLI and future UI. Restart and compare stage and event count. Run `node --test tests/runtime/T02-state.test.mjs` and save the database snapshot and denial events for A02.
 
 ## T03 · Budget, provider jobs and unknown receipts
 
 Create `runtime/jobs.ts`, `runtime/ledger.ts` and `tests/runtime/T03-jobs.test.mjs`. Use RenderJob, ToolResult and `policies/budget.yaml`. Store money in minor currency units.
 
-- [ ] **RED** Under a 100-unit cap, submit two distinct 70-unit intents concurrently. Only one reservation may remain. Duplicate one intent and require exactly one provider acceptance. Drop the receipt after acceptance and restart.
-- [ ] **GREEN** Persist reservation and submit intent in a transaction, then call the provider with that key. Query uncertain work by original key or receipt. Settle once on confirmation. Without lookup support, keep UNKNOWN and the pending balance.
-- [ ] **REFACTOR** Separate ledger writes from provider response parsing. Run `node --test tests/runtime/T03-jobs.test.mjs`. For A03 keep reservations, settlements, provider counts, permission denials and restart logs.
+- [x] **RED** Under a 100-unit cap, submit two distinct 70-unit intents concurrently. Only one reservation may remain. Duplicate one intent and require exactly one provider acceptance. Drop the receipt after acceptance and restart.
+- [x] **GREEN** Persist reservation and submit intent in a transaction, then call the provider with that key. Query uncertain work by original key or receipt. Settle once on confirmation. Without lookup support, keep UNKNOWN and the pending balance.
+- [x] **REFACTOR** Separate ledger writes from provider response parsing. Run `node --test tests/runtime/T03-jobs.test.mjs`. For A03 keep reservations, settlements, provider counts, permission denials and restart logs.
 
 ## T04 · Topic, evidence and reviewable scripts
 
 Create `runtime/content.ts`, `tools/search_sources/adapter.ts` and `tests/runtime/T04-content.test.mjs`. Invoke the entry, topic, research and script skills. Reuse the short example’s brief, evidence-set and script.
 
-- [ ] **RED** Supply two source versions supporting different conclusions and an unsupported key claim. Preserve conflicting locators and prevent treating an unsupported claim as confirmed. Keep section IDs after nonmaterial edits to supplied text.
-- [ ] **GREEN** Version sources, claim links, qualifications, spoken sections and terms needing audition. G1 reviews source findings. G2 fixes script and duration. Owner-authorized local material remains usable offline.
-- [ ] **REFACTOR** Share default resolution between start and resume. Test explicit 120 seconds, 180 for a new project and 480 for `standard8`. Run `node --test tests/runtime/T04-content.test.mjs` for A04.
+- [x] **RED** Supply two source versions supporting different conclusions and an unsupported key claim. Preserve conflicting locators and prevent treating an unsupported claim as confirmed. Keep section IDs after nonmaterial edits to supplied text.
+- [x] **GREEN** Version sources, claim links, qualifications, spoken sections and terms needing audition. G1 reviews source findings. G2 fixes script and duration. Owner-authorized local material remains usable offline.
+- [x] **REFACTOR** Share default resolution between start and resume. Test explicit 120 seconds, 180 for a new project and 480 for `standard8`. Run `node --test tests/runtime/T04-content.test.mjs` for A04.
 
 ## T05 · Audio, words, visemes and SRT
 
 Create `runtime/audio.ts`, `tools/align_audio/adapter.ts`, `tools/generate_tts/adapter.ts` and `tests/runtime/T05-audio.test.mjs`. Reuse AudioManifest, Alignment and SubtitleTrack. Connect WAV import first, then an authorized voice provider.
 
-- [ ] **RED** A section starts at sample 48,000 and its word at local sample 2,400. Require master sample 50,400. Distinguish two occurrences of the same term by ID. Include low confidence and a manual correction.
-- [ ] **GREEN** Preserve original WAV, text and voice revisions, sample times and confidence. Drive subtitle and viseme tracks from the same revision. Imported and synthesized voice share the downstream contract.
-- [ ] **REFACTOR** Reuse T03 charging and retries. Run `node --test tests/runtime/T05-audio.test.mjs`. Complete A05 with a real voice and at least 100 labeled anchors, recording the calibration decision.
+- [x] **RED** A section starts at sample 48,000 and its word at local sample 2,400. Require master sample 50,400. Distinguish two occurrences of the same term by ID. Include low confidence and a manual correction.
+- [x] **GREEN** Preserve original WAV, text and voice revisions, sample times and confidence. Drive subtitle and viseme tracks from the same revision. Imported and synthesized voice share the downstream contract.
+- [ ] **REFACTOR** Reuse T03 charging and retries. Run `node --test tests/runtime/T05-audio.test.mjs`. Complete A05 with a real voice and at least 100 labeled anchors, recording the calibration decision. (Charging reuse and the focused test are done; the real-voice A05 has not run, so this box stays open.)
 
 ## T06 · Original host and three editable scene templates
 
 Create `runtime/assets.ts` and `tests/runtime/T06-assets.test.mjs`. Store assets according to their permissions. Place redistributable assets and fingerprints in tests. Replay existing examples before extending character or scene contracts.
 
-- [ ] **RED** During formal assembly, require an asset ID for a missing rig version, unauthorized asset or unregistered 90-degree angle. A full-frame 1920×1080 bitmap requested for a native-resolution 1.5× push-in must fail coverage preflight.
-- [ ] **GREEN** Register original art, separated layers, rig, permission, supported actions/angles and voice. Retain prior versions. Check pixels against safe areas and zoom. Establish host, procedural diagram and topic illustration templates.
-- [ ] **REFACTOR** Share asset resolution between host and diagram shots. Run `node --test tests/runtime/T06-assets.test.mjs`. Make the 45–60 second original art sample and record three backgrounds, extreme poses and art decisions for A06/A11.
+- [x] **RED** During formal assembly, require an asset ID for a missing rig version, unauthorized asset or unregistered 90-degree angle. A full-frame 1920×1080 bitmap requested for a native-resolution 1.5× push-in must fail coverage preflight.
+- [x] **GREEN** Register original art, separated layers, rig, permission, supported actions/angles and voice. Retain prior versions. Check pixels against safe areas and zoom. Establish host, procedural diagram and topic illustration templates.
+- [ ] **REFACTOR** Share asset resolution between host and diagram shots. Run `node --test tests/runtime/T06-assets.test.mjs`. Make the 45–60 second original art sample and record three backgrounds, extreme poses and art decisions for A06/A11. (Shared asset resolution and the focused test are done; the original art sample has not been made, so this box stays open.)
 
 ## T07 · Director DSL, word-trigger compilation and timebase
 
 Create `runtime/compiler.ts` and `tests/runtime/T07-compiler.test.mjs`. Use storyboard, common and workflow contracts. Feed both original examples and copies with measured alignment. Keep `planned` boards readable.
 
-- [ ] **RED** Samples 2,399 and 2,400 map to frames 1 and 2. Adjacent shots reference one cut, and the timeline includes the last real sample. An invalid action, cross-section cue, dependency cycle or out-of-range animation identifies object and field.
-- [ ] **GREEN** Resolve stable references and quantize shared boundaries once. Emit local and absolute intervals, bound effects, audio references, input hash and layer dependencies. Production compilation requires `aligned` timing and authorized assets.
-- [ ] **REFACTOR** Share quantization across both profiles. Run `node --test tests/runtime/T07-compiler.test.mjs` and the Python checks for both examples. Save inputs, frozen results and each negative diagnostic for A07.
+- [x] **RED** Samples 2,399 and 2,400 map to frames 1 and 2. Adjacent shots reference one cut, and the timeline includes the last real sample. An invalid action, cross-section cue, dependency cycle or out-of-range animation identifies object and field.
+- [x] **GREEN** Resolve stable references and quantize shared boundaries once. Emit local and absolute intervals, bound effects, audio references, input hash and layer dependencies. Production compilation requires `aligned` timing and authorized assets.
+- [x] **REFACTOR** Share quantization across both profiles. Run `node --test tests/runtime/T07-compiler.test.mjs` and the Python checks for both examples. Save inputs, frozen results and each negative diagnostic for A07.
 
 ## T08 · Sequential baking and deterministic frame reads
 
 Create `tools/bake_character/adapter.ts`, `runtime/baker.ts` and `tests/runtime/T08-bake.test.mjs`. Use the capability table, CharacterActionPlan and compiled local frame count.
 
-- [ ] **RED** With the same rig, seed and initial state, request frames 29, 0, 15, then 0, 15, 29. Compare lossless RGBA hashes frame by frame. Changing an explicitly inherited previous end state must change the cache key.
-- [ ] **GREEN** Bake sequentially at a fixed step. The compositor reads the requested frame. Apply pose, lips and secondary motion in a fixed order and record rig and physics in the snapshot.
-- [ ] **REFACTOR** Separate initial-state resolution from frame lookup. Run `node --test tests/runtime/T08-bake.test.mjs`. Keep actual images, pixel diffs and the environment lock for A08. A simulated rig provides development evidence.
+- [x] **RED** With the same rig, seed and initial state, request frames 29, 0, 15, then 0, 15, 29. Compare lossless RGBA hashes frame by frame. Changing an explicitly inherited previous end state must change the cache key.
+- [x] **GREEN** Bake sequentially at a fixed step. The compositor reads the requested frame. Apply pose, lips and secondary motion in a fixed order and record rig and physics in the snapshot.
+- [x] **REFACTOR** Separate initial-state resolution from frame lookup. Run `node --test tests/runtime/T08-bake.test.mjs`. Keep actual images, pixel diffs and the environment lock for A08. A simulated rig provides development evidence.
 
 ## T09 · Rendering, targeted edits and crash recovery
 

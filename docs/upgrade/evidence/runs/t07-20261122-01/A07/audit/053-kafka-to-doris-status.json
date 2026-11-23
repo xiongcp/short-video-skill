@@ -1,0 +1,19 @@
+{
+  "seq": 53,
+  "label": "kafka-to-doris/status",
+  "op": "status",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "kafka-to-doris",
+    "state": "BRIEF_READY",
+    "version": 2,
+    "event_count": 1,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

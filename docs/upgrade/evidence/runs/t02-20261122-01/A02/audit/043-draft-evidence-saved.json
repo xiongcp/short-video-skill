@@ -1,0 +1,27 @@
+{
+  "seq": 43,
+  "label": "draft-evidence-saved",
+  "project_id": "cache-draft",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-draft",
+    "expected_version": 3,
+    "idempotency_key": "evidence_saved-3",
+    "event": "evidence_saved",
+    "payload": {
+      "artifact_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-draft",
+    "state": "RESEARCH_REVIEW",
+    "version": 4,
+    "event_count": 3,
+    "event_id": "evt-cfafef00-b360-484e-8c82-1310f09d14e8",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "seq": 32,
+  "project_id": "tts-path",
+  "label": "status-evidence",
+  "op": "status",
+  "session": null,
+  "request": {
+    "project_id": "tts-path"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "tts-path",
+    "state": "RESEARCH_RUNNING",
+    "version": 3,
+    "event_count": 2,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

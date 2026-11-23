@@ -1,0 +1,21 @@
+{
+  "seq": 12,
+  "label": "no-lookup-init",
+  "op": "init",
+  "session": null,
+  "request": {
+    "project_id": "no-lookup",
+    "title": "no-lookup",
+    "mode": "quality"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "no-lookup",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

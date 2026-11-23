@@ -1,0 +1,35 @@
+{
+  "seq": 136,
+  "label": "injection/clear-host_main",
+  "op": "clear",
+  "session": "human:owner",
+  "request": {
+    "project_id": "direct-demo",
+    "asset_ref": "asset://direct-demo/host_main/v1",
+    "usage": "cleared",
+    "notes": "代码生成的占位素材"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "direct-demo",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "asset": {
+      "asset_ref": "asset://direct-demo/host_main/v1",
+      "kind": "character",
+      "sha256": "sha256:18f5ccb9bd8d3aef251b38867cdda4c6df87e7811167ea75b2dbc1575855d403",
+      "media": {
+        "media_type": "image/png",
+        "ext": "png",
+        "width": 1200,
+        "height": 1600
+      },
+      "usage": "cleared"
+    },
+    "reviewer_id": "owner",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "project_id": "import-path",
+  "version": 1,
+  "script_version": 1,
+  "master_ref": "asset://import-path/voice-master/v1",
+  "sample_rate_hz": 48000,
+  "duration_samples": 144000,
+  "segments": [
+    {
+      "section_id": "sec_001",
+      "audio_ref": "asset://import-path/take-sec_001/v1",
+      "start_sample": 0,
+      "end_sample": 48000,
+      "voice_ref": "asset://import-path/voice-owner/v1",
+      "origin": "import",
+      "provider_or_recordist": "owner",
+      "settings_ref": "asset://import-path/settings-sec_001/v1"
+    },
+    {
+      "section_id": "sec_002",
+      "audio_ref": "asset://import-path/take-sec_002/v1",
+      "start_sample": 48000,
+      "end_sample": 144000,
+      "voice_ref": "asset://import-path/voice-owner/v1",
+      "origin": "import",
+      "provider_or_recordist": "owner",
+      "settings_ref": "asset://import-path/settings-sec_002/v1"
+    }
+  ]
+}

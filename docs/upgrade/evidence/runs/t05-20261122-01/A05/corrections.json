@@ -1,0 +1,31 @@
+{
+  "engine": {
+    "name": "fixture-aligner",
+    "version": "0"
+  },
+  "corrections": [
+    {
+      "word_id": "sec_002-w006",
+      "from": {
+        "start_sample": 86000,
+        "end_sample": 96000
+      },
+      "to": {
+        "start_sample": 86400,
+        "end_sample": 96000
+      },
+      "origin": "manual",
+      "note": "试听后后移 8 ms"
+    }
+  ],
+  "blocked_issues": [
+    {
+      "code": "ALIGNMENT_LOW_CONFIDENCE",
+      "word_id": "sec_002-w006",
+      "confidence": 0.4,
+      "start_sample": 86000,
+      "end_sample": 96000,
+      "message": "词 sec_002-w006 置信度 0.4，采样区间 [86000, 96000) 需试听并手工确认"
+    }
+  ]
+}

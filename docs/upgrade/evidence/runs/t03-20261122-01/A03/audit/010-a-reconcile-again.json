@@ -1,0 +1,42 @@
+{
+  "seq": 10,
+  "label": "a-reconcile-again",
+  "op": "reconcile",
+  "session": null,
+  "request": {
+    "project_id": "budget-race",
+    "idempotency_key": "tts-b"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "SUCCEEDED",
+    "project_id": "budget-race",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "job_id": "job-7ddc9097-34af-4250-8935-0d69988510fd",
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "job-7ddc9097-34af-4250-8935-0d69988510fd",
+      "artifact_refs": [],
+      "warnings": [],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 70,
+        "actual_minor": 60
+      },
+      "retryable": false,
+      "next_action": "continue"
+    },
+    "balance": {
+      "currency": "CNY",
+      "limit_minor": 100,
+      "held_minor": 0,
+      "spent_minor": 60,
+      "pending_verification_minor": 0,
+      "available_minor": 40
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

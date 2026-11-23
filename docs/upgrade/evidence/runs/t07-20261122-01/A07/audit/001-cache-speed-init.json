@@ -1,0 +1,21 @@
+{
+  "seq": 1,
+  "label": "cache-speed/init",
+  "op": "init",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "title": "为什么缓存能让网页变快？",
+    "mode": "draft"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "cache-speed",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

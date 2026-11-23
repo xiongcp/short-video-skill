@@ -1,0 +1,24 @@
+{
+  "seq": 30,
+  "label": "script-accepted",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "expected_version": 12,
+    "idempotency_key": "script-accepted",
+    "event": "script_accepted",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-speed",
+    "state": "AUDIO_RUNNING",
+    "version": 13,
+    "event_count": 12,
+    "event_id": "evt-85608beb-1052-4fd0-a623-bf64a7cb9d09",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

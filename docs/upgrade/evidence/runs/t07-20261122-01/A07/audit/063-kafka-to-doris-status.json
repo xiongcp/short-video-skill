@@ -1,0 +1,19 @@
+{
+  "seq": 63,
+  "label": "kafka-to-doris/status",
+  "op": "status",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "kafka-to-doris",
+    "state": "AUDIO_RUNNING",
+    "version": 7,
+    "event_count": 6,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

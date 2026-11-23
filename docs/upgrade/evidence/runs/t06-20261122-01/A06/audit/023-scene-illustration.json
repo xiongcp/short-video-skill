@@ -1,0 +1,76 @@
+{
+  "seq": 23,
+  "label": "scene-illustration",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "host-demo",
+    "name": "illustration_ch_001",
+    "template": "illustration",
+    "focus": "两扇浏览器窗口",
+    "layers": [
+      {
+        "asset_ref": "asset://host-demo/studio_backdrop/v1"
+      },
+      {
+        "asset_ref": "asset://host-demo/layer_illustration/v1",
+        "element_ids": [
+          "beat_002"
+        ]
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "host-demo",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "scene": {
+      "project_id": "host-demo",
+      "version": 1,
+      "scene_ref": "asset://host-demo/illustration_ch_001/v1",
+      "template": "illustration",
+      "focus": "两扇浏览器窗口",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://host-demo/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://host-demo/layer_illustration/v1",
+          "role": "illustration",
+          "z": 1,
+          "element_ids": [
+            "beat_002"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://host-demo/illustration_ch_001/v1",
+      "kind": "scene",
+      "sha256": "sha256:d740bcf81189ac7cdb35d069284b438996b8c734a01d9e181004ec3401d9ffdc",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

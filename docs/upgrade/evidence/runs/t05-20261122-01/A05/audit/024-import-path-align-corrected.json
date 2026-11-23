@@ -1,0 +1,427 @@
+{
+  "seq": 24,
+  "project_id": "import-path",
+  "label": "align-corrected",
+  "op": "align",
+  "session": null,
+  "request": {
+    "project_id": "import-path",
+    "expected_version": 10,
+    "idempotency_key": "align-corrected",
+    "audio_version": 1,
+    "engine": {
+      "name": "fixture-aligner",
+      "version": "0"
+    },
+    "sections": [
+      {
+        "section_id": "sec_001",
+        "words": [
+          {
+            "text": "先",
+            "start_sample": 0,
+            "end_sample": 8000,
+            "confidence": 0.95
+          },
+          {
+            "text": "看",
+            "start_sample": 8000,
+            "end_sample": 16000,
+            "confidence": 0.95
+          },
+          {
+            "text": "第一段",
+            "start_sample": 16000,
+            "end_sample": 40000,
+            "confidence": 0.95
+          }
+        ]
+      },
+      {
+        "section_id": "sec_002",
+        "words": [
+          {
+            "text": "浏览器",
+            "start_sample": 2400,
+            "end_sample": 12000,
+            "confidence": 0.95
+          },
+          {
+            "text": "有",
+            "start_sample": 12000,
+            "end_sample": 16000,
+            "confidence": 0.95
+          },
+          {
+            "text": "副本",
+            "start_sample": 16000,
+            "end_sample": 26000,
+            "confidence": 0.95
+          },
+          {
+            "text": "再",
+            "start_sample": 30000,
+            "end_sample": 34000,
+            "confidence": 0.95
+          },
+          {
+            "text": "看",
+            "start_sample": 34000,
+            "end_sample": 38000,
+            "confidence": 0.95
+          },
+          {
+            "text": "副本",
+            "start_sample": 38000,
+            "end_sample": 48000,
+            "confidence": 0.4
+          },
+          {
+            "text": "是否",
+            "start_sample": 48000,
+            "end_sample": 56000,
+            "confidence": 0.95
+          },
+          {
+            "text": "新鲜",
+            "start_sample": 56000,
+            "end_sample": 70000,
+            "confidence": 0.95
+          }
+        ]
+      }
+    ],
+    "subtitle_style_ref": "asset://import-path/subtitle-style/v1",
+    "corrections": [
+      {
+        "word_id": "sec_002-w006",
+        "start_sample": 86400,
+        "end_sample": 96000,
+        "note": "试听后后移 8 ms"
+      }
+    ],
+    "marks": [
+      {
+        "word_id": "sec_002-w006",
+        "viseme": "closed"
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "import-path",
+    "state": "ALIGNMENT_READY",
+    "version": 11,
+    "event_count": 10,
+    "event_id": "evt-c4d8a59c-4296-4107-8072-e94e1c5ea3e4",
+    "content_hash": "sha256:d6dd8f1414eb7d61a87d44e4f19c37b9467df5890d929dce8166a229b8a5187b",
+    "document": {
+      "alignment": {
+        "project_id": "import-path",
+        "version": 1,
+        "script_version": 1,
+        "audio_version": 1,
+        "sample_rate_hz": 48000,
+        "tokens": [
+          {
+            "word_id": "sec_001-w001",
+            "section_id": "sec_001",
+            "text": "先",
+            "start_sample": 0,
+            "end_sample": 8000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_001-w002",
+            "section_id": "sec_001",
+            "text": "看",
+            "start_sample": 8000,
+            "end_sample": 16000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_001-w003",
+            "section_id": "sec_001",
+            "text": "第一段",
+            "start_sample": 16000,
+            "end_sample": 40000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_002-w001",
+            "section_id": "sec_002",
+            "text": "浏览器",
+            "start_sample": 50400,
+            "end_sample": 60000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_002-w002",
+            "section_id": "sec_002",
+            "text": "有",
+            "start_sample": 60000,
+            "end_sample": 64000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_002-w003",
+            "section_id": "sec_002",
+            "text": "副本",
+            "start_sample": 64000,
+            "end_sample": 74000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_002-w004",
+            "section_id": "sec_002",
+            "text": "再",
+            "start_sample": 78000,
+            "end_sample": 82000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_002-w005",
+            "section_id": "sec_002",
+            "text": "看",
+            "start_sample": 82000,
+            "end_sample": 86000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_002-w006",
+            "section_id": "sec_002",
+            "text": "副本",
+            "start_sample": 86400,
+            "end_sample": 96000,
+            "confidence": 0.4,
+            "manually_corrected": true
+          },
+          {
+            "word_id": "sec_002-w007",
+            "section_id": "sec_002",
+            "text": "是否",
+            "start_sample": 96000,
+            "end_sample": 104000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_002-w008",
+            "section_id": "sec_002",
+            "text": "新鲜",
+            "start_sample": 104000,
+            "end_sample": 118000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          }
+        ],
+        "cue_map": [
+          {
+            "cue_id": "cue_copy_1",
+            "word_ids": [
+              "sec_002-w003"
+            ]
+          },
+          {
+            "cue_id": "cue_copy_2",
+            "word_ids": [
+              "sec_002-w006"
+            ]
+          }
+        ]
+      },
+      "subtitles": {
+        "project_id": "import-path",
+        "version": 1,
+        "script_version": 1,
+        "alignment_version": 1,
+        "style_ref": "asset://import-path/subtitle-style/v1",
+        "cues": [
+          {
+            "section_id": "sec_001",
+            "cue_ids": [],
+            "range": {
+              "start": 0,
+              "end": 25
+            },
+            "text": "先看第一段。"
+          },
+          {
+            "section_id": "sec_002",
+            "cue_ids": [
+              "cue_copy_1",
+              "cue_copy_2"
+            ],
+            "range": {
+              "start": 32,
+              "end": 74
+            },
+            "text": "浏览器有副本，再看副本是否新鲜。"
+          }
+        ]
+      },
+      "visemes": {
+        "project_id": "import-path",
+        "alignment_version": 1,
+        "fps": 30,
+        "total_frames": 90,
+        "ranges": [
+          {
+            "word_id": "sec_001-w001",
+            "shape": "open",
+            "range": {
+              "start": 0,
+              "end": 5
+            }
+          },
+          {
+            "word_id": "sec_001-w002",
+            "shape": "open",
+            "range": {
+              "start": 5,
+              "end": 10
+            }
+          },
+          {
+            "word_id": "sec_001-w003",
+            "shape": "open",
+            "range": {
+              "start": 10,
+              "end": 25
+            }
+          },
+          {
+            "shape": "rest",
+            "range": {
+              "start": 25,
+              "end": 32
+            }
+          },
+          {
+            "word_id": "sec_002-w001",
+            "shape": "open",
+            "range": {
+              "start": 32,
+              "end": 38
+            }
+          },
+          {
+            "word_id": "sec_002-w002",
+            "shape": "open",
+            "range": {
+              "start": 38,
+              "end": 40
+            }
+          },
+          {
+            "word_id": "sec_002-w003",
+            "shape": "open",
+            "range": {
+              "start": 40,
+              "end": 46
+            }
+          },
+          {
+            "shape": "rest",
+            "range": {
+              "start": 46,
+              "end": 49
+            }
+          },
+          {
+            "word_id": "sec_002-w004",
+            "shape": "open",
+            "range": {
+              "start": 49,
+              "end": 51
+            }
+          },
+          {
+            "word_id": "sec_002-w005",
+            "shape": "open",
+            "range": {
+              "start": 51,
+              "end": 54
+            }
+          },
+          {
+            "word_id": "sec_002-w006",
+            "shape": "closed",
+            "range": {
+              "start": 54,
+              "end": 60
+            }
+          },
+          {
+            "word_id": "sec_002-w007",
+            "shape": "open",
+            "range": {
+              "start": 60,
+              "end": 65
+            }
+          },
+          {
+            "word_id": "sec_002-w008",
+            "shape": "open",
+            "range": {
+              "start": 65,
+              "end": 74
+            }
+          },
+          {
+            "shape": "rest",
+            "range": {
+              "start": 74,
+              "end": 90
+            }
+          }
+        ]
+      },
+      "corrections": [
+        {
+          "word_id": "sec_002-w006",
+          "from": {
+            "start_sample": 86000,
+            "end_sample": 96000
+          },
+          "to": {
+            "start_sample": 86400,
+            "end_sample": 96000
+          },
+          "origin": "manual",
+          "note": "试听后后移 8 ms"
+        }
+      ],
+      "engine": {
+        "name": "fixture-aligner",
+        "version": "0"
+      },
+      "srt_ref": "asset://import-path/subtitles-srt/v1"
+    },
+    "srt": "1\n00:00:00,000 --> 00:00:00,833\n先看第一段。\n\n2\n00:00:01,067 --> 00:00:02,467\n浏览器有副本，再看副本是否新鲜。\n",
+    "assets": [
+      {
+        "asset_ref": "asset://import-path/subtitles-srt/v1",
+        "name": "subtitles-srt",
+        "version": 1,
+        "kind": "subtitles",
+        "path": "assets/subtitles-srt/v1.srt",
+        "sha256": "sha256:40392415cc2e89e642348a1cc36aeebbaeaa5b6e5aee6adc4f50f7ae739a507c",
+        "meta": {
+          "alignment_version": 1
+        }
+      }
+    ],
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

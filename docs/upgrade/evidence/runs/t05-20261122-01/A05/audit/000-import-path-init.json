@@ -1,0 +1,22 @@
+{
+  "seq": 0,
+  "project_id": "import-path",
+  "label": "init",
+  "op": "init",
+  "session": null,
+  "request": {
+    "project_id": "import-path",
+    "title": "缓存与副本",
+    "mode": "quality"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "import-path",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

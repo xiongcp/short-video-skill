@@ -1,0 +1,25 @@
+{
+  "seq": 51,
+  "label": "draft-snapshot-compiled",
+  "project_id": "cache-draft",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-draft",
+    "expected_version": 11,
+    "idempotency_key": "snapshot_compiled-11",
+    "event": "snapshot_compiled",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-draft",
+    "state": "COMPILED",
+    "version": 12,
+    "event_count": 11,
+    "event_id": "evt-384a6372-f004-4c50-bdf4-e1671107422f",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

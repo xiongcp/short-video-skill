@@ -6,7 +6,7 @@ An architecture and agent skill package tailored for solo creators producing **C
 
 Two profiles serve distinct production needs: **1–3 minute shorts** (default 180s, 120s sweet spot) and **chapter-based programs of about eight minutes** (450–510s, target 480s).
 
-**Implementing the studio or collaborating via AI Agents?** Please consult the [Project Agent Guide (AGENTS.md)](AGENTS.md) and [Handoff Status & Evidence](docs/upgrade/handoff-status.en.md) first, and refer to the [Handoff Prompts](docs/upgrade/handoff-prompts.en.md). Milestone T00 has passed all offline acceptance checks; the next milestone is T01 (environment diagnostics and a 12-second audio-visual technical clip).
+**Implementing the studio or collaborating via AI Agents?** Please consult the [Project Agent Guide (AGENTS.md)](AGENTS.md) and [Handoff Status & Evidence](docs/upgrade/handoff-status.en.md) first, and refer to the [Handoff Prompts](docs/upgrade/handoff-prompts.en.md). Milestones T00 (offline acceptance), T01 (environment diagnostics and a 12-second audio-visual technical clip), T02 (project state and human approvals), T03 (budget and provider job reconciliation, with a simulated vendor) T04 (topic, evidence and reviewable scripts, with fixture sources and a simulated reviewer) and the T05 data path (audio, words, visemes and SRT, with synthetic audio and a fixture aligner; the real-voice A05 acceptance is open) the T06 asset catalog and scene templates (fixture bitmaps; the original-art A06/A11 acceptance is open) T07 director DSL and word-trigger compilation (synthetic audio and fixture assets) and T08 sequential character baking with deterministic frame reads (simulated rig) have passed, T01–T08 at RUNTIME level; the next card is T09 (rendering, targeted edits and crash recovery). Runtime CLI output supports Chinese and English (`--lang zh-CN|en`).
 
 ---
 
@@ -135,6 +135,9 @@ python3 -B docs/upgrade/evidence/replay_media.py
 
 # 4. Probe an actual rendered 120-second MP4 master
 python3 -B evals/check_design.py --media renders/final.mp4 --profile short --target-seconds 120
+
+# 5. Runtime tests: doctor, 12-second clip, project state and approvals, i18n (requires Node.js 22.18+ and FFmpeg)
+node --test tests/runtime/
 ```
 
 ---

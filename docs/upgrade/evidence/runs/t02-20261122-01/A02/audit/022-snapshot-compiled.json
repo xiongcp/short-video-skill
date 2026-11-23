@@ -1,0 +1,25 @@
+{
+  "seq": 22,
+  "label": "snapshot-compiled",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 16,
+    "idempotency_key": "snapshot_compiled-16",
+    "event": "snapshot_compiled",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "COMPILED",
+    "version": 17,
+    "event_count": 16,
+    "event_id": "evt-f7484164-c759-479d-bfd5-9647d86394f1",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

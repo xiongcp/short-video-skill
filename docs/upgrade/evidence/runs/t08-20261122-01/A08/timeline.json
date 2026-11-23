@@ -1,0 +1,52 @@
+{
+  "project_id": "direct-demo",
+  "version": 1,
+  "storyboard_version": 1,
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "sample_rate_hz": 48000
+  },
+  "total_frames": 91,
+  "input_snapshot_hash": "sha256:822a9ba0a48a08e63a4422a2595c5e6345b1c39461066309f1428f86edacf165",
+  "alignment_ref": "asset://direct-demo/alignment/v1",
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "chapter_id": "ch_001",
+      "absolute_range": {
+        "start": 0,
+        "end": 30
+      },
+      "local_frames": 30,
+      "layer_refs": [
+        "asset://direct-demo/studio_backdrop/v1"
+      ],
+      "character_plan_ref": null,
+      "audio_ref": "asset://direct-demo/voice-master/v1",
+      "cache_key": "sha256:f15d4d65fdaf282f379874fec670af03842c87182b4c00c97d22208d06a65955",
+      "camera": "medium",
+      "visual_cues": [],
+      "subtitle_ref": "asset://direct-demo/subtitles-srt/v1"
+    },
+    {
+      "shot_id": "shot_002",
+      "chapter_id": "ch_002",
+      "absolute_range": {
+        "start": 30,
+        "end": 91
+      },
+      "local_frames": 61,
+      "layer_refs": [
+        "asset://direct-demo/studio_backdrop/v1"
+      ],
+      "character_plan_ref": null,
+      "audio_ref": "asset://direct-demo/voice-master/v1",
+      "cache_key": "sha256:348d7407765e2576b7e1b84ff3aff4cc2b7d75b240d23ad523ad6df4d9cdc75b",
+      "camera": "medium",
+      "visual_cues": [],
+      "subtitle_ref": "asset://direct-demo/subtitles-srt/v1"
+    }
+  ]
+}

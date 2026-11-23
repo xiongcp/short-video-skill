@@ -1,0 +1,80 @@
+{
+  "seq": 140,
+  "label": "injection/scene-diagram_ch_002",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "direct-demo",
+    "name": "diagram_ch_002",
+    "template": "diagram",
+    "focus": "浏览器和服务器",
+    "layers": [
+      {
+        "asset_ref": "asset://direct-demo/studio_backdrop/v1"
+      },
+      {
+        "asset_ref": "asset://direct-demo/diagram_cache/v1",
+        "element_ids": [
+          "browser",
+          "server"
+        ],
+        "claim_ids": []
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "direct-demo",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "scene": {
+      "project_id": "direct-demo",
+      "version": 1,
+      "scene_ref": "asset://direct-demo/diagram_ch_002/v1",
+      "template": "diagram",
+      "focus": "浏览器和服务器",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://direct-demo/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://direct-demo/diagram_cache/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "browser",
+            "server"
+          ],
+          "claim_ids": []
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://direct-demo/diagram_ch_002/v1",
+      "kind": "scene",
+      "sha256": "sha256:e9946c06dc57b98a021c16da33ec77fb46beb2e0741227dd7b0a4ffeaa151e06",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

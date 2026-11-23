@@ -1,0 +1,25 @@
+{
+  "seq": 10,
+  "label": "research-accepted",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 5,
+    "idempotency_key": "research_accepted-5",
+    "event": "research_accepted",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "SCRIPT_RUNNING",
+    "version": 6,
+    "event_count": 5,
+    "event_id": "evt-4c639056-8dc9-4d9a-9fd1-546083cd0e28",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

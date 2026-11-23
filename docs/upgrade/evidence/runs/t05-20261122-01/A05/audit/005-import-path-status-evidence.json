@@ -1,0 +1,20 @@
+{
+  "seq": 5,
+  "project_id": "import-path",
+  "label": "status-evidence",
+  "op": "status",
+  "session": null,
+  "request": {
+    "project_id": "import-path"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "import-path",
+    "state": "RESEARCH_RUNNING",
+    "version": 3,
+    "event_count": 2,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

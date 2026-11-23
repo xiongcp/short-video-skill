@@ -1,0 +1,290 @@
+[01-RED] 2026-11-22T18:19:08-0800
+$ node --test tests/runtime/T01-doctor.test.mjs
+✖ doctor reports a missing agreed font as a blocked caption capability (175.737209ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 221.579166
+
+✖ failing tests:
+
+test at tests/runtime/T01-doctor.test.mjs:17:1
+✖ doctor reports a missing agreed font as a blocked caption capability (175.737209ms)
+  AssertionError [ERR_ASSERTION]: node:internal/modules/cjs/loader:1595
+    throw err;
+    ^
+  
+  Error: Cannot find module 'runtime/cli.ts'
+      at Module._resolveFilename (node:internal/modules/cjs/loader:1591:15)
+      at wrapResolveFilename (node:internal/modules/cjs/loader:1145:27)
+      at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1169:10)
+      at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1196:12)
+      at Module._load (node:internal/modules/cjs/loader:1368:5)
+      at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+      at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+      at node:internal/main/run_main_module:33:47 {
+    code: 'MODULE_NOT_FOUND',
+    requireStack: []
+  }
+  
+  Node.js v26.9.0
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file://tests/runtime/T01-doctor.test.mjs:22:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[02-GREEN] 2026-11-22T18:19:27-0800
+$ node --test tests/runtime/T01-doctor.test.mjs
+✔ doctor reports a missing agreed font as a blocked caption capability (305.054084ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 345.739125
+exit=0
+
+[03-RED] 2026-11-22T18:19:42-0800
+$ node --test tests/runtime/i18n.test.mjs
+node:internal/modules/esm/resolve:241
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'runtime/i18n.ts' imported from tests/runtime/i18n.test.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:241:11)
+    at moduleResolve (node:internal/modules/esm/resolve:846:10)
+    at defaultResolve (node:internal/modules/esm/resolve:973:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+    at #resolve (node:internal/modules/esm/loader:690:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file://runtime/i18n.ts'
+}
+
+Node.js v26.9.0
+✖ tests/runtime/i18n.test.mjs (34.917291ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.642875
+
+✖ failing tests:
+
+test at tests/runtime/i18n.test.mjs:1:1
+✖ tests/runtime/i18n.test.mjs (34.917291ms)
+  'test failed'
+exit=1
+
+[04-GREEN] 2026-11-22T18:19:59-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (328.30775ms)
+✔ issue codes stay stable while messages follow --lang (302.873458ms)
+✔ Chinese is the default locale (139.824542ms)
+✔ an unsupported locale is a usage error (57.750125ms)
+✔ zh-CN and en catalogs define the same non-empty keys (0.433875ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 572.260208
+exit=0
+
+[05-RED] 2026-11-22T18:20:24-0800
+$ node --test tests/runtime/T01-doctor.test.mjs
+✔ doctor reports a missing agreed font as a blocked caption capability (304.47725ms)
+✖ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (72.787084ms)
+✖ preview rejects a 44.1 kHz WAV before rendering (58.028541ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 1
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 534.134917
+
+✖ failing tests:
+
+test at tests/runtime/T01-doctor.test.mjs:60:1
+✖ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (72.787084ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at TestContext.<anonymous> (file://tests/runtime/T01-doctor.test.mjs:64:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T01-doctor.test.mjs:96:1
+✖ preview rejects a 44.1 kHz WAV before rendering (58.028541ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file://tests/runtime/T01-doctor.test.mjs:100:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[06-GREEN] 2026-11-22T18:21:38-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (377.717833ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (3174.509083ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (65.3995ms)
+✔ issue codes stay stable while messages follow --lang (310.644708ms)
+✔ Chinese is the default locale (151.530167ms)
+✔ an unsupported locale is a usage error (69.423959ms)
+✔ zh-CN and en catalogs define the same non-empty keys (0.506667ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3734.453
+exit=0
+
+[07-REFACTOR] 2026-11-22T18:21:56-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (376.719875ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (3167.005333ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (70.73525ms)
+✔ issue codes stay stable while messages follow --lang (305.170583ms)
+✔ Chinese is the default locale (150.016125ms)
+✔ an unsupported locale is a usage error (68.8955ms)
+✔ zh-CN and en catalogs define the same non-empty keys (0.585583ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3720.117333
+exit=0
+
+[08-EVIDENCE] 2026-11-22T18:22:36-0800
+$ node docs/upgrade/evidence/replay_t01.mjs t01-20261122-01 <venv>/bin/python
+{"status":"PASS","out":"docs/upgrade/evidence/runs/t01-20261122-01/A01"}
+exit=0
+
+[09-EVIDENCE] 2026-11-22T18:22:55-0800
+$ node docs/upgrade/evidence/replay_t01.mjs t01-20261122-01 <venv>/bin/python
+{"status":"PASS","out":"docs/upgrade/evidence/runs/t01-20261122-01/A01"}
+exit=0
+
+[10-REGRESSION] 2026-11-22T18:23:20-0800
+$ <venv>/bin/python -B evals/check_design.py
+13 个 Skill，9 个工具合同，10 份 Schema，两条审批路径通过
+cache-speed · 5 个章节/段落组 · 14 镜 · 3600 帧
+kafka-to-doris · 7 个章节/段落组 · 34 镜 · 14400 帧
+exit=0
+
+[11-REGRESSION] 2026-11-22T18:23:44-0800
+$ <venv>/bin/python -B -m unittest discover -s evals -p test_*.py -v
+test_cross_chapter_frame_gap (test_design.DesignChecks.test_cross_chapter_frame_gap) ... ok
+test_draft_cannot_reach_delivery (test_design.DesignChecks.test_draft_cannot_reach_delivery) ... ok
+test_duration_boundaries (test_design.DesignChecks.test_duration_boundaries) ... ok
+test_missing_evidence (test_design.DesignChecks.test_missing_evidence) ... ok
+test_missing_layer (test_design.DesignChecks.test_missing_layer) ... ok
+test_quality_gate_bypass (test_design.DesignChecks.test_quality_gate_bypass) ... ok
+test_unknown_paid_job_cannot_retry (test_design.DesignChecks.test_unknown_paid_job_cannot_retry) ... ok
+test_unsupported_gesture (test_design.DesignChecks.test_unsupported_gesture) ... ok
+test_video_candidate_count_must_be_positive (test_design.DesignChecks.test_video_candidate_count_must_be_positive) ... ok
+test_visual_cue_outside_shot (test_design.DesignChecks.test_visual_cue_outside_shot) ... ok
+test_wrong_voice_anchor (test_design.DesignChecks.test_wrong_voice_anchor) ... ok
+test_a_60s_file_cannot_be_called_an_exact_61s_delivery (test_media_acceptance.MediaAcceptance.test_a_60s_file_cannot_be_called_an_exact_61s_delivery) ... ok
+test_compatible_length_still_requires_420p (test_media_acceptance.MediaAcceptance.test_compatible_length_still_requires_420p) ... ok
+test_corrupt_file_reports_decode_failure (test_media_acceptance.MediaAcceptance.test_corrupt_file_reports_decode_failure) ... ok
+test_gap_in_middle_of_audio_is_not_hidden_by_endpoints (test_media_acceptance.MediaAcceptance.test_gap_in_middle_of_audio_is_not_hidden_by_endpoints) ... ok
+test_missing_audio_is_a_delivery_failure (test_media_acceptance.MediaAcceptance.test_missing_audio_is_a_delivery_failure) ... ok
+test_non_aac_audio_is_detected (test_media_acceptance.MediaAcceptance.test_non_aac_audio_is_detected) ... ok
+test_proxy_size_cannot_pass_as_master (test_media_acceptance.MediaAcceptance.test_proxy_size_cannot_pass_as_master) ... ok
+test_quicktime_renamed_mp4_is_detected (test_media_acceptance.MediaAcceptance.test_quicktime_renamed_mp4_is_detected) ... ok
+test_real_eight_minute_container_has_14400_decoded_frames (test_media_acceptance.MediaAcceptance.test_real_eight_minute_container_has_14400_decoded_frames) ... ok
+test_repeated_irregular_timestamp_with_right_total_frames (test_media_acceptance.MediaAcceptance.test_repeated_irregular_timestamp_with_right_total_frames) ... ok
+test_report_is_bound_to_the_input_bytes (test_media_acceptance.MediaAcceptance.test_report_is_bound_to_the_input_bytes) ... ok
+test_sample_rate_44100_is_detected (test_media_acceptance.MediaAcceptance.test_sample_rate_44100_is_detected) ... ok
+test_short_audio_does_not_cover_the_last_second (test_media_acceptance.MediaAcceptance.test_short_audio_does_not_cover_the_last_second) ... ok
+test_short_exact_60s_decodes_to_1800_frames (test_media_acceptance.MediaAcceptance.test_short_exact_60s_decodes_to_1800_frames) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 23.892s
+
+OK
+exit=0
+
+[12-REGRESSION] 2026-11-22T18:23:48-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (334.590958ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (3153.269375ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (66.33175ms)
+✔ issue codes stay stable while messages follow --lang (304.895709ms)
+✔ Chinese is the default locale (151.049792ms)
+✔ an unsupported locale is a usage error (69.017416ms)
+✔ zh-CN and en catalogs define the same non-empty keys (0.521541ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3659.338834
+exit=0
+

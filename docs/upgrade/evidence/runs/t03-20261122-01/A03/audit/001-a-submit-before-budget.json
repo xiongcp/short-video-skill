@@ -1,0 +1,32 @@
+{
+  "seq": 1,
+  "label": "a-submit-before-budget",
+  "op": "submit",
+  "session": null,
+  "request": {
+    "project_id": "budget-race",
+    "idempotency_key": "tts-0",
+    "skill_id": "audio-production",
+    "tool": "generate_tts",
+    "provider": "test-provider",
+    "quote_minor": 70,
+    "payload": {
+      "section_id": "tts-0"
+    }
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "budget-race",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [
+      {
+        "code": "BUDGET_UNCONFIGURED",
+        "message": "项目预算未经人工确认，不能发起付费作业"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

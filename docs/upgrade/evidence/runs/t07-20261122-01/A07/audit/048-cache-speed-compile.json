@@ -1,0 +1,39 @@
+{
+  "seq": 48,
+  "label": "cache-speed/compile",
+  "op": "compile",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "expected_version": 10,
+    "idempotency_key": "compile",
+    "storyboard_version": 1
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-speed",
+    "state": "COMPILED",
+    "version": 12,
+    "event_count": 11,
+    "event_id": "evt-8cd849fe-67c6-4266-9316-4024dfc6b965",
+    "content_hash": "sha256:b20b7b51ccf91476642f1c21f5dc93a9d4cffcf7dade15f95f02853006877a8c",
+    "document": "<saved separately; content_hash sha256:b20b7b51ccf91476642f1c21f5dc93a9d4cffcf7dade15f95f02853006877a8c>",
+    "assets": [
+      {
+        "asset_ref": "asset://cache-speed/alignment/v1",
+        "name": "alignment",
+        "version": 1,
+        "kind": "alignment",
+        "path": "assets/alignment/v1.json",
+        "sha256": "sha256:92adfd1adf3a54e131377b300dc4f46bbdef8873e54cba82774a65309c453d99",
+        "meta": {
+          "alignment_hash": "sha256:e27e173fedd9e8a2db22f137dfbe1f94930d86e06f1e6d623e1d9e7c0d450d20",
+          "alignment_version": 1
+        }
+      }
+    ],
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "seq": 104,
+  "label": "kafka-to-doris/scene-diagram_ch_006",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris",
+    "name": "diagram_ch_006",
+    "template": "diagram",
+    "focus": "构造教学分支，保留同一图例与观察顺序。",
+    "props": [
+      "board"
+    ],
+    "layers": [
+      {
+        "asset_ref": "asset://kafka-to-doris/studio_backdrop/v1",
+        "element_ids": []
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/layer_diagram_ch_006/v1",
+        "element_ids": [
+          "beat_029",
+          "beat_030",
+          "beat_031"
+        ],
+        "claim_ids": [
+          "progress",
+          "diagnosis"
+        ]
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "kafka-to-doris",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "scene": {
+      "project_id": "kafka-to-doris",
+      "version": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_006/v1",
+      "template": "diagram",
+      "focus": "构造教学分支，保留同一图例与观察顺序。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://kafka-to-doris/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://kafka-to-doris/layer_diagram_ch_006/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "beat_029",
+            "beat_030",
+            "beat_031"
+          ],
+          "claim_ids": [
+            "progress",
+            "diagnosis"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://kafka-to-doris/diagram_ch_006/v1",
+      "kind": "scene",
+      "sha256": "sha256:a457a92679c55cea6b2152812f1d1d91a16ff3e2e21a1d06e40806ffe322f6fc",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

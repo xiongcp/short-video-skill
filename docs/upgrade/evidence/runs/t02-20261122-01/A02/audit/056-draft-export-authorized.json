@@ -1,0 +1,34 @@
+{
+  "seq": 56,
+  "label": "draft-export-authorized",
+  "project_id": "cache-draft",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-draft",
+    "expected_version": 14,
+    "idempotency_key": "export_authorized-14",
+    "event": "export_authorized",
+    "payload": {
+      "artifact_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+    }
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "cache-draft",
+    "state": "DRAFT_READY",
+    "version": 14,
+    "event_count": 13,
+    "issues": [
+      {
+        "code": "TRANSITION_INVALID",
+        "state": "DRAFT_READY",
+        "event": "export_authorized",
+        "mode": "draft",
+        "message": "draft 模式下状态 DRAFT_READY 不接受事件 export_authorized"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

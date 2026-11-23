@@ -1,0 +1,27 @@
+{
+  "seq": 24,
+  "label": "sample-rendered",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 18,
+    "idempotency_key": "sample_rendered-18",
+    "event": "sample_rendered",
+    "payload": {
+      "artifact_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    }
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "QA_RUNNING",
+    "version": 19,
+    "event_count": 18,
+    "event_id": "evt-4d7f7fb9-ed97-452a-9985-33cf9d954629",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

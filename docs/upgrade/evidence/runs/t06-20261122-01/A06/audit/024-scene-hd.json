@@ -1,0 +1,63 @@
+{
+  "seq": 24,
+  "label": "scene-hd",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "host-demo",
+    "name": "studio_hd",
+    "template": "host",
+    "focus": "1080p 背景",
+    "layers": [
+      {
+        "asset_ref": "asset://host-demo/backdrop_hd/v1"
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "host-demo",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "scene": {
+      "project_id": "host-demo",
+      "version": 1,
+      "scene_ref": "asset://host-demo/studio_hd/v1",
+      "template": "host",
+      "focus": "1080p 背景",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://host-demo/backdrop_hd/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        }
+      ],
+      "props": [
+        "camera",
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://host-demo/studio_hd/v1",
+      "kind": "scene",
+      "sha256": "sha256:e91b9e81ae603459bcb1eb41359cdd34599a401954dffa7738151a95fe193137",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

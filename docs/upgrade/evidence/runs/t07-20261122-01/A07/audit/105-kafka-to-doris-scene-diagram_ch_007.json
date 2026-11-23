@@ -1,0 +1,90 @@
+{
+  "seq": 105,
+  "label": "kafka-to-doris/scene-diagram_ch_007",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "kafka-to-doris",
+    "name": "diagram_ch_007",
+    "template": "diagram",
+    "focus": "清空解释标签再顺序还原，回到开场图。",
+    "props": [
+      "board"
+    ],
+    "layers": [
+      {
+        "asset_ref": "asset://kafka-to-doris/studio_backdrop/v1",
+        "element_ids": []
+      },
+      {
+        "asset_ref": "asset://kafka-to-doris/layer_diagram_ch_007/v1",
+        "element_ids": [
+          "beat_033"
+        ],
+        "claim_ids": [
+          "partition",
+          "job",
+          "progress"
+        ]
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "kafka-to-doris",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "scene": {
+      "project_id": "kafka-to-doris",
+      "version": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_007/v1",
+      "template": "diagram",
+      "focus": "清空解释标签再顺序还原，回到开场图。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://kafka-to-doris/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://kafka-to-doris/layer_diagram_ch_007/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "beat_033"
+          ],
+          "claim_ids": [
+            "partition",
+            "job",
+            "progress"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://kafka-to-doris/diagram_ch_007/v1",
+      "kind": "scene",
+      "sha256": "sha256:f350536dcf8eb084e92fe0d73daedfdeffc20f360c8ac5c2c8ac74c2f09d54db",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

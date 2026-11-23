@@ -1,0 +1,38 @@
+{
+  "seq": 38,
+  "label": "g5-approve-manifest",
+  "project_id": "cache-demo",
+  "op": "decide",
+  "session": "human:owner",
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 26,
+    "idempotency_key": "G5-approve-26",
+    "gate": "G5",
+    "target_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+    "decision": "approve",
+    "notes": "G5 approve"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "EXPORT_REVIEW",
+    "version": 27,
+    "event_count": 26,
+    "event_id": "evt-e9a16d0e-50ea-4134-aef1-42e9a0a2720c",
+    "approval": {
+      "project_id": "cache-demo",
+      "version": 27,
+      "approval_id": "apv-809cbfc3-cdf9-49d1-981c-60bab0ce482d",
+      "gate": "G5",
+      "target_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "reviewer_id": "owner",
+      "decision": "approve",
+      "recorded_at": "2026-11-23T02:38:17.598Z",
+      "notes": "G5 approve"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

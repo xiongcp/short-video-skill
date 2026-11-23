@@ -1,0 +1,37 @@
+{
+  "seq": 28,
+  "label": "g2-approve",
+  "op": "decide",
+  "session": "human:owner",
+  "request": {
+    "project_id": "cache-speed",
+    "expected_version": 11,
+    "idempotency_key": "g2-approve",
+    "gate": "G2",
+    "target_hash": "sha256:98b06d7f17009c3d344d14ad5c719700121482318cb73bcef2d87b39c370095b",
+    "decision": "approve",
+    "notes": "讲稿与 120 秒时长确认"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-speed",
+    "state": "SCRIPT_REVIEW",
+    "version": 12,
+    "event_count": 11,
+    "event_id": "evt-8fa0551d-7adc-4ba1-b02e-63ef6dcc3314",
+    "approval": {
+      "project_id": "cache-speed",
+      "version": 12,
+      "approval_id": "apv-b940e55c-97ce-478e-beec-e6808751152e",
+      "gate": "G2",
+      "target_hash": "sha256:98b06d7f17009c3d344d14ad5c719700121482318cb73bcef2d87b39c370095b",
+      "reviewer_id": "owner",
+      "decision": "approve",
+      "recorded_at": "2026-11-23T03:05:20.979Z",
+      "notes": "讲稿与 120 秒时长确认"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "cuts": [
+    {
+      "sample": 0,
+      "frame": 0,
+      "before": null,
+      "after": "shot_001"
+    },
+    {
+      "sample": 377041,
+      "frame": 236,
+      "before": "shot_001",
+      "after": "shot_002"
+    },
+    {
+      "sample": 958800,
+      "frame": 599,
+      "before": "shot_002",
+      "after": "shot_003"
+    },
+    {
+      "sample": 1426907,
+      "frame": 892,
+      "before": "shot_003",
+      "after": "shot_004"
+    },
+    {
+      "sample": 2077056,
+      "frame": 1298,
+      "before": "shot_004",
+      "after": "shot_005"
+    },
+    {
+      "sample": 2727204,
+      "frame": 1705,
+      "before": "shot_005",
+      "after": "shot_006"
+    },
+    {
+      "sample": 3358319,
+      "frame": 2099,
+      "before": "shot_006",
+      "after": "shot_007"
+    },
+    {
+      "sample": 3913175,
+      "frame": 2446,
+      "before": "shot_007",
+      "after": "shot_008"
+    },
+    {
+      "sample": 4614047,
+      "frame": 2884,
+      "before": "shot_008",
+      "after": "shot_009"
+    },
+    {
+      "sample": 5358724,
+      "frame": 3349,
+      "before": "shot_009",
+      "after": "shot_010"
+    },
+    {
+      "sample": 6147205,
+      "frame": 3842,
+      "before": "shot_010",
+      "after": "shot_011"
+    },
+    {
+      "sample": 6891881,
+      "frame": 4307,
+      "before": "shot_011",
+      "after": "shot_012"
+    },
+    {
+      "sample": 7678557,
+      "frame": 4799,
+      "before": "shot_012",
+      "after": "shot_013"
+    },
+    {
+      "sample": 8238056,
+      "frame": 5149,
+      "before": "shot_013",
+      "after": "shot_014"
+    },
+    {
+      "sample": 8884589,
+      "frame": 5553,
+      "before": "shot_014",
+      "after": "shot_015"
+    },
+    {
+      "sample": 9593288,
+      "frame": 5996,
+      "before": "shot_015",
+      "after": "shot_016"
+    },
+    {
+      "sample": 10239821,
+      "frame": 6400,
+      "before": "shot_016",
+      "after": "shot_017"
+    },
+    {
+      "sample": 10936086,
+      "frame": 6835,
+      "before": "shot_017",
+      "after": "shot_018"
+    },
+    {
+      "sample": 11632352,
+      "frame": 7270,
+      "before": "shot_018",
+      "after": "shot_019"
+    },
+    {
+      "sample": 12291318,
+      "frame": 7682,
+      "before": "shot_019",
+      "after": "shot_020"
+    },
+    {
+      "sample": 12959514,
+      "frame": 8100,
+      "before": "shot_020",
+      "after": "shot_021"
+    },
+    {
+      "sample": 13521360,
+      "frame": 8451,
+      "before": "shot_021",
+      "after": "shot_022"
+    },
+    {
+      "sample": 14163470,
+      "frame": 8852,
+      "before": "shot_022",
+      "after": "shot_023"
+    },
+    {
+      "sample": 14912598,
+      "frame": 9320,
+      "before": "shot_023",
+      "after": "shot_024"
+    },
+    {
+      "sample": 15608217,
+      "frame": 9755,
+      "before": "shot_024",
+      "after": "shot_025"
+    },
+    {
+      "sample": 16357345,
+      "frame": 10223,
+      "before": "shot_025",
+      "after": "shot_026"
+    },
+    {
+      "sample": 17052964,
+      "frame": 10658,
+      "before": "shot_026",
+      "after": "shot_027"
+    },
+    {
+      "sample": 17758790,
+      "frame": 11099,
+      "before": "shot_027",
+      "after": "shot_028"
+    },
+    {
+      "sample": 18406580,
+      "frame": 11504,
+      "before": "shot_028",
+      "after": "shot_029"
+    },
+    {
+      "sample": 19162335,
+      "frame": 11976,
+      "before": "shot_029",
+      "after": "shot_030"
+    },
+    {
+      "sample": 19999065,
+      "frame": 12499,
+      "before": "shot_030",
+      "after": "shot_031"
+    },
+    {
+      "sample": 20835794,
+      "frame": 13022,
+      "before": "shot_031",
+      "after": "shot_032"
+    },
+    {
+      "sample": 21598785,
+      "frame": 13499,
+      "before": "shot_032",
+      "after": "shot_033"
+    },
+    {
+      "sample": 22340816,
+      "frame": 13963,
+      "before": "shot_033",
+      "after": "shot_034"
+    },
+    {
+      "sample": 23039499,
+      "frame": 14400,
+      "before": "shot_034",
+      "after": null
+    }
+  ],
+  "padding_samples": 501
+}

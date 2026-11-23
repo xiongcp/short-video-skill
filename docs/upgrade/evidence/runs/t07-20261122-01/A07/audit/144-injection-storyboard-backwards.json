@@ -1,0 +1,26 @@
+{
+  "seq": 144,
+  "label": "injection/storyboard-backwards",
+  "op": "storyboard",
+  "session": null,
+  "request": "<request sha256 sha256:6bf4299b76b021b221b8ecad4b384397ab744bd609336a141f2fbb652d0617fd>",
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "direct-demo",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "issues": [
+      {
+        "code": "SHOT_LENGTH_INVALID",
+        "shot_id": "shot_002",
+        "field": "frame_range",
+        "start": 1,
+        "end": 0,
+        "message": "镜头 shot_002 的 frame_range = [1, 0) 长度不为正"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

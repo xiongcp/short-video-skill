@@ -1,0 +1,97 @@
+{
+  "request_order": [
+    {
+      "frame": 29,
+      "a": "sha256:6a7b7f0f5cf8c6c776d157c24b8ef33cb80e6c3ca4fe3616b89f4e2de4db4b5e",
+      "b": "sha256:6a7b7f0f5cf8c6c776d157c24b8ef33cb80e6c3ca4fe3616b89f4e2de4db4b5e",
+      "differing_pixels": 0
+    },
+    {
+      "frame": 0,
+      "a": "sha256:c8f6fc1398a346ae7a07a8cf3d9d9c2b11e80b10da17c27b3a747dff73e2de78",
+      "b": "sha256:c8f6fc1398a346ae7a07a8cf3d9d9c2b11e80b10da17c27b3a747dff73e2de78",
+      "differing_pixels": 0
+    },
+    {
+      "frame": 15,
+      "a": "sha256:06d806a6fc57b19149adcb0c38d0a6561bc0298c4636e8517c58b5be1b3fd1c6",
+      "b": "sha256:06d806a6fc57b19149adcb0c38d0a6561bc0298c4636e8517c58b5be1b3fd1c6",
+      "differing_pixels": 0
+    }
+  ],
+  "motion_within_shot": [
+    {
+      "frames": [
+        0,
+        15
+      ],
+      "differing_pixels": 6368
+    },
+    {
+      "frames": [
+        15,
+        29
+      ],
+      "differing_pixels": 3693
+    },
+    {
+      "frames": [
+        0,
+        29
+      ],
+      "differing_pixels": 8754
+    }
+  ],
+  "worker_order": {
+    "shot_001_identical": true,
+    "shot_002_identical": true,
+    "shot_001_cache_keys": [
+      "sha256:fdf74d3efa421ababd965b8a83443a409851210831fcd9a9f08195a4f9a67b73",
+      "sha256:fdf74d3efa421ababd965b8a83443a409851210831fcd9a9f08195a4f9a67b73"
+    ],
+    "shot_002_cache_keys": [
+      "sha256:7d044b75d12dccbd6b2d1836140de14a532c1d9e116722a381a7ae3ba89a2712",
+      "sha256:7d044b75d12dccbd6b2d1836140de14a532c1d9e116722a381a7ae3ba89a2712"
+    ],
+    "statuses": {
+      "p3": [
+        "BAKED",
+        "BAKED"
+      ],
+      "p4": [
+        "BAKED",
+        "BAKED"
+      ]
+    },
+    "bake_assets": {
+      "p3": 2,
+      "p4": 2
+    }
+  },
+  "inheritance": {
+    "initial_equals_previous_end": true,
+    "inherited_from": {
+      "shot_id": "shot_001",
+      "cache_key": "sha256:fdf74d3efa421ababd965b8a83443a409851210831fcd9a9f08195a4f9a67b73",
+      "end_state_hash": "sha256:00c1a9a89502f71a8aefac653d9e7e30850d0e651449607af17b8c3712df87ca"
+    },
+    "changed_end_state": true,
+    "changed_cache_key": true,
+    "changed_initial_equals_new_end": true,
+    "boundary_differing_pixels": 2997
+  },
+  "lips": {
+    "closed_frames_5_9": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "open_frames_12_20_min": 0.9359999999999999
+  },
+  "head_turn": {
+    "frame_11": 0,
+    "frame_29": 0.5997426099999573
+  }
+}

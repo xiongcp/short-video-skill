@@ -1,0 +1,1137 @@
+{
+  "alignment_version": 1,
+  "chapters": [
+    {
+      "chapter_id": "ch_001",
+      "title": "订单去了哪里",
+      "section_ids": [
+        "sec_001"
+      ],
+      "continuity_in": "蓝色订单卡在画外",
+      "continuity_out": "卡片停在入口"
+    },
+    {
+      "chapter_id": "ch_002",
+      "title": "先读懂这张地图",
+      "section_ids": [
+        "sec_002"
+      ],
+      "continuity_in": "卡片停在入口",
+      "continuity_out": "左中右图例已锁定"
+    },
+    {
+      "chapter_id": "ch_003",
+      "title": "给事件一个可定位的位置",
+      "section_ids": [
+        "sec_003"
+      ],
+      "continuity_in": "左中右图例已锁定",
+      "continuity_out": "选中分区和位置"
+    },
+    {
+      "chapter_id": "ch_004",
+      "title": "导入作业怎样工作",
+      "section_ids": [
+        "sec_004"
+      ],
+      "continuity_in": "选中分区和位置",
+      "continuity_out": "目标表出现示意行"
+    },
+    {
+      "chapter_id": "ch_005",
+      "title": "跟一笔订单核对结果",
+      "section_ids": [
+        "sec_005"
+      ],
+      "continuity_in": "目标表出现示意行",
+      "continuity_out": "核对清单三项齐备"
+    },
+    {
+      "chapter_id": "ch_006",
+      "title": "报表还没更新时看哪里",
+      "section_ids": [
+        "sec_006"
+      ],
+      "continuity_in": "核对清单三项齐备",
+      "continuity_out": "延迟与暂停两个分支收束"
+    },
+    {
+      "chapter_id": "ch_007",
+      "title": "让观众自己讲一遍",
+      "section_ids": [
+        "sec_007"
+      ],
+      "continuity_in": "延迟与暂停两个分支收束",
+      "continuity_out": "蓝色订单卡停在目标表"
+    }
+  ],
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "chapter_id": "ch_001",
+      "section_id": "sec_001",
+      "start": {
+        "section_id": "sec_001"
+      },
+      "purpose": "展示订单卡并提出问题",
+      "camera": "close",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/studio_host/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://kafka-to-doris/host_main/v1",
+          "angle": "front",
+          "expression": "curious",
+          "gesture": "idle",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [
+        "cue_001"
+      ],
+      "visual_cues": [],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_002",
+      "chapter_id": "ch_001",
+      "section_id": "sec_001",
+      "start": {
+        "word_id": "sec_001-w031",
+        "edge": "start"
+      },
+      "purpose": "亮出三站线路图",
+      "camera": "wide",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/illustration_ch_001/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_illustration_ch_001/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_002"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_illustration_ch_001/v1",
+          "element_id": "beat_002",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_003",
+      "chapter_id": "ch_002",
+      "section_id": "sec_002",
+      "start": {
+        "section_id": "sec_002"
+      },
+      "purpose": "显示虚构订单 A17 的字段",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_002/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_002/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_003"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_002/v1",
+          "element_id": "beat_003",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_004",
+      "chapter_id": "ch_002",
+      "section_id": "sec_002",
+      "start": {
+        "word_id": "sec_002-w037",
+        "edge": "start"
+      },
+      "purpose": "点亮 Kafka 主题和分区",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_002/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_002/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_004"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_002/v1",
+          "element_id": "beat_004",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_005",
+      "chapter_id": "ch_002",
+      "section_id": "sec_002",
+      "start": {
+        "word_id": "sec_002-w087",
+        "edge": "start"
+      },
+      "purpose": "区分一张事件卡与一行表记录",
+      "camera": "medium",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/studio_host/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://kafka-to-doris/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "explain",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [
+        "cue_005"
+      ],
+      "visual_cues": [],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_006",
+      "chapter_id": "ch_002",
+      "section_id": "sec_002",
+      "start": {
+        "word_id": "sec_002-w137",
+        "edge": "start"
+      },
+      "purpose": "放置三个固定标签",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_002/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_002/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_006"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_002/v1",
+          "element_id": "beat_006",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_007",
+      "chapter_id": "ch_003",
+      "section_id": "sec_003",
+      "start": {
+        "section_id": "sec_003"
+      },
+      "purpose": "生产端把订单放入目标分区",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_003/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_003/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_007"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_003/v1",
+          "element_id": "beat_007",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_008",
+      "chapter_id": "ch_003",
+      "section_id": "sec_003",
+      "start": {
+        "word_id": "sec_003-w039",
+        "edge": "start"
+      },
+      "purpose": "同轨道追加第二张卡",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_003/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_003/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_008"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_003/v1",
+          "element_id": "beat_008",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_009",
+      "chapter_id": "ch_003",
+      "section_id": "sec_003",
+      "start": {
+        "word_id": "sec_003-w087",
+        "edge": "start"
+      },
+      "purpose": "把分区标签和位置一起圈出",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_003/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_003/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_009"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_003/v1",
+          "element_id": "beat_009",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_010",
+      "chapter_id": "ch_003",
+      "section_id": "sec_003",
+      "start": {
+        "word_id": "sec_003-w138",
+        "edge": "start"
+      },
+      "purpose": "分离订单编号与阅读书签",
+      "camera": "wide",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/illustration_ch_003/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_illustration_ch_003/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_010"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_illustration_ch_003/v1",
+          "element_id": "beat_010",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_011",
+      "chapter_id": "ch_003",
+      "section_id": "sec_003",
+      "start": {
+        "word_id": "sec_003-w192",
+        "edge": "start"
+      },
+      "purpose": "让另一轨道保持独立顺序",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_003/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_003/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_011"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_003/v1",
+          "element_id": "beat_011",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_012",
+      "chapter_id": "ch_003",
+      "section_id": "sec_003",
+      "start": {
+        "word_id": "sec_003-w243",
+        "edge": "start"
+      },
+      "purpose": "留下是谁移动书签的问题",
+      "camera": "medium",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/studio_host/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://kafka-to-doris/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "explain",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [
+        "cue_012"
+      ],
+      "visual_cues": [],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_013",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "start": {
+        "section_id": "sec_004"
+      },
+      "purpose": "总图右侧展开 Routine Load",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_004/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_004/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_013"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_004/v1",
+          "element_id": "beat_013",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_014",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "start": {
+        "word_id": "sec_004-w046",
+        "edge": "start"
+      },
+      "purpose": "把长作业与短任务分层",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_004/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_004/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_014"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_004/v1",
+          "element_id": "beat_014",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_015",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "start": {
+        "word_id": "sec_004-w098",
+        "edge": "start"
+      },
+      "purpose": "FE 把一个任务派到 BE",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_004/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_004/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_015"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_004/v1",
+          "element_id": "beat_015",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_016",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "start": {
+        "word_id": "sec_004-w155",
+        "edge": "start"
+      },
+      "purpose": "从 JSON 字段连接到两列",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_004/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_004/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_016"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_004/v1",
+          "element_id": "beat_016",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_017",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "start": {
+        "word_id": "sec_004-w207",
+        "edge": "start"
+      },
+      "purpose": "用两张纸卡演示字段错位",
+      "camera": "wide",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/illustration_ch_004/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_illustration_ch_004/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_017"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_illustration_ch_004/v1",
+          "element_id": "beat_017",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_018",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "start": {
+        "word_id": "sec_004-w263",
+        "edge": "start"
+      },
+      "purpose": "给导入任务画事务边界",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_004/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_004/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_018"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_004/v1",
+          "element_id": "beat_018",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_019",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "start": {
+        "word_id": "sec_004-w319",
+        "edge": "start"
+      },
+      "purpose": "任务返回并更新作业信息",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_004/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_004/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_019"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_004/v1",
+          "element_id": "beat_019",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_020",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "start": {
+        "word_id": "sec_004-w372",
+        "edge": "start"
+      },
+      "purpose": "回顾分区、任务和表行",
+      "camera": "medium",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/studio_host/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://kafka-to-doris/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "explain",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [
+        "cue_020"
+      ],
+      "visual_cues": [],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_021",
+      "chapter_id": "ch_005",
+      "section_id": "sec_005",
+      "start": {
+        "section_id": "sec_005"
+      },
+      "purpose": "回放 A17 的两列源值",
+      "camera": "wide",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/illustration_ch_005/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_illustration_ch_005/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_021"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_illustration_ch_005/v1",
+          "element_id": "beat_021",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_022",
+      "chapter_id": "ch_005",
+      "section_id": "sec_005",
+      "start": {
+        "word_id": "sec_005-w043",
+        "edge": "start"
+      },
+      "purpose": "定义查询要核对的编号和金额",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_005/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_005/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_022"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_005/v1",
+          "element_id": "beat_022",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_023",
+      "chapter_id": "ch_005",
+      "section_id": "sec_005",
+      "start": {
+        "word_id": "sec_005-w091",
+        "edge": "start"
+      },
+      "purpose": "在源字段和目标列间逐项对照",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_005/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_005/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_023"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_005/v1",
+          "element_id": "beat_023",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_024",
+      "chapter_id": "ch_005",
+      "section_id": "sec_005",
+      "start": {
+        "word_id": "sec_005-w147",
+        "edge": "start"
+      },
+      "purpose": "读取本分区进度的示意位置",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_005/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_005/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_024"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_005/v1",
+          "element_id": "beat_024",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_025",
+      "chapter_id": "ch_005",
+      "section_id": "sec_005",
+      "start": {
+        "word_id": "sec_005-w199",
+        "edge": "start"
+      },
+      "purpose": "查询结果里核对目标行",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_005/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_005/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_025"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_005/v1",
+          "element_id": "beat_025",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_026",
+      "chapter_id": "ch_005",
+      "section_id": "sec_005",
+      "start": {
+        "word_id": "sec_005-w255",
+        "edge": "start"
+      },
+      "purpose": "把进度与业务核对分开提问",
+      "camera": "medium",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/studio_host/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://kafka-to-doris/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "explain",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [
+        "cue_026"
+      ],
+      "visual_cues": [],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_027",
+      "chapter_id": "ch_005",
+      "section_id": "sec_005",
+      "start": {
+        "word_id": "sec_005-w307",
+        "edge": "start"
+      },
+      "purpose": "汇总三张检查卡",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_005/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_005/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_027"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_005/v1",
+          "element_id": "beat_027",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_028",
+      "chapter_id": "ch_006",
+      "section_id": "sec_006",
+      "start": {
+        "section_id": "sec_006"
+      },
+      "purpose": "给出两次不同观察的问题",
+      "camera": "medium",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/studio_host/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://kafka-to-doris/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "explain",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [
+        "cue_028"
+      ],
+      "visual_cues": [],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_029",
+      "chapter_id": "ch_006",
+      "section_id": "sec_006",
+      "start": {
+        "word_id": "sec_006-w049",
+        "edge": "start"
+      },
+      "purpose": "并排两个时刻的分区进度和积压",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_006/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_006/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_029"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_006/v1",
+          "element_id": "beat_029",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_030",
+      "chapter_id": "ch_006",
+      "section_id": "sec_006",
+      "start": {
+        "word_id": "sec_006-w105",
+        "edge": "start"
+      },
+      "purpose": "放大作业状态与暂停原因",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_006/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_006/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_030"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_006/v1",
+          "element_id": "beat_030",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_031",
+      "chapter_id": "ch_006",
+      "section_id": "sec_006",
+      "start": {
+        "word_id": "sec_006-w167",
+        "edge": "start"
+      },
+      "purpose": "把错误行与输入示意卡并排",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_006/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_006/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_031"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_006/v1",
+          "element_id": "beat_031",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_032",
+      "chapter_id": "ch_006",
+      "section_id": "sec_006",
+      "start": {
+        "word_id": "sec_006-w229",
+        "edge": "start"
+      },
+      "purpose": "选出下一项要确认的观察",
+      "camera": "medium",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/studio_host/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://kafka-to-doris/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "explain",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [
+        "cue_032"
+      ],
+      "visual_cues": [],
+      "depends_on": [
+        "shot_028"
+      ]
+    },
+    {
+      "shot_id": "shot_033",
+      "chapter_id": "ch_007",
+      "section_id": "sec_007",
+      "start": {
+        "section_id": "sec_007"
+      },
+      "purpose": "隐藏标签请观众还原路径",
+      "camera": "insert",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/diagram_ch_007/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1",
+        "asset://kafka-to-doris/layer_diagram_ch_007/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [
+        "cue_033"
+      ],
+      "visual_cues": [
+        {
+          "target_ref": "asset://kafka-to-doris/layer_diagram_ch_007/v1",
+          "element_id": "beat_033",
+          "operation": "highlight",
+          "at": {
+            "local_frame": 30
+          }
+        }
+      ],
+      "depends_on": []
+    },
+    {
+      "shot_id": "shot_034",
+      "chapter_id": "ch_007",
+      "section_id": "sec_007",
+      "start": {
+        "word_id": "sec_007-w061",
+        "edge": "start"
+      },
+      "purpose": "补回标签并收束",
+      "camera": "medium",
+      "zoom": 1,
+      "scene_ref": "asset://kafka-to-doris/studio_host/v1",
+      "scene_layers": [
+        "asset://kafka-to-doris/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://kafka-to-doris/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "explain",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [
+        "cue_034"
+      ],
+      "visual_cues": [],
+      "depends_on": []
+    }
+  ]
+}

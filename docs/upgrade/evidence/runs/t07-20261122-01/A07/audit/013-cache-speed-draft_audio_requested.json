@@ -1,0 +1,24 @@
+{
+  "seq": 13,
+  "label": "cache-speed/draft_audio_requested",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "expected_version": 6,
+    "idempotency_key": "draft_audio_requested",
+    "event": "draft_audio_requested",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-speed",
+    "state": "AUDIO_RUNNING",
+    "version": 7,
+    "event_count": 6,
+    "event_id": "evt-e027a86d-4f73-47eb-b616-c63136f32de7",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

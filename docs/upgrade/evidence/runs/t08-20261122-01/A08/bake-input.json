@@ -1,0 +1,7 @@
+{
+  "shot_id": "shot_001",
+  "character_plan_ref": "asset://direct-demo/character_plan/v1",
+  "rig_ref": "asset://direct-demo/host_rig/v1",
+  "fps": 30,
+  "frame_count": 30
+}

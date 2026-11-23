@@ -1,0 +1,31 @@
+{
+  "seq": 33,
+  "label": "master-accepted-without-g4",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 23,
+    "idempotency_key": "master_accepted-23",
+    "event": "master_accepted",
+    "payload": {}
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "cache-demo",
+    "state": "FINAL_REVIEW",
+    "version": 23,
+    "event_count": 22,
+    "issues": [
+      {
+        "code": "APPROVAL_MISSING",
+        "gate": "G4",
+        "current_target_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "message": "G4 尚无针对当前材料 sha256:4444444444444444444444444444444444444444444444444444444444444444 的人工批准"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

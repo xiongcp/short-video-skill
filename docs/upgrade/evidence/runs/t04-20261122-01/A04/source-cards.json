@@ -1,0 +1,24 @@
+[
+  {
+    "source_id": "team-guide-v1",
+    "title": "团队缓存指南 v1",
+    "url": "https://example.invalid/guide/v1",
+    "published_on": "2023-03-01",
+    "path": "guide-v1.md",
+    "sha256": "sha256:ee0339ee63cd133cd0d4ff7fcb7a49c233c7d832a9c753c2d0bd617d723007ff",
+    "locator": "第 3 段",
+    "excerpt": "没有过期时间的响应一律不得复用。",
+    "retrieved_on": "2026-11-23"
+  },
+  {
+    "source_id": "team-guide-v2",
+    "title": "团队缓存指南 v2",
+    "url": "https://example.invalid/guide/v2",
+    "published_on": "2025-06-01",
+    "path": "guide-v2.md",
+    "sha256": "sha256:18c7e2df0a4ee08de24e47a093b885dc43ea3ea8aef5db872e9f30a1867d0bdf",
+    "locator": "第 2 段",
+    "excerpt": "没有过期时间时，允许按启发式新鲜度短暂复用。",
+    "retrieved_on": "2026-11-23"
+  }
+]

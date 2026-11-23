@@ -1,0 +1,22 @@
+{
+  "project_id": "cache-speed",
+  "version": 1,
+  "topic": "为什么缓存能让网页变快？",
+  "audience": "经常使用浏览器、没有网络协议基础的观众",
+  "scope": [
+    "只跟踪同一张站点图标的两次访问",
+    "解释新鲜度、验证与重新下载的区别"
+  ],
+  "keywords": [
+    "HTTP 缓存",
+    "新鲜度",
+    "验证"
+  ],
+  "duration_profile": "short",
+  "duration_target_seconds": 120,
+  "language": "zh-CN",
+  "style_profile": "原创日系主持人，墨蓝外套，栗色齐肩发，琥珀色发夹，图解以蓝色表示当前对象。",
+  "mode": "quality",
+  "budget_policy": "unconfigured",
+  "unknowns": []
+}

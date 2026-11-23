@@ -1,0 +1,25 @@
+{
+  "seq": 43,
+  "project_id": "tts-path",
+  "label": "script_accepted",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "tts-path",
+    "expected_version": 8,
+    "idempotency_key": "script_accepted",
+    "event": "script_accepted",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "tts-path",
+    "state": "AUDIO_RUNNING",
+    "version": 9,
+    "event_count": 8,
+    "event_id": "evt-c928f57b-59e9-460f-ae1b-31bd9ad3842d",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

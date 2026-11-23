@@ -1,0 +1,30 @@
+[
+  {
+    "method": "POST",
+    "url": "/jobs",
+    "key": "tts-path:tts-1",
+    "drop_receipt": true,
+    "query_enabled": true
+  },
+  {
+    "method": "GET",
+    "url": "/jobs/tts-path%3Atts-1",
+    "key": "tts-path:tts-1",
+    "drop_receipt": false,
+    "query_enabled": true
+  },
+  {
+    "method": "POST",
+    "url": "/jobs",
+    "key": "tts-path:tts-2",
+    "drop_receipt": false,
+    "query_enabled": true
+  },
+  {
+    "method": "POST",
+    "url": "/jobs",
+    "key": "tts-path:tts-3",
+    "drop_receipt": false,
+    "query_enabled": true
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "seq": 14,
+  "label": "script-v2-saved",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 9,
+    "idempotency_key": "script_saved-9",
+    "event": "script_saved",
+    "payload": {
+      "artifact_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "SCRIPT_REVIEW",
+    "version": 10,
+    "event_count": 9,
+    "event_id": "evt-198cecb8-41da-4a54-9db6-2c33fdb00304",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

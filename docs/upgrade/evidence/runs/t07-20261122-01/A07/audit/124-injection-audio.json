@@ -1,0 +1,108 @@
+{
+  "seq": 124,
+  "label": "injection/audio",
+  "op": "audio",
+  "session": null,
+  "request": {
+    "project_id": "direct-demo",
+    "expected_version": 7,
+    "idempotency_key": "audio",
+    "sections": [
+      {
+        "section_id": "sec_001",
+        "import": {
+          "path": "incoming/sec_001.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://direct-demo/host_voice/v1"
+        }
+      },
+      {
+        "section_id": "sec_002",
+        "import": {
+          "path": "incoming/sec_002.wav",
+          "recordist": "fixture",
+          "voice_ref": "asset://direct-demo/host_voice/v1"
+        }
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "direct-demo",
+    "state": "AUDIO_READY",
+    "version": 8,
+    "event_count": 7,
+    "event_id": "evt-5b6e1d54-d0bb-4945-8d29-d086c1831be1",
+    "content_hash": "sha256:3062f2f4b6d53883b769f2f8092d95283a74a732cd5b309082c5e632bd48dee6",
+    "document": "<saved separately; content_hash sha256:3062f2f4b6d53883b769f2f8092d95283a74a732cd5b309082c5e632bd48dee6>",
+    "assets": [
+      {
+        "asset_ref": "asset://direct-demo/take-sec_001/v1",
+        "name": "take-sec_001",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_001/v1.wav",
+        "sha256": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2",
+        "meta": {
+          "section_id": "sec_001",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://direct-demo/host_voice/v1",
+          "text_hash": "sha256:f23d4f02ecfcd5ecb7dd55d742cd7101936caa91681a841293e58158a3fccd80",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://direct-demo/settings-sec_001/v1",
+        "name": "settings-sec_001",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_001/v1.json",
+        "sha256": "sha256:293f403430663413036055562c82cc6ad732f51e1ef37fe78064e32317001227",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://direct-demo/take-sec_002/v1",
+        "name": "take-sec_002",
+        "version": 1,
+        "kind": "voice-take",
+        "path": "assets/take-sec_002/v1.wav",
+        "sha256": "sha256:a33765a10ec6af0d56bf7ab0257f3bf823a175dbe360bd76e66efd74a7280382",
+        "meta": {
+          "section_id": "sec_002",
+          "origin": "import",
+          "recordist": "fixture",
+          "voice_ref": "asset://direct-demo/host_voice/v1",
+          "text_hash": "sha256:7344ca03b20a89b59b5ff49dfecdeceb12c87a315fec208f6819b201bf5ce6a6",
+          "script_version": 1
+        }
+      },
+      {
+        "asset_ref": "asset://direct-demo/settings-sec_002/v1",
+        "name": "settings-sec_002",
+        "version": 1,
+        "kind": "voice-settings",
+        "path": "assets/settings-sec_002/v1.json",
+        "sha256": "sha256:2c159b72b15a23cc57ba29d0d560264cf78aa69b8757d8a2f61d2418d4b6c9c7",
+        "meta": {}
+      },
+      {
+        "asset_ref": "asset://direct-demo/voice-master/v1",
+        "name": "voice-master",
+        "version": 1,
+        "kind": "voice-master",
+        "path": "assets/voice-master/v1.wav",
+        "sha256": "sha256:9063a3a6683af6c9d346e9c6debf1415e73f858ba31da54d89ef18f7a925b768",
+        "meta": {
+          "audio_version": 1
+        }
+      }
+    ],
+    "measured_frames": 91,
+    "planned_frames": 90,
+    "difference_frames": 1,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

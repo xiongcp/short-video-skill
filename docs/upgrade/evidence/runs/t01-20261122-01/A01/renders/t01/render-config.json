@@ -1,0 +1,45 @@
+{
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "sample_rate_hz": 48000,
+  "frames": 360,
+  "samples": 576000,
+  "padded_samples": 0,
+  "layers": [
+    "background",
+    "diagram",
+    "character"
+  ],
+  "graphics_backend": "software-rgb24",
+  "engine": "node v26.9.0",
+  "ffmpeg": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+  "encode": [
+    "-c:v",
+    "libx264",
+    "-preset",
+    "veryfast",
+    "-crf",
+    "18",
+    "-pix_fmt",
+    "yuv420p",
+    "-r",
+    "30",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "192k",
+    "-ar",
+    "48000",
+    "-ac",
+    "2",
+    "-movflags",
+    "+faststart"
+  ],
+  "character_fixture": {
+    "id": "procedural-placeholder-host",
+    "version": "0.1.0",
+    "original": false,
+    "note": "Code-drawn stand-in for the original anime host; no original rig exists yet (T06)."
+  }
+}

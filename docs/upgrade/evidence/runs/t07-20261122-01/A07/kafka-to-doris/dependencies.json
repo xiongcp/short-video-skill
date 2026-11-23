@@ -1,0 +1,8 @@
+[
+  {
+    "shot_id": "shot_032",
+    "depends_on": [
+      "shot_028"
+    ]
+  }
+]

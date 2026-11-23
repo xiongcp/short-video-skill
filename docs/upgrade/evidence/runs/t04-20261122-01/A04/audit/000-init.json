@@ -1,0 +1,21 @@
+{
+  "seq": 0,
+  "label": "init",
+  "op": "init",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "title": "缓存为什么让网页变快",
+    "mode": "quality"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "cache-speed",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

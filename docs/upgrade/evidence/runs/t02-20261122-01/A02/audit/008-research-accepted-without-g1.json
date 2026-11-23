@@ -1,0 +1,31 @@
+{
+  "seq": 8,
+  "label": "research-accepted-without-g1",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 4,
+    "idempotency_key": "research_accepted-4",
+    "event": "research_accepted",
+    "payload": {}
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "cache-demo",
+    "state": "RESEARCH_REVIEW",
+    "version": 4,
+    "event_count": 3,
+    "issues": [
+      {
+        "code": "APPROVAL_MISSING",
+        "gate": "G1",
+        "current_target_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "message": "G1 尚无针对当前材料 sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee 的人工批准"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

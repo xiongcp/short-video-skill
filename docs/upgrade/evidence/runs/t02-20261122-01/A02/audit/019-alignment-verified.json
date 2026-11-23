@@ -1,0 +1,25 @@
+{
+  "seq": 19,
+  "label": "alignment-verified",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 13,
+    "idempotency_key": "alignment_verified-13",
+    "event": "alignment_verified",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "ALIGNMENT_READY",
+    "version": 14,
+    "event_count": 13,
+    "event_id": "evt-6ca86c8e-8665-47a9-9451-05348d9e5b02",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

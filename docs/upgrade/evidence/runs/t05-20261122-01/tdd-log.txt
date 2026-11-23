@@ -1,0 +1,333 @@
+[01-RED] 2026-11-22T19:15:31-0800
+$ node --test tests/runtime/T05-audio.test.mjs
+✖ imported section WAVs keep original bytes and get contiguous master sample ranges (1241.813041ms)
+✖ section-local word samples map to master samples and repeated terms keep distinct IDs (1276.254833ms)
+✖ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (1274.428125ms)
+✖ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (1269.991041ms)
+✖ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (1541.261292ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6686.438167
+
+✖ failing tests:
+
+test at tests/runtime/T05-audio.test.mjs:71:1
+✖ imported section WAVs keep original bytes and get contiguous master sample ranges (1241.813041ms)
+  TypeError [Error]: Cannot read properties of null (reading 'issues')
+      at TestContext.<anonymous> (file://tests/runtime/T05-audio.test.mjs:76:34)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests/runtime/T05-audio.test.mjs:90:1
+✖ section-local word samples map to master samples and repeated terms keep distinct IDs (1276.254833ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/T05-audio.test.mjs:21:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async importBoth (file://tests/runtime/T05-audio.test.mjs:55:17)
+      at async TestContext.<anonymous> (file://tests/runtime/T05-audio.test.mjs:92:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T05-audio.test.mjs:111:1
+✖ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (1274.428125ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/T05-audio.test.mjs:21:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async importBoth (file://tests/runtime/T05-audio.test.mjs:55:17)
+      at async TestContext.<anonymous> (file://tests/runtime/T05-audio.test.mjs:113:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T05-audio.test.mjs:136:1
+✖ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (1269.991041ms)
+  TypeError [Error]: Cannot read properties of null (reading 'status')
+      at TestContext.<anonymous> (file://tests/runtime/T05-audio.test.mjs:146:28)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/runtime/T05-audio.test.mjs:168:1
+✖ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (1541.261292ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/T05-audio.test.mjs:21:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async importBoth (file://tests/runtime/T05-audio.test.mjs:55:17)
+      at async TestContext.<anonymous> (file://tests/runtime/T05-audio.test.mjs:170:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[02-GREEN] 2026-11-22T19:19:24-0800
+$ node --test tests/runtime/T05-audio.test.mjs
+✖ imported section WAVs keep original bytes and get contiguous master sample ranges (1220.340583ms)
+✔ section-local word samples map to master samples and repeated terms keep distinct IDs (2769.421709ms)
+✔ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (1548.386083ms)
+✔ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (1864.1225ms)
+✔ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (1535.661959ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9016.829833
+
+✖ failing tests:
+
+test at tests/runtime/T05-audio.test.mjs:71:1
+✖ imported section WAVs keep original bytes and get contiguous master sample ranges (1220.340583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      [
+  +     'AUDIO_SECTIONS_MISMATCH',
+  +     undefined
+  -     'AUDIO_SAMPLE_RATE',
+  -     'sec_001'
+      ]
+    ]
+  
+      at TestContext.<anonymous> (file://tests/runtime/T05-audio.test.mjs:76:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ [ 'AUDIO_SECTIONS_MISMATCH', undefined ] ],
+    expected: [ [ 'AUDIO_SAMPLE_RATE', 'sec_001' ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+note: test fix — the 44.1 kHz case sent only sec_001, which the one-take-per-script-section contract rejects as AUDIO_SECTIONS_MISMATCH before reading audio; the test now supplies both sections so the sample-rate check is what fails
+[03-GREEN] 2026-11-22T19:19:44-0800
+$ node --test tests/runtime/T05-audio.test.mjs
+✔ imported section WAVs keep original bytes and get contiguous master sample ranges (1391.482916ms)
+✔ section-local word samples map to master samples and repeated terms keep distinct IDs (2767.703375ms)
+✔ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (1540.599834ms)
+✔ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (1865.206375ms)
+✔ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (1554.513875ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9196.771791
+exit=0
+
+[04-runtime-suite] 2026-11-22T19:20:10-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (586.321667ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (8328.397334ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (148.416666ms)
+✔ a new project starts at NEW with version 1 (197.845958ms)
+✔ replaying the same event with the same key returns the original event once (473.967209ms)
+✔ the same key with a different payload is rejected without a new event (493.491708ms)
+✔ a stale expected_version is rejected and returns the current version (374.596417ms)
+✔ a quality gate event needs a human approval bound to the current material (2042.186625ms)
+✔ an agent cannot sign G4 for itself; G4 binds the master and G5 the manifest (7087.079291ms)
+✔ a G2 approval expires when the script it approved is replaced (1872.915458ms)
+✔ a draft cannot be exported or delivered (3057.261042ms)
+✔ a fresh process reads back the same stage, version and event count (818.897417ms)
+✔ concurrent writers on one version yield one event and version conflicts, never a crash (343.801333ms)
+✔ paid work needs a budget confirmed by a human session (500.50825ms)
+✔ two concurrent 70-unit intents under a 100 limit leave one reservation and 30 available (710.935375ms)
+✖ repeating an intent reaches the provider once (555.773458ms)
+✖ a lost receipt is reconciled by the original key after restart and settled exactly once (932.259875ms)
+✔ without a lookup API the job stays UNKNOWN and its reservation pending verification (691.448875ms)
+✔ a skill cannot call a tool outside its permissions (537.201625ms)
+✔ conflicting source versions keep both locators and unsupported claims are marked unsupported (1319.999083ms)
+✔ a script cannot cite an unsupported claim or an unresolved dispute (2076.337ms)
+✔ the G1 decision binds the saved evidence version (1469.918ms)
+✔ section IDs of an imported manuscript survive nonmaterial edits (1803.691875ms)
+✔ start and resume share duration defaults: explicit 120, short 180, standard8 480 (2071.311084ms)
+✔ offline search returns paragraph locators from authorized material only (377.645917ms)
+✔ imported section WAVs keep original bytes and get contiguous master sample ranges (2481.067333ms)
+✔ section-local word samples map to master samples and repeated terms keep distinct IDs (4078.0075ms)
+✔ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (2288.953958ms)
+✔ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (2195.550792ms)
+✔ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (1699.278875ms)
+✔ issue codes stay stable while messages follow --lang (644.706625ms)
+✔ Chinese is the default locale (282.85275ms)
+✔ an unsupported locale is a usage error (142.594458ms)
+✔ zh-CN and en catalogs define the same non-empty keys (1.167375ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 32
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16860.79325
+
+✖ failing tests:
+
+test at tests/runtime/T03-jobs.test.mjs:66:1
+✖ repeating an intent reaches the provider once (555.773458ms)
+  TypeError [Error]: Cannot read properties of null (reading 'status')
+      at TestContext.<anonymous> (file://tests/runtime/T03-jobs.test.mjs:71:29)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/runtime/T03-jobs.test.mjs:83:1
+✖ a lost receipt is reconciled by the original key after restart and settled exactly once (932.259875ms)
+  TypeError [Error]: Cannot read properties of null (reading 'status')
+      at TestContext.<anonymous> (file://tests/runtime/T03-jobs.test.mjs:96:31)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+exit=1
+
+[05-runtime-suite] 2026-11-22T19:20:46-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (673.923292ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (8584.263583ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (103.146791ms)
+✔ a new project starts at NEW with version 1 (183.82525ms)
+✔ replaying the same event with the same key returns the original event once (477.392042ms)
+✔ the same key with a different payload is rejected without a new event (527.943667ms)
+✔ a stale expected_version is rejected and returns the current version (391.375833ms)
+✔ a quality gate event needs a human approval bound to the current material (2106.071375ms)
+✔ an agent cannot sign G4 for itself; G4 binds the master and G5 the manifest (7129.095167ms)
+✔ a G2 approval expires when the script it approved is replaced (1883.101625ms)
+✔ a draft cannot be exported or delivered (3063.1575ms)
+✔ a fresh process reads back the same stage, version and event count (821.0745ms)
+✔ concurrent writers on one version yield one event and version conflicts, never a crash (341.819708ms)
+✔ paid work needs a budget confirmed by a human session (486.673125ms)
+✔ two concurrent 70-unit intents under a 100 limit leave one reservation and 30 available (680.817417ms)
+✔ repeating an intent reaches the provider once (1114.017709ms)
+✔ a lost receipt is reconciled by the original key after restart and settled exactly once (1083.327208ms)
+✔ without a lookup API the job stays UNKNOWN and its reservation pending verification (824.451875ms)
+✔ a skill cannot call a tool outside its permissions (524.024ms)
+✔ conflicting source versions keep both locators and unsupported claims are marked unsupported (1259.505ms)
+✔ a script cannot cite an unsupported claim or an unresolved dispute (2123.80925ms)
+✔ the G1 decision binds the saved evidence version (1601.497625ms)
+✔ section IDs of an imported manuscript survive nonmaterial edits (1878.013709ms)
+✔ start and resume share duration defaults: explicit 120, short 180, standard8 480 (2038.470958ms)
+✔ offline search returns paragraph locators from authorized material only (392.829667ms)
+✔ imported section WAVs keep original bytes and get contiguous master sample ranges (2591.328791ms)
+✔ section-local word samples map to master samples and repeated terms keep distinct IDs (4160.156542ms)
+✔ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (2261.995667ms)
+✔ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (2194.870542ms)
+✔ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (1741.782875ms)
+✔ issue codes stay stable while messages follow --lang (655.665542ms)
+✔ Chinese is the default locale (312.536458ms)
+✔ an unsupported locale is a usage error (168.109959ms)
+✔ zh-CN and en catalogs define the same non-empty keys (0.578ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17015.534833
+exit=0
+
+note: run 04 (full runtime suite) found a regression: T03 tests submit generate_tts through the raw submit op, the fake provider now returns a WAV for that tool, and the take handler assumed the generateTts payload shape and threw; the handler now stores a take only for generateTts intents (run 05)
+[06-check-design] 2026-11-22T19:23:55-0800
+$ python -B evals/check_design.py
+13 个 Skill，9 个工具合同，10 份 Schema，两条审批路径通过
+cache-speed · 5 个章节/段落组 · 14 镜 · 3600 帧
+kafka-to-doris · 7 个章节/段落组 · 34 镜 · 14400 帧
+exit=0
+
+[07-python-unittest] 2026-11-22T19:24:19-0800
+$ python -B -m unittest discover -s evals -p test_*.py
+.........................
+----------------------------------------------------------------------
+Ran 25 tests in 23.825s
+
+OK
+exit=0
+
+[08-runtime-suite-final] 2026-11-22T19:24:36-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (807.75875ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (8307.921041ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (97.822542ms)
+✔ a new project starts at NEW with version 1 (174.94075ms)
+✔ replaying the same event with the same key returns the original event once (468.447375ms)
+✔ the same key with a different payload is rejected without a new event (500.18ms)
+✔ a stale expected_version is rejected and returns the current version (370.960208ms)
+✔ a quality gate event needs a human approval bound to the current material (2080.744042ms)
+✔ an agent cannot sign G4 for itself; G4 binds the master and G5 the manifest (7163.848125ms)
+✔ a G2 approval expires when the script it approved is replaced (1844.8465ms)
+✔ a draft cannot be exported or delivered (3042.089458ms)
+✔ a fresh process reads back the same stage, version and event count (818.680708ms)
+✔ concurrent writers on one version yield one event and version conflicts, never a crash (342.728375ms)
+✔ paid work needs a budget confirmed by a human session (492.568709ms)
+✔ two concurrent 70-unit intents under a 100 limit leave one reservation and 30 available (691.923166ms)
+✔ repeating an intent reaches the provider once (1068.921791ms)
+✔ a lost receipt is reconciled by the original key after restart and settled exactly once (1068.256041ms)
+✔ without a lookup API the job stays UNKNOWN and its reservation pending verification (707.330084ms)
+✔ a skill cannot call a tool outside its permissions (524.305666ms)
+✔ conflicting source versions keep both locators and unsupported claims are marked unsupported (1257.032833ms)
+✔ a script cannot cite an unsupported claim or an unresolved dispute (2059.10925ms)
+✔ the G1 decision binds the saved evidence version (1590.503958ms)
+✔ section IDs of an imported manuscript survive nonmaterial edits (1878.883083ms)
+✔ start and resume share duration defaults: explicit 120, short 180, standard8 480 (1993.693042ms)
+✔ offline search returns paragraph locators from authorized material only (402.03225ms)
+✔ imported section WAVs keep original bytes and get contiguous master sample ranges (2523.836208ms)
+✔ section-local word samples map to master samples and repeated terms keep distinct IDs (4253.443666ms)
+✔ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (2258.32625ms)
+✔ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (2105.555041ms)
+✔ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (1673.039167ms)
+✔ issue codes stay stable while messages follow --lang (662.8795ms)
+✔ Chinese is the default locale (315.220625ms)
+✔ an unsupported locale is a usage error (131.406958ms)
+✔ zh-CN and en catalogs define the same non-empty keys (1.144209ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16899.442208
+exit=0
+

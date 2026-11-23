@@ -1,0 +1,177 @@
+[01-RED] 2026-11-22T20:20:11-0800
+$ node --test tests/runtime/T08-bake.test.mjs
+✖ frames 29, 0, 15 and 0, 15, 29 read identical lossless RGBA; an independent shot bakes alone (3115.504875ms)
+✖ an inheriting shot starts from the preceding end state; changing that state changes its cache key (3097.573375ms)
+✖ plan validation names shot and field; out-of-range frames and a restricted rig block baking (3098.172792ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9386.509
+
+✖ failing tests:
+
+test at tests/runtime/T08-bake.test.mjs:77:1
+✖ frames 29, 0, 15 and 0, 15, 29 read identical lossless RGBA; an independent shot bakes alone (3115.504875ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/studio-fixture.mjs:18:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async bakeProject (file://tests/runtime/T08-bake.test.mjs:58:16)
+      at async TestContext.<anonymous> (file://tests/runtime/T08-bake.test.mjs:78:19)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T08-bake.test.mjs:105:1
+✖ an inheriting shot starts from the preceding end state; changing that state changes its cache key (3097.573375ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/studio-fixture.mjs:18:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async bakeProject (file://tests/runtime/T08-bake.test.mjs:58:16)
+      at async TestContext.<anonymous> (file://tests/runtime/T08-bake.test.mjs:106:13)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T08-bake.test.mjs:121:1
+✖ plan validation names shot and field; out-of-range frames and a restricted rig block baking (3098.172792ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/studio-fixture.mjs:18:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async bakeProject (file://tests/runtime/T08-bake.test.mjs:58:16)
+      at async TestContext.<anonymous> (file://tests/runtime/T08-bake.test.mjs:122:13)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[02-GREEN] 2026-11-22T20:23:06-0800
+$ node --test tests/runtime/T08-bake.test.mjs
+✔ frames 29, 0, 15 and 0, 15, 29 read identical lossless RGBA; an independent shot bakes alone (6851.122666ms)
+✔ an inheriting shot starts from the preceding end state; changing that state changes its cache key (3744.2305ms)
+✔ plan validation names shot and field; out-of-range frames and a restricted rig block baking (3544.192458ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14213.328542
+exit=0
+
+[03-REFACTOR-full-runtime] 2026-11-22T20:24:11-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (956.312917ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (15515.549125ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (191.96ms)
+✔ a new project starts at NEW with version 1 (279.965334ms)
+✔ replaying the same event with the same key returns the original event once (619.539042ms)
+✔ the same key with a different payload is rejected without a new event (690.258458ms)
+✔ a stale expected_version is rejected and returns the current version (681.3625ms)
+✔ a quality gate event needs a human approval bound to the current material (3616.652583ms)
+✔ an agent cannot sign G4 for itself; G4 binds the master and G5 the manifest (12901.410375ms)
+✔ a G2 approval expires when the script it approved is replaced (3491.490959ms)
+✔ a draft cannot be exported or delivered (4593.131ms)
+✔ a fresh process reads back the same stage, version and event count (1008.272417ms)
+✔ concurrent writers on one version yield one event and version conflicts, never a crash (417.163417ms)
+✔ paid work needs a budget confirmed by a human session (717.209958ms)
+✔ two concurrent 70-unit intents under a 100 limit leave one reservation and 30 available (958.835ms)
+✔ repeating an intent reaches the provider once (1601.740459ms)
+✔ a lost receipt is reconciled by the original key after restart and settled exactly once (1558.997791ms)
+✔ without a lookup API the job stays UNKNOWN and its reservation pending verification (1025.636833ms)
+✔ a skill cannot call a tool outside its permissions (880.937458ms)
+✔ conflicting source versions keep both locators and unsupported claims are marked unsupported (1824.14075ms)
+✔ a script cannot cite an unsupported claim or an unresolved dispute (3546.797709ms)
+✔ the G1 decision binds the saved evidence version (2624.851208ms)
+✔ section IDs of an imported manuscript survive nonmaterial edits (3496.563208ms)
+✔ start and resume share duration defaults: explicit 120, short 180, standard8 480 (3676.6775ms)
+✔ offline search returns paragraph locators from authorized material only (629.0215ms)
+✔ imported section WAVs keep original bytes and get contiguous master sample ranges (4010.461625ms)
+✔ section-local word samples map to master samples and repeated terms keep distinct IDs (7260.122417ms)
+✔ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (4313.779291ms)
+✔ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (4181.853917ms)
+✔ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (3124.76425ms)
+✔ formal assembly names the asset for a missing rig version, uncleared usage and an unregistered angle (4225.052875ms)
+✔ a full-frame 1920×1080 bitmap fails coverage for a native 1.5× push-in; vector diagrams pass (4044.325292ms)
+✔ diagram elements must stay inside the safe area at the shot zoom (3457.737292ms)
+✔ usage clearance is human-only and prior versions stay resolvable (4240.655ms)
+✔ the three scene templates fix layer roles and reject mismatched layer kinds (3461.546542ms)
+✔ host and diagram shots resolve through one path and pin every asset by hash (2352.573208ms)
+✔ a scene name cannot escape the project asset directory (2252.050708ms)
+✔ word anchors quantize once: samples 2,399/2,400 cut at frames 1/2 and the last real sample is covered (7633.088458ms)
+✔ production compilation freezes a timeline with resolved references, audio, captions and dependencies (7628.514042ms)
+✔ dangling cues, unknown words, cross-section triggers, out-of-range highlights and cycles name shot and field (7200.829958ms)
+✔ production compilation blocks an unsupported action and uncleared assets (4420.901667ms)
+✔ planned example boards stay readable as fixed-frame timelines without production status (224.9265ms)
+✔ frames 29, 0, 15 and 0, 15, 29 read identical lossless RGBA; an independent shot bakes alone (14859.22075ms)
+✔ an inheriting shot starts from the preceding end state; changing that state changes its cache key (5280.701792ms)
+✔ plan validation names shot and field; out-of-range frames and a restricted rig block baking (3844.21575ms)
+✔ issue codes stay stable while messages follow --lang (736.263916ms)
+✔ Chinese is the default locale (343.33175ms)
+✔ an unsupported locale is a usage error (173.13475ms)
+✔ zh-CN and en catalogs define the same non-empty keys (1.25ms)
+ℹ tests 49
+ℹ suites 0
+ℹ pass 49
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31049.641417
+exit=0
+
+[04-check-design] 2026-11-22T20:24:11-0800
+$ <venv>/bin/python -B evals/check_design.py
+13 个 Skill，9 个工具合同，10 份 Schema，两条审批路径通过
+cache-speed · 5 个章节/段落组 · 14 镜 · 3600 帧
+kafka-to-doris · 7 个章节/段落组 · 34 镜 · 14400 帧
+exit=0
+
+[05-python-unittest] 2026-11-22T20:24:36-0800
+$ <venv>/bin/python -B -m unittest discover -s evals -p test_*.py
+.........................
+----------------------------------------------------------------------
+Ran 25 tests in 24.330s
+
+OK
+exit=0
+
+[06-replay-A08] 2026-11-22T20:26:14-0800
+$ node --experimental-strip-types --no-warnings docs/upgrade/evidence/replay_t08.mjs t08-20261122-01 <venv>/bin/python
+{"status":"PASS","checks":{"request_order_identical":true,"visible_motion":true,"reread_cached":true,"independent_alone":true,"worker_order_identical":true,"inheritance":true,"lips_closed":true,"head_turn":true,"snapshot_recorded":true,"schemas_valid":true},"calls":16,"frames":{"shot_001_f00000":"frames/shot_001-f00000.png","shot_001_f00015":"frames/shot_001-f00015.png","shot_001_f00029":"frames/shot_001-f00029.png","boundary_shot_001_f00029":"frames/boundary-shot_001-f00029.png","boundary_shot_002_f00000":"frames/boundary-shot_002-f00000.png"}}
+exit=0
+

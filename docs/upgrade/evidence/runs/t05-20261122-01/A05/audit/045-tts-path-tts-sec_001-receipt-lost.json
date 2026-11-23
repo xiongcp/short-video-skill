@@ -1,0 +1,54 @@
+{
+  "seq": 45,
+  "project_id": "tts-path",
+  "label": "tts-sec_001-receipt-lost",
+  "op": "tts",
+  "session": null,
+  "request": {
+    "project_id": "tts-path",
+    "idempotency_key": "tts-1",
+    "section_id": "sec_001",
+    "voice_ref": "asset://tts-path/voice-licensed/v1",
+    "provider": "test-provider",
+    "quote_minor": 70
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "UNKNOWN",
+    "project_id": "tts-path",
+    "state": "AUDIO_RUNNING",
+    "version": 9,
+    "event_count": 8,
+    "job_id": "job-793c8f69-8438-4641-8483-984a7de8769a",
+    "tool_result": {
+      "status": "unknown",
+      "job_id": "job-793c8f69-8438-4641-8483-984a7de8769a",
+      "artifact_refs": [],
+      "warnings": [],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 70,
+        "actual_minor": null
+      },
+      "retryable": false,
+      "next_action": "reconcile"
+    },
+    "balance": {
+      "currency": "CNY",
+      "limit_minor": 1000,
+      "held_minor": 70,
+      "spent_minor": 0,
+      "pending_verification_minor": 70,
+      "available_minor": 930
+    },
+    "issues": [
+      {
+        "code": "RECEIPT_UNKNOWN",
+        "job_id": "job-793c8f69-8438-4641-8483-984a7de8769a",
+        "detail": "UND_ERR_SOCKET",
+        "message": "作业 job-793c8f69-8438-4641-8483-984a7de8769a 回执未知，预留保留，须按原键对账，不得重新提交"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

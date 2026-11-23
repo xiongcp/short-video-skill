@@ -1,0 +1,92 @@
+{
+  "seq": 41,
+  "label": "cache-speed/scene-diagram_ch_003",
+  "op": "scene",
+  "session": null,
+  "request": {
+    "project_id": "cache-speed",
+    "name": "diagram_ch_003",
+    "template": "diagram",
+    "focus": "同图同色重放，依次点亮匹配、可复用和新鲜度。",
+    "props": [
+      "board"
+    ],
+    "layers": [
+      {
+        "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+        "element_ids": []
+      },
+      {
+        "asset_ref": "asset://cache-speed/layer_diagram_ch_003/v1",
+        "element_ids": [
+          "beat_006",
+          "beat_007",
+          "beat_008"
+        ],
+        "claim_ids": [
+          "reuse",
+          "fresh"
+        ]
+      }
+    ]
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "CREATED",
+    "project_id": "cache-speed",
+    "state": "ALIGNMENT_READY",
+    "version": 9,
+    "event_count": 8,
+    "scene": {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/diagram_ch_003/v1",
+      "template": "diagram",
+      "focus": "同图同色重放，依次点亮匹配、可复用和新鲜度。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://cache-speed/layer_diagram_ch_003/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "beat_006",
+            "beat_007",
+            "beat_008"
+          ],
+          "claim_ids": [
+            "reuse",
+            "fresh"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    "asset": {
+      "asset_ref": "asset://cache-speed/diagram_ch_003/v1",
+      "kind": "scene",
+      "sha256": "sha256:58694d87a97807626dfb7574803d5265fce84171ae8478cf20bd8f232d9195e7",
+      "media": {
+        "media_type": "application/json",
+        "vector": true
+      },
+      "usage": "cleared"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

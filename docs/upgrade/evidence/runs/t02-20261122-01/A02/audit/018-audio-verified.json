@@ -1,0 +1,25 @@
+{
+  "seq": 18,
+  "label": "audio-verified",
+  "project_id": "cache-demo",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "cache-demo",
+    "expected_version": 12,
+    "idempotency_key": "audio_verified-12",
+    "event": "audio_verified",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "cache-demo",
+    "state": "AUDIO_READY",
+    "version": 13,
+    "event_count": 12,
+    "event_id": "evt-75036321-5c77-40a3-8371-c594700bc617",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

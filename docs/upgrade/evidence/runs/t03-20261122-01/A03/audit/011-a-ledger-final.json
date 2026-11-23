@@ -1,0 +1,79 @@
+{
+  "seq": 11,
+  "label": "a-ledger-final",
+  "op": "ledger",
+  "session": null,
+  "request": {
+    "project_id": "budget-race"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "budget-race",
+    "state": "NEW",
+    "version": 1,
+    "event_count": 0,
+    "currency": "CNY",
+    "limit_minor": 100,
+    "held_minor": 0,
+    "spent_minor": 60,
+    "pending_verification_minor": 0,
+    "available_minor": 40,
+    "entries": [
+      {
+        "project_id": "budget-race",
+        "version": 1,
+        "entry_id": "led-d8438904-a538-48c6-b69c-7c4fdff3f183",
+        "job_id": "job-7ddc9097-34af-4250-8935-0d69988510fd",
+        "reservation_id": "res-10844c6e-eae0-4be9-8c61-98434cece07a",
+        "operation": "reserve",
+        "currency": "CNY",
+        "amount_minor": 70,
+        "recorded_at": "2026-11-23T02:51:26.565Z",
+        "external_receipt": null
+      },
+      {
+        "project_id": "budget-race",
+        "version": 2,
+        "entry_id": "led-96702f6d-9e45-4030-9fee-ce5b2db15a32",
+        "job_id": "job-7ddc9097-34af-4250-8935-0d69988510fd",
+        "reservation_id": "res-10844c6e-eae0-4be9-8c61-98434cece07a",
+        "operation": "settle",
+        "currency": "CNY",
+        "amount_minor": 60,
+        "recorded_at": "2026-11-23T02:51:26.840Z",
+        "external_receipt": "rcpt-1"
+      },
+      {
+        "project_id": "budget-race",
+        "version": 3,
+        "entry_id": "led-70d947d5-a9be-4797-83a5-90265c7d9aca",
+        "job_id": "job-7ddc9097-34af-4250-8935-0d69988510fd",
+        "reservation_id": "res-10844c6e-eae0-4be9-8c61-98434cece07a",
+        "operation": "release",
+        "currency": "CNY",
+        "amount_minor": 70,
+        "recorded_at": "2026-11-23T02:51:26.840Z",
+        "external_receipt": null
+      }
+    ],
+    "jobs": [
+      {
+        "job_id": "job-7ddc9097-34af-4250-8935-0d69988510fd",
+        "idempotency_key": "tts-b",
+        "skill_id": "audio-production",
+        "tool": "generate_tts",
+        "provider": "test-provider",
+        "provider_job_id": "pj-1",
+        "state": "SUCCEEDED",
+        "reservation_id": "res-10844c6e-eae0-4be9-8c61-98434cece07a",
+        "quote_minor": 70,
+        "cost_minor": 60,
+        "external_receipt": "rcpt-1",
+        "attempt": 1
+      }
+    ],
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}
