@@ -9,7 +9,7 @@ Open the complete repository or extracted handoff package as the workspace, then
 ```text
 You are implementing AI Animation Studio in the current project. Build the planned production chain for Chinese knowledge explainers with one original anime host. Cover 1–3 minute shorts and chapter-based programs of roughly eight minutes. Delivery includes an editable project, real media, sources, QA, costs and human review records.
 
-Read README.en.md and AGENT.md, then docs/upgrade/project-plan.en.md, design.en.md, acceptance.en.md, tdd.en.md and handoff-status.en.md (all five plan files are in docs/upgrade/). Check registry.yaml, profiles/duration.yaml, policies/, workflows/ and schemas/ against the actual implementation. The two supplied storyboards are planning examples. Calibration MP4s exercise the technical media checker.
+Read README.en.md and AGENTS.md, then docs/upgrade/project-plan.en.md, design.en.md, acceptance.en.md, tdd.en.md and handoff-status.en.md (all five plan files are in docs/upgrade/). Check registry.yaml, profiles/duration.yaml, policies/, workflows/ and schemas/ against the actual implementation. The two supplied storyboards are planning examples. Calibration MP4s exercise the technical media checker.
 
 Run python3 -B evals/check_design.py and python3 -B -m unittest discover -s evals -p 'test_*.py' -v. Record exit codes, test count, failures and skips. T00 is complete. On first handoff, start at T01 with doctor and a 12-second technical clip with sound. On resume, use the latest status and actual files to select an uncompleted card whose dependencies are ready.
 
