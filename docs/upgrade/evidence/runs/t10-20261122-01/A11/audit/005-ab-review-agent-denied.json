@@ -1,0 +1,91 @@
+{
+  "seq": 5,
+  "label": "ab-review-agent-denied",
+  "op": "compare",
+  "session": "agent:agent-1",
+  "request": {
+    "project_id": "qa-demo",
+    "action": "review",
+    "comparison_id": "cmp-2b679ced-d1f2-409f-9b5a-21150b32c790",
+    "audio_listening": {
+      "phone_speaker": "模拟审核会话：合成音清晰无遮挡（真实人声手机外放听审待 A05 完成后补齐）",
+      "headphones": "模拟审核会话：切点连续无刺耳接缝（真实人声耳机听审待 A05 完成后补齐）",
+      "masked_words": [],
+      "mispronunciations": [],
+      "harsh_joins": []
+    },
+    "shots": [
+      {
+        "shot_id": "shot_001",
+        "timecode_a": "00:00.00-00:08.00",
+        "timecode_b": "00:00.00-00:08.00",
+        "items": {
+          "identity_continuity": {
+            "verdict": "improved",
+            "reason": "受控夹具色彩与轮廓对比清晰（原创美术待 A06）"
+          },
+          "av_sync": {
+            "verdict": "unchanged",
+            "reason": "合成音节拍一致（真实口型校准待 A05）"
+          },
+          "diagram_accuracy": {
+            "verdict": "unchanged",
+            "reason": "主持人开场镜不含图解"
+          },
+          "mobile_legibility": {
+            "verdict": "regressed",
+            "reason": "字幕色块对比度需复核，标记为必改项演示门禁阻断",
+            "action": "required_fix"
+          },
+          "cut_pacing": {
+            "verdict": "improved",
+            "reason": "8 秒开场节奏紧凑"
+          }
+        }
+      },
+      {
+        "shot_id": "shot_002",
+        "timecode_a": "00:08.00-00:15.00",
+        "timecode_b": "00:08.00-00:15.00",
+        "items": {
+          "identity_continuity": {
+            "verdict": "unchanged",
+            "reason": "纯图解镜头背景一致"
+          },
+          "av_sync": {
+            "verdict": "unchanged",
+            "reason": "高亮提示按节拍触发"
+          },
+          "diagram_accuracy": {
+            "verdict": "improved",
+            "reason": "browser 与 server 高亮指向正确"
+          },
+          "mobile_legibility": {
+            "verdict": "improved",
+            "reason": "已声明读图停留保留阅读时间"
+          },
+          "cut_pacing": {
+            "verdict": "improved",
+            "reason": "切镜承接清晰"
+          }
+        }
+      }
+    ]
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "qa-demo",
+    "state": "SAMPLE_REVIEW",
+    "version": 17,
+    "event_count": 16,
+    "issues": [
+      {
+        "code": "HUMAN_REQUIRED",
+        "action": "record_ab_review",
+        "message": "record_ab_review 仅限已认证的人类会话"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

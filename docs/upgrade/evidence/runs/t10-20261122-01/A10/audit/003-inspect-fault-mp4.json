@@ -1,0 +1,212 @@
+{
+  "seq": 3,
+  "label": "inspect-fault-mp4",
+  "op": "inspect",
+  "session": null,
+  "request": {
+    "project_id": "qa-demo",
+    "media_ref": "asset://qa-demo/fault_media/v1"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "PASS",
+    "project_id": "qa-demo",
+    "media_hash": "sha256:1fda59ec235c7622c018a6908cc5662edff8197d2c886ed24a71ffcc4db4d882",
+    "inspector": {
+      "name": "ffmpeg-inspect-media",
+      "version": "1.0.0"
+    },
+    "inspect_media_input": {
+      "media_ref": "asset://qa-demo/fault_media/v1",
+      "expected_spec": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "sample_rate_hz": 48000
+      },
+      "sample_ranges": [
+        {
+          "start": 0,
+          "end": 240
+        }
+      ]
+    },
+    "technical": {
+      "status": "PASS",
+      "media_hash": "sha256:1fda59ec235c7622c018a6908cc5662edff8197d2c886ed24a71ffcc4db4d882",
+      "observed": {
+        "major_brand": "isom",
+        "frames": 240,
+        "width": 1920,
+        "height": 1080,
+        "pixel_format": "yuv420p",
+        "video_codec": "h264",
+        "frame_grid_fps": 30,
+        "sample_rate_hz": 48000,
+        "audio_codec": "aac",
+        "audio_start_seconds": 0,
+        "audio_end_seconds": 8
+      },
+      "issues": []
+    },
+    "visual_anomalies": {
+      "flashes": [
+        {
+          "shot_id": "master",
+          "frame_range": {
+            "start": 15,
+            "end": 16
+          },
+          "peak_luma": 253,
+          "kind": "white_flash"
+        }
+      ],
+      "blacks": [
+        {
+          "shot_id": "master",
+          "frame_range": {
+            "start": 100,
+            "end": 105
+          },
+          "mean_luma": 0
+        }
+      ],
+      "freezes": [
+        {
+          "shot_id": "master",
+          "frame_range": {
+            "start": 150,
+            "end": 231
+          },
+          "frames": 81
+        }
+      ],
+      "declared_holds": []
+    },
+    "motion_heatmap": {
+      "per_second": [
+        {
+          "second": 0,
+          "frame_range": {
+            "start": 0,
+            "end": 30
+          },
+          "mean_mad": 14.527,
+          "max_mad": 209.777,
+          "max_pixel_diff": 243,
+          "level": "high"
+        },
+        {
+          "second": 1,
+          "frame_range": {
+            "start": 30,
+            "end": 60
+          },
+          "mean_mad": 0.841,
+          "max_mad": 6.088,
+          "max_pixel_diff": 231,
+          "level": "low"
+        },
+        {
+          "second": 2,
+          "frame_range": {
+            "start": 60,
+            "end": 90
+          },
+          "mean_mad": 0.535,
+          "max_mad": 13.996,
+          "max_pixel_diff": 231,
+          "level": "low"
+        },
+        {
+          "second": 3,
+          "frame_range": {
+            "start": 90,
+            "end": 120
+          },
+          "mean_mad": 3.426,
+          "max_mad": 51.385,
+          "max_pixel_diff": 178,
+          "level": "medium"
+        },
+        {
+          "second": 4,
+          "frame_range": {
+            "start": 120,
+            "end": 150
+          },
+          "mean_mad": 0,
+          "max_mad": 0,
+          "max_pixel_diff": 0,
+          "level": "static"
+        },
+        {
+          "second": 5,
+          "frame_range": {
+            "start": 150,
+            "end": 180
+          },
+          "mean_mad": 0.063,
+          "max_mad": 1.874,
+          "max_pixel_diff": 231,
+          "level": "low"
+        },
+        {
+          "second": 6,
+          "frame_range": {
+            "start": 180,
+            "end": 210
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.01,
+          "max_pixel_diff": 3,
+          "level": "static"
+        },
+        {
+          "second": 7,
+          "frame_range": {
+            "start": 210,
+            "end": 240
+          },
+          "mean_mad": 0.063,
+          "max_mad": 1.872,
+          "max_pixel_diff": 231,
+          "level": "low"
+        }
+      ],
+      "mean_mad": 2.381
+    },
+    "audio_metrics": {
+      "integrated_lufs": -11.9,
+      "loudness_range_lu": 2.7,
+      "max_true_peak_dbtp": -8.7
+    },
+    "silence_ranges": [
+      {
+        "shot_id": "master",
+        "frame_range": {
+          "start": 75,
+          "end": 120
+        },
+        "duration_seconds": 1.5
+      }
+    ],
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "insp-d93c1f35-7da0-4817-ad8a-6c86b5aac89e",
+      "artifact_refs": [
+        "asset://qa-demo/fault_media/v1"
+      ],
+      "warnings": [],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 0,
+        "actual_minor": 0
+      },
+      "retryable": false,
+      "next_action": "continue"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

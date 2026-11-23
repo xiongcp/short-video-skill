@@ -1,0 +1,184 @@
+{
+  "seq": 3,
+  "label": "trace-subtitle",
+  "op": "trace",
+  "session": null,
+  "request": {
+    "project_id": "deliver-demo",
+    "subtitle_index": 1
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "deliver-demo",
+    "state": "APPROVED",
+    "version": 22,
+    "event_count": 21,
+    "revisions": {
+      "brief": 1,
+      "evidence": 1,
+      "script": 1,
+      "audio": 1,
+      "alignment": 1,
+      "storyboard": 1,
+      "timeline": 1,
+      "qa": 2
+    },
+    "claim_trace": null,
+    "subtitle_trace": {
+      "index": 1,
+      "cue": {
+        "section_id": "sec_002",
+        "cue_ids": [],
+        "range": {
+          "start": 240,
+          "end": 446
+        },
+        "text": "浏览器按响应头复用缓存。"
+      },
+      "shot_id": "shot_002",
+      "chapter_id": "ch_001",
+      "words": [
+        {
+          "word_id": "sec_002-w001",
+          "section_id": "sec_002",
+          "text": "浏览器",
+          "start_sample": 384000,
+          "end_sample": 544000,
+          "confidence": 0.95,
+          "manually_corrected": false
+        },
+        {
+          "word_id": "sec_002-w002",
+          "section_id": "sec_002",
+          "text": "按响应头复用缓存",
+          "start_sample": 544000,
+          "end_sample": 714000,
+          "confidence": 0.95,
+          "manually_corrected": false
+        }
+      ]
+    },
+    "word_trace": null,
+    "shot_trace": null,
+    "claims": [
+      {
+        "claim": {
+          "claim_id": "claim_ttl",
+          "statement": "max-age 指定响应可被复用的秒数",
+          "status": "supported",
+          "qualifier": "遵循 RFC 9111 §5.2.2.1"
+        },
+        "sources": [
+          {
+            "source_id": "rfc9111",
+            "url": "https://httpwg.org/specs/rfc9111.html",
+            "title": "RFC 9111 HTTP Caching <script>alert(\"xss\")</script>",
+            "published_on": "2022-06-01",
+            "retrieved_on": "2026-11-22",
+            "summary": "HTTP 缓存语义规范 <img src=x onerror=alert(1)>",
+            "locator": "Section 5.2.2.1",
+            "relation": "supports"
+          }
+        ]
+      }
+    ],
+    "subtitles": [
+      {
+        "index": 0,
+        "cue": {
+          "section_id": "sec_001",
+          "cue_ids": [],
+          "range": {
+            "start": 0,
+            "end": 238
+          },
+          "text": "先看第一段。"
+        },
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "words": [
+          {
+            "word_id": "sec_001-w001",
+            "section_id": "sec_001",
+            "text": "先看",
+            "start_sample": 0,
+            "end_sample": 190000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_001-w002",
+            "section_id": "sec_001",
+            "text": "第一段",
+            "start_sample": 190000,
+            "end_sample": 380000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "cue": {
+          "section_id": "sec_002",
+          "cue_ids": [],
+          "range": {
+            "start": 240,
+            "end": 446
+          },
+          "text": "浏览器按响应头复用缓存。"
+        },
+        "shot_id": "shot_002",
+        "chapter_id": "ch_001",
+        "words": [
+          {
+            "word_id": "sec_002-w001",
+            "section_id": "sec_002",
+            "text": "浏览器",
+            "start_sample": 384000,
+            "end_sample": 544000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          },
+          {
+            "word_id": "sec_002-w002",
+            "section_id": "sec_002",
+            "text": "按响应头复用缓存",
+            "start_sample": 544000,
+            "end_sample": 714000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "cue": {
+          "section_id": "sec_003",
+          "cue_ids": [],
+          "range": {
+            "start": 450,
+            "end": 656
+          },
+          "text": "合理设置缓存可兼顾速度。"
+        },
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "words": [
+          {
+            "word_id": "sec_003-w001",
+            "section_id": "sec_003",
+            "text": "合理设置缓存可兼顾速度",
+            "start_sample": 720000,
+            "end_sample": 1050000,
+            "confidence": 0.95,
+            "manually_corrected": false
+          }
+        ]
+      }
+    ],
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

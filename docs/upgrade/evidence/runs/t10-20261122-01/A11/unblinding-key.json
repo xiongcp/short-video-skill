@@ -1,0 +1,9 @@
+{
+  "comparison_id": "cmp-2b679ced-d1f2-409f-9b5a-21150b32c790",
+  "seed": 42,
+  "baseline_kind": "controlled_baseline",
+  "clip_a_role": "upgrade",
+  "clip_b_role": "baseline",
+  "baseline_ref": "asset://qa-demo/baseline_sample/v1",
+  "upgrade_ref": "asset://qa-demo/render_sample/v1"
+}

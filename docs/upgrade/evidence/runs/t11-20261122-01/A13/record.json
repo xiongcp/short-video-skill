@@ -1,0 +1,115 @@
+{
+  "task_id": "T11",
+  "case_id": "A13",
+  "run_id": "t11-20261122-01",
+  "status": "PASS",
+  "evidence_level": "RUNTIME",
+  "environment": {
+    "node": "v26.9.0",
+    "platform": "darwin-arm64",
+    "python": "Python 3.13.15",
+    "packager": {
+      "name": "tar-gzip-packager",
+      "version": "1.0.0"
+    }
+  },
+  "commands_and_exit_codes": [
+    {
+      "command": "node docs/upgrade/evidence/replay_t11.mjs t11-20261122-01 python",
+      "note": "trace, manifest, decide, package, restore, revise and render calls saved under audit/"
+    },
+    {
+      "command": "python -B -c <validate A13 contracts>",
+      "exit_code": 0,
+      "saved_as": "schema-check.txt"
+    }
+  ],
+  "input_hashes": [
+    {
+      "path": "tools/package_project/contract.yaml",
+      "sha256": "sha256:cb6d35c5f4f4d76d3710a4e2d029f679931f130ee6a9f2f45a9737695e7b6283"
+    },
+    {
+      "path": "schemas/workflow.schema.json",
+      "sha256": "sha256:01e59870477a9c4a02938f05d7dc90447ecf3d0c9eb22b93b355eab27fabfc6a"
+    },
+    {
+      "path": "runtime/export.ts",
+      "sha256": "sha256:6022ab84b77f8478b31746c88d35638746a5910f48258e1849ed79105a985b8d"
+    },
+    {
+      "path": "tools/package_project/adapter.ts",
+      "sha256": "sha256:a030951d33be28aa4b2c315348e10aa2c78a0665902b5cf6549706582c8d1726"
+    },
+    {
+      "path": "runtime/approvals.ts",
+      "sha256": "sha256:8467175d2f2ac9897d0b56b47bdc77975eccc3ebebf72ec660e0bf13b7c0f6bb"
+    }
+  ],
+  "output_hashes": [
+    {
+      "path": "export-manifest.json",
+      "sha256": "sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9"
+    },
+    {
+      "path": "final-package.json",
+      "sha256": "sha256:0d1f74bd5f09cfb6af9c2baf43ff0e751e0265d023464a5740666a9e42e20dbd"
+    },
+    {
+      "path": "g4-approval.json",
+      "sha256": "sha256:6263499aae359c7326cd7fb2d38df7b465e56b265b1cca6247b23b27ff0794e9"
+    },
+    {
+      "path": "g5-approval.json",
+      "sha256": "sha256:bc8d408d0a84834457ee70aadd78ad98ab59233dd60482832d19df58bdd1740e"
+    },
+    {
+      "path": "package-input.json",
+      "sha256": "sha256:d99ed5cc10804d0595a233de39c8350b254fbbb520ec0924e2a588b4afebf6b0"
+    },
+    {
+      "path": "restore-report.json",
+      "sha256": "sha256:a66e07c8f1b1fb9d39abf80716ec97c1c798f4bf2633e14fecbd706f6cc2c42b"
+    },
+    {
+      "path": "review-report.html",
+      "sha256": "sha256:e7aaf3c615563d6fd21fd06cc443017da6ee69f2de294ce69c053aa616b18af5"
+    },
+    {
+      "path": "schema-check.txt",
+      "sha256": "sha256:ea7aff3534f0cb00e4a2596c63df7af4c933cdbe9927f17baf13106e6e72f39d"
+    },
+    {
+      "path": "tamper-rejection.json",
+      "sha256": "sha256:9d48e61fc0dd2b750beebaab377fc871621fe52870b8832c4c0ccc8fda39b64f"
+    },
+    {
+      "path": "tool-result.json",
+      "sha256": "sha256:ca4cbb70cbe475c620871a198e025d687a5b5d193d1dd0e7dde43b66950a4468"
+    },
+    {
+      "path": "trace-report.json",
+      "sha256": "sha256:78c539ea791ee65ad2bb82c125feb120a9b4be3d5000902606651a06823c0e44"
+    }
+  ],
+  "observations": [
+    "checks: {\"trace_claim_and_subtitle_and_refresh\":true,\"manifest_excludes_self_and_g5\":true,\"review_html_xss_escaped\":true,\"rejections_enforced\":true,\"package_and_delivered\":true,\"restore_hashes_and_reopen_edit\":true,\"schemas_valid\":true}",
+    "plan_a_descoping: owner approved Plan A (Pure Agent Skill descoping); React studio/ SPA and tests/ui/T11-review.test.mjs are formally descoped in favor of headless CLI traceability, ExportManifest, standalone static HTML review report and restorable archives",
+    "scope: synthetic 220 Hz audio, solid-colour fixture backgrounds, simulated-2d rig and host-simulated owner sessions; genuine speech (A05), original art (A06/A11) and real owner sign-offs remain NOT_RUN"
+  ],
+  "evidence_paths": [
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/export-manifest.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/final-package.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/g4-approval.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/g5-approval.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/package-input.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/restore-report.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/review-report.html",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/schema-check.txt",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/tamper-rejection.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/tool-result.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/trace-report.json",
+    "docs/upgrade/evidence/runs/t11-20261122-01/A13/audit/"
+  ],
+  "reviewer": null
+}

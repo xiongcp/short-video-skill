@@ -1,0 +1,15 @@
+{
+  "media_ref": "asset://qa-demo/fault_media/v1",
+  "expected_spec": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "sample_rate_hz": 48000
+  },
+  "sample_ranges": [
+    {
+      "start": 0,
+      "end": 240
+    }
+  ]
+}

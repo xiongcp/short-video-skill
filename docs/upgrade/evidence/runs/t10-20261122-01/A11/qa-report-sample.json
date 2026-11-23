@@ -1,0 +1,34 @@
+{
+  "project_id": "qa-demo",
+  "version": 2,
+  "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+  "result": "pass",
+  "issues": [
+    {
+      "issue_id": "qa_001",
+      "target_id": "shot_002",
+      "frame_range": {
+        "start": 240,
+        "end": 450
+      },
+      "severity": "info",
+      "category": "continuity",
+      "message": "DECLARED_HOLD_PRESERVED: 图解阅读停留：对比本地缓存与回源路径",
+      "evidence_refs": [
+        "asset://qa-demo/render_sample/v1"
+      ]
+    }
+  ],
+  "inspected_refs": [
+    "asset://qa-demo/render_sample/v1",
+    "asset://qa-demo/alignment/v1",
+    "asset://qa-demo/voice-master/v1",
+    "asset://qa-demo/studio_host/v1",
+    "asset://qa-demo/scene_static/v1",
+    "asset://qa-demo/diagram_static/v1",
+    "asset://qa-demo/qa_waveform_sample/v2",
+    "asset://qa-demo/qa_waveform_img_sample/v2",
+    "asset://qa-demo/qa_motion_sample/v2",
+    "asset://qa-demo/qa_contact_sheet_sample/v2"
+  ]
+}

@@ -1,0 +1,2394 @@
+[01-RED] 2026-11-22T22:42:04-0800
+$ node --test tests/runtime/T10-qa.test.mjs
+✖ A10 injected defects: single-frame white flash, mid-motion caption collision, unintended black, long freeze, silence, missing audio and preserved reading hold (7573.337959ms)
+✖ Three-level QA renders a 22 s audible sample, checks delivery targets, wires sample_qa_pass and exposes Studio shot+waveform links (4255.451292ms)
+✖ A11 blinded A/B comparison enforces human-only review and blocks G3 until open required fixes are closed (4005.511042ms)
+✖ Blocking QA report prevents sample_checked even if payload.checks tries to spoof sample_qa_pass (4422.610375ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20330.217542
+
+✖ failing tests:
+
+test at tests/runtime/T10-qa.test.mjs:251:1
+✖ A10 injected defects: single-frame white flash, mid-motion caption collision, unintended black, long freeze, silence, missing audio and preserved reading hold (7573.337959ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile|plan|bake|render|recover|revise> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/T10-qa.test.mjs:68:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://tests/runtime/T10-qa.test.mjs:266:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T10-qa.test.mjs:322:1
+✖ Three-level QA renders a 22 s audible sample, checks delivery targets, wires sample_qa_pass and exposes Studio shot+waveform links (4255.451292ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile|plan|bake|render|recover|revise> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at TestContext.<anonymous> (file://tests/runtime/T10-qa.test.mjs:328:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T10-qa.test.mjs:365:1
+✖ A11 blinded A/B comparison enforces human-only review and blocks G3 until open required fixes are closed (4005.511042ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile|plan|bake|render|recover|revise> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/T10-qa.test.mjs:68:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://tests/runtime/T10-qa.test.mjs:367:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T10-qa.test.mjs:440:1
+✖ Blocking QA report prevents sample_checked even if payload.checks tries to spoof sample_qa_pass (4422.610375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file://tests/runtime/T10-qa.test.mjs:450:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[02-GREEN] 2026-11-22T22:55:07-0800
+$ node --test tests/runtime/T10-qa.test.mjs
+✔ A10 injected defects: single-frame white flash, mid-motion caption collision, unintended black, long freeze, silence, missing audio and preserved reading hold (9778.887625ms)
+✖ Three-level QA renders a 22 s audible sample, checks delivery targets, wires sample_qa_pass and exposes Studio shot+waveform links (11235.996459ms)
+✖ A11 blinded A/B comparison enforces human-only review and blocks G3 until open required fixes are closed (11357.650375ms)
+✔ Blocking QA report prevents sample_checked even if payload.checks tries to spoof sample_qa_pass (5635.06625ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38081.768834
+
+✖ failing tests:
+
+test at tests/runtime/T10-qa.test.mjs:322:1
+✖ Three-level QA renders a 22 s audible sample, checks delivery targets, wires sample_qa_pass and exposes Studio shot+waveform links (11235.996459ms)
+  AssertionError [ERR_ASSERTION]: {
+    "status": "FAIL",
+    "project_id": "qa-demo",
+    "state": "RENDERING",
+    "version": 15,
+    "event_count": 14,
+    "qa_report_ref": "asset://qa-demo/qa_report_sample/v1",
+    "qa_report": {
+      "project_id": "qa-demo",
+      "version": 1,
+      "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+      "result": "fail",
+      "issues": [
+        {
+          "issue_id": "qa_001",
+          "target_id": "shot_001",
+          "frame_range": {
+            "start": 0,
+            "end": 238
+          },
+          "severity": "blocking",
+          "category": "visual",
+          "message": "UNDECLARED_FREEZE: static run [0, 238) (238 frames)",
+          "evidence_refs": [
+            "asset://qa-demo/qa_defect_f000000/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_002",
+          "target_id": "shot_003",
+          "frame_range": {
+            "start": 450,
+            "end": 656
+          },
+          "severity": "blocking",
+          "category": "visual",
+          "message": "UNDECLARED_FREEZE: static run [450, 656) (206 frames)",
+          "evidence_refs": [
+            "asset://qa-demo/qa_defect_f000450/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_003",
+          "target_id": "shot_002",
+          "frame_range": {
+            "start": 240,
+            "end": 450
+          },
+          "severity": "info",
+          "category": "continuity",
+          "message": "DECLARED_HOLD_PRESERVED: 图解阅读停留：对比本地缓存与回源路径",
+          "evidence_refs": [
+            "asset://qa-demo/render_sample/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_004",
+          "target_id": "master",
+          "frame_range": null,
+          "severity": "review",
+          "category": "audio",
+          "message": "DELIVERY_TARGET_MISSING: no delivery target loudness range registered before G3",
+          "evidence_refs": [
+            "asset://qa-demo/render_sample/v1"
+          ]
+        }
+      ],
+      "inspected_refs": [
+        "asset://qa-demo/render_sample/v1",
+        "asset://qa-demo/alignment/v1",
+        "asset://qa-demo/voice-master/v1",
+        "asset://qa-demo/studio_host/v1",
+        "asset://qa-demo/scene_static/v1",
+        "asset://qa-demo/diagram_static/v1",
+        "asset://qa-demo/qa_waveform_sample/v1",
+        "asset://qa-demo/qa_waveform_img_sample/v1",
+        "asset://qa-demo/qa_motion_sample/v1",
+        "asset://qa-demo/qa_contact_sheet_sample/v1"
+      ]
+    },
+    "scope": "sample",
+    "inspector": {
+      "name": "ffmpeg-inspect-media",
+      "version": "1.0.0"
+    },
+    "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+    "sample": {
+      "artifact_ref": "asset://qa-demo/render_sample/v1",
+      "path": "assets/render_sample/v1.mp4",
+      "sha256": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+      "frame_count": 660,
+      "duration_seconds": 22,
+      "shot_ids": [
+        "shot_001",
+        "shot_002",
+        "shot_003"
+      ],
+      "input_snapshot_hash": "sha256:d7aef5e6eccd8ce84d76428d496740bad623d2f5e761663bee923750f6be4bed"
+    },
+    "levels": {
+      "preflight": {
+        "shots_checked": 3,
+        "issues": [],
+        "bounding_boxes": []
+      },
+      "media_qa": {
+        "technical": {
+          "status": "PASS",
+          "media_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+          "observed": {
+            "major_brand": "isom",
+            "frames": 660,
+            "width": 1920,
+            "height": 1080,
+            "pixel_format": "yuv420p",
+            "video_codec": "h264",
+            "frame_grid_fps": 30,
+            "sample_rate_hz": 48000,
+            "audio_codec": "aac",
+            "audio_start_seconds": 0,
+            "audio_end_seconds": 22
+          },
+          "issues": []
+        },
+        "visual_anomalies": {
+          "flashes": [],
+          "blacks": [],
+          "freezes": [
+            {
+              "shot_id": "shot_001",
+              "frame_range": {
+                "start": 0,
+                "end": 238
+              },
+              "frames": 238
+            },
+            {
+              "shot_id": "shot_003",
+              "frame_range": {
+                "start": 450,
+                "end": 656
+              },
+              "frames": 206
+            }
+          ]
+        },
+        "audio_metrics": {
+          "final_mix": {
+            "integrated_lufs": -12,
+            "loudness_range_lu": 0.3,
+            "max_true_peak_dbtp": -8.8
+          },
+          "isolated_voice": {
+            "integrated_lufs": -12,
+            "loudness_range_lu": 0.3,
+            "max_true_peak_dbtp": -6
+          },
+          "measured_intervals": [
+            {
+              "shot_id": "shot_001",
+              "clip_frame_range": {
+                "start": 0,
+                "end": 240
+              },
+              "master_frame_range": {
+                "start": 0,
+                "end": 240
+              },
+              "master_sample_range": {
+                "start": 0,
+                "end": 384000
+              }
+            },
+            {
+              "shot_id": "shot_002",
+              "clip_frame_range": {
+                "start": 240,
+                "end": 450
+              },
+              "master_frame_range": {
+                "start": 240,
+                "end": 450
+              },
+              "master_sample_range": {
+                "start": 384000,
+                "end": 720000
+              }
+            },
+            {
+              "shot_id": "shot_003",
+              "clip_frame_range": {
+                "start": 450,
+                "end": 660
+              },
+              "master_frame_range": {
+                "start": 450,
+                "end": 660
+              },
+              "master_sample_range": {
+                "start": 720000,
+                "end": 1056000
+              }
+            }
+          ],
+          "delivery_targets": []
+        }
+      },
+      "sample_qa": {
+        "contact_sheet": {
+          "asset_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+          "path": "assets/qa_contact_sheet_sample/v1.png",
+          "sha256": "sha256:3d52063e47c7babf297dc980b9c59521ff097a91f3500fcd09c3eec99eba60a8",
+          "width": 1920,
+          "height": 810,
+          "grid": "3x4",
+          "cells": [
+            {
+              "cell": 1,
+              "row": 0,
+              "col": 0,
+              "frame": 0,
+              "timecode": "00:00.00",
+              "seconds": 0,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 0,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 2,
+              "row": 0,
+              "col": 1,
+              "frame": 60,
+              "timecode": "00:02.00",
+              "seconds": 2,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 60,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 3,
+              "row": 0,
+              "col": 2,
+              "frame": 120,
+              "timecode": "00:04.00",
+              "seconds": 4,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 120,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 4,
+              "row": 0,
+              "col": 3,
+              "frame": 180,
+              "timecode": "00:06.00",
+              "seconds": 6,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 180,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 5,
+              "row": 1,
+              "col": 0,
+              "frame": 240,
+              "timecode": "00:08.00",
+              "seconds": 8,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 0,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 6,
+              "row": 1,
+              "col": 1,
+              "frame": 300,
+              "timecode": "00:10.00",
+              "seconds": 10,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 60,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 7,
+              "row": 1,
+              "col": 2,
+              "frame": 359,
+              "timecode": "00:11.29",
+              "seconds": 11.967,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 119,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 8,
+              "row": 1,
+              "col": 3,
+              "frame": 419,
+              "timecode": "00:13.29",
+              "seconds": 13.967,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 179,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 9,
+              "row": 2,
+              "col": 0,
+              "frame": 479,
+              "timecode": "00:15.29",
+              "seconds": 15.967,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 29,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 10,
+              "row": 2,
+              "col": 1,
+              "frame": 539,
+              "timecode": "00:17.29",
+              "seconds": 17.967,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 89,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 11,
+              "row": 2,
+              "col": 2,
+              "frame": 599,
+              "timecode": "00:19.29",
+              "seconds": 19.967,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 149,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 12,
+              "row": 2,
+              "col": 3,
+              "frame": 659,
+              "timecode": "00:21.29",
+              "seconds": 21.967,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 209,
+              "has_issue": false,
+              "in_hold": false
+            }
+          ]
+        },
+        "waveform": {
+          "json_ref": "asset://qa-demo/qa_waveform_sample/v1",
+          "json_path": "assets/qa_waveform_sample/v1.json",
+          "png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+          "png_path": "assets/qa_waveform_img_sample/v1.png",
+          "sample_rate_hz": 48000,
+          "frame_count": 660,
+          "silence_ranges": []
+        },
+        "motion_heatmap_ref": "asset://qa-demo/qa_motion_sample/v1"
+      }
+    },
+    "bounding_boxes": [],
+    "declared_holds": [
+      {
+        "shot_id": "shot_002",
+        "frame_range": {
+          "start": 240,
+          "end": 450
+        },
+        "kind": "static",
+        "reason": "图解阅读停留：对比本地缓存与回源路径",
+        "observed_static_frames": 207
+      }
+    ],
+    "contact_sheet": {
+      "asset_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+      "path": "assets/qa_contact_sheet_sample/v1.png",
+      "sha256": "sha256:3d52063e47c7babf297dc980b9c59521ff097a91f3500fcd09c3eec99eba60a8",
+      "width": 1920,
+      "height": 810,
+      "grid": "3x4",
+      "cells": [
+        {
+          "cell": 1,
+          "row": 0,
+          "col": 0,
+          "frame": 0,
+          "timecode": "00:00.00",
+          "seconds": 0,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 0,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 2,
+          "row": 0,
+          "col": 1,
+          "frame": 60,
+          "timecode": "00:02.00",
+          "seconds": 2,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 60,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 3,
+          "row": 0,
+          "col": 2,
+          "frame": 120,
+          "timecode": "00:04.00",
+          "seconds": 4,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 120,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 4,
+          "row": 0,
+          "col": 3,
+          "frame": 180,
+          "timecode": "00:06.00",
+          "seconds": 6,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 180,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 5,
+          "row": 1,
+          "col": 0,
+          "frame": 240,
+          "timecode": "00:08.00",
+          "seconds": 8,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 0,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 6,
+          "row": 1,
+          "col": 1,
+          "frame": 300,
+          "timecode": "00:10.00",
+          "seconds": 10,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 60,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 7,
+          "row": 1,
+          "col": 2,
+          "frame": 359,
+          "timecode": "00:11.29",
+          "seconds": 11.967,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 119,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 8,
+          "row": 1,
+          "col": 3,
+          "frame": 419,
+          "timecode": "00:13.29",
+          "seconds": 13.967,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 179,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 9,
+          "row": 2,
+          "col": 0,
+          "frame": 479,
+          "timecode": "00:15.29",
+          "seconds": 15.967,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 29,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 10,
+          "row": 2,
+          "col": 1,
+          "frame": 539,
+          "timecode": "00:17.29",
+          "seconds": 17.967,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 89,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 11,
+          "row": 2,
+          "col": 2,
+          "frame": 599,
+          "timecode": "00:19.29",
+          "seconds": 19.967,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 149,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 12,
+          "row": 2,
+          "col": 3,
+          "frame": 659,
+          "timecode": "00:21.29",
+          "seconds": 21.967,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 209,
+          "has_issue": false,
+          "in_hold": false
+        }
+      ]
+    },
+    "waveform": {
+      "json_ref": "asset://qa-demo/qa_waveform_sample/v1",
+      "json_path": "assets/qa_waveform_sample/v1.json",
+      "png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+      "png_path": "assets/qa_waveform_img_sample/v1.png",
+      "sample_rate_hz": 48000,
+      "frame_count": 660,
+      "silence_ranges": []
+    },
+    "audio_metrics": {
+      "final_mix": {
+        "integrated_lufs": -12,
+        "loudness_range_lu": 0.3,
+        "max_true_peak_dbtp": -8.8
+      },
+      "isolated_voice": {
+        "integrated_lufs": -12,
+        "loudness_range_lu": 0.3,
+        "max_true_peak_dbtp": -6
+      },
+      "measured_intervals": [
+        {
+          "shot_id": "shot_001",
+          "clip_frame_range": {
+            "start": 0,
+            "end": 240
+          },
+          "master_frame_range": {
+            "start": 0,
+            "end": 240
+          },
+          "master_sample_range": {
+            "start": 0,
+            "end": 384000
+          }
+        },
+        {
+          "shot_id": "shot_002",
+          "clip_frame_range": {
+            "start": 240,
+            "end": 450
+          },
+          "master_frame_range": {
+            "start": 240,
+            "end": 450
+          },
+          "master_sample_range": {
+            "start": 384000,
+            "end": 720000
+          }
+        },
+        {
+          "shot_id": "shot_003",
+          "clip_frame_range": {
+            "start": 450,
+            "end": 660
+          },
+          "master_frame_range": {
+            "start": 450,
+            "end": 660
+          },
+          "master_sample_range": {
+            "start": 720000,
+            "end": 1056000
+          }
+        }
+      ],
+      "delivery_targets": []
+    },
+    "motion_heatmap": {
+      "asset_ref": "asset://qa-demo/qa_motion_sample/v1",
+      "path": "assets/qa_motion_sample/v1.json",
+      "per_second": [
+        {
+          "second": 0,
+          "frame_range": {
+            "start": 0,
+            "end": 30
+          },
+          "mean_mad": 0.005,
+          "max_mad": 0.033,
+          "level": "static"
+        },
+        {
+          "second": 1,
+          "frame_range": {
+            "start": 30,
+            "end": 60
+          },
+          "mean_mad": 0.006,
+          "max_mad": 0.027,
+          "level": "static"
+        },
+        {
+          "second": 2,
+          "frame_range": {
+            "start": 60,
+            "end": 90
+          },
+          "mean_mad": 0.005,
+          "max_mad": 0.028,
+          "level": "static"
+        },
+        {
+          "second": 3,
+          "frame_range": {
+            "start": 90,
+            "end": 120
+          },
+          "mean_mad": 0.007,
+          "max_mad": 0.028,
+          "level": "static"
+        },
+        {
+          "second": 4,
+          "frame_range": {
+            "start": 120,
+            "end": 150
+          },
+          "mean_mad": 0.003,
+          "max_mad": 0.028,
+          "level": "static"
+        },
+        {
+          "second": 5,
+          "frame_range": {
+            "start": 150,
+            "end": 180
+          },
+          "mean_mad": 0.006,
+          "max_mad": 0.028,
+          "level": "static"
+        },
+        {
+          "second": 6,
+          "frame_range": {
+            "start": 180,
+            "end": 210
+          },
+          "mean_mad": 0.002,
+          "max_mad": 0.003,
+          "level": "static"
+        },
+        {
+          "second": 7,
+          "frame_range": {
+            "start": 210,
+            "end": 240
+          },
+          "mean_mad": 0.071,
+          "max_mad": 2.041,
+          "level": "static"
+        },
+        {
+          "second": 8,
+          "frame_range": {
+            "start": 240,
+            "end": 270
+          },
+          "mean_mad": 0.381,
+          "max_mad": 11.417,
+          "level": "static"
+        },
+        {
+          "second": 9,
+          "frame_range": {
+            "start": 270,
+            "end": 300
+          },
+          "mean_mad": 0.235,
+          "max_mad": 7.012,
+          "level": "static"
+        },
+        {
+          "second": 10,
+          "frame_range": {
+            "start": 300,
+            "end": 330
+          },
+          "mean_mad": 0.002,
+          "max_mad": 0.023,
+          "level": "static"
+        },
+        {
+          "second": 11,
+          "frame_range": {
+            "start": 330,
+            "end": 360
+          },
+          "mean_mad": 0.002,
+          "max_mad": 0.023,
+          "level": "static"
+        },
+        {
+          "second": 12,
+          "frame_range": {
+            "start": 360,
+            "end": 390
+          },
+          "mean_mad": 0.235,
+          "max_mad": 7.023,
+          "level": "static"
+        },
+        {
+          "second": 13,
+          "frame_range": {
+            "start": 390,
+            "end": 420
+          },
+          "mean_mad": 0.002,
+          "max_mad": 0.034,
+          "level": "static"
+        },
+        {
+          "second": 14,
+          "frame_range": {
+            "start": 420,
+            "end": 450
+          },
+          "mean_mad": 0.078,
+          "max_mad": 2.248,
+          "level": "static"
+        },
+        {
+          "second": 15,
+          "frame_range": {
+            "start": 450,
+            "end": 480
+          },
+          "mean_mad": 0.583,
+          "max_mad": 17.42,
+          "level": "low"
+        },
+        {
+          "second": 16,
+          "frame_range": {
+            "start": 480,
+            "end": 510
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.009,
+          "level": "static"
+        },
+        {
+          "second": 17,
+          "frame_range": {
+            "start": 510,
+            "end": 540
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.007,
+          "level": "static"
+        },
+        {
+          "second": 18,
+          "frame_range": {
+            "start": 540,
+            "end": 570
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.007,
+          "level": "static"
+        },
+        {
+          "second": 19,
+          "frame_range": {
+            "start": 570,
+            "end": 600
+          },
+          "mean_mad": 0,
+          "max_mad": 0.007,
+          "level": "static"
+        },
+        {
+          "second": 20,
+          "frame_range": {
+            "start": 600,
+            "end": 630
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.007,
+          "level": "static"
+        },
+        {
+          "second": 21,
+          "frame_range": {
+            "start": 630,
+            "end": 660
+          },
+          "mean_mad": 0.075,
+          "max_mad": 2.24,
+          "level": "static"
+        }
+      ],
+      "mean_mad": 0.077
+    },
+    "studio_links": [
+      {
+        "issue_id": "qa_001",
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 0,
+          "end": 238
+        },
+        "local_frame_range": {
+          "start": 0,
+          "end": 238
+        },
+        "time_range_seconds": {
+          "start": 0,
+          "end": 7.933
+        },
+        "sample_range": {
+          "start": 0,
+          "end": 380800
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_defect_f000000/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_002",
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 450,
+          "end": 656
+        },
+        "local_frame_range": {
+          "start": 0,
+          "end": 206
+        },
+        "time_range_seconds": {
+          "start": 15,
+          "end": 21.867
+        },
+        "sample_range": {
+          "start": 720000,
+          "end": 1049600
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_defect_f000450/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_003",
+        "shot_id": "shot_002",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 240,
+          "end": 450
+        },
+        "local_frame_range": {
+          "start": 0,
+          "end": 210
+        },
+        "time_range_seconds": {
+          "start": 8,
+          "end": 15
+        },
+        "sample_range": {
+          "start": 384000,
+          "end": 720000
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/render_sample/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_004",
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 0,
+          "end": 660
+        },
+        "local_frame_range": {
+          "start": 0,
+          "end": 660
+        },
+        "time_range_seconds": {
+          "start": 0,
+          "end": 22
+        },
+        "sample_range": {
+          "start": 0,
+          "end": 1056000
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/render_sample/v1"
+        ]
+      }
+    ],
+    "shot_windows": [
+      {
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 0,
+          "end": 240
+        },
+        "original_range": {
+          "start": 0,
+          "end": 240
+        },
+        "local_frames": 240
+      },
+      {
+        "shot_id": "shot_002",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 240,
+          "end": 450
+        },
+        "original_range": {
+          "start": 240,
+          "end": 450
+        },
+        "local_frames": 210
+      },
+      {
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 450,
+          "end": 660
+        },
+        "original_range": {
+          "start": 450,
+          "end": 660
+        },
+        "local_frames": 210
+      }
+    ],
+    "inspect_media_input": {
+      "media_ref": "asset://qa-demo/render_sample/v1",
+      "expected_spec": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "sample_rate_hz": 48000
+      },
+      "sample_ranges": [
+        {
+          "start": 0,
+          "end": 660
+        }
+      ]
+    },
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "qa-438f3f43-4472-491f-8e31-db11dd5f5f63",
+      "artifact_refs": [
+        "asset://qa-demo/qa_report_sample/v1",
+        "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "asset://qa-demo/qa_waveform_sample/v1"
+      ],
+      "warnings": [
+        "UNDECLARED_FREEZE: static run [0, 238) (238 frames)",
+        "UNDECLARED_FREEZE: static run [450, 656) (206 frames)",
+        "DELIVERY_TARGET_MISSING: no delivery target loudness range registered before G3"
+      ],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 0,
+        "actual_minor": 0
+      },
+      "retryable": false,
+      "next_action": "review"
+    },
+    "issues": [
+      {
+        "code": "UNDECLARED_FREEZE",
+        "shot_id": "shot_001",
+        "start": 0,
+        "end": 238,
+        "frames": 238,
+        "message": "镜头 shot_001 在帧 [0, 238) 存在未声明的连续静止（238 帧）"
+      },
+      {
+        "code": "UNDECLARED_FREEZE",
+        "shot_id": "shot_003",
+        "start": 450,
+        "end": 656,
+        "frames": 206,
+        "message": "镜头 shot_003 在帧 [450, 656) 存在未声明的连续静止（206 帧）"
+      },
+      {
+        "code": "DELIVERY_TARGET_MISSING",
+        "project_id": "qa-demo",
+        "message": "项目 qa-demo 尚未登记发布目标响度范围，须在 G3 前确认"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+  
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file://tests/runtime/T10-qa.test.mjs:328:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T10-qa.test.mjs:365:1
+✖ A11 blinded A/B comparison enforces human-only review and blocks G3 until open required fixes are closed (11357.650375ms)
+  AssertionError [ERR_ASSERTION]: {
+    "status": "FAIL",
+    "project_id": "qa-demo",
+    "state": "RENDERING",
+    "version": 15,
+    "event_count": 14,
+    "qa_report_ref": "asset://qa-demo/qa_report_sample/v1",
+    "qa_report": {
+      "project_id": "qa-demo",
+      "version": 1,
+      "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+      "result": "fail",
+      "issues": [
+        {
+          "issue_id": "qa_001",
+          "target_id": "shot_001",
+          "frame_range": {
+            "start": 0,
+            "end": 238
+          },
+          "severity": "blocking",
+          "category": "visual",
+          "message": "UNDECLARED_FREEZE: static run [0, 238) (238 frames)",
+          "evidence_refs": [
+            "asset://qa-demo/qa_defect_f000000/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_002",
+          "target_id": "shot_003",
+          "frame_range": {
+            "start": 450,
+            "end": 656
+          },
+          "severity": "blocking",
+          "category": "visual",
+          "message": "UNDECLARED_FREEZE: static run [450, 656) (206 frames)",
+          "evidence_refs": [
+            "asset://qa-demo/qa_defect_f000450/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_003",
+          "target_id": "shot_002",
+          "frame_range": {
+            "start": 240,
+            "end": 450
+          },
+          "severity": "info",
+          "category": "continuity",
+          "message": "DECLARED_HOLD_PRESERVED: 图解阅读停留：对比本地缓存与回源路径",
+          "evidence_refs": [
+            "asset://qa-demo/render_sample/v1"
+          ]
+        }
+      ],
+      "inspected_refs": [
+        "asset://qa-demo/render_sample/v1",
+        "asset://qa-demo/alignment/v1",
+        "asset://qa-demo/voice-master/v1",
+        "asset://qa-demo/studio_host/v1",
+        "asset://qa-demo/scene_static/v1",
+        "asset://qa-demo/diagram_static/v1",
+        "asset://qa-demo/qa_waveform_sample/v1",
+        "asset://qa-demo/qa_waveform_img_sample/v1",
+        "asset://qa-demo/qa_motion_sample/v1",
+        "asset://qa-demo/qa_contact_sheet_sample/v1"
+      ]
+    },
+    "scope": "sample",
+    "inspector": {
+      "name": "ffmpeg-inspect-media",
+      "version": "1.0.0"
+    },
+    "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+    "sample": {
+      "artifact_ref": "asset://qa-demo/render_sample/v1",
+      "path": "assets/render_sample/v1.mp4",
+      "sha256": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+      "frame_count": 660,
+      "duration_seconds": 22,
+      "shot_ids": [
+        "shot_001",
+        "shot_002",
+        "shot_003"
+      ],
+      "input_snapshot_hash": "sha256:d7aef5e6eccd8ce84d76428d496740bad623d2f5e761663bee923750f6be4bed"
+    },
+    "levels": {
+      "preflight": {
+        "shots_checked": 3,
+        "issues": [],
+        "bounding_boxes": []
+      },
+      "media_qa": {
+        "technical": {
+          "status": "PASS",
+          "media_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+          "observed": {
+            "major_brand": "isom",
+            "frames": 660,
+            "width": 1920,
+            "height": 1080,
+            "pixel_format": "yuv420p",
+            "video_codec": "h264",
+            "frame_grid_fps": 30,
+            "sample_rate_hz": 48000,
+            "audio_codec": "aac",
+            "audio_start_seconds": 0,
+            "audio_end_seconds": 22
+          },
+          "issues": []
+        },
+        "visual_anomalies": {
+          "flashes": [],
+          "blacks": [],
+          "freezes": [
+            {
+              "shot_id": "shot_001",
+              "frame_range": {
+                "start": 0,
+                "end": 238
+              },
+              "frames": 238
+            },
+            {
+              "shot_id": "shot_003",
+              "frame_range": {
+                "start": 450,
+                "end": 656
+              },
+              "frames": 206
+            }
+          ]
+        },
+        "audio_metrics": {
+          "final_mix": {
+            "integrated_lufs": -12,
+            "loudness_range_lu": 0.3,
+            "max_true_peak_dbtp": -8.8
+          },
+          "isolated_voice": {
+            "integrated_lufs": -12,
+            "loudness_range_lu": 0.3,
+            "max_true_peak_dbtp": -6
+          },
+          "measured_intervals": [
+            {
+              "shot_id": "shot_001",
+              "clip_frame_range": {
+                "start": 0,
+                "end": 240
+              },
+              "master_frame_range": {
+                "start": 0,
+                "end": 240
+              },
+              "master_sample_range": {
+                "start": 0,
+                "end": 384000
+              }
+            },
+            {
+              "shot_id": "shot_002",
+              "clip_frame_range": {
+                "start": 240,
+                "end": 450
+              },
+              "master_frame_range": {
+                "start": 240,
+                "end": 450
+              },
+              "master_sample_range": {
+                "start": 384000,
+                "end": 720000
+              }
+            },
+            {
+              "shot_id": "shot_003",
+              "clip_frame_range": {
+                "start": 450,
+                "end": 660
+              },
+              "master_frame_range": {
+                "start": 450,
+                "end": 660
+              },
+              "master_sample_range": {
+                "start": 720000,
+                "end": 1056000
+              }
+            }
+          ],
+          "delivery_targets": [
+            {
+              "target_id": "bilibili-1080p",
+              "version": "2026.1",
+              "lufs_min": -22,
+              "lufs_max": -6,
+              "max_true_peak_dbtp": -1,
+              "notes": "",
+              "lufs_ok": true,
+              "true_peak_ok": true
+            }
+          ]
+        }
+      },
+      "sample_qa": {
+        "contact_sheet": {
+          "asset_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+          "path": "assets/qa_contact_sheet_sample/v1.png",
+          "sha256": "sha256:3d52063e47c7babf297dc980b9c59521ff097a91f3500fcd09c3eec99eba60a8",
+          "width": 1920,
+          "height": 810,
+          "grid": "3x4",
+          "cells": [
+            {
+              "cell": 1,
+              "row": 0,
+              "col": 0,
+              "frame": 0,
+              "timecode": "00:00.00",
+              "seconds": 0,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 0,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 2,
+              "row": 0,
+              "col": 1,
+              "frame": 60,
+              "timecode": "00:02.00",
+              "seconds": 2,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 60,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 3,
+              "row": 0,
+              "col": 2,
+              "frame": 120,
+              "timecode": "00:04.00",
+              "seconds": 4,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 120,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 4,
+              "row": 0,
+              "col": 3,
+              "frame": 180,
+              "timecode": "00:06.00",
+              "seconds": 6,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 180,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 5,
+              "row": 1,
+              "col": 0,
+              "frame": 240,
+              "timecode": "00:08.00",
+              "seconds": 8,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 0,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 6,
+              "row": 1,
+              "col": 1,
+              "frame": 300,
+              "timecode": "00:10.00",
+              "seconds": 10,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 60,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 7,
+              "row": 1,
+              "col": 2,
+              "frame": 359,
+              "timecode": "00:11.29",
+              "seconds": 11.967,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 119,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 8,
+              "row": 1,
+              "col": 3,
+              "frame": 419,
+              "timecode": "00:13.29",
+              "seconds": 13.967,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 179,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 9,
+              "row": 2,
+              "col": 0,
+              "frame": 479,
+              "timecode": "00:15.29",
+              "seconds": 15.967,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 29,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 10,
+              "row": 2,
+              "col": 1,
+              "frame": 539,
+              "timecode": "00:17.29",
+              "seconds": 17.967,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 89,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 11,
+              "row": 2,
+              "col": 2,
+              "frame": 599,
+              "timecode": "00:19.29",
+              "seconds": 19.967,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 149,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 12,
+              "row": 2,
+              "col": 3,
+              "frame": 659,
+              "timecode": "00:21.29",
+              "seconds": 21.967,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 209,
+              "has_issue": false,
+              "in_hold": false
+            }
+          ]
+        },
+        "waveform": {
+          "json_ref": "asset://qa-demo/qa_waveform_sample/v1",
+          "json_path": "assets/qa_waveform_sample/v1.json",
+          "png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+          "png_path": "assets/qa_waveform_img_sample/v1.png",
+          "sample_rate_hz": 48000,
+          "frame_count": 660,
+          "silence_ranges": []
+        },
+        "motion_heatmap_ref": "asset://qa-demo/qa_motion_sample/v1"
+      }
+    },
+    "bounding_boxes": [],
+    "declared_holds": [
+      {
+        "shot_id": "shot_002",
+        "frame_range": {
+          "start": 240,
+          "end": 450
+        },
+        "kind": "static",
+        "reason": "图解阅读停留：对比本地缓存与回源路径",
+        "observed_static_frames": 207
+      }
+    ],
+    "contact_sheet": {
+      "asset_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+      "path": "assets/qa_contact_sheet_sample/v1.png",
+      "sha256": "sha256:3d52063e47c7babf297dc980b9c59521ff097a91f3500fcd09c3eec99eba60a8",
+      "width": 1920,
+      "height": 810,
+      "grid": "3x4",
+      "cells": [
+        {
+          "cell": 1,
+          "row": 0,
+          "col": 0,
+          "frame": 0,
+          "timecode": "00:00.00",
+          "seconds": 0,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 0,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 2,
+          "row": 0,
+          "col": 1,
+          "frame": 60,
+          "timecode": "00:02.00",
+          "seconds": 2,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 60,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 3,
+          "row": 0,
+          "col": 2,
+          "frame": 120,
+          "timecode": "00:04.00",
+          "seconds": 4,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 120,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 4,
+          "row": 0,
+          "col": 3,
+          "frame": 180,
+          "timecode": "00:06.00",
+          "seconds": 6,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 180,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 5,
+          "row": 1,
+          "col": 0,
+          "frame": 240,
+          "timecode": "00:08.00",
+          "seconds": 8,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 0,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 6,
+          "row": 1,
+          "col": 1,
+          "frame": 300,
+          "timecode": "00:10.00",
+          "seconds": 10,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 60,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 7,
+          "row": 1,
+          "col": 2,
+          "frame": 359,
+          "timecode": "00:11.29",
+          "seconds": 11.967,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 119,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 8,
+          "row": 1,
+          "col": 3,
+          "frame": 419,
+          "timecode": "00:13.29",
+          "seconds": 13.967,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 179,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 9,
+          "row": 2,
+          "col": 0,
+          "frame": 479,
+          "timecode": "00:15.29",
+          "seconds": 15.967,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 29,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 10,
+          "row": 2,
+          "col": 1,
+          "frame": 539,
+          "timecode": "00:17.29",
+          "seconds": 17.967,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 89,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 11,
+          "row": 2,
+          "col": 2,
+          "frame": 599,
+          "timecode": "00:19.29",
+          "seconds": 19.967,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 149,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 12,
+          "row": 2,
+          "col": 3,
+          "frame": 659,
+          "timecode": "00:21.29",
+          "seconds": 21.967,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 209,
+          "has_issue": false,
+          "in_hold": false
+        }
+      ]
+    },
+    "waveform": {
+      "json_ref": "asset://qa-demo/qa_waveform_sample/v1",
+      "json_path": "assets/qa_waveform_sample/v1.json",
+      "png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+      "png_path": "assets/qa_waveform_img_sample/v1.png",
+      "sample_rate_hz": 48000,
+      "frame_count": 660,
+      "silence_ranges": []
+    },
+    "audio_metrics": {
+      "final_mix": {
+        "integrated_lufs": -12,
+        "loudness_range_lu": 0.3,
+        "max_true_peak_dbtp": -8.8
+      },
+      "isolated_voice": {
+        "integrated_lufs": -12,
+        "loudness_range_lu": 0.3,
+        "max_true_peak_dbtp": -6
+      },
+      "measured_intervals": [
+        {
+          "shot_id": "shot_001",
+          "clip_frame_range": {
+            "start": 0,
+            "end": 240
+          },
+          "master_frame_range": {
+            "start": 0,
+            "end": 240
+          },
+          "master_sample_range": {
+            "start": 0,
+            "end": 384000
+          }
+        },
+        {
+          "shot_id": "shot_002",
+          "clip_frame_range": {
+            "start": 240,
+            "end": 450
+          },
+          "master_frame_range": {
+            "start": 240,
+            "end": 450
+          },
+          "master_sample_range": {
+            "start": 384000,
+            "end": 720000
+          }
+        },
+        {
+          "shot_id": "shot_003",
+          "clip_frame_range": {
+            "start": 450,
+            "end": 660
+          },
+          "master_frame_range": {
+            "start": 450,
+            "end": 660
+          },
+          "master_sample_range": {
+            "start": 720000,
+            "end": 1056000
+          }
+        }
+      ],
+      "delivery_targets": [
+        {
+          "target_id": "bilibili-1080p",
+          "version": "2026.1",
+          "lufs_min": -22,
+          "lufs_max": -6,
+          "max_true_peak_dbtp": -1,
+          "notes": "",
+          "lufs_ok": true,
+          "true_peak_ok": true
+        }
+      ]
+    },
+    "motion_heatmap": {
+      "asset_ref": "asset://qa-demo/qa_motion_sample/v1",
+      "path": "assets/qa_motion_sample/v1.json",
+      "per_second": [
+        {
+          "second": 0,
+          "frame_range": {
+            "start": 0,
+            "end": 30
+          },
+          "mean_mad": 0.005,
+          "max_mad": 0.033,
+          "level": "static"
+        },
+        {
+          "second": 1,
+          "frame_range": {
+            "start": 30,
+            "end": 60
+          },
+          "mean_mad": 0.006,
+          "max_mad": 0.027,
+          "level": "static"
+        },
+        {
+          "second": 2,
+          "frame_range": {
+            "start": 60,
+            "end": 90
+          },
+          "mean_mad": 0.005,
+          "max_mad": 0.028,
+          "level": "static"
+        },
+        {
+          "second": 3,
+          "frame_range": {
+            "start": 90,
+            "end": 120
+          },
+          "mean_mad": 0.007,
+          "max_mad": 0.028,
+          "level": "static"
+        },
+        {
+          "second": 4,
+          "frame_range": {
+            "start": 120,
+            "end": 150
+          },
+          "mean_mad": 0.003,
+          "max_mad": 0.028,
+          "level": "static"
+        },
+        {
+          "second": 5,
+          "frame_range": {
+            "start": 150,
+            "end": 180
+          },
+          "mean_mad": 0.006,
+          "max_mad": 0.028,
+          "level": "static"
+        },
+        {
+          "second": 6,
+          "frame_range": {
+            "start": 180,
+            "end": 210
+          },
+          "mean_mad": 0.002,
+          "max_mad": 0.003,
+          "level": "static"
+        },
+        {
+          "second": 7,
+          "frame_range": {
+            "start": 210,
+            "end": 240
+          },
+          "mean_mad": 0.071,
+          "max_mad": 2.041,
+          "level": "static"
+        },
+        {
+          "second": 8,
+          "frame_range": {
+            "start": 240,
+            "end": 270
+          },
+          "mean_mad": 0.381,
+          "max_mad": 11.417,
+          "level": "static"
+        },
+        {
+          "second": 9,
+          "frame_range": {
+            "start": 270,
+            "end": 300
+          },
+          "mean_mad": 0.235,
+          "max_mad": 7.012,
+          "level": "static"
+        },
+        {
+          "second": 10,
+          "frame_range": {
+            "start": 300,
+            "end": 330
+          },
+          "mean_mad": 0.002,
+          "max_mad": 0.023,
+          "level": "static"
+        },
+        {
+          "second": 11,
+          "frame_range": {
+            "start": 330,
+            "end": 360
+          },
+          "mean_mad": 0.002,
+          "max_mad": 0.023,
+          "level": "static"
+        },
+        {
+          "second": 12,
+          "frame_range": {
+            "start": 360,
+            "end": 390
+          },
+          "mean_mad": 0.235,
+          "max_mad": 7.023,
+          "level": "static"
+        },
+        {
+          "second": 13,
+          "frame_range": {
+            "start": 390,
+            "end": 420
+          },
+          "mean_mad": 0.002,
+          "max_mad": 0.034,
+          "level": "static"
+        },
+        {
+          "second": 14,
+          "frame_range": {
+            "start": 420,
+            "end": 450
+          },
+          "mean_mad": 0.078,
+          "max_mad": 2.248,
+          "level": "static"
+        },
+        {
+          "second": 15,
+          "frame_range": {
+            "start": 450,
+            "end": 480
+          },
+          "mean_mad": 0.583,
+          "max_mad": 17.42,
+          "level": "low"
+        },
+        {
+          "second": 16,
+          "frame_range": {
+            "start": 480,
+            "end": 510
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.009,
+          "level": "static"
+        },
+        {
+          "second": 17,
+          "frame_range": {
+            "start": 510,
+            "end": 540
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.007,
+          "level": "static"
+        },
+        {
+          "second": 18,
+          "frame_range": {
+            "start": 540,
+            "end": 570
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.007,
+          "level": "static"
+        },
+        {
+          "second": 19,
+          "frame_range": {
+            "start": 570,
+            "end": 600
+          },
+          "mean_mad": 0,
+          "max_mad": 0.007,
+          "level": "static"
+        },
+        {
+          "second": 20,
+          "frame_range": {
+            "start": 600,
+            "end": 630
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.007,
+          "level": "static"
+        },
+        {
+          "second": 21,
+          "frame_range": {
+            "start": 630,
+            "end": 660
+          },
+          "mean_mad": 0.075,
+          "max_mad": 2.24,
+          "level": "static"
+        }
+      ],
+      "mean_mad": 0.077
+    },
+    "studio_links": [
+      {
+        "issue_id": "qa_001",
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 0,
+          "end": 238
+        },
+        "local_frame_range": {
+          "start": 0,
+          "end": 238
+        },
+        "time_range_seconds": {
+          "start": 0,
+          "end": 7.933
+        },
+        "sample_range": {
+          "start": 0,
+          "end": 380800
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_defect_f000000/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_002",
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 450,
+          "end": 656
+        },
+        "local_frame_range": {
+          "start": 0,
+          "end": 206
+        },
+        "time_range_seconds": {
+          "start": 15,
+          "end": 21.867
+        },
+        "sample_range": {
+          "start": 720000,
+          "end": 1049600
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_defect_f000450/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_003",
+        "shot_id": "shot_002",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 240,
+          "end": 450
+        },
+        "local_frame_range": {
+          "start": 0,
+          "end": 210
+        },
+        "time_range_seconds": {
+          "start": 8,
+          "end": 15
+        },
+        "sample_range": {
+          "start": 384000,
+          "end": 720000
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/render_sample/v1"
+        ]
+      }
+    ],
+    "shot_windows": [
+      {
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 0,
+          "end": 240
+        },
+        "original_range": {
+          "start": 0,
+          "end": 240
+        },
+        "local_frames": 240
+      },
+      {
+        "shot_id": "shot_002",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 240,
+          "end": 450
+        },
+        "original_range": {
+          "start": 240,
+          "end": 450
+        },
+        "local_frames": 210
+      },
+      {
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 450,
+          "end": 660
+        },
+        "original_range": {
+          "start": 450,
+          "end": 660
+        },
+        "local_frames": 210
+      }
+    ],
+    "inspect_media_input": {
+      "media_ref": "asset://qa-demo/render_sample/v1",
+      "expected_spec": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "sample_rate_hz": 48000
+      },
+      "sample_ranges": [
+        {
+          "start": 0,
+          "end": 660
+        }
+      ]
+    },
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "qa-36eba16b-b256-4413-8262-094af72558c7",
+      "artifact_refs": [
+        "asset://qa-demo/qa_report_sample/v1",
+        "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "asset://qa-demo/qa_waveform_sample/v1"
+      ],
+      "warnings": [
+        "UNDECLARED_FREEZE: static run [0, 238) (238 frames)",
+        "UNDECLARED_FREEZE: static run [450, 656) (206 frames)"
+      ],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 0,
+        "actual_minor": 0
+      },
+      "retryable": false,
+      "next_action": "review"
+    },
+    "issues": [
+      {
+        "code": "UNDECLARED_FREEZE",
+        "shot_id": "shot_001",
+        "start": 0,
+        "end": 238,
+        "frames": 238,
+        "message": "镜头 shot_001 在帧 [0, 238) 存在未声明的连续静止（238 帧）"
+      },
+      {
+        "code": "UNDECLARED_FREEZE",
+        "shot_id": "shot_003",
+        "start": 450,
+        "end": 656,
+        "frames": 206,
+        "message": "镜头 shot_003 在帧 [450, 656) 存在未声明的连续静止（206 帧）"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+  
+  
+  1 !== 0
+  
+      at ok (file://tests/runtime/T10-qa.test.mjs:68:10)
+      at async TestContext.<anonymous> (file://tests/runtime/T10-qa.test.mjs:371:21)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[03-GREEN] 2026-11-22T22:59:01-0800
+$ node --test tests/runtime/T10-qa.test.mjs
+✔ A10 injected defects: single-frame white flash, mid-motion caption collision, unintended black, long freeze, silence, missing audio and preserved reading hold (9751.26575ms)
+✔ Three-level QA renders a 22 s audible sample, checks delivery targets, wires sample_qa_pass and exposes Studio shot+waveform links (13763.506042ms)
+✔ A11 blinded A/B comparison enforces human-only review and blocks G3 until open required fixes are closed (15978.141584ms)
+✔ Blocking QA report prevents sample_checked even if payload.checks tries to spoof sample_qa_pass (5660.094083ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 45227.686041
+exit=0
+
+[04-REFACTOR-full-runtime] 2026-11-22T23:01:41-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (1133.017167ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (15355.68775ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (262.031917ms)
+✔ a new project starts at NEW with version 1 (289.609667ms)
+✔ replaying the same event with the same key returns the original event once (846.146083ms)
+✔ the same key with a different payload is rejected without a new event (884.471833ms)
+✔ a stale expected_version is rejected and returns the current version (832.377375ms)
+✔ a quality gate event needs a human approval bound to the current material (4483.265625ms)
+✔ an agent cannot sign G4 for itself; G4 binds the master and G5 the manifest (17361.600459ms)
+✔ a G2 approval expires when the script it approved is replaced (5921.84525ms)
+✔ a draft cannot be exported or delivered (7699.02975ms)
+✔ a fresh process reads back the same stage, version and event count (1593.782084ms)
+✔ concurrent writers on one version yield one event and version conflicts, never a crash (713.481666ms)
+✔ paid work needs a budget confirmed by a human session (866.571708ms)
+✔ two concurrent 70-unit intents under a 100 limit leave one reservation and 30 available (1157.921708ms)
+✔ repeating an intent reaches the provider once (2297.099875ms)
+✔ a lost receipt is reconciled by the original key after restart and settled exactly once (2026.735ms)
+✔ without a lookup API the job stays UNKNOWN and its reservation pending verification (1480.278042ms)
+✔ a skill cannot call a tool outside its permissions (1212.453125ms)
+✔ conflicting source versions keep both locators and unsupported claims are marked unsupported (2279.364375ms)
+✔ a script cannot cite an unsupported claim or an unresolved dispute (4328.650125ms)
+✔ the G1 decision binds the saved evidence version (3257.110708ms)
+✔ section IDs of an imported manuscript survive nonmaterial edits (4530.913ms)
+✔ start and resume share duration defaults: explicit 120, short 180, standard8 480 (4706.071042ms)
+✔ offline search returns paragraph locators from authorized material only (863.953ms)
+✔ imported section WAVs keep original bytes and get contiguous master sample ranges (4813.92325ms)
+✔ section-local word samples map to master samples and repeated terms keep distinct IDs (9124.908917ms)
+✔ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (5392.630958ms)
+✔ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (6490.084625ms)
+✔ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (5257.037166ms)
+✔ formal assembly names the asset for a missing rig version, uncleared usage and an unregistered angle (5406.254875ms)
+✔ a full-frame 1920×1080 bitmap fails coverage for a native 1.5× push-in; vector diagrams pass (5247.179167ms)
+✔ diagram elements must stay inside the safe area at the shot zoom (4220.422417ms)
+✔ usage clearance is human-only and prior versions stay resolvable (6125.446375ms)
+✔ the three scene templates fix layer roles and reject mismatched layer kinds (5183.47025ms)
+✔ host and diagram shots resolve through one path and pin every asset by hash (3955.853ms)
+✔ a scene name cannot escape the project asset directory (3693.824959ms)
+✔ word anchors quantize once: samples 2,399/2,400 cut at frames 1/2 and the last real sample is covered (9307.390167ms)
+✔ production compilation freezes a timeline with resolved references, audio, captions and dependencies (10044.091083ms)
+✔ dangling cues, unknown words, cross-section triggers, out-of-range highlights and cycles name shot and field (11410.994625ms)
+✔ production compilation blocks an unsupported action and uncleared assets (7510.500542ms)
+✔ planned example boards stay readable as fixed-frame timelines without production status (381.314542ms)
+✔ frames 29, 0, 15 and 0, 15, 29 read identical lossless RGBA; an independent shot bakes alone (21935.927125ms)
+✔ an inheriting shot starts from the preceding end state; changing that state changes its cache key (8498.558209ms)
+✔ plan validation names shot and field; out-of-range frames and a restricted rig block baking (5928.389584ms)
+✔ cold and warm render persist RenderJob, ShotArtifacts and ChapterCheckpoint; quality master requires G3 (19480.240167ms)
+✔ caption recoloring produces zero bakes and zero TTS calls and invalidates G3 while keeping G1/G2 (14221.771209ms)
+✔ changing one expression affects only the shot and explicit end-state dependents; independent shots keep identical hashes (8234.343708ms)
+✔ cutting ten seconds from chapter four moves the boundary to frame 7,800, reuses shifted local layers and produces a 470-second master (55044.923917ms)
+✔ crash recovery in chapter four (temp write, atomic rename, index) and corrupt cached shot claim only unfinished or damaged units (32518.766792ms)
+✔ A10 injected defects: single-frame white flash, mid-motion caption collision, unintended black, long freeze, silence, missing audio and preserved reading hold (21928.657708ms)
+✔ Three-level QA renders a 22 s audible sample, checks delivery targets, wires sample_qa_pass and exposes Studio shot+waveform links (15599.502875ms)
+✔ A11 blinded A/B comparison enforces human-only review and blocks G3 until open required fixes are closed (17313.962042ms)
+✔ Blocking QA report prevents sample_checked even if payload.checks tries to spoof sample_qa_pass (5942.006292ms)
+✔ REFACTOR checks: persisted Studio bundle navigation, inspect path traversal & C01 negative parity, and loudness target violation (8744.657292ms)
+✔ issue codes stay stable while messages follow --lang (898.337625ms)
+✔ Chinese is the default locale (501.400709ms)
+✔ an unsupported locale is a usage error (288.082667ms)
+✔ zh-CN and en catalogs define the same non-empty keys (1.473958ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 146517.915
+exit=0
+
+[05-EVIDENCE] 2026-11-22T23:04:20-0800
+$ node docs/upgrade/evidence/replay_t10.mjs t10-20261122-01 python
+{
+  "A10": {
+    "status": "PASS",
+    "checks": {
+      "hash_bound": true,
+      "flash_detected": true,
+      "caption_collision_detected": true,
+      "black_detected": true,
+      "undeclared_freeze_detected": true,
+      "declared_hold_preserved": true,
+      "silence_and_missing_audio_detected": true,
+      "contact_sheet_12_cells_and_nav": true,
+      "c01_parity": true,
+      "schemas_valid": true
+    },
+    "calls": 4
+  },
+  "A11": {
+    "status": "PASS",
+    "checks": {
+      "sample_20_to_30s_audible": true,
+      "missing_target_flagged_then_passed": true,
+      "sample_checked_from_qa_fact": true,
+      "blinded_packet_hides_roles": true,
+      "agent_review_denied": true,
+      "open_fix_blocks_g3_until_closed": true,
+      "schemas_valid": true
+    },
+    "calls": 10
+  }
+}
+exit=0

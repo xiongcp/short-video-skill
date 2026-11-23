@@ -1,0 +1,79 @@
+{
+  "project_id": "qa-demo",
+  "version": 2,
+  "target_hash": "sha256:e2dd32fe21df7981b6d821805305ffbb4d24b7b50877adad0eea34bb81c83dd3",
+  "result": "fail",
+  "issues": [
+    {
+      "issue_id": "qa_001",
+      "target_id": "shot_002",
+      "frame_range": {
+        "start": 40,
+        "end": 50
+      },
+      "severity": "blocking",
+      "category": "visual",
+      "message": "CAPTION_COLLISION: element card_a overlaps active caption at frames [40, 50) (peak frame 45, iou 0.2756)",
+      "evidence_refs": [
+        "asset://qa-demo/qa_defect_f000045/v2",
+        "asset://qa-demo/diagram_moving/v1"
+      ]
+    },
+    {
+      "issue_id": "qa_002",
+      "target_id": "master",
+      "frame_range": {
+        "start": 0,
+        "end": 240
+      },
+      "severity": "blocking",
+      "category": "audio",
+      "message": "MEDIA_AUDIO_TRACK: technical inspection failed (AUDIO_TRACK)",
+      "evidence_refs": [
+        "asset://qa-demo/no_audio_media/v1"
+      ]
+    },
+    {
+      "issue_id": "qa_003",
+      "target_id": "shot_003",
+      "frame_range": {
+        "start": 74,
+        "end": 150
+      },
+      "severity": "blocking",
+      "category": "visual",
+      "message": "UNDECLARED_FREEZE: static run [74, 150) (76 frames)",
+      "evidence_refs": [
+        "asset://qa-demo/qa_defect_f000074/v1"
+      ]
+    },
+    {
+      "issue_id": "qa_004",
+      "target_id": "shot_004",
+      "frame_range": {
+        "start": 150,
+        "end": 240
+      },
+      "severity": "info",
+      "category": "continuity",
+      "message": "DECLARED_HOLD_PRESERVED: 让观众通读三层缓存命中率对比图",
+      "evidence_refs": [
+        "asset://qa-demo/no_audio_media/v1"
+      ]
+    }
+  ],
+  "inspected_refs": [
+    "asset://qa-demo/no_audio_media/v1",
+    "asset://qa-demo/alignment/v1",
+    "asset://qa-demo/voice-master/v1",
+    "asset://qa-demo/studio_host/v1",
+    "asset://qa-demo/scene_moving/v1",
+    "asset://qa-demo/scene_static/v1",
+    "asset://qa-demo/diagram_moving/v1",
+    "asset://qa-demo/diagram_static/v1",
+    "asset://qa-demo/qa_waveform_sample/v2",
+    "asset://qa-demo/qa_waveform_img_sample/v2",
+    "asset://qa-demo/qa_motion_sample/v2",
+    "asset://qa-demo/qa_contact_sheet_sample/v2"
+  ]
+}

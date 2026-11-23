@@ -1,0 +1,42 @@
+{
+  "draft_export_denied": [
+    {
+      "code": "DRAFT_EXPORT_FORBIDDEN",
+      "mode": "draft",
+      "message": "当前模式为 draft，未审核初稿禁止制备正式导出清单或交付归档"
+    }
+  ],
+  "missing_g4_denied": [
+    {
+      "code": "APPROVAL_MISSING",
+      "gate": "G4",
+      "current_target_hash": "sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592",
+      "message": "G4 尚无针对当前材料 sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592 的人工批准"
+    }
+  ],
+  "stale_g4_denied": [
+    {
+      "code": "APPROVAL_STALE",
+      "gate": "G4",
+      "current_target_hash": "sha256:52a7e4276ae48ae005aba652a298c9ab53cd40975c4a46d5f79530cbb96ee3c9",
+      "approved_target_hash": "sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592",
+      "message": "G4 的批准针对旧材料 sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592，当前材料为 sha256:52a7e4276ae48ae005aba652a298c9ab53cd40975c4a46d5f79530cbb96ee3c9，须重新审核"
+    }
+  ],
+  "agent_g5_denied": [
+    {
+      "code": "APPROVAL_UNAUTHENTICATED",
+      "gate": "G5",
+      "message": "G5 决定需要已认证的人类审核会话"
+    }
+  ],
+  "manifest_1byte_tamper_denied": [
+    {
+      "code": "MANIFEST_HASH_MISMATCH",
+      "manifest_ref": "asset://deliver-demo/export_manifest/v1",
+      "expected_hash": "sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9",
+      "actual_hash": "sha256:5af8c79f5951627ea12534b1b5352773f2992bddfe595f60e720c73404ac6c0d",
+      "message": "导出清单 asset://deliver-demo/export_manifest/v1 内容哈希（sha256:5af8c79f5951627ea12534b1b5352773f2992bddfe595f60e720c73404ac6c0d）与预期或 G5 绑定哈希（sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9）不一致"
+    }
+  ]
+}

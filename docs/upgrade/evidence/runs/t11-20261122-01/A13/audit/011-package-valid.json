@@ -1,0 +1,55 @@
+{
+  "seq": 11,
+  "label": "package-valid",
+  "op": "package",
+  "session": null,
+  "request": {
+    "project_id": "deliver-demo",
+    "manifest_ref": "asset://deliver-demo/export_manifest/v1",
+    "manifest_hash": "sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9",
+    "g5_approval_id": "apv-a39046d5-2bb2-41be-aeca-db45221f8c4b"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "PACKAGED",
+    "project_id": "deliver-demo",
+    "state": "PACKAGING",
+    "version": 25,
+    "event_count": 24,
+    "final_package": {
+      "project_id": "deliver-demo",
+      "version": 1,
+      "manifest_hash": "sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9",
+      "g5_approval_id": "apv-a39046d5-2bb2-41be-aeca-db45221f8c4b",
+      "archive_ref": "asset://deliver-demo/final_package/v1",
+      "archive_hash": "sha256:93c4f0414ade45a4a17d936574b3ed162013bf8f723223eb18d40732b7d50b5c",
+      "verified_file_count": 55
+    },
+    "package_project_input": {
+      "manifest_ref": "asset://deliver-demo/export_manifest/v1",
+      "manifest_hash": "sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9",
+      "g5_approval_id": "apv-a39046d5-2bb2-41be-aeca-db45221f8c4b"
+    },
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "pkg-6a357025-f3fa-4710-81ae-26e4a86f91e9",
+      "artifact_refs": [
+        "asset://deliver-demo/final_package/v1"
+      ],
+      "warnings": [],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 0,
+        "actual_minor": 0
+      },
+      "retryable": false,
+      "next_action": "continue"
+    },
+    "archive_ref": "asset://deliver-demo/final_package/v1",
+    "archive_path": "assets/final_package/v1.tar.gz",
+    "archive_hash": "sha256:93c4f0414ade45a4a17d936574b3ed162013bf8f723223eb18d40732b7d50b5c",
+    "verified_file_count": 55,
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "shot_id": "shot_002",
+    "element_id": "card_a",
+    "frame_range": {
+      "start": 40,
+      "end": 50
+    },
+    "peak_overlap_frame": 45,
+    "element_box": {
+      "left": 0.2,
+      "top": 0.8,
+      "right": 0.5,
+      "bottom": 0.94
+    },
+    "caption_box": {
+      "left": 0.10416666666666667,
+      "top": 0.8629629629629629,
+      "right": 0.8958333333333334,
+      "bottom": 0.9333333333333333
+    },
+    "iou": 0.2756
+  }
+]

@@ -64,7 +64,7 @@ function decodePng(bytes: Buffer): { width: number; height: number; bpp: number;
   return { width, height, bpp, pixels };
 }
 
-function encodeRgbPng(width: number, height: number, rgb: Buffer): Buffer {
+export function encodeRgbPng(width: number, height: number, rgb: Buffer): Buffer {
   const raw = Buffer.alloc(height * (width * 3 + 1));
   for (let y = 0; y < height; y += 1) rgb.copy(raw, y * (width * 3 + 1) + 1, y * width * 3, (y + 1) * width * 3);
   const chunk = (type: string, data: Buffer) => {
@@ -116,17 +116,52 @@ function renderBackground(bytes: Buffer, zoom: number): Buffer {
   return frame;
 }
 
+export interface NormBox { left: number; top: number; right: number; bottom: number }
+export interface DiagramElement {
+  element_id: string;
+  box: NormBox;
+  motion?: { keyframes: { local_frame: number; box: NormBox }[] };
+}
+export const CAPTION_BOX_PX = { x0: 200, y0: 932, x1: 1720, y1: 1008 };
+export const CAPTION_BOX_NORM: NormBox = {
+  left: CAPTION_BOX_PX.x0 / W, top: CAPTION_BOX_PX.y0 / H,
+  right: CAPTION_BOX_PX.x1 / W, bottom: CAPTION_BOX_PX.y1 / H,
+};
+
+export function interpolateBox(el: DiagramElement, localFrame: number): NormBox {
+  const kfs = el.motion?.keyframes;
+  if (!kfs || !kfs.length) return el.box;
+  const sorted = [...kfs].sort((a, b) => a.local_frame - b.local_frame);
+  if (localFrame <= sorted[0].local_frame) return sorted[0].box;
+  if (localFrame >= sorted[sorted.length - 1].local_frame) return sorted[sorted.length - 1].box;
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const a = sorted[i], b = sorted[i + 1];
+    if (localFrame >= a.local_frame && localFrame <= b.local_frame) {
+      const span = b.local_frame - a.local_frame || 1;
+      const t = (localFrame - a.local_frame) / span;
+      return {
+        left: a.box.left + (b.box.left - a.box.left) * t,
+        top: a.box.top + (b.box.top - a.box.top) * t,
+        right: a.box.right + (b.box.right - a.box.right) * t,
+        bottom: a.box.bottom + (b.box.bottom - a.box.bottom) * t,
+      };
+    }
+  }
+  return el.box;
+}
+
 const OP_COLOR: Record<string, Rgb> = {
   show: [70, 140, 225], highlight: [245, 195, 70], dim: [75, 85, 105], pan_to: [85, 220, 200],
 };
 
-function drawDiagram(frame: Buffer, diagram: { elements: { element_id: string; box: { left: number; top: number; right: number; bottom: number } }[] },
-  zoom: number, activeOps: Map<string, string>) {
+function drawDiagram(frame: Buffer, diagram: { elements: DiagramElement[] },
+  zoom: number, activeOps: Map<string, string>, localFrame = 0) {
   const scale = (v: number) => 0.5 + (v - 0.5) * zoom;
   for (const el of diagram.elements) {
     const op = activeOps.get(el.element_id);
     const color = (op && OP_COLOR[op]) || [60, 115, 190];
-    const x0 = scale(el.box.left) * W, y0 = scale(el.box.top) * H, x1 = scale(el.box.right) * W, y1 = scale(el.box.bottom) * H;
+    const box = interpolateBox(el, localFrame);
+    const x0 = scale(box.left) * W, y0 = scale(box.top) * H, x1 = scale(box.right) * W, y1 = scale(box.bottom) * H;
     fillRect(frame, x0, y0, x1, y1, color, op === 'dim' ? 0.55 : 0.9);
     if (op === 'highlight' || op === 'pan_to') {
       fillRect(frame, x0, y0, x1, y0 + 8, [255, 250, 220], 1);
@@ -136,7 +171,7 @@ function drawDiagram(frame: Buffer, diagram: { elements: { element_id: string; b
 }
 
 function drawSubtitle(frame: Buffer, text: string, color: Rgb) {
-  fillRect(frame, 200, 932, 1720, 1008, [12, 18, 30], 0.82);
+  fillRect(frame, CAPTION_BOX_PX.x0, CAPTION_BOX_PX.y0, CAPTION_BOX_PX.x1, CAPTION_BOX_PX.y1, [12, 18, 30], 0.82);
   // Deterministic caption glyph blocks colored by subtitle_style so style and text changes produce distinct pixels.
   const digest = createHash('sha256').update(text).digest();
   const count = Math.min(28, Math.max(6, text.length));
@@ -162,7 +197,7 @@ export interface RenderShotMediaSpec {
   zoom: number;
   backgroundBytes: Buffer;
   illustrationBytes?: Buffer;
-  diagramSpec?: { elements: { element_id: string; box: { left: number; top: number; right: number; bottom: number } }[] };
+  diagramSpec?: { elements: DiagramElement[] };
   visualCues: { element_id: string; operation: string; at_local_frame: number }[];
   character?: { rig: any; trajectory: any };
   subtitles: { start: number; end: number; text: string }[];
@@ -202,19 +237,35 @@ export function renderShotMedia(spec: RenderShotMediaSpec) {
     const illus = spec.illustrationBytes ? renderBackground(spec.illustrationBytes, spec.zoom) : null;
     const segments: string[] = [];
 
+    const hasMotion = Boolean(spec.diagramSpec?.elements.some((el) => el.motion?.keyframes?.length));
     for (let k = 0; k < points.length - 1; k += 1) {
       const start = points[k], end = points[k + 1], len = end - start;
-      const frame = Buffer.from(illus ?? bg);
-      if (spec.diagramSpec) {
-        const ops = new Map<string, string>();
-        for (const cue of spec.visualCues) if (cue.at_local_frame <= start) ops.set(cue.element_id, cue.operation);
-        drawDiagram(frame, spec.diagramSpec, spec.zoom, ops);
-      }
+      const segOut = points.length === 2 ? spec.outPath : join(work, `seg-${k}.mp4`);
       const activeSub = spec.subtitles.find((s) => s.start <= start && start < s.end);
+      const ops = new Map<string, string>();
+      for (const cue of spec.visualCues) if (cue.at_local_frame <= start) ops.set(cue.element_id, cue.operation);
+
+      if (hasMotion && !spec.character) {
+        const frameBufs: Buffer[] = [];
+        for (let i = 0; i < len; i += 1) {
+          const frame = Buffer.from(illus ?? bg);
+          if (spec.diagramSpec) drawDiagram(frame, spec.diagramSpec, spec.zoom, ops, start + i);
+          if (activeSub) drawSubtitle(frame, activeSub.text, spec.subtitleColor);
+          frameBufs.push(frame);
+        }
+        runFfmpeg([
+          '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${W}x${H}`, '-r', String(FPS), '-i', 'pipe:0',
+          '-frames:v', String(len), ...VIDEO_ENCODE, '-f', 'mp4', segOut,
+        ], Buffer.concat(frameBufs));
+        segments.push(segOut);
+        continue;
+      }
+
+      const frame = Buffer.from(illus ?? bg);
+      if (spec.diagramSpec) drawDiagram(frame, spec.diagramSpec, spec.zoom, ops, start);
       if (activeSub) drawSubtitle(frame, activeSub.text, spec.subtitleColor);
       const basePng = join(work, `base-${k}.png`);
       writeFileSync(basePng, encodeRgbPng(W, H, frame));
-      const segOut = points.length === 2 ? spec.outPath : join(work, `seg-${k}.mp4`);
 
       if (!spec.character) {
         encodeStaticSegment(basePng, len, segOut, work, k);
@@ -249,7 +300,7 @@ export function assembleVideo(segmentPaths: string[], outPath: string) {
   }
 }
 
-function buildWav(channels: number, data: Buffer) {
+export function buildWav(channels: number, data: Buffer) {
   const header = Buffer.alloc(44);
   header.write('RIFF', 0); header.writeUInt32LE(36 + data.length, 4); header.write('WAVEfmt ', 8);
   header.writeUInt32LE(16, 16); header.writeUInt16LE(1, 20); header.writeUInt16LE(channels, 22); header.writeUInt32LE(RATE, 24);

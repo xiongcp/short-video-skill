@@ -1,0 +1,63 @@
+{
+  "seq": 4,
+  "label": "ab-prepare",
+  "op": "compare",
+  "session": null,
+  "request": {
+    "project_id": "qa-demo",
+    "action": "prepare",
+    "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+    "baseline_ref": "asset://qa-demo/baseline_sample/v1",
+    "upgrade_ref": "asset://qa-demo/render_sample/v1",
+    "baseline_kind": "controlled_baseline",
+    "seed": 42
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "PREPARED",
+    "project_id": "qa-demo",
+    "state": "SAMPLE_REVIEW",
+    "version": 17,
+    "event_count": 16,
+    "comparison": {
+      "comparison_id": "cmp-2b679ced-d1f2-409f-9b5a-21150b32c790",
+      "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+      "baseline_kind": "controlled_baseline",
+      "historical_comparison_status": "NOT_RUN",
+      "blinded_packet": {
+        "comparison_id": "cmp-2b679ced-d1f2-409f-9b5a-21150b32c790",
+        "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+        "baseline_kind": "controlled_baseline",
+        "historical_comparison_status": "NOT_RUN",
+        "spec": {
+          "frames": 660,
+          "width": 1920,
+          "height": 1080,
+          "fps": 30,
+          "sample_rate_hz": 48000
+        },
+        "clip_a": {
+          "asset_ref": "asset://qa-demo/render_sample/v1",
+          "sha256": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+          "path": "assets/render_sample/v1.mp4"
+        },
+        "clip_b": {
+          "asset_ref": "asset://qa-demo/baseline_sample/v1",
+          "sha256": "sha256:99b598cd91917db5eadab8f1c093ab099e0fea366d65358c87413248b4021bc7",
+          "path": "assets/baseline_sample/v1.bin"
+        },
+        "rubric": [
+          "identity_continuity",
+          "av_sync",
+          "diagram_accuracy",
+          "mobile_legibility",
+          "cut_pacing"
+        ]
+      },
+      "unblinding_key_ref": "asset://qa-demo/ab_unblinding_key/v1",
+      "open_required_fixes": 0
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

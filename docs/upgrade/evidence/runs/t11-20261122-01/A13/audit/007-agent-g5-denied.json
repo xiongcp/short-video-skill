@@ -1,0 +1,31 @@
+{
+  "seq": 7,
+  "label": "agent-g5-denied",
+  "op": "decide",
+  "session": "agent:agent-1",
+  "request": {
+    "project_id": "deliver-demo",
+    "expected_version": 23,
+    "idempotency_key": "g5-agent",
+    "gate": "G5",
+    "target_hash": "sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9",
+    "decision": "approve",
+    "notes": "forged"
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "deliver-demo",
+    "state": "EXPORT_REVIEW",
+    "version": 23,
+    "event_count": 22,
+    "issues": [
+      {
+        "code": "APPROVAL_UNAUTHENTICATED",
+        "gate": "G5",
+        "message": "G5 决定需要已认证的人类审核会话"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

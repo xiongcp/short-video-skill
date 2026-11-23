@@ -1,0 +1,361 @@
+[01-RED] 2026-11-22T23:22:57-0800
+$ node --test tests/runtime/T11-delivery.test.mjs
+✖ Traceability navigates claim -> source and subtitle -> word, and refreshes after shot revision (14896.824ms)
+✖ Manifest and packager reject draft mode, missing/stale G4, agent G5, and 1-byte tampered manifest (9688.756708ms)
+✖ Valid packaging verifies every archived file, escapes HTML review report, and advances archive_verified -> DELIVERED (14746.3805ms)
+✖ Restoring archive into a new directory verifies every hash and reopens for shot-level revise and render (14808.585166ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54217.262875
+
+✖ failing tests:
+
+test at tests/runtime/T11-delivery.test.mjs:207:1
+✖ Traceability navigates claim -> source and subtitle -> word, and refreshes after shot revision (14896.824ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile|plan|bake|render|recover|revise|inspect|qa|target|compare> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/T11-delivery.test.mjs:53:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://tests/runtime/T11-delivery.test.mjs:210:22)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T11-delivery.test.mjs:238:1
+✖ Manifest and packager reject draft mode, missing/stale G4, agent G5, and 1-byte tampered manifest (9688.756708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file://tests/runtime/T11-delivery.test.mjs:242:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T11-delivery.test.mjs:304:1
+✖ Valid packaging verifies every archived file, escapes HTML review report, and advances archive_verified -> DELIVERED (14746.3805ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile|plan|bake|render|recover|revise|inspect|qa|target|compare> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/T11-delivery.test.mjs:53:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://tests/runtime/T11-delivery.test.mjs:306:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T11-delivery.test.mjs:337:1
+✖ Restoring archive into a new directory verifies every hash and reopens for shot-level revise and render (14808.585166ms)
+  AssertionError [ERR_ASSERTION]: usage: cli.ts <doctor|preview|init|status|event|decide|budget|submit|reconcile|ledger|brief|evidence|script|resume|search|audio|align|calibrate|tts|register|clear|scene|preflight|storyboard|compile|plan|bake|render|recover|revise|inspect|qa|target|compare> --project <dir> --request <json> [--lang zh-CN|en]
+  
+  
+  2 !== 0
+  
+      at ok (file://tests/runtime/T11-delivery.test.mjs:53:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://tests/runtime/T11-delivery.test.mjs:339:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[02-GREEN] 2026-11-22T23:26:13-0800
+$ node --test tests/runtime/T11-delivery.test.mjs
+✔ Traceability navigates claim -> source and subtitle -> word, and refreshes after shot revision (15568.43675ms)
+✖ Manifest and packager reject draft mode, missing/stale G4, agent G5, and 1-byte tampered manifest (41700.06575ms)
+✖ Valid packaging verifies every archived file, escapes HTML review report, and advances archive_verified -> DELIVERED (15609.823542ms)
+✖ Restoring archive into a new directory verifies every hash and reopens for shot-level revise and render (15600.451375ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 88555.076667
+
+✖ failing tests:
+
+test at tests/runtime/T11-delivery.test.mjs:238:1
+✖ Manifest and packager reject draft mode, missing/stale G4, agent G5, and 1-byte tampered manifest (41700.06575ms)
+  AssertionError [ERR_ASSERTION]: {
+    "status": "REJECTED",
+    "project_id": "deliver-demo",
+    "state": "APPROVED",
+    "version": 22,
+    "event_count": 21,
+    "issues": [
+      {
+        "code": "ASSET_KIND_INVALID",
+        "kind": "render-master",
+        "name": "render_master",
+        "message": "资产类型 render-master 或名称 render_master 无效"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+  
+  
+  1 !== 0
+  
+      at ok (file://tests/runtime/T11-delivery.test.mjs:53:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://tests/runtime/T11-delivery.test.mjs:264:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T11-delivery.test.mjs:304:1
+✖ Valid packaging verifies every archived file, escapes HTML review report, and advances archive_verified -> DELIVERED (15609.823542ms)
+  AssertionError [ERR_ASSERTION]: file://tools/package_project/adapter.ts:166
+    const work = mkdtempSync(join(tmpdir(), 'svs-pkg-'));
+                 ^
+  
+  ReferenceError: mkdtempSync is not defined
+      at packageOp (file://tools/package_project/adapter.ts:166:16)
+      at main (file://runtime/cli.ts:85:38)
+      at file://runtime/cli.ts:91:26
+      at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+      at async node:internal/modules/esm/loader:650:26
+      at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+  
+  Node.js v26.9.0
+  
+  
+  1 !== 0
+  
+      at ok (file://tests/runtime/T11-delivery.test.mjs:53:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://tests/runtime/T11-delivery.test.mjs:312:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/runtime/T11-delivery.test.mjs:337:1
+✖ Restoring archive into a new directory verifies every hash and reopens for shot-level revise and render (15600.451375ms)
+  AssertionError [ERR_ASSERTION]: file://tools/package_project/adapter.ts:166
+    const work = mkdtempSync(join(tmpdir(), 'svs-pkg-'));
+                 ^
+  
+  ReferenceError: mkdtempSync is not defined
+      at packageOp (file://tools/package_project/adapter.ts:166:16)
+      at main (file://runtime/cli.ts:85:38)
+      at file://runtime/cli.ts:91:26
+      at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+      at async node:internal/modules/esm/loader:650:26
+      at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+  
+  Node.js v26.9.0
+  
+  
+  1 !== 0
+  
+      at ok (file://tests/runtime/T11-delivery.test.mjs:53:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://tests/runtime/T11-delivery.test.mjs:344:18)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[03-GREEN] 2026-11-22T23:28:13-0800
+$ node --test tests/runtime/T11-delivery.test.mjs
+✔ Traceability navigates claim -> source and subtitle -> word, and refreshes after shot revision (16002.635042ms)
+✔ Manifest and packager reject draft mode, missing/stale G4, agent G5, and 1-byte tampered manifest (44899.765917ms)
+✔ Valid packaging verifies every archived file, escapes HTML review report, and advances archive_verified -> DELIVERED (16160.869417ms)
+✖ Restoring archive into a new directory verifies every hash and reopens for shot-level revise and render (16643.982708ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 93783.939541
+
+✖ failing tests:
+
+test at tests/runtime/T11-delivery.test.mjs:337:1
+✖ Restoring archive into a new directory verifies every hash and reopens for shot-level revise and render (16643.982708ms)
+  AssertionError [ERR_ASSERTION]: restored hash mismatch for project/studio.sqlite
+  + actual - expected
+  
+  + 'sha256:5c0689ff82938ee431cecbe8e7f20f5e1a871d56776baad0e7e6d1d61aeb8e17'
+  - 'sha256:7e7b71c9f70c1575ec18907b91cbd60374b2944ac4e3ca205ac141ceeb14e467'
+  
+      at TestContext.<anonymous> (file://tests/runtime/T11-delivery.test.mjs:363:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'sha256:5c0689ff82938ee431cecbe8e7f20f5e1a871d56776baad0e7e6d1d61aeb8e17',
+    expected: 'sha256:7e7b71c9f70c1575ec18907b91cbd60374b2944ac4e3ca205ac141ceeb14e467',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+exit=1
+
+[04-GREEN] 2026-11-22T23:30:15-0800
+$ node --test tests/runtime/T11-delivery.test.mjs
+✔ Traceability navigates claim -> source and subtitle -> word, and refreshes after shot revision (15876.238667ms)
+✔ Manifest and packager reject draft mode, missing/stale G4, agent G5, and 1-byte tampered manifest (44545.606375ms)
+✔ Valid packaging verifies every archived file, escapes HTML review report, and advances archive_verified -> DELIVERED (16598.350334ms)
+✔ Restoring archive into a new directory verifies every hash and reopens for shot-level revise and render (19666.361125ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96763.885791
+exit=0
+
+[05-REFACTOR-full-runtime] 2026-11-22T23:33:05-0800
+$ node --test tests/runtime/
+✔ doctor reports a missing agreed font as a blocked caption capability (1036.688417ms)
+✔ preview turns a 12 s 48 kHz WAV into 360 decoded frames with sound and visible motion (15274.717792ms)
+✔ preview rejects a 44.1 kHz WAV before rendering (306.513875ms)
+✔ a new project starts at NEW with version 1 (321.708042ms)
+✔ replaying the same event with the same key returns the original event once (781.116833ms)
+✔ the same key with a different payload is rejected without a new event (787.709792ms)
+✔ a stale expected_version is rejected and returns the current version (777.034208ms)
+✔ a quality gate event needs a human approval bound to the current material (4605.070625ms)
+✔ an agent cannot sign G4 for itself; G4 binds the master and G5 the manifest (18093.4565ms)
+✔ a G2 approval expires when the script it approved is replaced (6393.910459ms)
+✔ a draft cannot be exported or delivered (9355.603667ms)
+✔ a fresh process reads back the same stage, version and event count (2020.866667ms)
+✔ concurrent writers on one version yield one event and version conflicts, never a crash (894.967ms)
+✔ paid work needs a budget confirmed by a human session (892.238958ms)
+✔ two concurrent 70-unit intents under a 100 limit leave one reservation and 30 available (1179.17975ms)
+✔ repeating an intent reaches the provider once (2230.092792ms)
+✔ a lost receipt is reconciled by the original key after restart and settled exactly once (2360.568709ms)
+✔ without a lookup API the job stays UNKNOWN and its reservation pending verification (1651.085875ms)
+✔ a skill cannot call a tool outside its permissions (1088.334958ms)
+✔ conflicting source versions keep both locators and unsupported claims are marked unsupported (2363.229ms)
+✔ a script cannot cite an unsupported claim or an unresolved dispute (4273.576792ms)
+✔ the G1 decision binds the saved evidence version (3380.600875ms)
+✔ section IDs of an imported manuscript survive nonmaterial edits (4607.983417ms)
+✔ start and resume share duration defaults: explicit 120, short 180, standard8 480 (5065.569416ms)
+✔ offline search returns paragraph locators from authorized material only (833.109875ms)
+✔ imported section WAVs keep original bytes and get contiguous master sample ranges (5287.508416ms)
+✔ section-local word samples map to master samples and repeated terms keep distinct IDs (9898.140792ms)
+✔ low-confidence words block until manually corrected; captions and visemes follow the corrected revision (5617.915125ms)
+✔ synthesized takes reuse budget, idempotency and reconciliation and share the imported downstream contract (6731.907791ms)
+✔ calibration reports median and nearest-rank P95 over at least 100 labeled anchors (5786.375334ms)
+✔ formal assembly names the asset for a missing rig version, uncleared usage and an unregistered angle (5480.416834ms)
+✔ a full-frame 1920×1080 bitmap fails coverage for a native 1.5× push-in; vector diagrams pass (5084.986417ms)
+✔ diagram elements must stay inside the safe area at the shot zoom (4344.167958ms)
+✔ usage clearance is human-only and prior versions stay resolvable (6139.979ms)
+✔ the three scene templates fix layer roles and reject mismatched layer kinds (5315.023375ms)
+✔ host and diagram shots resolve through one path and pin every asset by hash (3961.06825ms)
+✔ a scene name cannot escape the project asset directory (4179.056875ms)
+✔ word anchors quantize once: samples 2,399/2,400 cut at frames 1/2 and the last real sample is covered (9751.156042ms)
+✔ production compilation freezes a timeline with resolved references, audio, captions and dependencies (10562.387375ms)
+✔ dangling cues, unknown words, cross-section triggers, out-of-range highlights and cycles name shot and field (11918.005ms)
+✔ production compilation blocks an unsupported action and uncleared assets (8893.917084ms)
+✔ planned example boards stay readable as fixed-frame timelines without production status (450.330791ms)
+✔ frames 29, 0, 15 and 0, 15, 29 read identical lossless RGBA; an independent shot bakes alone (22469.868417ms)
+✔ an inheriting shot starts from the preceding end state; changing that state changes its cache key (10355.984958ms)
+✔ plan validation names shot and field; out-of-range frames and a restricted rig block baking (7280.371916ms)
+✔ cold and warm render persist RenderJob, ShotArtifacts and ChapterCheckpoint; quality master requires G3 (20245.450709ms)
+✔ caption recoloring produces zero bakes and zero TTS calls and invalidates G3 while keeping G1/G2 (17621.851542ms)
+✔ changing one expression affects only the shot and explicit end-state dependents; independent shots keep identical hashes (9432.156541ms)
+✔ cutting ten seconds from chapter four moves the boundary to frame 7,800, reuses shifted local layers and produces a 470-second master (61235.775209ms)
+✔ crash recovery in chapter four (temp write, atomic rename, index) and corrupt cached shot claim only unfinished or damaged units (35970.179542ms)
+✔ A10 injected defects: single-frame white flash, mid-motion caption collision, unintended black, long freeze, silence, missing audio and preserved reading hold (24265.214208ms)
+✔ Three-level QA renders a 22 s audible sample, checks delivery targets, wires sample_qa_pass and exposes Studio shot+waveform links (18869.194958ms)
+✔ A11 blinded A/B comparison enforces human-only review and blocks G3 until open required fixes are closed (19055.386ms)
+✔ Blocking QA report prevents sample_checked even if payload.checks tries to spoof sample_qa_pass (7212.327ms)
+✔ REFACTOR checks: persisted Studio bundle navigation, inspect path traversal & C01 negative parity, and loudness target violation (10528.182791ms)
+✔ Traceability navigates claim -> source and subtitle -> word, and refreshes after shot revision (25022.461708ms)
+✔ Manifest and packager reject draft mode, missing/stale G4, agent G5, and 1-byte tampered manifest (52772.988083ms)
+✔ Valid packaging verifies every archived file, escapes HTML review report, and advances archive_verified -> DELIVERED (17122.709292ms)
+✔ Restoring archive into a new directory verifies every hash and reopens for shot-level revise and render (20464.747083ms)
+✔ REFACTOR checks: idempotent manifest replay, negative trace lookups, and modified source file rejection during packaging (16936.706834ms)
+✔ issue codes stay stable while messages follow --lang (1018.795375ms)
+✔ Chinese is the default locale (472.844ms)
+✔ an unsupported locale is a usage error (223.810667ms)
+✔ zh-CN and en catalogs define the same non-empty keys (1.487375ms)
+ℹ tests 64
+ℹ suites 0
+ℹ pass 64
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 165897.380083
+exit=0
+
+[06-EVIDENCE] 2026-11-22T23:36:41-0800
+$ node docs/upgrade/evidence/replay_t11.mjs t11-20261122-01 python
+{
+  "A13": {
+    "status": "PASS",
+    "checks": {
+      "trace_claim_and_subtitle_and_refresh": true,
+      "manifest_excludes_self_and_g5": true,
+      "review_html_xss_escaped": true,
+      "rejections_enforced": true,
+      "package_and_delivered": true,
+      "restore_hashes_and_reopen_edit": true,
+      "schemas_valid": true
+    },
+    "calls": 19
+  }
+}
+exit=0

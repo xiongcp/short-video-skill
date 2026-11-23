@@ -1,0 +1,1193 @@
+{
+  "seq": 1,
+  "label": "qa-defects",
+  "op": "qa",
+  "session": null,
+  "request": {
+    "project_id": "qa-demo",
+    "scope": "sample",
+    "media_ref": "asset://qa-demo/fault_media/v1",
+    "freeze_threshold_frames": 45,
+    "silence_threshold_frames": 30
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "FAIL",
+    "project_id": "qa-demo",
+    "state": "COMPILED",
+    "version": 12,
+    "event_count": 11,
+    "qa_report_ref": "asset://qa-demo/qa_report_sample/v1",
+    "qa_report": {
+      "project_id": "qa-demo",
+      "version": 1,
+      "target_hash": "sha256:1fda59ec235c7622c018a6908cc5662edff8197d2c886ed24a71ffcc4db4d882",
+      "result": "fail",
+      "issues": [
+        {
+          "issue_id": "qa_001",
+          "target_id": "shot_002",
+          "frame_range": {
+            "start": 40,
+            "end": 50
+          },
+          "severity": "blocking",
+          "category": "visual",
+          "message": "CAPTION_COLLISION: element card_a overlaps active caption at frames [40, 50) (peak frame 45, iou 0.2756)",
+          "evidence_refs": [
+            "asset://qa-demo/qa_defect_f000045/v1",
+            "asset://qa-demo/diagram_moving/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_002",
+          "target_id": "shot_001",
+          "frame_range": {
+            "start": 15,
+            "end": 16
+          },
+          "severity": "blocking",
+          "category": "visual",
+          "message": "SINGLE_FRAME_FLASH (white_flash): frame [15, 16) peak luma 253",
+          "evidence_refs": [
+            "asset://qa-demo/qa_defect_f000015/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_003",
+          "target_id": "shot_003",
+          "frame_range": {
+            "start": 100,
+            "end": 105
+          },
+          "severity": "blocking",
+          "category": "visual",
+          "message": "UNINTENDED_BLACK: frames [100, 105) mean luma 0",
+          "evidence_refs": [
+            "asset://qa-demo/qa_defect_f000100/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_004",
+          "target_id": "shot_003",
+          "frame_range": {
+            "start": 105,
+            "end": 150
+          },
+          "severity": "blocking",
+          "category": "visual",
+          "message": "UNDECLARED_FREEZE: static run [105, 150) (45 frames)",
+          "evidence_refs": [
+            "asset://qa-demo/qa_defect_f000105/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_005",
+          "target_id": "shot_004",
+          "frame_range": {
+            "start": 150,
+            "end": 240
+          },
+          "severity": "info",
+          "category": "continuity",
+          "message": "DECLARED_HOLD_PRESERVED: 让观众通读三层缓存命中率对比图",
+          "evidence_refs": [
+            "asset://qa-demo/fault_media/v1"
+          ]
+        },
+        {
+          "issue_id": "qa_006",
+          "target_id": "shot_003",
+          "frame_range": {
+            "start": 75,
+            "end": 120
+          },
+          "severity": "blocking",
+          "category": "audio",
+          "message": "UNINTENDED_SILENCE: frames [75, 120) (1.5s)",
+          "evidence_refs": [
+            "asset://qa-demo/qa_waveform_img_sample/v1",
+            "asset://qa-demo/qa_waveform_sample/v1"
+          ]
+        }
+      ],
+      "inspected_refs": [
+        "asset://qa-demo/fault_media/v1",
+        "asset://qa-demo/alignment/v1",
+        "asset://qa-demo/voice-master/v1",
+        "asset://qa-demo/studio_host/v1",
+        "asset://qa-demo/scene_moving/v1",
+        "asset://qa-demo/scene_static/v1",
+        "asset://qa-demo/diagram_moving/v1",
+        "asset://qa-demo/diagram_static/v1",
+        "asset://qa-demo/qa_waveform_sample/v1",
+        "asset://qa-demo/qa_waveform_img_sample/v1",
+        "asset://qa-demo/qa_motion_sample/v1",
+        "asset://qa-demo/qa_contact_sheet_sample/v1"
+      ]
+    },
+    "scope": "sample",
+    "inspector": {
+      "name": "ffmpeg-inspect-media",
+      "version": "1.0.0"
+    },
+    "target_hash": "sha256:1fda59ec235c7622c018a6908cc5662edff8197d2c886ed24a71ffcc4db4d882",
+    "sample": null,
+    "levels": {
+      "preflight": {
+        "shots_checked": 4,
+        "issues": [],
+        "bounding_boxes": [
+          {
+            "shot_id": "shot_002",
+            "element_id": "card_a",
+            "frame_range": {
+              "start": 40,
+              "end": 50
+            },
+            "peak_overlap_frame": 45,
+            "element_box": {
+              "left": 0.2,
+              "top": 0.8,
+              "right": 0.5,
+              "bottom": 0.94
+            },
+            "caption_box": {
+              "left": 0.10416666666666667,
+              "top": 0.8629629629629629,
+              "right": 0.8958333333333334,
+              "bottom": 0.9333333333333333
+            },
+            "iou": 0.2756
+          }
+        ]
+      },
+      "media_qa": {
+        "technical": {
+          "status": "PASS",
+          "media_hash": "sha256:1fda59ec235c7622c018a6908cc5662edff8197d2c886ed24a71ffcc4db4d882",
+          "observed": {
+            "major_brand": "isom",
+            "frames": 240,
+            "width": 1920,
+            "height": 1080,
+            "pixel_format": "yuv420p",
+            "video_codec": "h264",
+            "frame_grid_fps": 30,
+            "sample_rate_hz": 48000,
+            "audio_codec": "aac",
+            "audio_start_seconds": 0,
+            "audio_end_seconds": 8
+          },
+          "issues": []
+        },
+        "visual_anomalies": {
+          "flashes": [
+            {
+              "shot_id": "shot_001",
+              "frame_range": {
+                "start": 15,
+                "end": 16
+              },
+              "peak_luma": 253,
+              "kind": "white_flash"
+            }
+          ],
+          "blacks": [
+            {
+              "shot_id": "shot_003",
+              "frame_range": {
+                "start": 100,
+                "end": 105
+              },
+              "mean_luma": 0
+            }
+          ],
+          "freezes": [
+            {
+              "shot_id": "shot_003",
+              "frame_range": {
+                "start": 105,
+                "end": 150
+              },
+              "frames": 45
+            }
+          ]
+        },
+        "audio_metrics": {
+          "final_mix": {
+            "integrated_lufs": -11.9,
+            "loudness_range_lu": 2.7,
+            "max_true_peak_dbtp": -8.7
+          },
+          "isolated_voice": {
+            "integrated_lufs": -11.9,
+            "loudness_range_lu": 2.7,
+            "max_true_peak_dbtp": -6
+          },
+          "measured_intervals": [
+            {
+              "shot_id": "shot_001",
+              "clip_frame_range": {
+                "start": 0,
+                "end": 30
+              },
+              "master_frame_range": {
+                "start": 0,
+                "end": 30
+              },
+              "master_sample_range": {
+                "start": 0,
+                "end": 48000
+              }
+            },
+            {
+              "shot_id": "shot_002",
+              "clip_frame_range": {
+                "start": 30,
+                "end": 60
+              },
+              "master_frame_range": {
+                "start": 30,
+                "end": 60
+              },
+              "master_sample_range": {
+                "start": 48000,
+                "end": 96000
+              }
+            },
+            {
+              "shot_id": "shot_003",
+              "clip_frame_range": {
+                "start": 60,
+                "end": 150
+              },
+              "master_frame_range": {
+                "start": 60,
+                "end": 150
+              },
+              "master_sample_range": {
+                "start": 96000,
+                "end": 240000
+              }
+            },
+            {
+              "shot_id": "shot_004",
+              "clip_frame_range": {
+                "start": 150,
+                "end": 240
+              },
+              "master_frame_range": {
+                "start": 150,
+                "end": 240
+              },
+              "master_sample_range": {
+                "start": 240000,
+                "end": 384000
+              }
+            }
+          ],
+          "delivery_targets": [
+            {
+              "target_id": "web-standard",
+              "version": "2026.1",
+              "lufs_min": -24,
+              "lufs_max": -8,
+              "max_true_peak_dbtp": -1,
+              "notes": "",
+              "lufs_ok": true,
+              "true_peak_ok": true
+            }
+          ]
+        }
+      },
+      "sample_qa": {
+        "contact_sheet": {
+          "asset_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+          "path": "assets/qa_contact_sheet_sample/v1.png",
+          "sha256": "sha256:5cc0f0a05753c0445efb316b3ae4ce8d8f86ef033e797da86d65d5489069d3fe",
+          "width": 1920,
+          "height": 810,
+          "grid": "3x4",
+          "cells": [
+            {
+              "cell": 1,
+              "row": 0,
+              "col": 0,
+              "frame": 0,
+              "timecode": "00:00.00",
+              "seconds": 0,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 0,
+              "has_issue": false,
+              "in_hold": false
+            },
+            {
+              "cell": 2,
+              "row": 0,
+              "col": 1,
+              "frame": 22,
+              "timecode": "00:00.22",
+              "seconds": 0.733,
+              "shot_id": "shot_001",
+              "chapter_id": "ch_001",
+              "local_frame": 22,
+              "has_issue": false,
+              "in_hold": false
+            },
+            {
+              "cell": 3,
+              "row": 0,
+              "col": 2,
+              "frame": 43,
+              "timecode": "00:01.13",
+              "seconds": 1.433,
+              "shot_id": "shot_002",
+              "chapter_id": "ch_001",
+              "local_frame": 13,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 4,
+              "row": 0,
+              "col": 3,
+              "frame": 65,
+              "timecode": "00:02.05",
+              "seconds": 2.167,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 5,
+              "has_issue": false,
+              "in_hold": false
+            },
+            {
+              "cell": 5,
+              "row": 1,
+              "col": 0,
+              "frame": 87,
+              "timecode": "00:02.27",
+              "seconds": 2.9,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 27,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 6,
+              "row": 1,
+              "col": 1,
+              "frame": 109,
+              "timecode": "00:03.19",
+              "seconds": 3.633,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 49,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 7,
+              "row": 1,
+              "col": 2,
+              "frame": 130,
+              "timecode": "00:04.10",
+              "seconds": 4.333,
+              "shot_id": "shot_003",
+              "chapter_id": "ch_001",
+              "local_frame": 70,
+              "has_issue": true,
+              "in_hold": false
+            },
+            {
+              "cell": 8,
+              "row": 1,
+              "col": 3,
+              "frame": 152,
+              "timecode": "00:05.02",
+              "seconds": 5.067,
+              "shot_id": "shot_004",
+              "chapter_id": "ch_001",
+              "local_frame": 2,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 9,
+              "row": 2,
+              "col": 0,
+              "frame": 174,
+              "timecode": "00:05.24",
+              "seconds": 5.8,
+              "shot_id": "shot_004",
+              "chapter_id": "ch_001",
+              "local_frame": 24,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 10,
+              "row": 2,
+              "col": 1,
+              "frame": 196,
+              "timecode": "00:06.16",
+              "seconds": 6.533,
+              "shot_id": "shot_004",
+              "chapter_id": "ch_001",
+              "local_frame": 46,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 11,
+              "row": 2,
+              "col": 2,
+              "frame": 217,
+              "timecode": "00:07.07",
+              "seconds": 7.233,
+              "shot_id": "shot_004",
+              "chapter_id": "ch_001",
+              "local_frame": 67,
+              "has_issue": false,
+              "in_hold": true
+            },
+            {
+              "cell": 12,
+              "row": 2,
+              "col": 3,
+              "frame": 239,
+              "timecode": "00:07.29",
+              "seconds": 7.967,
+              "shot_id": "shot_004",
+              "chapter_id": "ch_001",
+              "local_frame": 89,
+              "has_issue": false,
+              "in_hold": true
+            }
+          ]
+        },
+        "waveform": {
+          "json_ref": "asset://qa-demo/qa_waveform_sample/v1",
+          "json_path": "assets/qa_waveform_sample/v1.json",
+          "png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+          "png_path": "assets/qa_waveform_img_sample/v1.png",
+          "sample_rate_hz": 48000,
+          "frame_count": 240,
+          "silence_ranges": [
+            {
+              "shot_id": "shot_003",
+              "frame_range": {
+                "start": 75,
+                "end": 120
+              },
+              "duration_seconds": 1.5
+            }
+          ]
+        },
+        "motion_heatmap_ref": "asset://qa-demo/qa_motion_sample/v1"
+      }
+    },
+    "bounding_boxes": [
+      {
+        "shot_id": "shot_002",
+        "element_id": "card_a",
+        "frame_range": {
+          "start": 40,
+          "end": 50
+        },
+        "peak_overlap_frame": 45,
+        "element_box": {
+          "left": 0.2,
+          "top": 0.8,
+          "right": 0.5,
+          "bottom": 0.94
+        },
+        "caption_box": {
+          "left": 0.10416666666666667,
+          "top": 0.8629629629629629,
+          "right": 0.8958333333333334,
+          "bottom": 0.9333333333333333
+        },
+        "iou": 0.2756
+      }
+    ],
+    "declared_holds": [
+      {
+        "shot_id": "shot_004",
+        "frame_range": {
+          "start": 150,
+          "end": 240
+        },
+        "kind": "static",
+        "reason": "让观众通读三层缓存命中率对比图",
+        "observed_static_frames": 89
+      }
+    ],
+    "contact_sheet": {
+      "asset_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+      "path": "assets/qa_contact_sheet_sample/v1.png",
+      "sha256": "sha256:5cc0f0a05753c0445efb316b3ae4ce8d8f86ef033e797da86d65d5489069d3fe",
+      "width": 1920,
+      "height": 810,
+      "grid": "3x4",
+      "cells": [
+        {
+          "cell": 1,
+          "row": 0,
+          "col": 0,
+          "frame": 0,
+          "timecode": "00:00.00",
+          "seconds": 0,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 0,
+          "has_issue": false,
+          "in_hold": false
+        },
+        {
+          "cell": 2,
+          "row": 0,
+          "col": 1,
+          "frame": 22,
+          "timecode": "00:00.22",
+          "seconds": 0.733,
+          "shot_id": "shot_001",
+          "chapter_id": "ch_001",
+          "local_frame": 22,
+          "has_issue": false,
+          "in_hold": false
+        },
+        {
+          "cell": 3,
+          "row": 0,
+          "col": 2,
+          "frame": 43,
+          "timecode": "00:01.13",
+          "seconds": 1.433,
+          "shot_id": "shot_002",
+          "chapter_id": "ch_001",
+          "local_frame": 13,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 4,
+          "row": 0,
+          "col": 3,
+          "frame": 65,
+          "timecode": "00:02.05",
+          "seconds": 2.167,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 5,
+          "has_issue": false,
+          "in_hold": false
+        },
+        {
+          "cell": 5,
+          "row": 1,
+          "col": 0,
+          "frame": 87,
+          "timecode": "00:02.27",
+          "seconds": 2.9,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 27,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 6,
+          "row": 1,
+          "col": 1,
+          "frame": 109,
+          "timecode": "00:03.19",
+          "seconds": 3.633,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 49,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 7,
+          "row": 1,
+          "col": 2,
+          "frame": 130,
+          "timecode": "00:04.10",
+          "seconds": 4.333,
+          "shot_id": "shot_003",
+          "chapter_id": "ch_001",
+          "local_frame": 70,
+          "has_issue": true,
+          "in_hold": false
+        },
+        {
+          "cell": 8,
+          "row": 1,
+          "col": 3,
+          "frame": 152,
+          "timecode": "00:05.02",
+          "seconds": 5.067,
+          "shot_id": "shot_004",
+          "chapter_id": "ch_001",
+          "local_frame": 2,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 9,
+          "row": 2,
+          "col": 0,
+          "frame": 174,
+          "timecode": "00:05.24",
+          "seconds": 5.8,
+          "shot_id": "shot_004",
+          "chapter_id": "ch_001",
+          "local_frame": 24,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 10,
+          "row": 2,
+          "col": 1,
+          "frame": 196,
+          "timecode": "00:06.16",
+          "seconds": 6.533,
+          "shot_id": "shot_004",
+          "chapter_id": "ch_001",
+          "local_frame": 46,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 11,
+          "row": 2,
+          "col": 2,
+          "frame": 217,
+          "timecode": "00:07.07",
+          "seconds": 7.233,
+          "shot_id": "shot_004",
+          "chapter_id": "ch_001",
+          "local_frame": 67,
+          "has_issue": false,
+          "in_hold": true
+        },
+        {
+          "cell": 12,
+          "row": 2,
+          "col": 3,
+          "frame": 239,
+          "timecode": "00:07.29",
+          "seconds": 7.967,
+          "shot_id": "shot_004",
+          "chapter_id": "ch_001",
+          "local_frame": 89,
+          "has_issue": false,
+          "in_hold": true
+        }
+      ]
+    },
+    "waveform": {
+      "json_ref": "asset://qa-demo/qa_waveform_sample/v1",
+      "json_path": "assets/qa_waveform_sample/v1.json",
+      "png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+      "png_path": "assets/qa_waveform_img_sample/v1.png",
+      "sample_rate_hz": 48000,
+      "frame_count": 240,
+      "silence_ranges": [
+        {
+          "shot_id": "shot_003",
+          "frame_range": {
+            "start": 75,
+            "end": 120
+          },
+          "duration_seconds": 1.5
+        }
+      ]
+    },
+    "audio_metrics": {
+      "final_mix": {
+        "integrated_lufs": -11.9,
+        "loudness_range_lu": 2.7,
+        "max_true_peak_dbtp": -8.7
+      },
+      "isolated_voice": {
+        "integrated_lufs": -11.9,
+        "loudness_range_lu": 2.7,
+        "max_true_peak_dbtp": -6
+      },
+      "measured_intervals": [
+        {
+          "shot_id": "shot_001",
+          "clip_frame_range": {
+            "start": 0,
+            "end": 30
+          },
+          "master_frame_range": {
+            "start": 0,
+            "end": 30
+          },
+          "master_sample_range": {
+            "start": 0,
+            "end": 48000
+          }
+        },
+        {
+          "shot_id": "shot_002",
+          "clip_frame_range": {
+            "start": 30,
+            "end": 60
+          },
+          "master_frame_range": {
+            "start": 30,
+            "end": 60
+          },
+          "master_sample_range": {
+            "start": 48000,
+            "end": 96000
+          }
+        },
+        {
+          "shot_id": "shot_003",
+          "clip_frame_range": {
+            "start": 60,
+            "end": 150
+          },
+          "master_frame_range": {
+            "start": 60,
+            "end": 150
+          },
+          "master_sample_range": {
+            "start": 96000,
+            "end": 240000
+          }
+        },
+        {
+          "shot_id": "shot_004",
+          "clip_frame_range": {
+            "start": 150,
+            "end": 240
+          },
+          "master_frame_range": {
+            "start": 150,
+            "end": 240
+          },
+          "master_sample_range": {
+            "start": 240000,
+            "end": 384000
+          }
+        }
+      ],
+      "delivery_targets": [
+        {
+          "target_id": "web-standard",
+          "version": "2026.1",
+          "lufs_min": -24,
+          "lufs_max": -8,
+          "max_true_peak_dbtp": -1,
+          "notes": "",
+          "lufs_ok": true,
+          "true_peak_ok": true
+        }
+      ]
+    },
+    "motion_heatmap": {
+      "asset_ref": "asset://qa-demo/qa_motion_sample/v1",
+      "path": "assets/qa_motion_sample/v1.json",
+      "per_second": [
+        {
+          "second": 0,
+          "frame_range": {
+            "start": 0,
+            "end": 30
+          },
+          "mean_mad": 14.527,
+          "max_mad": 209.777,
+          "max_pixel_diff": 243,
+          "level": "high"
+        },
+        {
+          "second": 1,
+          "frame_range": {
+            "start": 30,
+            "end": 60
+          },
+          "mean_mad": 0.841,
+          "max_mad": 6.088,
+          "max_pixel_diff": 231,
+          "level": "low"
+        },
+        {
+          "second": 2,
+          "frame_range": {
+            "start": 60,
+            "end": 90
+          },
+          "mean_mad": 0.535,
+          "max_mad": 13.996,
+          "max_pixel_diff": 231,
+          "level": "low"
+        },
+        {
+          "second": 3,
+          "frame_range": {
+            "start": 90,
+            "end": 120
+          },
+          "mean_mad": 3.426,
+          "max_mad": 51.385,
+          "max_pixel_diff": 178,
+          "level": "medium"
+        },
+        {
+          "second": 4,
+          "frame_range": {
+            "start": 120,
+            "end": 150
+          },
+          "mean_mad": 0,
+          "max_mad": 0,
+          "max_pixel_diff": 0,
+          "level": "static"
+        },
+        {
+          "second": 5,
+          "frame_range": {
+            "start": 150,
+            "end": 180
+          },
+          "mean_mad": 0.063,
+          "max_mad": 1.874,
+          "max_pixel_diff": 231,
+          "level": "low"
+        },
+        {
+          "second": 6,
+          "frame_range": {
+            "start": 180,
+            "end": 210
+          },
+          "mean_mad": 0.001,
+          "max_mad": 0.01,
+          "max_pixel_diff": 3,
+          "level": "static"
+        },
+        {
+          "second": 7,
+          "frame_range": {
+            "start": 210,
+            "end": 240
+          },
+          "mean_mad": 0.063,
+          "max_mad": 1.872,
+          "max_pixel_diff": 231,
+          "level": "low"
+        }
+      ],
+      "mean_mad": 2.381
+    },
+    "studio_links": [
+      {
+        "issue_id": "qa_001",
+        "shot_id": "shot_002",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 40,
+          "end": 50
+        },
+        "local_frame_range": {
+          "start": 10,
+          "end": 20
+        },
+        "time_range_seconds": {
+          "start": 1.333,
+          "end": 1.667
+        },
+        "sample_range": {
+          "start": 64000,
+          "end": 80000
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_defect_f000045/v1",
+          "asset://qa-demo/diagram_moving/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_002",
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 15,
+          "end": 16
+        },
+        "local_frame_range": {
+          "start": 15,
+          "end": 16
+        },
+        "time_range_seconds": {
+          "start": 0.5,
+          "end": 0.533
+        },
+        "sample_range": {
+          "start": 24000,
+          "end": 25600
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_defect_f000015/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_003",
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 100,
+          "end": 105
+        },
+        "local_frame_range": {
+          "start": 40,
+          "end": 45
+        },
+        "time_range_seconds": {
+          "start": 3.333,
+          "end": 3.5
+        },
+        "sample_range": {
+          "start": 160000,
+          "end": 168000
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_defect_f000100/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_004",
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 105,
+          "end": 150
+        },
+        "local_frame_range": {
+          "start": 45,
+          "end": 90
+        },
+        "time_range_seconds": {
+          "start": 3.5,
+          "end": 5
+        },
+        "sample_range": {
+          "start": 168000,
+          "end": 240000
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_defect_f000105/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_005",
+        "shot_id": "shot_004",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 150,
+          "end": 240
+        },
+        "local_frame_range": {
+          "start": 0,
+          "end": 90
+        },
+        "time_range_seconds": {
+          "start": 5,
+          "end": 8
+        },
+        "sample_range": {
+          "start": 240000,
+          "end": 384000
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/fault_media/v1"
+        ]
+      },
+      {
+        "issue_id": "qa_006",
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "absolute_frame_range": {
+          "start": 75,
+          "end": 120
+        },
+        "local_frame_range": {
+          "start": 15,
+          "end": 60
+        },
+        "time_range_seconds": {
+          "start": 2.5,
+          "end": 4
+        },
+        "sample_range": {
+          "start": 120000,
+          "end": 192000
+        },
+        "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+        "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+        "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "frame_evidence_refs": [
+          "asset://qa-demo/qa_waveform_img_sample/v1",
+          "asset://qa-demo/qa_waveform_sample/v1"
+        ]
+      }
+    ],
+    "shot_windows": [
+      {
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 0,
+          "end": 30
+        },
+        "original_range": {
+          "start": 0,
+          "end": 30
+        },
+        "local_frames": 30
+      },
+      {
+        "shot_id": "shot_002",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 30,
+          "end": 60
+        },
+        "original_range": {
+          "start": 30,
+          "end": 60
+        },
+        "local_frames": 30
+      },
+      {
+        "shot_id": "shot_003",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 60,
+          "end": 150
+        },
+        "original_range": {
+          "start": 60,
+          "end": 150
+        },
+        "local_frames": 90
+      },
+      {
+        "shot_id": "shot_004",
+        "chapter_id": "ch_001",
+        "frame_range": {
+          "start": 150,
+          "end": 240
+        },
+        "original_range": {
+          "start": 150,
+          "end": 240
+        },
+        "local_frames": 90
+      }
+    ],
+    "inspect_media_input": {
+      "media_ref": "asset://qa-demo/fault_media/v1",
+      "expected_spec": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "sample_rate_hz": 48000
+      },
+      "sample_ranges": [
+        {
+          "start": 0,
+          "end": 240
+        }
+      ]
+    },
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "qa-5ffa1666-3f55-4893-9ff7-3ce2623b547d",
+      "artifact_refs": [
+        "asset://qa-demo/qa_report_sample/v1",
+        "asset://qa-demo/qa_contact_sheet_sample/v1",
+        "asset://qa-demo/qa_waveform_sample/v1"
+      ],
+      "warnings": [
+        "CAPTION_COLLISION: element card_a overlaps active caption at frames [40, 50) (peak frame 45, iou 0.2756)",
+        "SINGLE_FRAME_FLASH (white_flash): frame [15, 16) peak luma 253",
+        "UNINTENDED_BLACK: frames [100, 105) mean luma 0",
+        "UNDECLARED_FREEZE: static run [105, 150) (45 frames)",
+        "UNINTENDED_SILENCE: frames [75, 120) (1.5s)"
+      ],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 0,
+        "actual_minor": 0
+      },
+      "retryable": false,
+      "next_action": "review"
+    },
+    "issues": [
+      {
+        "code": "CAPTION_COLLISION",
+        "shot_id": "shot_002",
+        "element_id": "card_a",
+        "start": 40,
+        "end": 50,
+        "peak_frame": 45,
+        "message": "镜头 shot_002 的元素 card_a 在帧 [40, 50)（峰值帧 45）与活动字幕撞框"
+      },
+      {
+        "code": "SINGLE_FRAME_FLASH",
+        "shot_id": "shot_001",
+        "start": 15,
+        "end": 16,
+        "message": "镜头 shot_001 在帧 [15, 16) 检测到单帧闪白/亮度突变"
+      },
+      {
+        "code": "UNINTENDED_BLACK",
+        "shot_id": "shot_003",
+        "start": 100,
+        "end": 105,
+        "message": "镜头 shot_003 在帧 [100, 105) 检测到非预期黑场"
+      },
+      {
+        "code": "UNDECLARED_FREEZE",
+        "shot_id": "shot_003",
+        "start": 105,
+        "end": 150,
+        "frames": 45,
+        "message": "镜头 shot_003 在帧 [105, 150) 存在未声明的连续静止（45 帧）"
+      },
+      {
+        "code": "UNINTENDED_SILENCE",
+        "shot_id": "shot_003",
+        "start": 75,
+        "end": 120,
+        "message": "镜头 shot_003 在帧 [75, 120) 检测到非预期静音"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

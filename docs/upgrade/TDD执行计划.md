@@ -6,7 +6,7 @@
 
 **架构**　一个 Orchestrator 管状态和授权。Node.js / TypeScript 服务消费现有 JSON Schema，SQLite 保存项目及作业。角色、图解和音频按镜头编译，再由确定性 Worker 生产。Python 保留为离线验收入口。
 
-**给接手模型**　先读[项目计划](项目计划书.md)、[升级设计](升级详细设计.md)、[验收计划](验收计划.md)与[当前状态](交接状态与证据.md)。T00–T04 已实际完成，T05 的数据通路、T06 的资产目录、T07 的编译器、T08 的烘焙器与 T09 的渲染/返修/恢复运行时已在 RUNTIME 级完成（真实语音的 A05、原创美术的 A06/A11 验收待办），下一张卡是 T10。`runtime/cli.ts`、`runtime/doctor.ts`、`runtime/preview.ts`、`runtime/i18n.ts` 与 `tests/runtime/` 由 T01 建立，`runtime/project-store.ts`、`runtime/orchestrator.ts`、`runtime/approvals.ts` 由 T02 建立，`runtime/jobs.ts`、`runtime/ledger.ts` 由 T03 建立，`runtime/content.ts`、`tools/search_sources/adapter.ts` 由 T04 建立，`runtime/audio.ts`、`runtime/assets.ts`、`tools/align_audio/adapter.ts`、`tools/generate_tts/adapter.ts` 由 T05 建立，T06 在 `runtime/assets.ts` 中加入资产登记、授权、场景模板与装配前检查，`runtime/compiler.ts`、`runtime/timebase.ts` 由 T07 建立，`runtime/baker.ts`、`tools/bake_character/adapter.ts`、`tests/runtime/studio-fixture.mjs` 由 T08 建立，`tools/render_shot/adapter.ts`、`runtime/render.ts`、`runtime/revision.ts` 由 T09 建立；仓库尚无 package.json、Studio 或 QA 质检器。以下 `runtime/`、`studio/` 和 `tests/runtime/` 路径是实施时创建的位置，现有 `schemas/`、`skills/`、`policies/` 和 `tools/` 继续作为权威入口。
+**给接手模型**　先读[项目计划](项目计划书.md)、[升级设计](升级详细设计.md)、[验收计划](验收计划.md)与[当前状态](交接状态与证据.md)。T00–T04 已实际完成，T05 的数据通路、T06 的资产目录、T07 的编译器、T08 的烘焙器、T09 的渲染/返修/恢复运行时、T10 的三级 QA/盲评运行时与 T11 的无头交付/归档/还原运行时（按所有者选定的 **方案 A 纯 Agent Skill 裁剪**：正式裁掉 React `studio/` 工作台）已在 RUNTIME 级完成（真实语音的 A05、原创美术的 A06/A11 验收待办），下一张卡是 T12。`runtime/cli.ts`、`runtime/doctor.ts`、`runtime/preview.ts`、`runtime/i18n.ts` 与 `tests/runtime/` 由 T01 建立，`runtime/project-store.ts`、`runtime/orchestrator.ts`、`runtime/approvals.ts` 由 T02 建立，`runtime/jobs.ts`、`runtime/ledger.ts` 由 T03 建立，`runtime/content.ts`、`tools/search_sources/adapter.ts` 由 T04 建立，`runtime/audio.ts`、`runtime/assets.ts`、`tools/align_audio/adapter.ts`、`tools/generate_tts/adapter.ts` 由 T05 建立，T06 在 `runtime/assets.ts` 中加入资产登记、授权、场景模板与装配前检查，`runtime/compiler.ts`、`runtime/timebase.ts` 由 T07 建立，`runtime/baker.ts`、`tools/bake_character/adapter.ts`、`tests/runtime/studio-fixture.mjs` 由 T08 建立，`tools/render_shot/adapter.ts`、`runtime/render.ts`、`runtime/revision.ts` 由 T09 建立，`tools/inspect_media/adapter.ts`、`runtime/qa.ts` 由 T10 建立，`runtime/export.ts`、`tools/package_project/adapter.ts` 由 T11 建立。以下 `runtime/` 和 `tests/runtime/` 为实施路径（`studio/` 已按方案 A 裁减），现有 `schemas/`、`skills/`、`policies/` 和 `tools/` 继续作为权威入口。
 
 ## 开工与每张卡的闭环
 
@@ -38,7 +38,7 @@ python3 -B -m unittest discover -s evals -p 'test_*.py' -v
 | T08 | T06、T07 | 顺序烘焙、可随机取帧的图层 | A08 |
 | T09 | T02、T03、T07、T08 | 逐镜/章渲染、返修规划与恢复 | A09、A12 |
 | T10 | T05、T08、T09 | 几何和媒体 QA、联系表与样片评审 | A10、A11 |
-| T11 | T02、T09、T10 | Studio 生产路径、清单、归档与还原 | A13 |
+| T11 | T02、T09、T10 | 无头交付路径（方案 A）、清单、归档与还原 | A13 |
 | T12 | T01–T11 生产依赖就绪 | 三档短片取证、三期长片验收 | A14、A15 |
 | T13 · 可选 | T03、T08、T09、T10，所有者已启用 | 受控插镜及回退 | A16 |
 
@@ -127,17 +127,17 @@ python3 -B -m unittest discover -s evals -p 'test_*.py' -v
 
 创建 `runtime/qa.ts`、`tools/inspect_media/adapter.ts`、`tests/runtime/T10-qa.test.mjs`。复用本包已有的媒体判定规则或同一组测试向量，避免两份规则漂移。
 
-- [ ] **RED**　准备一帧闪白、轨迹中途字幕相撞、意外黑场与导演声明的正常静止读图。断言异常给出帧号，允许的停留仍标记原目的。报告绑定所查媒体哈希。
-- [ ] **GREEN**　渲染前做几何与引用检查。渲染后逐帧查单帧异常、抽样查呈现效果。生成 12 格联系表和 20–30 秒有声样片，QA 返回问题及证据，G3 由人签发。
-- [ ] **REFACTOR**　同一 QA 结果可从工作台跳转到镜头与波形。运行 `node --test tests/runtime/T10-qa.test.mjs`。留基线与升级版双片、盲评顺序与人类意见 → A10、A11。
+- [x] **RED**　准备一帧闪白、轨迹中途字幕相撞、意外黑场与导演声明的正常静止读图。断言异常给出帧号，允许的停留仍标记原目的。报告绑定所查媒体哈希。
+- [x] **GREEN**　渲染前做几何与引用检查。渲染后逐帧查单帧异常、抽样查呈现效果。生成 12 格联系表和 20–30 秒有声样片，QA 返回问题及证据，G3 由人签发。
+- [ ] **REFACTOR**　同一 QA 结果可从工作台跳转到镜头与波形。运行 `node --test tests/runtime/T10-qa.test.mjs`。留基线与升级版双片、盲评顺序与人类意见 → A10、A11。（工作台导航契约、专项测试、受控基线双片、盲评排序与宿主模拟评审已完成；真实原创美术/人声的真人 A11 主观评审意见尚未完成，此框保持未勾。）
 
-## T11　工作台、发布清单与可恢复归档
+## T11　无头追溯、发布清单与可恢复归档（方案 A 裁剪）
 
-创建 `studio/` 的 React 工作台、`runtime/export.ts`、`tools/package_project/adapter.ts`、`tests/runtime/T11-delivery.test.mjs`、`tests/ui/T11-review.test.mjs`。UI 走和 CLI 相同的项目服务及审批规则。
+项目所有者确认采用 **方案 A（纯 Agent Skill 裁剪）**：所有编辑与返修均通过 Agent + Skill CLI 完成，正式裁掉 React `studio/` 工作台及 `tests/ui/T11-review.test.mjs`。创建 `runtime/export.ts`、`tools/package_project/adapter.ts`、`tests/runtime/T11-delivery.test.mjs`，并随包生成零依赖单文件静态审片报告 `deliverables/review-report.html`。
 
-- [ ] **RED**　在 UI 从论点跳到来源、从字幕跳到词锚，修改一镜并刷新页面。使用旧 G4 或替换 G5 清单字节时，导出服务应拒绝。把合法包放入新目录后应能重开并找到原资产哈希。
-- [ ] **GREEN**　接项目库、脚本与分镜、角色/图层、时间轴、QA/审批、导出视图。先签 G4，再做不含 G5 自身收据的 manifest，G5 固定该清单，归档后逐文件校验。
-- [ ] **REFACTOR**　合并 UI 与打包器中的版本读取。运行 `node --test tests/runtime/T11-delivery.test.mjs tests/ui/T11-review.test.mjs`。保留实际浏览器操作记录、签收和重开报告 → A13。
+- [x] **RED**　通过 `trace` 从论点跳到来源、从字幕跳到词锚，修改一镜（`revise`）后刷新版本。使用旧 G4 或替换 G5 清单字节时，导出与打包服务应拒绝。把合法包放入新目录后应能重开、验证原资产哈希并逐镜编辑。
+- [x] **GREEN**　先签 G4，生成经过 HTML 转义的 `deliverables/review-report.html` 与不含 G5 自身收据的 `ExportManifest`，G5 绑定 `manifest_hash`，打包 `.tar.gz` 后逐文件解包校验哈希并推动 `archive_verified` → `DELIVERED`，最后在新目录还原重开。
+- [x] **REFACTOR**　合并 `trace`、`manifest` 与 `package` 中的共享快照读取（`getProjectSnapshot`）。运行 `node --test tests/runtime/T11-delivery.test.mjs`。保留追溯、篡改拒收、审片 HTML、签收与重开报告 → A13（RUNTIME 级夹具与模拟会话验证；真实人类签收归于 T12）。
 
 ## T12　真实节目与整体验收
 

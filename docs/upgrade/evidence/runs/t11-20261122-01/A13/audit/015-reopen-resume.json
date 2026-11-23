@@ -1,0 +1,29 @@
+{
+  "seq": 15,
+  "label": "reopen-resume",
+  "op": "resume",
+  "session": null,
+  "request": {
+    "project_id": "deliver-demo"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "OK",
+    "project_id": "deliver-demo",
+    "state": "APPROVED",
+    "version": 22,
+    "event_count": 21,
+    "resolved": {
+      "duration_profile": "short",
+      "duration_target_seconds": 60,
+      "target_frames": 1800
+    },
+    "content_versions": {
+      "brief": 1,
+      "evidence": 1,
+      "script": 1
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

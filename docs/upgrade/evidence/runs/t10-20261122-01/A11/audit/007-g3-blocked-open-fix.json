@@ -1,0 +1,33 @@
+{
+  "seq": 7,
+  "label": "g3-blocked-open-fix",
+  "op": "decide",
+  "session": "human:owner (simulated)",
+  "request": {
+    "project_id": "qa-demo",
+    "expected_version": 17,
+    "idempotency_key": "g3-blk",
+    "gate": "G3",
+    "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+    "decision": "approve",
+    "notes": "带未关闭必改项尝试放行"
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "qa-demo",
+    "state": "SAMPLE_REVIEW",
+    "version": 17,
+    "event_count": 16,
+    "issues": [
+      {
+        "code": "REQUIRED_FIXES_OPEN",
+        "gate": "G3",
+        "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+        "open_count": 1,
+        "message": "G3 目标 sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9 仍有 1 个未关闭的必改项，清零后方可签发"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

@@ -38,10 +38,39 @@ export function currentTarget(db: Db, projectId: string, gate: string): string |
 }
 
 // Gate requirements need the latest decision on the current material to be an approval.
-// Other requirements (QA facts) are read from payload.checks until T10 records them as its own facts.
+// QA facts (sample_qa_pass / final_qa_pass) are checked against recorded T10 qa_reports when present;
+// if no QA report is recorded yet for that hash, falls back to payload.checks for legacy workflow tests.
 export function requirementIssues(db: Db, projectId: string, requires: string[], payload: any): Issue[] {
   return requires.flatMap((name): Issue[] => {
-    if (!GATES[name]) return payload?.checks?.[name] === true ? [] : [{ code: 'REQUIREMENT_UNMET', requirement: name }];
+    if (!GATES[name]) {
+      if (name === 'sample_qa_pass' || name === 'final_qa_pass') {
+        const qaTarget = name === 'sample_qa_pass'
+          ? (payload?.target_hash ?? currentTarget(db, projectId, 'G3'))
+          : (payload?.artifact_hash ?? payload?.target_hash);
+        if (qaTarget) {
+          const qa = db.prepare('SELECT result, blocking_count FROM qa_reports WHERE project_id = ? AND target_hash = ? ORDER BY version DESC LIMIT 1')
+            .get(projectId, qaTarget) as { result: string; blocking_count: number } | undefined;
+          if (qa) {
+            return qa.result === 'fail' || qa.blocking_count > 0
+              ? [{ code: 'QA_BLOCKING_ISSUES', requirement: name, target_hash: qaTarget, blocking_count: qa.blocking_count }]
+              : [];
+          }
+        }
+      }
+      if (name === 'archive_hashes_match') {
+        const manifestHash = payload?.manifest_hash ?? currentTarget(db, projectId, 'G5');
+        if (manifestHash) {
+          const pkg = db.prepare('SELECT verified FROM packages WHERE project_id = ? AND manifest_hash = ? ORDER BY version DESC LIMIT 1')
+            .get(projectId, manifestHash) as { verified: number } | undefined;
+          if (pkg) {
+            return pkg.verified === 1
+              ? []
+              : [{ code: 'ARCHIVE_VERIFY_FAILED', manifest_hash: manifestHash }];
+          }
+        }
+      }
+      return payload?.checks?.[name] === true ? [] : [{ code: 'REQUIREMENT_UNMET', requirement: name }];
+    }
     const target = currentTarget(db, projectId, name);
     const latest = db.prepare('SELECT decision FROM approvals WHERE project_id = ? AND gate = ? AND target_hash = ? ORDER BY version DESC LIMIT 1')
       .get(projectId, name, target) as { decision: string } | undefined;
@@ -75,6 +104,18 @@ export function decide(project: string, request: DecisionRequest, token = proces
     const target = currentTarget(db, request.project_id, request.gate);
     if (!target || request.target_hash !== target) {
       return reject({ code: 'APPROVAL_TARGET_MISMATCH', gate: request.gate, target_hash: request.target_hash, current_target_hash: target });
+    }
+    if (request.gate === 'G3' && request.decision === 'approve') {
+      const qa = db.prepare('SELECT result, blocking_count FROM qa_reports WHERE project_id = ? AND target_hash = ? ORDER BY version DESC LIMIT 1')
+        .get(request.project_id, target) as { result: string; blocking_count: number } | undefined;
+      if (qa && (qa.result === 'fail' || qa.blocking_count > 0)) {
+        return reject({ code: 'QA_BLOCKING_ISSUES', gate: 'G3', target_hash: target, blocking_count: qa.blocking_count });
+      }
+      const openRow = db.prepare('SELECT COALESCE(SUM(open_required_fixes), 0) AS n FROM ab_comparisons WHERE project_id = ? AND target_hash = ?')
+        .get(request.project_id, target) as { n: number };
+      if (openRow.n > 0) {
+        return reject({ code: 'REQUIRED_FIXES_OPEN', gate: 'G3', target_hash: target, open_count: openRow.n });
+      }
     }
 
     const current = pre.project;

@@ -1,0 +1,22 @@
+{
+  "profile": "short",
+  "target_seconds": null,
+  "status": "FAIL",
+  "observed": {
+    "major_brand": "isom",
+    "frames": 660,
+    "width": 1920,
+    "height": 1080,
+    "pixel_format": "yuv420p",
+    "video_codec": "h264",
+    "frame_grid_fps": 30,
+    "sample_rate_hz": 48000,
+    "audio_codec": "aac",
+    "audio_start_seconds": 0,
+    "audio_end_seconds": 22
+  },
+  "issues": [
+    "DURATION_PROFILE"
+  ],
+  "media_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9"
+}

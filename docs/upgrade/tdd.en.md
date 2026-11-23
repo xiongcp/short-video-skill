@@ -6,7 +6,7 @@
 
 **Architecture.** One orchestrator owns state and authorization. A Node.js/TypeScript service consumes the existing JSON schemas. SQLite persists projects and jobs. Deterministic workers render shot-level character, diagram and audio plans from compiled timelines. Python remains the offline acceptance entry point.
 
-**Handoff.** Read the [project plan](project-plan.en.md), [upgrade design](design.en.md), [acceptance plan](acceptance.en.md) and [current status](handoff-status.en.md). T00–T04 are complete and the T05 data path, T06 asset catalog, T07 compiler, T08 baker and T09 render/revision/recovery runtime are complete at RUNTIME level (the real-voice A05 and original-art A06/A11 acceptances are open); T10 is the next card. T01 created `runtime/cli.ts`, `runtime/doctor.ts`, `runtime/preview.ts`, `runtime/i18n.ts` and `tests/runtime/`; T02 created `runtime/project-store.ts`, `runtime/orchestrator.ts` and `runtime/approvals.ts`; T03 created `runtime/jobs.ts` and `runtime/ledger.ts`; T04 created `runtime/content.ts` and `tools/search_sources/adapter.ts`; T05 created `runtime/audio.ts`, `runtime/assets.ts`, `tools/align_audio/adapter.ts` and `tools/generate_tts/adapter.ts`; T06 added registration, clearance, scene templates and preflight to `runtime/assets.ts`; T07 created `runtime/compiler.ts` and `runtime/timebase.ts`; T08 created `runtime/baker.ts`, `tools/bake_character/adapter.ts` and `tests/runtime/studio-fixture.mjs`; T09 created `tools/render_shot/adapter.ts`, `runtime/render.ts` and `runtime/revision.ts`; there is still no `package.json`, Studio or QA runner. Paths under `runtime/`, `studio/` and `tests/runtime/` below are planned files. The existing `schemas/`, `skills/`, `policies/` and `tools/` define the starting interfaces.
+**Handoff.** Read the [project plan](project-plan.en.md), [upgrade design](design.en.md), [acceptance plan](acceptance.en.md) and [current status](handoff-status.en.md). T00–T04 are complete and the T05 data path, T06 asset catalog, T07 compiler, T08 baker, T09 render/revision/recovery runtime, T10 three-level QA/sample review runtime, and T11 headless delivery/export/restore runtime (Plan A: React `studio/` UI formally descoped for pure Agent + Skill operation) are complete at RUNTIME level (the real-voice A05 and original-art A06/A11 acceptances are open); T12 is the next card. T01 created `runtime/cli.ts`, `runtime/doctor.ts`, `runtime/preview.ts`, `runtime/i18n.ts` and `tests/runtime/`; T02 created `runtime/project-store.ts`, `runtime/orchestrator.ts` and `runtime/approvals.ts`; T03 created `runtime/jobs.ts` and `runtime/ledger.ts`; T04 created `runtime/content.ts` and `tools/search_sources/adapter.ts`; T05 created `runtime/audio.ts`, `runtime/assets.ts`, `tools/align_audio/adapter.ts` and `tools/generate_tts/adapter.ts`; T06 added registration, clearance, scene templates and preflight to `runtime/assets.ts`; T07 created `runtime/compiler.ts` and `runtime/timebase.ts`; T08 created `runtime/baker.ts`, `tools/bake_character/adapter.ts` and `tests/runtime/studio-fixture.mjs`; T09 created `tools/render_shot/adapter.ts`, `runtime/render.ts` and `runtime/revision.ts`; T10 created `tools/inspect_media/adapter.ts` and `runtime/qa.ts`; T11 created `runtime/export.ts` and `tools/package_project/adapter.ts`. Paths under `runtime/` and `tests/runtime/` below reflect the implemented runtime layout (`studio/` was descoped under Plan A). The existing `schemas/`, `skills/`, `policies/` and `tools/` define the starting interfaces.
 
 ## Starting work and closing each card
 
@@ -38,7 +38,7 @@ The proposed Node tests are `.mjs` files that exercise the public CLI or service
 | T08 | T06, T07 | Sequential bake, randomly addressable output frames | A08 |
 | T09 | T02, T03, T07, T08 | Shot/chapter rendering, revision planning and recovery | A09, A12 |
 | T10 | T05, T08, T09 | Geometry and media QA, contact sheet and sample review | A10, A11 |
-| T11 | T02, T09, T10 | Studio production path, manifest, archive and restore | A13 |
+| T11 | T02, T09, T10 | Headless delivery path (Plan A), manifest, archive and restore | A13 |
 | T12 | Production dependencies T01–T11 ready | Three short durations and three long episodes qualified | A14, A15 |
 | T13 optional | T03, T08, T09, T10 and owner enablement | Controlled insert and fallback | A16 |
 
@@ -127,17 +127,17 @@ Create `tools/render_shot/adapter.ts`, `runtime/render.ts`, `runtime/revision.ts
 
 Create `runtime/qa.ts`, `tools/inspect_media/adapter.ts` and `tests/runtime/T10-qa.test.mjs`. Reuse the existing technical rules or their common test vectors.
 
-- [ ] **RED** Inject a one-frame flash, mid-motion subtitle collision, unintended black and a declared diagram hold. Require frame numbers for defects, preserve the hold reason and bind the report to the inspected media hash.
-- [ ] **GREEN** Preflight geometry and references. Check single-frame anomalies per frame and sample composition quality. Produce a 12-cell contact sheet and 20–30 second sample with sound. Return issues and evidence for human G3.
-- [ ] **REFACTOR** Let the Studio open the shot and waveform from the same result. Run `node --test tests/runtime/T10-qa.test.mjs`. For A10/A11 keep both comparison clips, blinded ordering and human notes.
+- [x] **RED** Inject a one-frame flash, mid-motion subtitle collision, unintended black and a declared diagram hold. Require frame numbers for defects, preserve the hold reason and bind the report to the inspected media hash.
+- [x] **GREEN** Preflight geometry and references. Check single-frame anomalies per frame and sample composition quality. Produce a 12-cell contact sheet and 20–30 second sample with sound. Return issues and evidence for human G3.
+- [ ] **REFACTOR** Let the Studio open the shot and waveform from the same result. Run `node --test tests/runtime/T10-qa.test.mjs`. For A10/A11 keep both comparison clips, blinded ordering and human notes. (Studio navigation, focused tests, controlled-baseline clips, blinded ordering and simulated review are done; genuine original-art/real-voice human A11 review notes remain open, so this box stays open.)
 
-## T11 · Studio, export manifest and restorable archive
+## T11 · Headless traceability, export manifest and restorable archive (Plan A descoped)
 
-Create the React `studio/`, `runtime/export.ts`, `tools/package_project/adapter.ts`, `tests/runtime/T11-delivery.test.mjs` and `tests/ui/T11-review.test.mjs`. UI and CLI share the project service and approval rules.
+Owner approved **Plan A (Pure Agent Skill descoping)**: because all authoring and revisions run via Agent + Skill CLI, the React `studio/` SPA and `tests/ui/T11-review.test.mjs` are formally descoped. Create `runtime/export.ts`, `tools/package_project/adapter.ts` and `tests/runtime/T11-delivery.test.mjs`. Traceability, manifest preparation and packaging share the project store snapshot and approval rules, outputting a zero-dependency standalone `deliverables/review-report.html`.
 
-- [ ] **RED** Navigate from claim to source and subtitle to word, change one shot and refresh. Reject stale G4 or changed G5 manifest bytes. A valid archive in a new directory should reopen with its original asset hashes.
-- [ ] **GREEN** Connect library, script/board, character/layers, timeline, QA/review and export views. Sign G4, create a manifest excluding the G5 receipt, have G5 bind it, then verify every archived file.
-- [ ] **REFACTOR** Share revision retrieval between UI and packager. Run `node --test tests/runtime/T11-delivery.test.mjs tests/ui/T11-review.test.mjs`. Save actual browser actions, sign-off and reopen report for A13.
+- [x] **RED** Trace from claim to source and subtitle to word, change one shot and refresh (`trace` after `revise`). Reject stale G4 or changed G5 manifest bytes. A valid archive in a new directory should reopen with its original asset hashes and allow shot-level editing.
+- [x] **GREEN** Generate `deliverables/review-report.html` (XSS-escaped) and `ExportManifest` (excluding itself and G5 receipt) after human G4, bind G5 to `manifest_hash`, package `.tar.gz`, verify every archived file after extraction, advance `archive_verified` → `DELIVERED`, and reopen/edit in a new directory.
+- [x] **REFACTOR** Share `getProjectSnapshot` across `trace`, `manifest` and `package`. Run `node --test tests/runtime/T11-delivery.test.mjs`. Save traceable outputs, tamper rejections, review HTML, sign-off and restore report for A13 (RUNTIME level with fixtures and simulated human sessions; real-owner sign-offs remain with T12).
 
 ## T12 · Genuine episodes and production acceptance
 

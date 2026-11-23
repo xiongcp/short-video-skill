@@ -1,0 +1,104 @@
+{
+  "by_flash_issue": {
+    "issue_id": "qa_002",
+    "shot_id": "shot_001",
+    "chapter_id": "ch_001",
+    "absolute_frame_range": {
+      "start": 15,
+      "end": 16
+    },
+    "local_frame_range": {
+      "start": 15,
+      "end": 16
+    },
+    "time_range_seconds": {
+      "start": 0.5,
+      "end": 0.533
+    },
+    "sample_range": {
+      "start": 24000,
+      "end": 25600
+    },
+    "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+    "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+    "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+    "frame_evidence_refs": [
+      "asset://qa-demo/qa_defect_f000015/v1"
+    ]
+  },
+  "by_collision_issue": {
+    "issue_id": "qa_001",
+    "shot_id": "shot_002",
+    "chapter_id": "ch_001",
+    "absolute_frame_range": {
+      "start": 40,
+      "end": 50
+    },
+    "local_frame_range": {
+      "start": 10,
+      "end": 20
+    },
+    "time_range_seconds": {
+      "start": 1.333,
+      "end": 1.667
+    },
+    "sample_range": {
+      "start": 64000,
+      "end": 80000
+    },
+    "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+    "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+    "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1",
+    "frame_evidence_refs": [
+      "asset://qa-demo/qa_defect_f000045/v1",
+      "asset://qa-demo/diagram_moving/v1"
+    ]
+  },
+  "by_contact_cell_6": {
+    "cell": 6,
+    "shot_id": "shot_003",
+    "chapter_id": "ch_001",
+    "absolute_frame_range": {
+      "start": 109,
+      "end": 110
+    },
+    "local_frame_range": {
+      "start": 49,
+      "end": 50
+    },
+    "time_range_seconds": {
+      "start": 3.633,
+      "end": 3.667
+    },
+    "sample_range": {
+      "start": 174400,
+      "end": 176000
+    },
+    "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+    "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+    "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1"
+  },
+  "by_hold_frame_160": {
+    "shot_id": "shot_004",
+    "chapter_id": "ch_001",
+    "absolute_frame_range": {
+      "start": 160,
+      "end": 161
+    },
+    "local_frame_range": {
+      "start": 10,
+      "end": 11
+    },
+    "time_range_seconds": {
+      "start": 5.333,
+      "end": 5.367
+    },
+    "sample_range": {
+      "start": 256000,
+      "end": 257600
+    },
+    "waveform_ref": "asset://qa-demo/qa_waveform_sample/v1",
+    "waveform_png_ref": "asset://qa-demo/qa_waveform_img_sample/v1",
+    "contact_sheet_ref": "asset://qa-demo/qa_contact_sheet_sample/v1"
+  }
+}

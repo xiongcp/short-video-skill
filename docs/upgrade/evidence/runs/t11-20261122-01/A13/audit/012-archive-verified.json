@@ -1,0 +1,24 @@
+{
+  "seq": 12,
+  "label": "archive-verified",
+  "op": "event",
+  "session": null,
+  "request": {
+    "project_id": "deliver-demo",
+    "expected_version": 25,
+    "idempotency_key": "arch-ver",
+    "event": "archive_verified",
+    "payload": {}
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "deliver-demo",
+    "state": "DELIVERED",
+    "version": 26,
+    "event_count": 25,
+    "event_id": "evt-c6d41099-e111-400a-9841-fdb9a8b50b55",
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

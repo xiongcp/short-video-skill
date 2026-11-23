@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>T11无头交付与归档演示 — 审片与交付汇总 (v1)</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px auto; max-width: 1120px; color: #162032; background: #f8fafc; line-height: 1.5; }
+  h1, h2 { color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; }
+  .meta { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; }
+  .files { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; }
+  .files a { display: inline-block; padding: 6px 12px; background: #e2e8f0; color: #0f172a; text-decoration: none; border-radius: 6px; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; margin-bottom: 20px; font-size: 13px; }
+  th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f1f5f9; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; word-break: break-all; }
+</style>
+</head>
+<body>
+  <h1>T11无头交付与归档演示 (deliver-demo)</h1>
+  <div class="meta">
+    <div><strong>清单版本:</strong> v1 · <strong>模式:</strong> quality · <strong>主题:</strong> HTTP 缓存机制</div>
+    <div><strong>正式母版哈希:</strong> <code>sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592</code></div>
+    <div><strong>预算消耗:</strong> 币种 N/A · 已结算 0 · 预留 0</div>
+  </div>
+  <h2>交付物索引 (Deliverables)</h2>
+  <ul class="files">
+    <li><a href="final.mp4">成片视频 (MP4)</a></li>
+    <li><a href="subtitles.srt">字幕文件 (SRT)</a></li>
+    <li><a href="voice-master.wav">主音轨 (48 kHz WAV)</a></li>
+    <li><a href="sources.json">来源与论点映射 (JSON)</a></li>
+    <li><a href="qa-report.json">质检报告 (QAReport JSON)</a></li>
+    <li><a href="cost-ledger.json">成本账本 (JSON)</a></li>
+    <li><a href="approvals-g1-g4.json">G1–G4 人工审批记录 (JSON)</a></li>
+    <li><a href="chapters.json">章节时间戳 (JSON)</a></li>
+    <li><a href="contact-sheet.png">3×4 时间码联系表 (PNG)</a></li>
+    <li><a href="waveform.png">音频波形图 (PNG)</a></li>
+  </ul>
+  <h2>3×4 联系表与波形预览</h2><p><img src="contact-sheet.png" alt="contact sheet" style="max-width:100%;border:1px solid #cbd5e1"></p>
+  <p><img src="waveform.png" alt="waveform" style="max-width:100%;border:1px solid #cbd5e1"></p>
+  <h2>论点与来源追溯 (Claims &amp; Sources)</h2>
+  <table><thead><tr><th>论点 ID</th><th>状态</th><th>陈述与限定</th><th>支持来源</th></tr></thead><tbody><tr><td>claim_ttl</td><td>supported</td><td>max-age 指定响应可被复用的秒数<br><small>遵循 RFC 9111 §5.2.2.1</small></td><td><ul><li><strong>rfc9111</strong>: RFC 9111 HTTP Caching &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt; [Section 5.2.2.1, supports] (https://httpwg.org/specs/rfc9111.html)</li></ul></td></tr></tbody></table>
+  <h2>分镜时间线 (Shots)</h2>
+  <table><thead><tr><th>镜头</th><th>章节</th><th>绝对帧区间</th><th>局部帧数</th><th>景别</th><th>目的</th></tr></thead><tbody><tr><td>shot_001</td><td>ch_001</td><td>[0, 240)</td><td>240</td><td>medium</td><td>开场</td></tr>
+<tr><td>shot_002</td><td>ch_001</td><td>[240, 450)</td><td>210</td><td>wide</td><td>图解</td></tr>
+<tr><td>shot_003</td><td>ch_001</td><td>[450, 660)</td><td>210</td><td>medium</td><td>总结</td></tr></tbody></table>
+  <h2>质检报告摘要 (QA: pass)</h2>
+  <table><thead><tr><th>编号</th><th>级别</th><th>类别</th><th>目标</th><th>帧区间</th><th>说明</th></tr></thead><tbody><tr><td>qa_001</td><td>info</td><td>continuity</td><td>shot_002</td><td>[240, 450)</td><td>DECLARED_HOLD_PRESERVED: 读图停留：查看响应头缓存复用流程</td></tr></tbody></table>
+  <h2>人类审批记录 (G1–G4)</h2>
+  <table><thead><tr><th>门禁</th><th>决定</th><th>审核人</th><th>目标哈希</th><th>时间</th><th>备注</th></tr></thead><tbody><tr><td>G1</td><td>approve</td><td>owner</td><td><code>sha256:543dd0b6d4cbab332aa076587ccfbef4773c7ebabc7f654f8db0865997a46a5c</code></td><td>2026-11-23T07:37:08.284Z</td><td>来源已核验（宿主模拟）</td></tr>
+<tr><td>G2</td><td>approve</td><td>owner</td><td><code>sha256:b6fa820f77165d6eb6f12a3862bb762ffe38ff60a38da6c72312eba860a99900</code></td><td>2026-11-23T07:37:08.941Z</td><td>讲稿通过（宿主模拟）</td></tr>
+<tr><td>G3</td><td>approve</td><td>owner</td><td><code>sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592</code></td><td>2026-11-23T07:37:19.094Z</td><td>样片通过（宿主模拟）</td></tr>
+<tr><td>G4</td><td>approve</td><td>owner</td><td><code>sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592</code></td><td>2026-11-23T07:37:21.921Z</td><td>成片与QA通过（宿主模拟）</td></tr></tbody></table>
+</body>
+</html>

@@ -74,6 +74,33 @@ CREATE TABLE IF NOT EXISTS change_plans (
   UNIQUE (project_id, version));
 CREATE TABLE IF NOT EXISTS invalidated_assets (
   asset_ref TEXT PRIMARY KEY REFERENCES assets(asset_ref), reason TEXT NOT NULL, recorded_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS qa_reports (
+  qa_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id), version INTEGER NOT NULL,
+  scope TEXT NOT NULL, target_hash TEXT NOT NULL,
+  result TEXT NOT NULL CHECK (result IN ('pass', 'fail', 'needs_review')), blocking_count INTEGER NOT NULL,
+  asset_ref TEXT NOT NULL, report_body TEXT NOT NULL, bundle_body TEXT NOT NULL, recorded_at TEXT NOT NULL,
+  UNIQUE (project_id, version));
+CREATE TABLE IF NOT EXISTS delivery_targets (
+  row_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id),
+  target_id TEXT NOT NULL, version TEXT NOT NULL, lufs_min REAL NOT NULL, lufs_max REAL NOT NULL,
+  max_true_peak_dbtp REAL NOT NULL, notes TEXT NOT NULL, recorded_at TEXT NOT NULL,
+  UNIQUE (project_id, target_id, version));
+CREATE TABLE IF NOT EXISTS ab_comparisons (
+  comparison_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id),
+  target_hash TEXT NOT NULL, baseline_kind TEXT NOT NULL, seed INTEGER NOT NULL,
+  blinded_body TEXT NOT NULL, key_body TEXT NOT NULL, review_body TEXT,
+  open_required_fixes INTEGER NOT NULL DEFAULT 0, recorded_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS export_manifests (
+  manifest_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id), version INTEGER NOT NULL,
+  manifest_ref TEXT NOT NULL, manifest_hash TEXT NOT NULL, g4_approval_id TEXT NOT NULL,
+  final_media_ref TEXT NOT NULL, qa_ref TEXT NOT NULL, body TEXT NOT NULL, recorded_at TEXT NOT NULL,
+  UNIQUE (project_id, version));
+CREATE TABLE IF NOT EXISTS packages (
+  package_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id), version INTEGER NOT NULL,
+  manifest_hash TEXT NOT NULL, g5_approval_id TEXT NOT NULL, archive_ref TEXT NOT NULL, archive_hash TEXT NOT NULL,
+  verified_file_count INTEGER NOT NULL, verified INTEGER NOT NULL CHECK (verified IN (0, 1)),
+  body TEXT NOT NULL, recorded_at TEXT NOT NULL,
+  UNIQUE (project_id, version));
 `;
 
 export type Db = DatabaseSync;

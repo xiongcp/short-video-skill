@@ -1,0 +1,6 @@
+export-manifest.json valid against workflow#ExportManifest
+package-input.json valid against workflow#PackageProjectInput
+final-package.json valid against workflow#FinalPackage
+tool-result.json valid against workflow#ToolResult
+g4-approval.json valid against workflow#Approval
+g5-approval.json valid against workflow#Approval

@@ -1,0 +1,448 @@
+{
+  "seq": 6,
+  "label": "manifest-prepare",
+  "op": "manifest",
+  "session": null,
+  "request": {
+    "project_id": "deliver-demo",
+    "expected_version": 22,
+    "idempotency_key": "exp-ok"
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "APPLIED",
+    "project_id": "deliver-demo",
+    "state": "EXPORT_REVIEW",
+    "version": 23,
+    "event_count": 22,
+    "event_id": "evt-fe21dbc9-0c73-4cc4-b05b-1c3aa92d7d70",
+    "manifest_ref": "asset://deliver-demo/export_manifest/v1",
+    "manifest_path": "assets/export_manifest/v1.json",
+    "manifest_hash": "sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9",
+    "export_manifest": {
+      "project_id": "deliver-demo",
+      "version": 1,
+      "final_media_ref": "asset://deliver-demo/render_master/v1",
+      "qa_ref": "asset://deliver-demo/qa_report_final/v1",
+      "g4_approval_id": "apv-d4bf24d8-bb3c-4ef4-99b0-dac264ccca61",
+      "files": [
+        {
+          "relative_path": "deliverables/final.mp4",
+          "asset_ref": "asset://deliver-demo/render_master/v1",
+          "hash": "sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592",
+          "role": "video"
+        },
+        {
+          "relative_path": "deliverables/subtitles.srt",
+          "asset_ref": "asset://deliver-demo/subtitles-srt/v1",
+          "hash": "sha256:2387e842d5a0254d9d5220674535f66b5b3f0eb556bf3b4d10e11d43947f9eda",
+          "role": "subtitles"
+        },
+        {
+          "relative_path": "deliverables/voice-master.wav",
+          "asset_ref": "asset://deliver-demo/voice-master/v1",
+          "hash": "sha256:9d9d31671b250223f1d15d1aa32f9db491ca520ff6fe6c31efb90b5fbbe01dc2",
+          "role": "audio"
+        },
+        {
+          "relative_path": "deliverables/sources.json",
+          "asset_ref": "asset://deliver-demo/export_sources/v1",
+          "hash": "sha256:c3533a8719f6db0c082820707e7b637c1205bbea209c41c23fd29fee4ca1f83c",
+          "role": "sources"
+        },
+        {
+          "relative_path": "deliverables/qa-report.json",
+          "asset_ref": "asset://deliver-demo/qa_report_final/v1",
+          "hash": "sha256:ff084623ad5b15369b00adb718acda152a34a8839115ad1613e14b4ada84c1ff",
+          "role": "qa"
+        },
+        {
+          "relative_path": "deliverables/cost-ledger.json",
+          "asset_ref": "asset://deliver-demo/export_cost/v1",
+          "hash": "sha256:d2916ec9b4d308495a9ea0f524c8da3431313eae5b1a86a0f2b5d76765153311",
+          "role": "cost"
+        },
+        {
+          "relative_path": "deliverables/approvals-g1-g4.json",
+          "asset_ref": "asset://deliver-demo/export_approvals/v1",
+          "hash": "sha256:23e320ff655ed1462b4cc2e6c017eac67fe033fe5caa1711eaf4af3d4679235a",
+          "role": "approvals"
+        },
+        {
+          "relative_path": "deliverables/chapters.json",
+          "asset_ref": "asset://deliver-demo/export_chapters/v1",
+          "hash": "sha256:7090bffcd71bd4621e8606f688dec8b556890d91c37f8903467c1fdc50edaca4",
+          "role": "chapters"
+        },
+        {
+          "relative_path": "deliverables/contact-sheet.png",
+          "asset_ref": "asset://deliver-demo/qa_contact_sheet_final/v1",
+          "hash": "sha256:9a2d46eddb971e8e33aa547c0baf1f111b97fe73781b9ea24c27c295dc904f59",
+          "role": "qa"
+        },
+        {
+          "relative_path": "deliverables/waveform.png",
+          "asset_ref": "asset://deliver-demo/qa_waveform_img_final/v1",
+          "hash": "sha256:b4881adcb943ba8717a5d2a52ed13391aa5e261734ea04c27c2de4d34db4af06",
+          "role": "qa"
+        },
+        {
+          "relative_path": "deliverables/review-report.html",
+          "asset_ref": "asset://deliver-demo/export_review_html/v1",
+          "hash": "sha256:e7aaf3c615563d6fd21fd06cc443017da6ee69f2de294ce69c053aa616b18af5",
+          "role": "other"
+        },
+        {
+          "relative_path": "project/studio.sqlite",
+          "asset_ref": "asset://deliver-demo/export_project_db/v1",
+          "hash": "sha256:001a3c203df4de6885d02f2e0654d8a3302f4f2cebaef595fc375abf19bd870e",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/studio_backdrop/v1.png",
+          "asset_ref": "asset://deliver-demo/studio_backdrop/v1",
+          "hash": "sha256:af1424ab357a880ccf8fcf43bce486f921e6c61a64e62e5385cc79ec3e8b761a",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/host_rig/v1.json",
+          "asset_ref": "asset://deliver-demo/host_rig/v1",
+          "hash": "sha256:940fc5b9dbaed6fd84724902b7830033f28c8c17512cf825f75ff59cb387abd8",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/host_voice/v1.wav",
+          "asset_ref": "asset://deliver-demo/host_voice/v1",
+          "hash": "sha256:deca148dfc0978c9a9177b812f96c05ffca7366f4d1156abf06f40f492eee8f2",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/host_main/v1.png",
+          "asset_ref": "asset://deliver-demo/host_main/v1",
+          "hash": "sha256:18f5ccb9bd8d3aef251b38867cdda4c6df87e7811167ea75b2dbc1575855d403",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/diagram_static/v1.json",
+          "asset_ref": "asset://deliver-demo/diagram_static/v1",
+          "hash": "sha256:49b4ffc09d54cf4300f1aae20de343f9544a9000f1cbc7816778038d52221cc3",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/subtitle_style/v1.json",
+          "asset_ref": "asset://deliver-demo/subtitle_style/v1",
+          "hash": "sha256:0941ea8cba756122799fe86ba377d8d6bcb7aea910f554caa35e28a90c89635b",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/studio_host/v1.json",
+          "asset_ref": "asset://deliver-demo/studio_host/v1",
+          "hash": "sha256:90e9276f688d0ae7018722ed85603419564de856a097b201fe965944478df3ec",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/scene_diagram/v1.json",
+          "asset_ref": "asset://deliver-demo/scene_diagram/v1",
+          "hash": "sha256:b1f95903852b1cf4a670b84a33d08dd79ba5c7fd72702d0cb224fdaadc9d3648",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/take-sec_001/v1.wav",
+          "asset_ref": "asset://deliver-demo/take-sec_001/v1",
+          "hash": "sha256:7c31557034ce11219204156063e9ac02944bdf46050ac658823b6d5d253f7d7c",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/settings-sec_001/v1.json",
+          "asset_ref": "asset://deliver-demo/settings-sec_001/v1",
+          "hash": "sha256:7dd3467c507154c186efb2f63f6ffbb5beb60e1ad9490901279c06d41c7be7fc",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/take-sec_002/v1.wav",
+          "asset_ref": "asset://deliver-demo/take-sec_002/v1",
+          "hash": "sha256:1b691513ef3555d1be7fd006a8617277b50a2644629afff0e83bbaabb979e5f3",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/settings-sec_002/v1.json",
+          "asset_ref": "asset://deliver-demo/settings-sec_002/v1",
+          "hash": "sha256:d4ec8e9b872631ca18b623e0fc043c800f309c6d517d80a2f1ddba3fa30d2684",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/take-sec_003/v1.wav",
+          "asset_ref": "asset://deliver-demo/take-sec_003/v1",
+          "hash": "sha256:1b691513ef3555d1be7fd006a8617277b50a2644629afff0e83bbaabb979e5f3",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/settings-sec_003/v1.json",
+          "asset_ref": "asset://deliver-demo/settings-sec_003/v1",
+          "hash": "sha256:430647aa1da9e2585f03dfc52c3881f32edd6fb4146890d4c4681cc52d31f852",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/voice-master/v1.wav",
+          "asset_ref": "asset://deliver-demo/voice-master/v1",
+          "hash": "sha256:9d9d31671b250223f1d15d1aa32f9db491ca520ff6fe6c31efb90b5fbbe01dc2",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/subtitles-srt/v1.srt",
+          "asset_ref": "asset://deliver-demo/subtitles-srt/v1",
+          "hash": "sha256:2387e842d5a0254d9d5220674535f66b5b3f0eb556bf3b4d10e11d43947f9eda",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/alignment/v1.json",
+          "asset_ref": "asset://deliver-demo/alignment/v1",
+          "hash": "sha256:2d19bff31622fc02458a18586a2233eb6f6735a66145426e0266dfee6dc287f6",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/timeline/v1.json",
+          "asset_ref": "asset://deliver-demo/timeline/v1",
+          "hash": "sha256:a8265dd45233a8ef22287963d7ac5a758000a43c901a81f05516db6b940229cd",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/character_plan/v1.json",
+          "asset_ref": "asset://deliver-demo/character_plan/v1",
+          "hash": "sha256:dea4c2f120f5d7c1b435d5f4065fbacc817c0c208e8e0d554be808553c35ec02",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/character_bake/v1.json",
+          "asset_ref": "asset://deliver-demo/character_bake/v1",
+          "hash": "sha256:a6039b92a85f66f1db8467aa5b1dcd73e5bc9baf65af10125fdb3552606ddd17",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/render_shot_shot_001/v1.mp4",
+          "asset_ref": "asset://deliver-demo/render_shot_shot_001/v1",
+          "hash": "sha256:8131ad7d55ee647101258fad4bbabeea7196f2cd76bb94769aa931045770d6a9",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/render_shot_shot_002/v1.mp4",
+          "asset_ref": "asset://deliver-demo/render_shot_shot_002/v1",
+          "hash": "sha256:fa86c807d7dd8df86c480f63041db84e8d501e232cb97d217ab660c3021379b4",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/character_bake/v2.json",
+          "asset_ref": "asset://deliver-demo/character_bake/v2",
+          "hash": "sha256:7dfa02158c4c7d901707d259821e1b3189292b66f8c828571b35cdff66d1bf86",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/render_shot_shot_003/v1.mp4",
+          "asset_ref": "asset://deliver-demo/render_shot_shot_003/v1",
+          "hash": "sha256:dc4cfa53e6322ae47215ae10294965549b36b1cc11205b9203f4b6d0cb13763f",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/render_sample/v1.mp4",
+          "asset_ref": "asset://deliver-demo/render_sample/v1",
+          "hash": "sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_waveform_sample/v1.json",
+          "asset_ref": "asset://deliver-demo/qa_waveform_sample/v1",
+          "hash": "sha256:f794cdeea0c10af823e6194d560f3ee7a6a30da6ddccc145bf49a34ce9c9eb3f",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_waveform_img_sample/v1.png",
+          "asset_ref": "asset://deliver-demo/qa_waveform_img_sample/v1",
+          "hash": "sha256:b4881adcb943ba8717a5d2a52ed13391aa5e261734ea04c27c2de4d34db4af06",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_motion_sample/v1.json",
+          "asset_ref": "asset://deliver-demo/qa_motion_sample/v1",
+          "hash": "sha256:58f37025ca10f30ea756349ff7ba4c56d3fb8f54af5c950247cc007caf40155d",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_contact_sheet_sample/v1.png",
+          "asset_ref": "asset://deliver-demo/qa_contact_sheet_sample/v1",
+          "hash": "sha256:9a2d46eddb971e8e33aa547c0baf1f111b97fe73781b9ea24c27c295dc904f59",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_report_sample/v1.json",
+          "asset_ref": "asset://deliver-demo/qa_report_sample/v1",
+          "hash": "sha256:8b993e7a3663bcb8f4c1cf4589e265c3db1b1958a1f7b315e6b32959a3075c16",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/render_chapter_ch_001/v1.mp4",
+          "asset_ref": "asset://deliver-demo/render_chapter_ch_001/v1",
+          "hash": "sha256:afbf67fa40064fd2568506cac52d733452d9bd3c9c68c5eb1c237da7a22cdef5",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/render_master/v1.mp4",
+          "asset_ref": "asset://deliver-demo/render_master/v1",
+          "hash": "sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_waveform_final/v1.json",
+          "asset_ref": "asset://deliver-demo/qa_waveform_final/v1",
+          "hash": "sha256:f794cdeea0c10af823e6194d560f3ee7a6a30da6ddccc145bf49a34ce9c9eb3f",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_waveform_img_final/v1.png",
+          "asset_ref": "asset://deliver-demo/qa_waveform_img_final/v1",
+          "hash": "sha256:b4881adcb943ba8717a5d2a52ed13391aa5e261734ea04c27c2de4d34db4af06",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_motion_final/v1.json",
+          "asset_ref": "asset://deliver-demo/qa_motion_final/v1",
+          "hash": "sha256:58f37025ca10f30ea756349ff7ba4c56d3fb8f54af5c950247cc007caf40155d",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_contact_sheet_final/v1.png",
+          "asset_ref": "asset://deliver-demo/qa_contact_sheet_final/v1",
+          "hash": "sha256:9a2d46eddb971e8e33aa547c0baf1f111b97fe73781b9ea24c27c295dc904f59",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_report_final/v1.json",
+          "asset_ref": "asset://deliver-demo/qa_report_final/v1",
+          "hash": "sha256:ff084623ad5b15369b00adb718acda152a34a8839115ad1613e14b4ada84c1ff",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/alt_master/v1.bin",
+          "asset_ref": "asset://deliver-demo/alt_master/v1",
+          "hash": "sha256:52a7e4276ae48ae005aba652a298c9ab53cd40975c4a46d5f79530cbb96ee3c9",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_waveform_final/v2.json",
+          "asset_ref": "asset://deliver-demo/qa_waveform_final/v2",
+          "hash": "sha256:f39ef5d201ac588522dedf575cd432a34d748883d4e84d52db204a41da65cac7",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_waveform_img_final/v2.png",
+          "asset_ref": "asset://deliver-demo/qa_waveform_img_final/v2",
+          "hash": "sha256:b4881adcb943ba8717a5d2a52ed13391aa5e261734ea04c27c2de4d34db4af06",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_motion_final/v2.json",
+          "asset_ref": "asset://deliver-demo/qa_motion_final/v2",
+          "hash": "sha256:90c748cfc3f94dde31c6f5f8d66fe919ff5145e6460775d0919b6ec37094f7d1",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_contact_sheet_final/v2.png",
+          "asset_ref": "asset://deliver-demo/qa_contact_sheet_final/v2",
+          "hash": "sha256:63c1dd6e42bfd7a8a3bf4bba9b4f3127cb3ef36f867601385c4ccd32e09d99d4",
+          "role": "editable_project"
+        },
+        {
+          "relative_path": "project/assets/qa_report_final/v2.json",
+          "asset_ref": "asset://deliver-demo/qa_report_final/v2",
+          "hash": "sha256:6b510ed4dd15a1f8ecaa2d6c6c6f2e6fa786f5769e0613b40eb10ebbadb13af0",
+          "role": "editable_project"
+        }
+      ],
+      "version_pins": [
+        {
+          "component": "node",
+          "version": "v26.9.0"
+        },
+        {
+          "component": "ffmpeg",
+          "version": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers"
+        },
+        {
+          "component": "renderer",
+          "version": "software-rgb24-shot@1.0.0"
+        },
+        {
+          "component": "inspector",
+          "version": "ffmpeg-inspect-media@1.0.0"
+        },
+        {
+          "component": "packager",
+          "version": "package-project@1.0.0"
+        }
+      ]
+    },
+    "review_html_path": "assets/export_review_html/v1.html",
+    "diff_from_previous": {
+      "added": [
+        "deliverables/final.mp4",
+        "deliverables/subtitles.srt",
+        "deliverables/voice-master.wav",
+        "deliverables/sources.json",
+        "deliverables/qa-report.json",
+        "deliverables/cost-ledger.json",
+        "deliverables/approvals-g1-g4.json",
+        "deliverables/chapters.json",
+        "deliverables/contact-sheet.png",
+        "deliverables/waveform.png",
+        "deliverables/review-report.html",
+        "project/studio.sqlite",
+        "project/assets/studio_backdrop/v1.png",
+        "project/assets/host_rig/v1.json",
+        "project/assets/host_voice/v1.wav",
+        "project/assets/host_main/v1.png",
+        "project/assets/diagram_static/v1.json",
+        "project/assets/subtitle_style/v1.json",
+        "project/assets/studio_host/v1.json",
+        "project/assets/scene_diagram/v1.json",
+        "project/assets/take-sec_001/v1.wav",
+        "project/assets/settings-sec_001/v1.json",
+        "project/assets/take-sec_002/v1.wav",
+        "project/assets/settings-sec_002/v1.json",
+        "project/assets/take-sec_003/v1.wav",
+        "project/assets/settings-sec_003/v1.json",
+        "project/assets/voice-master/v1.wav",
+        "project/assets/subtitles-srt/v1.srt",
+        "project/assets/alignment/v1.json",
+        "project/assets/timeline/v1.json",
+        "project/assets/character_plan/v1.json",
+        "project/assets/character_bake/v1.json",
+        "project/assets/render_shot_shot_001/v1.mp4",
+        "project/assets/render_shot_shot_002/v1.mp4",
+        "project/assets/character_bake/v2.json",
+        "project/assets/render_shot_shot_003/v1.mp4",
+        "project/assets/render_sample/v1.mp4",
+        "project/assets/qa_waveform_sample/v1.json",
+        "project/assets/qa_waveform_img_sample/v1.png",
+        "project/assets/qa_motion_sample/v1.json",
+        "project/assets/qa_contact_sheet_sample/v1.png",
+        "project/assets/qa_report_sample/v1.json",
+        "project/assets/render_chapter_ch_001/v1.mp4",
+        "project/assets/render_master/v1.mp4",
+        "project/assets/qa_waveform_final/v1.json",
+        "project/assets/qa_waveform_img_final/v1.png",
+        "project/assets/qa_motion_final/v1.json",
+        "project/assets/qa_contact_sheet_final/v1.png",
+        "project/assets/qa_report_final/v1.json",
+        "project/assets/alt_master/v1.bin",
+        "project/assets/qa_waveform_final/v2.json",
+        "project/assets/qa_waveform_img_final/v2.png",
+        "project/assets/qa_motion_final/v2.json",
+        "project/assets/qa_contact_sheet_final/v2.png",
+        "project/assets/qa_report_final/v2.json"
+      ],
+      "replaced": [],
+      "unchanged": []
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

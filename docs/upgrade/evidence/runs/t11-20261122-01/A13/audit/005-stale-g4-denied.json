@@ -1,0 +1,30 @@
+{
+  "seq": 5,
+  "label": "stale-g4-denied",
+  "op": "manifest",
+  "session": null,
+  "request": {
+    "project_id": "deliver-demo",
+    "expected_version": 22,
+    "idempotency_key": "exp-stale",
+    "final_media_ref": "asset://deliver-demo/alt_master/v1"
+  },
+  "exit_code": 1,
+  "response": {
+    "status": "REJECTED",
+    "project_id": "deliver-demo",
+    "state": "APPROVED",
+    "version": 22,
+    "event_count": 21,
+    "issues": [
+      {
+        "code": "APPROVAL_STALE",
+        "gate": "G4",
+        "current_target_hash": "sha256:52a7e4276ae48ae005aba652a298c9ab53cd40975c4a46d5f79530cbb96ee3c9",
+        "approved_target_hash": "sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592",
+        "message": "G4 的批准针对旧材料 sha256:ff9060ce810d1e5b984f4fa1c0c2461d02edf6ba6ca2d88a0e8f5bc8b4840592，当前材料为 sha256:52a7e4276ae48ae005aba652a298c9ab53cd40975c4a46d5f79530cbb96ee3c9，须重新审核"
+      }
+    ],
+    "locale": "zh-CN"
+  }
+}

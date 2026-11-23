@@ -1,0 +1,11 @@
+{
+  "project_id": "qa-demo",
+  "version": 18,
+  "approval_id": "apv-6c088002-d8ed-49f6-9912-da05a68ebbc8",
+  "gate": "G3",
+  "target_hash": "sha256:cb3824a3cc13bd30a9d128c1f19c9f4eaf3d4b9dfe60b976c6c425ecac31f5f9",
+  "reviewer_id": "owner",
+  "decision": "approve",
+  "recorded_at": "2026-11-23T07:04:49.553Z",
+  "notes": "QA 通过且必改项清零后放行（宿主模拟会话）"
+}
