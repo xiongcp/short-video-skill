@@ -321,6 +321,12 @@ test('A10 injected defects: single-frame white flash, mid-motion caption collisi
   assert.equal(loose.code, 1, 'loosened thresholds must still block');
   assert.deepEqual(loose.json.levels.media_qa.visual_anomalies.freezes, policy.json.levels.media_qa.visual_anomalies.freezes, 'freeze threshold capped at policy default');
   assert.ok(loose.json.waveform.silence_ranges.some((s) => s.shot_id === 'shot_003'), 'silence threshold capped at policy default');
+  for (const bad of ['abc', 0, -5, 1.5]) {
+    const invalid = await call(project, 'qa', { project_id: ID, scope: 'sample', media_ref: regDefect.asset.asset_ref, freeze_threshold_frames: bad });
+    assert.equal(invalid.json.issues[0]?.code, 'QA_THRESHOLD_INVALID', `freeze threshold ${JSON.stringify(bad)} must be rejected`);
+  }
+  const invalidSilence = await call(project, 'qa', { project_id: ID, scope: 'sample', media_ref: regDefect.asset.asset_ref, silence_threshold_frames: 'abc' });
+  assert.equal(invalidSilence.json.issues[0]?.code, 'QA_THRESHOLD_INVALID');
 
   // 6. Missing audio track MP4 must fail with AUDIO_TRACK hard defect
   const noAudioMp4 = join(project, 'incoming', 'no-audio.mp4');

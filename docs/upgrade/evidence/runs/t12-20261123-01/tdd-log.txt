@@ -38,3 +38,10 @@ Evidence level reached: RUNTIME. No production PASS was produced or claimed.
    node --test tests/runtime/ tests/e2e/                         -> 71/71 pass, 0 fail
    python3 -B evals/check_design.py                              -> exit 0
    python3 -B -m unittest discover -s evals -p 'test_*.py'       -> 25/25 OK
+
+08 RED  follow-up security review of commit 899bc44
+   - programme: one project listed three times under run_ids l1/l2/l3 aggregated to A15 PASS (expected INCOMPLETE).
+   - qa: freeze_threshold_frames "abc" made Math.min return NaN, so no freeze/silence could ever be flagged (fail-open);
+     0, -5 and 1.5 were also accepted (expected QA_THRESHOLD_INVALID).
+09 GREEN episodes are keyed by realpath(project_dir):project_id; a repeat is reported as PROGRAMME_EPISODE_DUPLICATE and
+   counted once. QA thresholds must be integers >= 1 before clamping. Full regression 71/71, Python 25/25, check_design exit 0.

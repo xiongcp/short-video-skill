@@ -64,6 +64,13 @@ test('RED on a controlled input: host-hook sign-offs, no attestation and a wrong
   assert.equal(roll.json.programmes.A14.status, 'INCOMPLETE');
   assert.deepEqual(roll.json.programmes.A14.episodes.map((e) => e.run_id), ['short-60-fixture']);
   assert.ok(roll.json.issues.some((i) => i.code === 'PROGRAMME_DURATION_MISSING' && i.target_seconds === 60));
+
+  // Listing the same project twice under different run_ids is one episode, not two.
+  const twice = await call(ctx.project, 'programme', { episodes: [
+    { project_dir: '.', project_id: ID, run_id: 'long-a', criterion: 'A15' },
+    { project_dir: join('..', ctx.project.split('/').pop()), project_id: ID, run_id: 'long-b', criterion: 'A15' }] });
+  assert.ok(twice.json.programmes.A15.issues.some((i) => i.code === 'PROGRAMME_EPISODE_DUPLICATE' && i.run_id === 'long-b'));
+  assert.deepEqual(twice.json.programmes.A15.episodes.map((e) => e.run_id), ['long-a']);
 });
 
 test('owner-signed gates and attestation leave only the genuine-media requirement open on fixture material', async () => {
@@ -101,8 +108,8 @@ test('owner-signed gates and attestation leave only the genuine-media requiremen
 });
 
 test('programme aggregation by run_id: A14 needs 60/120/180 with one production PASS, A15 three distinct passes with one revision+recovery', () => {
-  const episode = (run_id, criterion, target_seconds, pass, facts = {}) => ({
-    run_id, criterion, target_seconds, status: pass ? 'PRODUCTION_PASS' : 'INCOMPLETE',
+  const episode = (run_id, criterion, target_seconds, pass, facts = {}, episode_key = `/projects/${run_id}:demo`) => ({
+    run_id, episode_key, criterion, target_seconds, status: pass ? 'PRODUCTION_PASS' : 'INCOMPLETE',
     checks: [{ check: 'exact_frames', status: pass || facts.framesOk ? 'PASS' : 'MISSING' }], facts: { revised: false, recovered: false, ...facts },
   });
   const short = aggregateProgrammes([episode('s60', 'A14', 60, true), episode('s120', 'A14', 120, false, { framesOk: true })]);
@@ -113,11 +120,17 @@ test('programme aggregation by run_id: A14 needs 60/120/180 with one production 
   assert.equal(shortDone.A14.status, 'PASS');
   assert.deepEqual(shortDone.A14.episodes.map((e) => [e.run_id, e.status]), [['s60', 'PRODUCTION_PASS'], ['s120', 'INCOMPLETE'], ['s180', 'INCOMPLETE']]);
 
-  const long = aggregateProgrammes([episode('l1', 'A15', 480, true), episode('l2', 'A15', 480, true), episode('l2', 'A15', 480, true)]);
+  const long = aggregateProgrammes([episode('l1', 'A15', 480, true), episode('l2', 'A15', 480, true), episode('l2', 'A15', 480, true, {}, '/projects/other:demo')]);
   assert.ok(long.A15.issues.some((i) => i.code === 'PROGRAMME_RUN_ID_DUPLICATE' && i.run_id === 'l2'));
   assert.ok(long.A15.issues.some((i) => i.code === 'PROGRAMME_REVISION_MISSING'));
   const longDone = aggregateProgrammes([episode('l1', 'A15', 480, true), episode('l2', 'A15', 470, true, { revised: true, recovered: true }),
     episode('l3', 'A15', 495, true)]);
   assert.equal(longDone.A15.status, 'PASS');
   assert.equal(aggregateProgrammes([]).A15.status, 'INCOMPLETE');
+
+  // One real project relabelled with three run_ids counts once.
+  const relabelled = aggregateProgrammes(['l1', 'l2', 'l3'].map((id) => episode(id, 'A15', 480, true, { revised: true, recovered: true }, '/projects/one:demo')));
+  assert.equal(relabelled.A15.status, 'INCOMPLETE');
+  assert.ok(relabelled.A15.issues.some((i) => i.code === 'PROGRAMME_PRODUCTION_MISSING' && i.passed === 1));
+  assert.deepEqual(relabelled.A15.issues.filter((i) => i.code === 'PROGRAMME_EPISODE_DUPLICATE').map((i) => i.run_id), ['l2', 'l3']);
 });

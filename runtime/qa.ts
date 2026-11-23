@@ -123,6 +123,10 @@ export function qaOp(project: string, request: QaRequest): Outcome {
   if (!projectRow) return reject([{ code: 'PROJECT_NOT_FOUND', ref: id }]);
   const scope = request.scope ?? 'sample';
   if (!['sample', 'final', 'shot'].includes(scope)) return reject([{ code: 'QA_SCOPE_INVALID', scope }]);
+  for (const field of ['freeze_threshold_frames', 'silence_threshold_frames'] as const) {
+    const value = request[field];
+    if (value !== undefined && (!Number.isInteger(value) || value < 1)) return reject([{ code: 'QA_THRESHOLD_INVALID', field, value: String(value) }]);
+  }
 
   const timelineRow = latest(db, id, 'timeline', request.timeline_version);
   if (!timelineRow) return reject([{ code: 'TIMELINE_MISSING', timeline_version: request.timeline_version ?? null }]);

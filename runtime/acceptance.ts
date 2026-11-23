@@ -2,6 +2,7 @@
 // and aggregation by run_id across episodes (`programme`). Production PASS requires every check; nothing here can
 // make fixture material pass, because genuine voice, original art and a full watch-through are owner attestations
 // recorded only through a passphrase-authenticated session.
+import { existsSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { GATES, currentTarget, humanSession, requirementIssues } from './approvals.ts';
 import { getAsset } from './assets.ts';
@@ -131,7 +132,7 @@ export function episodeAcceptance(project: string, request: AcceptRequest) {
   ];
   const missing = checks.filter((c) => c.status === 'MISSING').map((c) => c.check);
   return {
-    run_id: request.run_id, criterion: request.criterion, target_seconds: request.target_seconds ?? null, frames: measured,
+    run_id: request.run_id, episode_key: episodeKey(project, request.project_id), criterion: request.criterion, target_seconds: request.target_seconds ?? null, frames: measured,
     status: missing.length ? 'INCOMPLETE' : 'PRODUCTION_PASS', evidence_level: missing.length ? 'BELOW_PRODUCTION' : 'PRODUCTION',
     checks, missing, facts: episodeFacts(db, request.project_id), issues: checks.flatMap((c) => c.issues),
   };
@@ -143,24 +144,34 @@ export function acceptOp(project: string, request: AcceptRequest): Outcome {
   return { report: { project_id: request.project_id, ...result }, exitCode: result.status === 'PRODUCTION_PASS' ? 0 : 1 };
 }
 
-type EpisodeResult = { run_id: string; criterion: string; target_seconds: number | null; status: string; checks: { check: string; status: string }[];
+// An episode is identified by its real project directory and project_id, never by the caller-supplied run_id label.
+const episodeKey = (dir: string, projectId: string) => `${existsSync(dir) ? realpathSync(dir) : resolve(dir)}:${projectId}`;
+
+type EpisodeResult = { run_id: string; episode_key: string; criterion: string; target_seconds: number | null; status: string; checks: { check: string; status: string }[];
   facts: { revised: boolean; recovered: boolean } };
 
-// A14: 60/120/180 s each with exact frames, at least one production PASS. A15: three production PASS episodes with
-// distinct run_ids, at least one revised across chapters and recovered after a restart.
+// A14: 60/120/180 s each with exact frames, at least one production PASS. A15: three production PASS episodes from
+// distinct projects with distinct run_ids, at least one revised across chapters and recovered after a restart.
+// A project listed again under another run_id is reported and counted once.
 export function aggregateProgrammes(episodes: EpisodeResult[]) {
-  const byCriterion = (c: string) => episodes.filter((e) => e.criterion === c);
+  const repeats = (list: EpisodeResult[]) => list.filter((e, i) => list.findIndex((o) => o.episode_key === e.episode_key) !== i);
+  const byCriterion = (c: string) => {
+    const all = episodes.filter((e) => e.criterion === c);
+    return all.filter((e) => !repeats(all).includes(e));
+  };
+  const repeated = (c: string) => repeats(episodes.filter((e) => e.criterion === c))
+    .map((e) => ({ code: 'PROGRAMME_EPISODE_DUPLICATE', run_id: e.run_id, episode_key: e.episode_key }));
   const dupes = (list: EpisodeResult[]) => [...new Set(list.map((e) => e.run_id).filter((id, i, all) => all.indexOf(id) !== i))]
     .map((run_id) => ({ code: 'PROGRAMME_RUN_ID_DUPLICATE', run_id }));
   const view = (list: EpisodeResult[]) => list.map(({ run_id, target_seconds, status, facts }) => ({ run_id, target_seconds, status, facts }));
   const short = byCriterion('A14');
-  const shortIssues: Issue[] = [...dupes(short),
+  const shortIssues: Issue[] = [...repeated('A14'), ...dupes(short),
     ...SHORT_TARGETS.filter((t) => !short.some((e) => e.target_seconds === t && e.checks.find((c) => c.check === 'exact_frames')?.status === 'PASS'))
       .map((target_seconds) => ({ code: 'PROGRAMME_DURATION_MISSING', target_seconds })),
     ...(short.some((e) => e.status === 'PRODUCTION_PASS') ? [] : [{ code: 'PROGRAMME_PRODUCTION_MISSING', criterion: 'A14', required: 1 }])];
   const long = byCriterion('A15');
   const passed = [...new Set(long.filter((e) => e.status === 'PRODUCTION_PASS').map((e) => e.run_id))];
-  const longIssues: Issue[] = [...dupes(long),
+  const longIssues: Issue[] = [...repeated('A15'), ...dupes(long),
     ...(passed.length >= 3 ? [] : [{ code: 'PROGRAMME_PRODUCTION_MISSING', criterion: 'A15', required: 3, passed: passed.length }]),
     ...(long.some((e) => e.status === 'PRODUCTION_PASS' && e.facts.revised && e.facts.recovered) ? [] : [{ code: 'PROGRAMME_REVISION_MISSING' }])];
   const result = (issues: Issue[], list: EpisodeResult[]) => ({ status: issues.length ? 'INCOMPLETE' : 'PASS', issues, episodes: view(list) });
@@ -172,7 +183,7 @@ export interface ProgrammeRequest { episodes: (AcceptRequest & { project_dir: st
 // Aggregate several episode projects (each in its own directory, relative to --project) by run_id.
 export function programmeOp(project: string, request: ProgrammeRequest): Outcome {
   const results = (request.episodes ?? []).map((e) => episodeAcceptance(resolve(project, e.project_dir), e)
-    ?? { run_id: e.run_id, criterion: e.criterion, target_seconds: e.target_seconds ?? null, status: 'INCOMPLETE', checks: [], missing: ['project'],
+    ?? { run_id: e.run_id, episode_key: episodeKey(resolve(project, e.project_dir), e.project_id), criterion: e.criterion, target_seconds: e.target_seconds ?? null, status: 'INCOMPLETE', checks: [], missing: ['project'],
       facts: { revised: false, recovered: false }, issues: [{ code: 'PROJECT_NOT_FOUND', ref: e.project_id }] });
   const programmes = aggregateProgrammes(results);
   const pass = programmes.A14.status === 'PASS' && programmes.A15.status === 'PASS';
