@@ -1,0 +1,15 @@
+version: 1
+classes: [local, research, voice, art, render, delivery]
+currency: project_selected
+# null 表示未配置，不能据此启动有费用的任务。项目所有者填写金额与候选数。
+project_limit_minor: null
+per_job_limit_minor: null
+max_paid_candidates_per_shot: null
+paid_dispatch_requires: [confirmed_limits, current_quote, reservation, idempotency_key]
+video_generation_enabled_by_default: false
+cache_hit_charge_minor: 0
+unknown_job:
+  reservation: hold
+  next_action: reconcile
+  allow_resubmit: false
+over_limit: request_budget_change

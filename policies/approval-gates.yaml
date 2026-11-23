@@ -1,0 +1,18 @@
+version: 1
+default_mode: quality
+reviewer: authorized_human
+bind_decision_to: [project_id, gate, target_hash]
+quality:
+  - {id: G1, material: evidence_and_scope, allows: script_production}
+  - {id: G2, material: script_and_duration, allows: production_audio}
+  - {id: G3, material: representative_sample, allows: final_render}
+  - {id: G4, material: final_media_and_qa, allows: prepare_export_manifest}
+  - {id: G5, material: export_manifest, allows: package_delivery}
+draft:
+  watermark: 未审核初稿
+  terminal_state: DRAFT_READY
+  allow_pending_editorial_reviews: true
+  preserve_budget_constraints: true
+  allow_final_delivery: false
+on_target_change: invalidate_affected_decision
+on_rejection: open_revision_with_notes

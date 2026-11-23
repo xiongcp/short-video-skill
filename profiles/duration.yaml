@@ -1,0 +1,25 @@
+version: 1
+default_profile: short
+media:
+  width: 1920
+  height: 1080
+  fps: 30
+  sample_rate_hz: 48000
+  frame_interval: half_open
+profiles:
+  short:
+    min_seconds: 60
+    target_seconds: 180
+    max_seconds: 180
+    editorial_unit: section
+    audience_promise: 一个问题、一个机制、一个例子、一个可复述的结论
+  standard8:
+    min_seconds: 450
+    target_seconds: 480
+    max_seconds: 510
+    editorial_unit: chapter
+    audience_promise: 一个主问题，逐章展开机制、完整案例、边界和回顾
+sample_review:
+  min_seconds: 20
+  max_seconds: 30
+  selection: continuous_excerpt_or_representative_group

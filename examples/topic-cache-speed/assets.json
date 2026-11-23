@@ -1,0 +1,405 @@
+{
+  "project_id": "cache-speed",
+  "version": 1,
+  "assets": [
+    {
+      "ref": "asset://cache-speed/host_main/v1",
+      "kind": "character",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/host_rig/v1",
+      "kind": "rig",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/host_voice/v1",
+      "kind": "voice",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/studio_backdrop/v1",
+      "kind": "background",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/studio_host/v1",
+      "kind": "scene",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/layer_illustration_ch_001/v1",
+      "kind": "illustration",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/illustration_ch_001/v1",
+      "kind": "scene",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/layer_diagram_ch_002/v1",
+      "kind": "diagram",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/diagram_ch_002/v1",
+      "kind": "scene",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/layer_diagram_ch_003/v1",
+      "kind": "diagram",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/diagram_ch_003/v1",
+      "kind": "scene",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/layer_illustration_ch_004/v1",
+      "kind": "illustration",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/illustration_ch_004/v1",
+      "kind": "scene",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/layer_diagram_ch_004/v1",
+      "kind": "diagram",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/diagram_ch_004/v1",
+      "kind": "scene",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/layer_diagram_ch_005/v1",
+      "kind": "diagram",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    },
+    {
+      "ref": "asset://cache-speed/diagram_ch_005/v1",
+      "kind": "scene",
+      "state": "planned",
+      "hash": null,
+      "usage": "pending"
+    }
+  ],
+  "characters": [
+    {
+      "project_id": "cache-speed",
+      "version": 1,
+      "character_id": "host_main",
+      "character_ref": "asset://cache-speed/host_main/v1",
+      "style_lock": [
+        "墨蓝短外套",
+        "栗色齐肩发",
+        "琥珀色发夹的位置固定"
+      ],
+      "rig_ref": "asset://cache-speed/host_rig/v1",
+      "voice_ref": "asset://cache-speed/host_voice/v1",
+      "supported_angles": [
+        "front",
+        "three_quarter"
+      ],
+      "expressions": [
+        "neutral",
+        "curious",
+        "explaining"
+      ],
+      "gestures": [
+        "idle",
+        "explain",
+        "point_right"
+      ],
+      "parameters": [
+        {
+          "parameter_id": "ParamMouthOpenY",
+          "min": 0,
+          "max": 1
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/studio_host/v1",
+      "template": "host",
+      "focus": "主持人双眼和手势",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        }
+      ],
+      "props": [
+        "camera",
+        "board"
+      ]
+    },
+    {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/illustration_ch_001/v1",
+      "template": "illustration",
+      "focus": "并排的两扇浏览器窗口，固定一枚黄色图标。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://cache-speed/layer_illustration_ch_001/v1",
+          "role": "illustration",
+          "z": 1,
+          "element_ids": [
+            "beat_002"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/diagram_ch_002/v1",
+      "template": "diagram",
+      "focus": "把浏览器和服务器放在画面两端，显示请求和返回。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://cache-speed/layer_diagram_ch_002/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "beat_003",
+            "beat_004"
+          ],
+          "claim_ids": [
+            "reuse"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/diagram_ch_003/v1",
+      "template": "diagram",
+      "focus": "同图同色重放，依次点亮匹配、可复用和新鲜度。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://cache-speed/layer_diagram_ch_003/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "beat_006",
+            "beat_007",
+            "beat_008"
+          ],
+          "claim_ids": [
+            "reuse",
+            "fresh"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/illustration_ch_004/v1",
+      "template": "illustration",
+      "focus": "把时间标记翻到过期位置，展示验证的两个出口。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://cache-speed/layer_illustration_ch_004/v1",
+          "role": "illustration",
+          "z": 1,
+          "element_ids": [
+            "beat_010"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/diagram_ch_004/v1",
+      "template": "diagram",
+      "focus": "把时间标记翻到过期位置，展示验证的两个出口。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://cache-speed/layer_diagram_ch_004/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "beat_011",
+            "beat_012"
+          ],
+          "claim_ids": [
+            "validate"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    },
+    {
+      "project_id": "cache-speed",
+      "version": 1,
+      "scene_ref": "asset://cache-speed/diagram_ch_005/v1",
+      "template": "diagram",
+      "focus": "复用、询问、取回三张卡片并列，回扣片头。",
+      "coordinate_system": "normalized_top_left",
+      "safe_area": {
+        "left": 0.07,
+        "top": 0.07,
+        "right": 0.93,
+        "bottom": 0.85
+      },
+      "layers": [
+        {
+          "asset_ref": "asset://cache-speed/studio_backdrop/v1",
+          "role": "background",
+          "z": 0,
+          "element_ids": []
+        },
+        {
+          "asset_ref": "asset://cache-speed/layer_diagram_ch_005/v1",
+          "role": "diagram",
+          "z": 1,
+          "element_ids": [
+            "beat_013"
+          ],
+          "claim_ids": [
+            "fresh",
+            "validate"
+          ]
+        }
+      ],
+      "props": [
+        "board"
+      ]
+    }
+  ]
+}

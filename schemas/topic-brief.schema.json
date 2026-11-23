@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.animation-studio.invalid/v1/topic-brief.schema.json",
+  "title": "TopicBrief · 用户意图与片长",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "topic": {
+      "type": "string",
+      "minLength": 1
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "duration_profile": {
+      "enum": [
+        "short",
+        "standard8"
+      ]
+    },
+    "duration_target_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1
+    },
+    "style_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mode": {
+      "$ref": "common.schema.json#/$defs/Mode"
+    },
+    "budget_policy": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "required": [
+    "project_id",
+    "version",
+    "topic",
+    "audience",
+    "scope",
+    "keywords",
+    "duration_profile",
+    "duration_target_seconds",
+    "language",
+    "style_profile",
+    "mode",
+    "budget_policy",
+    "unknowns"
+  ],
+  "additionalProperties": false
+}

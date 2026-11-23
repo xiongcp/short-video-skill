@@ -1,0 +1,23 @@
+version: 1
+default: deny
+# 下列是 Skill 可请求的适配器。宿主另外强制当前项目、版本、预算和人类身份检查。
+skills:
+  topic-to-video: []
+  topic-planner: []
+  research-evidence: [search_sources]
+  script-writer: []
+  director-storyboard: []
+  character-performance: []
+  scene-art-direction: [generate_image, generate_video]
+  audio-production: [generate_tts, align_audio, inspect_media]
+  animation-compiler: []
+  render-orchestrator: [bake_character, render_shot, inspect_media]
+  quality-auditor: [inspect_media]
+  revision-planner: []
+  delivery-packager: [inspect_media, package_project]
+project_store:
+  read: project_scoped_snapshot
+  write: declared_output_contracts_via_project_api
+  approved_object_update: create_new_version
+  state_change: orchestrator_events_only
+human_only: [record_gate_decision, authorize_budget_increase, replace_approved_asset, delete_asset]

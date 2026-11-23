@@ -1,0 +1,17 @@
+name: search_sources
+version: 1.0.0
+implementation: contract_only
+budget_class: research
+purpose: 按问题和来源策略检索、打开文献并返回定位信息。
+# 写请求的 project_id、expected_version、idempotency_key 由公共信封携带。
+input_fields:
+  query: 检索式
+  source_policy_id: 当前项目的来源策略
+  question_id: 研究子问题
+request_contract: workflow.schema.json#/$defs/ToolRequest
+payload_contract: workflow.schema.json#/$defs/SearchSourcesInput
+result_contract: workflow.schema.json#/$defs/ToolResult
+artifact_contents: 来源候选、原始 URL、检索日期、段落定位及摘录或摘要。
+side_effect: 受限检索网络
+preconditions: 域名、频率、授权资料范围均由项目策略限制。
+failure: 来源打不开时保留失败记录与已得来源，可返回 partial。

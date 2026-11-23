@@ -1,0 +1,17 @@
+name: package_project
+version: 1.0.0
+implementation: contract_only
+budget_class: delivery
+purpose: 按审批绑定的清单制作项目包并校验归档。
+# 写请求的 project_id、expected_version、idempotency_key 由公共信封携带。
+input_fields:
+  manifest_ref: ExportManifest 版本
+  manifest_hash: 规范化清单的哈希
+  g5_approval_id: 明确同意该清单的人类审批
+request_contract: workflow.schema.json#/$defs/ToolRequest
+payload_contract: workflow.schema.json#/$defs/PackageProjectInput
+result_contract: workflow.schema.json#/$defs/ToolResult
+artifact_contents: FinalPackage 的归档引用、归档哈希和实际校验的文件数。
+side_effect: 在项目导出目录创建新文件
+preconditions: G4 与 G5 有效，只接受项目清单中的安全相对路径和固定版本。
+failure: 任何清单项校验失败均不签发交付收据，可重用完整的源资产。

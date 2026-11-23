@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.animation-studio.invalid/v1/scene.schema.json",
+  "title": "Scene · 分层和舞台空间",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "scene_ref": {
+      "$ref": "common.schema.json#/$defs/AssetRef"
+    },
+    "template": {
+      "enum": [
+        "host",
+        "diagram",
+        "illustration"
+      ]
+    },
+    "focus": {
+      "type": "string",
+      "minLength": 1
+    },
+    "coordinate_system": {
+      "const": "normalized_top_left"
+    },
+    "safe_area": {
+      "type": "object",
+      "properties": {
+        "left": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "top": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "right": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "bottom": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "additionalProperties": false
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "asset_ref": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          },
+          "role": {
+            "enum": [
+              "background",
+              "diagram",
+              "illustration",
+              "foreground"
+            ]
+          },
+          "z": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "element_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/Id"
+            },
+            "uniqueItems": true
+          },
+          "claim_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/Id"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "asset_ref",
+          "role",
+          "z",
+          "element_ids"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "props": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "required": [
+    "project_id",
+    "version",
+    "scene_ref",
+    "template",
+    "focus",
+    "coordinate_system",
+    "safe_area",
+    "layers",
+    "props"
+  ],
+  "additionalProperties": false
+}

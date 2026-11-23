@@ -1,0 +1,36 @@
+version: 1.0.0
+entry: topic-to-video
+workflow: workflows/topic-to-video.yaml
+skill_path: skills/{name}/SKILL.md
+schema_dir: schemas/
+duration_profiles: profiles/duration.yaml
+policies:
+  - policies/permissions.yaml
+  - policies/budget.yaml
+  - policies/approval-gates.yaml
+  - policies/content-safety.yaml
+skills:
+  - topic-to-video
+  - topic-planner
+  - research-evidence
+  - script-writer
+  - director-storyboard
+  - character-performance
+  - scene-art-direction
+  - audio-production
+  - animation-compiler
+  - render-orchestrator
+  - quality-auditor
+  - revision-planner
+  - delivery-packager
+adapter_path: tools/{name}/contract.yaml
+adapters:
+  - search_sources
+  - generate_tts
+  - align_audio
+  - generate_image
+  - generate_video
+  - bake_character
+  - render_shot
+  - inspect_media
+  - package_project

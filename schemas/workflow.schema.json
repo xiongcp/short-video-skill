@@ -1,0 +1,1977 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.animation-studio.invalid/v1/workflow.schema.json",
+  "title": "控制、制作与交付的命名契约",
+  "$defs": {
+    "RunRequest": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "request_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_kind": {
+          "enum": [
+            "topic",
+            "script",
+            "materials"
+          ]
+        },
+        "input_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          }
+        },
+        "overrides": {
+          "type": "object",
+          "properties": {
+            "duration_target_seconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "duration_profile": {
+              "enum": [
+                "short",
+                "standard8"
+              ]
+            },
+            "audience": {
+              "type": "string",
+              "minLength": 1
+            },
+            "language": {
+              "type": "string",
+              "minLength": 1
+            },
+            "mode": {
+              "$ref": "common.schema.json#/$defs/Mode"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "project_id",
+        "request_text",
+        "input_kind",
+        "input_refs",
+        "overrides"
+      ],
+      "additionalProperties": false
+    },
+    "RunPlan": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "brief_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mode": {
+          "$ref": "common.schema.json#/$defs/Mode"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "skill_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "depends_on": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/Id"
+                },
+                "uniqueItems": true
+              },
+              "input_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/AssetRef"
+                }
+              },
+              "expected_output": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "task_id",
+              "skill_id",
+              "depends_on",
+              "input_refs",
+              "expected_output"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "next_gate": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/Gate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "brief_version",
+        "mode",
+        "tasks",
+        "next_gate"
+      ],
+      "additionalProperties": false
+    },
+    "ResearchPlan": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "brief_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "question_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "question": {
+                "type": "string",
+                "minLength": 1
+              },
+              "search_terms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              },
+              "preferred_sources": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "required": [
+              "question_id",
+              "question",
+              "search_terms",
+              "preferred_sources"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "brief_version",
+        "questions",
+        "exclusions"
+      ],
+      "additionalProperties": false
+    },
+    "AssetCatalog": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ref": {
+                "$ref": "common.schema.json#/$defs/AssetRef"
+              },
+              "kind": {
+                "enum": [
+                  "character",
+                  "rig",
+                  "voice",
+                  "scene",
+                  "background",
+                  "diagram",
+                  "illustration",
+                  "font",
+                  "audio",
+                  "video",
+                  "other",
+                  "foreground"
+                ]
+              },
+              "state": {
+                "enum": [
+                  "planned",
+                  "available"
+                ]
+              },
+              "hash": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/Hash"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "usage": {
+                "enum": [
+                  "pending",
+                  "cleared",
+                  "restricted"
+                ]
+              }
+            },
+            "required": [
+              "ref",
+              "kind",
+              "state",
+              "hash",
+              "usage"
+            ],
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "state": {
+                      "const": "available"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "hash": {
+                      "$ref": "common.schema.json#/$defs/Hash"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "characters": {
+          "type": "array",
+          "items": {
+            "$ref": "character.schema.json"
+          }
+        },
+        "scenes": {
+          "type": "array",
+          "items": {
+            "$ref": "scene.schema.json"
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "assets",
+        "characters",
+        "scenes"
+      ],
+      "additionalProperties": false
+    },
+    "CharacterActionPlan": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "storyboard_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "shots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "shot_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "character_ref": {
+                "$ref": "common.schema.json#/$defs/AssetRef"
+              },
+              "initial_pose": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "local_range": {
+                      "$ref": "common.schema.json#/$defs/FrameRange"
+                    },
+                    "action": {
+                      "$ref": "common.schema.json#/$defs/CharacterAction"
+                    },
+                    "cue_id": {
+                      "anyOf": [
+                        {
+                          "$ref": "common.schema.json#/$defs/Id"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "local_range",
+                    "action",
+                    "cue_id"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "exit_pose": {
+                "$ref": "common.schema.json#/$defs/Id"
+              }
+            },
+            "required": [
+              "shot_id",
+              "character_ref",
+              "initial_pose",
+              "actions",
+              "exit_pose"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "storyboard_version",
+        "shots"
+      ],
+      "additionalProperties": false
+    },
+    "ScenePlan": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "storyboard_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scenes": {
+          "type": "array",
+          "items": {
+            "$ref": "scene.schema.json"
+          }
+        },
+        "requests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "shot_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "kind": {
+                "enum": [
+                  "image",
+                  "video",
+                  "vector"
+                ]
+              },
+              "brief": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reference_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/AssetRef"
+                }
+              },
+              "review_required": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "shot_id",
+              "kind",
+              "brief",
+              "reference_refs",
+              "review_required"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "storyboard_version",
+        "scenes",
+        "requests"
+      ],
+      "additionalProperties": false
+    },
+    "Alignment": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "script_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "audio_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sample_rate_hz": {
+          "const": 48000
+        },
+        "tokens": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "word_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "section_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "start_sample": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "end_sample": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "manually_corrected": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "word_id",
+              "section_id",
+              "text",
+              "start_sample",
+              "end_sample",
+              "confidence",
+              "manually_corrected"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "cue_map": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "cue_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "word_ids": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/Id"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "cue_id",
+              "word_ids"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "script_version",
+        "audio_version",
+        "sample_rate_hz",
+        "tokens",
+        "cue_map"
+      ],
+      "additionalProperties": false
+    },
+    "CompiledTimeline": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "storyboard_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "media": {
+          "$ref": "common.schema.json#/$defs/MediaSpec"
+        },
+        "total_frames": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "input_snapshot_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "alignment_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "shots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "shot_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "chapter_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "absolute_range": {
+                "$ref": "common.schema.json#/$defs/FrameRange"
+              },
+              "local_frames": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "layer_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/AssetRef"
+                },
+                "minItems": 1
+              },
+              "character_plan_ref": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/AssetRef"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "audio_ref": {
+                "$ref": "common.schema.json#/$defs/AssetRef"
+              },
+              "cache_key": {
+                "$ref": "common.schema.json#/$defs/Hash"
+              },
+              "camera": {
+                "enum": [
+                  "medium",
+                  "close",
+                  "wide",
+                  "insert",
+                  "push_in"
+                ]
+              },
+              "visual_cues": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/VisualCue"
+                }
+              },
+              "subtitle_ref": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/AssetRef"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "shot_id",
+              "chapter_id",
+              "absolute_range",
+              "local_frames",
+              "layer_refs",
+              "character_plan_ref",
+              "audio_ref",
+              "cache_key",
+              "camera",
+              "visual_cues",
+              "subtitle_ref"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "storyboard_version",
+        "media",
+        "total_frames",
+        "input_snapshot_hash",
+        "alignment_ref",
+        "shots"
+      ],
+      "additionalProperties": false
+    },
+    "ShotArtifacts": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "job_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "scope": {
+          "enum": [
+            "shot",
+            "chapter",
+            "master"
+          ]
+        },
+        "target_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "media_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "layer_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          }
+        },
+        "content_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "frame_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "job_id",
+        "scope",
+        "target_id",
+        "media_ref",
+        "layer_refs",
+        "content_hash",
+        "frame_count"
+      ],
+      "additionalProperties": false
+    },
+    "QAReport": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "target_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "result": {
+          "enum": [
+            "pass",
+            "fail",
+            "needs_review"
+          ]
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "issue_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "target_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "frame_range": {
+                "anyOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/FrameRange"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "severity": {
+                "enum": [
+                  "blocking",
+                  "review",
+                  "info"
+                ]
+              },
+              "category": {
+                "enum": [
+                  "structure",
+                  "visual",
+                  "continuity",
+                  "audio",
+                  "facts",
+                  "export"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/AssetRef"
+                }
+              }
+            },
+            "required": [
+              "issue_id",
+              "target_id",
+              "frame_range",
+              "severity",
+              "category",
+              "message",
+              "evidence_refs"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "inspected_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "target_hash",
+        "result",
+        "issues",
+        "inspected_refs"
+      ],
+      "additionalProperties": false
+    },
+    "RevisionRequest": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "request_text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_snapshot_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "request_text",
+        "base_snapshot_hash"
+      ],
+      "additionalProperties": false
+    },
+    "ChangePlan": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "base_snapshot_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "patches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "field": {
+                "type": "string",
+                "minLength": 1
+              },
+              "new_value": {},
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "target_id",
+              "field",
+              "new_value",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "invalidate": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Id"
+          },
+          "uniqueItems": true
+        },
+        "reuse": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Id"
+          },
+          "uniqueItems": true
+        },
+        "reopen_gates": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Gate"
+          },
+          "uniqueItems": true
+        },
+        "estimated_cost": {
+          "$ref": "common.schema.json#/$defs/Cost"
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "base_snapshot_hash",
+        "patches",
+        "invalidate",
+        "reuse",
+        "reopen_gates",
+        "estimated_cost"
+      ],
+      "additionalProperties": false
+    },
+    "Approval": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "approval_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "gate": {
+          "$ref": "common.schema.json#/$defs/Gate"
+        },
+        "target_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "reviewer_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "decision": {
+          "enum": [
+            "approve",
+            "reject"
+          ]
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "approval_id",
+        "gate",
+        "target_hash",
+        "reviewer_id",
+        "decision",
+        "recorded_at",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "ExportManifest": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "final_media_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "qa_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "g4_approval_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "relative_path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "asset_ref": {
+                "$ref": "common.schema.json#/$defs/AssetRef"
+              },
+              "hash": {
+                "$ref": "common.schema.json#/$defs/Hash"
+              },
+              "role": {
+                "enum": [
+                  "video",
+                  "subtitles",
+                  "audio",
+                  "editable_project",
+                  "sources",
+                  "qa",
+                  "cost",
+                  "approvals",
+                  "chapters",
+                  "cover",
+                  "other"
+                ]
+              }
+            },
+            "required": [
+              "relative_path",
+              "asset_ref",
+              "hash",
+              "role"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "allOf": [
+            {
+              "contains": {
+                "properties": {
+                  "role": {
+                    "const": "video"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            },
+            {
+              "contains": {
+                "properties": {
+                  "role": {
+                    "const": "subtitles"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            },
+            {
+              "contains": {
+                "properties": {
+                  "role": {
+                    "const": "audio"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            },
+            {
+              "contains": {
+                "properties": {
+                  "role": {
+                    "const": "editable_project"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            },
+            {
+              "contains": {
+                "properties": {
+                  "role": {
+                    "const": "sources"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            },
+            {
+              "contains": {
+                "properties": {
+                  "role": {
+                    "const": "qa"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            },
+            {
+              "contains": {
+                "properties": {
+                  "role": {
+                    "const": "cost"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            },
+            {
+              "contains": {
+                "properties": {
+                  "role": {
+                    "const": "approvals"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            }
+          ]
+        },
+        "version_pins": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "component",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "final_media_ref",
+        "qa_ref",
+        "g4_approval_id",
+        "files",
+        "version_pins"
+      ],
+      "additionalProperties": false
+    },
+    "FinalPackage": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "manifest_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "g5_approval_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "archive_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "archive_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "verified_file_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "manifest_hash",
+        "g5_approval_id",
+        "archive_ref",
+        "archive_hash",
+        "verified_file_count"
+      ],
+      "additionalProperties": false
+    },
+    "ToolResult": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "succeeded",
+            "partial",
+            "failed",
+            "unknown"
+          ]
+        },
+        "job_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "artifact_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "cost": {
+          "$ref": "common.schema.json#/$defs/Cost"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "next_action": {
+          "enum": [
+            "review",
+            "continue",
+            "retry",
+            "ask_user",
+            "reconcile"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "job_id",
+        "artifact_refs",
+        "warnings",
+        "cost",
+        "retryable",
+        "next_action"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "unknown"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "retryable": {
+                "const": false
+              },
+              "next_action": {
+                "enum": [
+                  "reconcile",
+                  "ask_user"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ChapterCheckpoint": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "chapter_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "frame_range": {
+          "$ref": "common.schema.json#/$defs/FrameRange"
+        },
+        "input_snapshot_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "completed_shots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "shot_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "local_cache_key": {
+                "$ref": "common.schema.json#/$defs/Hash"
+              },
+              "artifact_ref": {
+                "$ref": "common.schema.json#/$defs/AssetRef"
+              },
+              "artifact_hash": {
+                "$ref": "common.schema.json#/$defs/Hash"
+              }
+            },
+            "required": [
+              "shot_id",
+              "local_cache_key",
+              "artifact_ref",
+              "artifact_hash"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "pending_shot_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Id"
+          }
+        },
+        "continuity_state_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "chapter_id",
+        "frame_range",
+        "input_snapshot_hash",
+        "completed_shots",
+        "pending_shot_ids",
+        "continuity_state_hash"
+      ],
+      "additionalProperties": false
+    },
+    "SubtitleTrack": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "script_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "alignment_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "style_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "cues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "section_id": {
+                "$ref": "common.schema.json#/$defs/Id"
+              },
+              "cue_ids": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/Id"
+                }
+              },
+              "range": {
+                "$ref": "common.schema.json#/$defs/FrameRange"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "section_id",
+              "cue_ids",
+              "range",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "script_version",
+        "alignment_version",
+        "style_ref",
+        "cues"
+      ],
+      "additionalProperties": false
+    },
+    "ToolRequest": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tool": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "payload": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "project_id",
+        "expected_version",
+        "idempotency_key",
+        "tool",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "SearchSourcesInput": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_policy_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "question_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        }
+      },
+      "required": [
+        "query",
+        "source_policy_id",
+        "question_id"
+      ],
+      "additionalProperties": false
+    },
+    "GenerateTtsInput": {
+      "type": "object",
+      "properties": {
+        "script_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "section_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "voice_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "pronunciation_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        }
+      },
+      "required": [
+        "script_ref",
+        "section_id",
+        "voice_ref",
+        "pronunciation_hash"
+      ],
+      "additionalProperties": false
+    },
+    "AlignAudioInput": {
+      "type": "object",
+      "properties": {
+        "audio_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "transcript_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "audio_ref",
+        "transcript_ref",
+        "language"
+      ],
+      "additionalProperties": false
+    },
+    "GenerateImageInput": {
+      "type": "object",
+      "properties": {
+        "brief_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "style_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          }
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "brief_ref",
+        "style_refs",
+        "candidate_count"
+      ],
+      "additionalProperties": false
+    },
+    "GenerateVideoInput": {
+      "type": "object",
+      "properties": {
+        "shot_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "reference_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          },
+          "minItems": 1
+        },
+        "target_frames": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "shot_id",
+        "reference_refs",
+        "target_frames",
+        "candidate_count"
+      ],
+      "additionalProperties": false
+    },
+    "BakeCharacterInput": {
+      "type": "object",
+      "properties": {
+        "shot_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "character_plan_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "rig_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "fps": {
+          "const": 30
+        },
+        "frame_count": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "shot_id",
+        "character_plan_ref",
+        "rig_ref",
+        "fps",
+        "frame_count"
+      ],
+      "additionalProperties": false
+    },
+    "RenderShotInput": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "enum": [
+            "shot",
+            "chapter",
+            "master"
+          ]
+        },
+        "target_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "timeline_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "input_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          },
+          "minItems": 1
+        },
+        "output_spec": {
+          "type": "object",
+          "properties": {
+            "media": {
+              "$ref": "common.schema.json#/$defs/MediaSpec"
+            },
+            "video_codec": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pixel_format": {
+              "type": "string",
+              "minLength": 1
+            },
+            "audio_codec": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "media",
+            "video_codec",
+            "pixel_format",
+            "audio_codec"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "scope",
+        "target_id",
+        "timeline_ref",
+        "input_refs",
+        "output_spec"
+      ],
+      "additionalProperties": false
+    },
+    "InspectMediaInput": {
+      "type": "object",
+      "properties": {
+        "media_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "expected_spec": {
+          "$ref": "common.schema.json#/$defs/MediaSpec"
+        },
+        "sample_ranges": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/FrameRange"
+          }
+        }
+      },
+      "required": [
+        "media_ref",
+        "expected_spec",
+        "sample_ranges"
+      ],
+      "additionalProperties": false
+    },
+    "PackageProjectInput": {
+      "type": "object",
+      "properties": {
+        "manifest_ref": {
+          "$ref": "common.schema.json#/$defs/AssetRef"
+        },
+        "manifest_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "g5_approval_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        }
+      },
+      "required": [
+        "manifest_ref",
+        "manifest_hash",
+        "g5_approval_id"
+      ],
+      "additionalProperties": false
+    },
+    "Project": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "defaults": {
+          "type": "object",
+          "properties": {
+            "audience": {
+              "type": "string",
+              "minLength": 1
+            },
+            "language": {
+              "type": "string",
+              "minLength": 1
+            },
+            "duration_profile": {
+              "enum": [
+                "short",
+                "standard8"
+              ]
+            },
+            "duration_target_seconds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "style_profile": {
+              "type": "string",
+              "minLength": 1
+            },
+            "character_ref": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/AssetRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "voice_ref": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/AssetRef"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mode": {
+              "$ref": "common.schema.json#/$defs/Mode"
+            },
+            "media": {
+              "$ref": "common.schema.json#/$defs/MediaSpec"
+            },
+            "budget_policy": {
+              "$ref": "common.schema.json#/$defs/Id"
+            }
+          },
+          "required": [
+            "audience",
+            "language",
+            "duration_profile",
+            "duration_target_seconds",
+            "style_profile",
+            "character_ref",
+            "voice_ref",
+            "mode",
+            "media",
+            "budget_policy"
+          ],
+          "additionalProperties": false
+        },
+        "current_state": {
+          "type": "string",
+          "minLength": 1
+        },
+        "latest_snapshot_hash": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/Hash"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "title",
+        "defaults",
+        "current_state",
+        "latest_snapshot_hash"
+      ],
+      "additionalProperties": false
+    },
+    "TaskRecord": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "task_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "skill_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "input_snapshot_hash": {
+          "$ref": "common.schema.json#/$defs/Hash"
+        },
+        "dependency_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/Id"
+          }
+        },
+        "state": {
+          "enum": [
+            "pending",
+            "running",
+            "blocked",
+            "succeeded",
+            "failed",
+            "unknown"
+          ]
+        },
+        "budget_class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reservation_id": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "artifact_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/AssetRef"
+          }
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "task_id",
+        "skill_id",
+        "input_snapshot_hash",
+        "dependency_ids",
+        "state",
+        "budget_class",
+        "reservation_id",
+        "attempt",
+        "artifact_refs"
+      ],
+      "additionalProperties": false
+    },
+    "LedgerEntry": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entry_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "job_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "reservation_id": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operation": {
+          "enum": [
+            "reserve",
+            "settle",
+            "release",
+            "cache_hit"
+          ]
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "amount_minor": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "external_receipt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "project_id",
+        "version",
+        "entry_id",
+        "job_id",
+        "reservation_id",
+        "operation",
+        "currency",
+        "amount_minor",
+        "recorded_at",
+        "external_receipt"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

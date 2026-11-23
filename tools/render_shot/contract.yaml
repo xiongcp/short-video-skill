@@ -1,0 +1,19 @@
+name: render_shot
+version: 1.0.0
+implementation: contract_only
+budget_class: render
+purpose: 合成已编译镜头，并按同一时间基拼接章节或母版。
+# 写请求的 project_id、expected_version、idempotency_key 由公共信封携带。
+input_fields:
+  scope: shot、chapter 或 master
+  target_id: 镜头、章节或母版标识
+  timeline_ref: 已编译快照
+  input_refs: 有序图层或片段列表
+  output_spec: 帧率、尺寸、声轨和编码
+request_contract: workflow.schema.json#/$defs/ToolRequest
+payload_contract: workflow.schema.json#/$defs/RenderShotInput
+result_contract: workflow.schema.json#/$defs/ToolResult
+artifact_contents: ShotArtifacts，含实际帧数、层引用、输出哈希和检查信息。
+side_effect: 本地运算或已配置渲染资源
+preconditions: 依赖齐备，先查缓存与幂等键，正式全片需要 G3。
+failure: 只补未完成目标，输出帧数与规格不匹配时记录 QA 问题。

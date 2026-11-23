@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.animation-studio.invalid/v1/evidence-set.schema.json",
+  "title": "EvidenceSet · 来源、论点与关联",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim_id": {
+            "$ref": "common.schema.json#/$defs/Id"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "supported",
+              "partial",
+              "disputed",
+              "unsupported"
+            ]
+          },
+          "qualifier": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_id",
+          "statement",
+          "status",
+          "qualifier"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "$ref": "common.schema.json#/$defs/Id"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "published_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retrieved_on": {
+            "type": "string",
+            "format": "date"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "source_id",
+          "url",
+          "title",
+          "published_on",
+          "retrieved_on",
+          "summary"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "claim_source_links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim_id": {
+            "$ref": "common.schema.json#/$defs/Id"
+          },
+          "source_id": {
+            "$ref": "common.schema.json#/$defs/Id"
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "relation": {
+            "enum": [
+              "supports",
+              "limits",
+              "contradicts"
+            ]
+          }
+        },
+        "required": [
+          "claim_id",
+          "source_id",
+          "locator",
+          "relation"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/Id"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resolution": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_ids",
+          "description",
+          "resolution"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "review_status": {
+      "$ref": "common.schema.json#/$defs/ReviewStatus"
+    }
+  },
+  "required": [
+    "project_id",
+    "version",
+    "claims",
+    "sources",
+    "claim_source_links",
+    "conflicts",
+    "review_status"
+  ],
+  "additionalProperties": false
+}

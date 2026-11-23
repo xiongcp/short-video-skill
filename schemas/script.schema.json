@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.animation-studio.invalid/v1/script.schema.json",
+  "title": "ScriptDocument · 口播与画面意图",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "script_id": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "evidence_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "review_status": {
+      "$ref": "common.schema.json#/$defs/ReviewStatus"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "$ref": "common.schema.json#/$defs/Id"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "narration": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/Id"
+            },
+            "uniqueItems": true
+          },
+          "pronunciation": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "term": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reading": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "term",
+                "reading"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "visual_intent": {
+            "type": "string",
+            "minLength": 1
+          },
+          "duration_estimate_frames": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "cues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "cue_id": {
+                  "$ref": "common.schema.json#/$defs/Id"
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "cue_id",
+                "text"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "section_id",
+          "title",
+          "narration",
+          "claim_ids",
+          "pronunciation",
+          "visual_intent",
+          "duration_estimate_frames",
+          "cues"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "project_id",
+    "version",
+    "script_id",
+    "evidence_version",
+    "review_status",
+    "sections"
+  ],
+  "additionalProperties": false
+}

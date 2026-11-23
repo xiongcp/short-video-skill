@@ -1,0 +1,18 @@
+name: generate_tts
+version: 1.0.0
+implementation: contract_only
+budget_class: voice
+purpose: 为一个已固定版本的口播段落请求音频。
+# 写请求的 project_id、expected_version、idempotency_key 由公共信封携带。
+input_fields:
+  script_ref: 脚本版本
+  section_id: 段落标识
+  voice_ref: 获准的音色
+  pronunciation_hash: 发音词典哈希
+request_contract: workflow.schema.json#/$defs/ToolRequest
+payload_contract: workflow.schema.json#/$defs/GenerateTtsInput
+result_contract: workflow.schema.json#/$defs/ToolResult
+artifact_contents: 音频资产、采样率、采样数、文本与音色参数摘要。
+side_effect: 可能产生供应商费用
+preconditions: 正式制作检查 G2、音色许可、预算及幂等键，草稿绑定草稿版本。
+failure: 提交回执不确定时返回 unknown 并保留预留。

@@ -1,0 +1,17 @@
+name: generate_image
+version: 1.0.0
+implementation: contract_only
+budget_class: art
+purpose: 按场景说明和固定风格产出可审核图像候选。
+# 写请求的 project_id、expected_version、idempotency_key 由公共信封携带。
+input_fields:
+  brief_ref: 美术需求
+  style_refs: 已登记风格参考
+  candidate_count: 本次候选数
+request_contract: workflow.schema.json#/$defs/ToolRequest
+payload_contract: workflow.schema.json#/$defs/GenerateImageInput
+result_contract: workflow.schema.json#/$defs/ToolResult
+artifact_contents: 带版权和生成参数来源的图像引用，批准前保持候选状态。
+side_effect: 可能产生供应商费用
+preconditions: 检查候选上限、预算和参考图使用范围。
+failure: 失败时可复用已批准背景或回到程序图解。

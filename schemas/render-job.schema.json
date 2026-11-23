@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.animation-studio.invalid/v1/render-job.schema.json",
+  "title": "RenderJob · 持久化作业",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "job_id": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "scope": {
+      "enum": [
+        "asset",
+        "shot",
+        "chapter",
+        "master"
+      ]
+    },
+    "target_id": {
+      "$ref": "common.schema.json#/$defs/Id"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_hashes": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/Hash"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider_job_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "state": {
+      "enum": [
+        "QUEUED",
+        "RESERVED",
+        "SUBMITTING",
+        "RUNNING",
+        "SUCCEEDED",
+        "FAILED",
+        "UNKNOWN",
+        "CANCELLED"
+      ]
+    },
+    "cost_reservation": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cost": {
+      "$ref": "common.schema.json#/$defs/Cost"
+    },
+    "artifact_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/AssetRef"
+      }
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": [
+    "project_id",
+    "version",
+    "job_id",
+    "scope",
+    "target_id",
+    "idempotency_key",
+    "input_hashes",
+    "provider",
+    "provider_job_id",
+    "state",
+    "cost_reservation",
+    "cost",
+    "artifact_refs",
+    "attempt"
+  ],
+  "additionalProperties": false
+}

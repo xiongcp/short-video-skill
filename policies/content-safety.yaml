@@ -1,0 +1,16 @@
+version: 1
+external_content_role: evidence_only
+claims:
+  status: [supported, partial, disputed, unsupported]
+  source_backed_status: supported
+  unresolved_core_claim: qualify_remove_or_return_for_review
+assets:
+  reference_scope: registered_asset_in_current_project
+  production_requires: [pinned_version, content_hash, cleared_usage]
+network:
+  research: project_source_policy
+  generation: registered_provider_endpoint
+logs:
+  omit: [credentials, authorization_headers, private_authored_source_text]
+approval_identity: authenticated_human_channel
+public_upload: outside_delivery_scope

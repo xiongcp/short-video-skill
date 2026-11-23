@@ -1,0 +1,100 @@
+{
+  "project_id": "kafka-to-doris",
+  "version": 1,
+  "claims": [
+    {
+      "claim_id": "partition",
+      "statement": "Kafka 主题有分区，顺序保证以分区为边界。",
+      "status": "supported",
+      "qualifier": ""
+    },
+    {
+      "claim_id": "progress",
+      "statement": "Routine Load 的进度与积压可按 Kafka 分区观察。",
+      "status": "supported",
+      "qualifier": "观察的是同一分区。"
+    },
+    {
+      "claim_id": "job",
+      "statement": "Routine Load 持续从 Kafka 读取并写入 Doris。",
+      "status": "supported",
+      "qualifier": ""
+    },
+    {
+      "claim_id": "task",
+      "statement": "FE 调度作业中的任务到 BE，各导入任务是独立事务。",
+      "status": "supported",
+      "qualifier": ""
+    },
+    {
+      "claim_id": "mapping",
+      "statement": "源字段需按作业配置映射到目标表，支持按 JSON 格式读取。",
+      "status": "supported",
+      "qualifier": ""
+    },
+    {
+      "claim_id": "diagnosis",
+      "statement": "作业状态、原因和错误行信息可帮助区分暂停和数据质量问题。",
+      "status": "supported",
+      "qualifier": ""
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "kafka_intro",
+      "url": "https://kafka.apache.org/42/getting-started/introduction/",
+      "title": "Apache Kafka 4.2 · Introduction",
+      "published_on": null,
+      "retrieved_on": "2026-11-19",
+      "summary": "说明事件、主题、分区及分区内顺序。"
+    },
+    {
+      "source_id": "doris_load",
+      "url": "https://doris.apache.org/docs/3.x/data-operate/import/import-way/routine-load-manual/",
+      "title": "Apache Doris 3.x · Routine Load",
+      "published_on": null,
+      "retrieved_on": "2026-11-19",
+      "summary": "说明持续导入作业、任务事务、字段映射和诊断列。"
+    }
+  ],
+  "claim_source_links": [
+    {
+      "claim_id": "partition",
+      "source_id": "kafka_intro",
+      "locator": "Main Concepts and Terminology",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "progress",
+      "source_id": "doris_load",
+      "locator": "View Import Status · Progress / Lag",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "job",
+      "source_id": "doris_load",
+      "locator": "Basic Principles",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "task",
+      "source_id": "doris_load",
+      "locator": "Basic Principles",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "mapping",
+      "source_id": "doris_load",
+      "locator": "Quick Start / Import JSON Data",
+      "relation": "supports"
+    },
+    {
+      "claim_id": "diagnosis",
+      "source_id": "doris_load",
+      "locator": "View Import Status / Automatic Recovery",
+      "relation": "supports"
+    }
+  ],
+  "conflicts": [],
+  "review_status": "pending"
+}
