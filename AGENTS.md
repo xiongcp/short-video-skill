@@ -8,7 +8,7 @@
 
 ## 简体中文
 
-欢迎使用 **AI Animation Studio Skills**。本仓库的代理工作约定、TDD 开发规范、媒体规格及双语维护规则完整定义在 **[AGENT.md](AGENT.md#zh)**。在本项目内工作时请优先阅读该指南。
+欢迎使用 **AI Animation Studio Skills**。本仓库的代理工作约定、TDD 开发规范、媒体规格及维护规则完整定义在 **[AGENT.md](AGENT.md)**（纯英文技术规范）。在本项目内工作时请优先阅读该指南。
 
 ### 核心任务入口
 
@@ -30,7 +30,7 @@ python3 -B -m unittest discover -s evals -p 'test_*.py' -v
 
 ## English
 
-Welcome to **AI Animation Studio Skills**. Complete engineering instructions, TDD conventions, media specifications, and bilingual maintenance rules are codified in **[AGENT.md](AGENT.md#en)**. Please consult this guide before performing tasks in this repository.
+Welcome to **AI Animation Studio Skills**. Complete engineering instructions, TDD conventions, media specifications, and maintenance rules are codified in **[AGENT.md](AGENT.md)**. Please consult this guide before performing tasks in this repository.
 
 ### Key Entry Points
 

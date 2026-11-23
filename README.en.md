@@ -6,7 +6,7 @@ An architecture and agent skill package tailored for solo creators producing **C
 
 Two profiles serve distinct production needs: **1–3 minute shorts** (default 180s, 120s sweet spot) and **chapter-based programs of about eight minutes** (450–510s, target 480s).
 
-**Implementing the studio or collaborating via AI Agents?** Please consult the [Project Agent Guide (AGENT.md)](AGENT.md#en) and [Handoff Status & Evidence](docs/upgrade/handoff-status.en.md) first, and refer to the [Handoff Prompts](docs/upgrade/handoff-prompts.en.md). Milestone T00 has passed all offline acceptance checks; the next milestone is T01 (environment diagnostics and a 12-second audio-visual technical clip).
+**Implementing the studio or collaborating via AI Agents?** Please consult the [Project Agent Guide (AGENT.md)](AGENT.md) and [Handoff Status & Evidence](docs/upgrade/handoff-status.en.md) first, and refer to the [Handoff Prompts](docs/upgrade/handoff-prompts.en.md). Milestone T00 has passed all offline acceptance checks; the next milestone is T01 (environment diagnostics and a 12-second audio-visual technical clip).
 
 ---
 
@@ -14,7 +14,7 @@ Two profiles serve distinct production needs: **1–3 minute shorts** (default 1
 
 | What you need | Where to find it |
 | --- | --- |
-| **Agent Collaboration & Engineering Guide** | [Project Agent Guide](AGENT.md#en) · [Agent Router](AGENTS.md) |
+| **Agent Collaboration & Engineering Guide** | [Project Agent Guide](AGENT.md) · [Agent Router](AGENTS.md) |
 | **Scope, Milestones & Staffing Assumptions** | [Project Plan](docs/upgrade/project-plan.en.md) |
 | **Architecture & Original Anime Host Design** | [Upgrade Design](docs/upgrade/design.en.md) · [Foundation Design](docs/architecture.en.md) |
 | **Test-Driven Development (TDD) Plan** | [TDD Execution Plan](docs/upgrade/tdd.en.md) |
