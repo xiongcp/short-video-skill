@@ -1,0 +1,20 @@
+{
+  "profile": "standard8",
+  "target_seconds": 480,
+  "status": "PASS",
+  "observed": {
+    "major_brand": "isom",
+    "frames": 14400,
+    "width": 1920,
+    "height": 1080,
+    "pixel_format": "yuv420p",
+    "video_codec": "h264",
+    "frame_grid_fps": 30,
+    "sample_rate_hz": 48000,
+    "audio_codec": "aac",
+    "audio_start_seconds": 0,
+    "audio_end_seconds": 480
+  },
+  "issues": [],
+  "media_hash": "sha256:6c5de90be890b2a121327c319e5d1c9135fd2edbde4393f97cf4db26c8d598da"
+}

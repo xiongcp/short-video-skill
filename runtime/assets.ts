@@ -14,18 +14,27 @@ export const nextVersion = (db: Db, projectId: string, name: string) =>
 
 export const ASSET_NAME = /^[a-z][a-z0-9_-]*$/;
 
+export function reserveAssetTarget(db: Db, project: string, projectId: string, name: string, ext: string) {
+  if (!ASSET_NAME.test(name) || !/^[a-z0-9]+$/.test(ext)) throw new Error(`invalid asset name or extension: ${JSON.stringify(name)}.${ext}`);
+  const version = nextVersion(db, projectId, name);
+  const path = join('assets', name, `v${version}.${ext}`);
+  mkdirSync(join(project, 'assets', name), { recursive: true });
+  return { version, path, tmpPath: path + '.tmp', asset_ref: `asset://${projectId}/${name}/v${version}` };
+}
+
+export function indexAsset(db: Db, projectId: string, name: string, version: number, kind: string, path: string, hash: string, meta: object): AssetRow {
+  const row = { asset_ref: `asset://${projectId}/${name}/v${version}`, name, version, kind, path, sha256: hash, meta };
+  db.prepare('INSERT INTO assets (asset_ref, project_id, name, version, kind, path, sha256, meta, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(row.asset_ref, projectId, name, version, kind, path, row.sha256, JSON.stringify(meta), new Date().toISOString());
+  return row;
+}
+
 export function registerAsset(db: Db, project: string, projectId: string, name: string, kind: string, ext: string, bytes: Buffer | string, meta: object): AssetRow {
   // Last line of defence: callers validate names and report issues; a name that could leave assets/ is a bug.
-  if (!ASSET_NAME.test(name) || !/^[a-z]+$/.test(ext)) throw new Error(`invalid asset name or extension: ${JSON.stringify(name)}.${ext}`);
-  const next = nextVersion(db, projectId, name);
-  const path = join('assets', name, `v${next}.${ext}`);
-  mkdirSync(join(project, 'assets', name), { recursive: true });
-  writeFileSync(join(project, path + '.tmp'), bytes);
-  renameSync(join(project, path + '.tmp'), join(project, path));
-  const row = { asset_ref: `asset://${projectId}/${name}/v${next}`, name, version: next, kind, path, sha256: sha256(bytes), meta };
-  db.prepare('INSERT INTO assets (asset_ref, project_id, name, version, kind, path, sha256, meta, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(row.asset_ref, projectId, name, next, kind, path, row.sha256, JSON.stringify(meta), new Date().toISOString());
-  return row;
+  const target = reserveAssetTarget(db, project, projectId, name, ext);
+  writeFileSync(join(project, target.tmpPath), bytes);
+  renameSync(join(project, target.tmpPath), join(project, target.path));
+  return indexAsset(db, projectId, name, target.version, kind, target.path, sha256(bytes), meta);
 }
 
 const parse = (row: any): AssetRow | undefined => row && { ...row, meta: JSON.parse(row.meta) };
@@ -33,11 +42,22 @@ export const getAsset = (db: Db, ref: string) => parse(db.prepare('SELECT asset_
 export const assetByMeta = (db: Db, projectId: string, key: string, value: string) =>
   parse(db.prepare(`SELECT asset_ref, name, version, kind, path, sha256, meta FROM assets WHERE project_id = ? AND json_extract(meta, '$.' || ?) = ? ORDER BY version DESC LIMIT 1`)
     .get(projectId, key, value));
+export const validAssetByMeta = (db: Db, projectId: string, key: string, value: string) =>
+  parse(db.prepare(`SELECT a.asset_ref, a.name, a.version, a.kind, a.path, a.sha256, a.meta FROM assets a
+    LEFT JOIN invalidated_assets inv ON inv.asset_ref = a.asset_ref
+    WHERE a.project_id = ? AND inv.asset_ref IS NULL AND json_extract(a.meta, '$.' || ?) = ? ORDER BY a.version DESC LIMIT 1`)
+    .get(projectId, key, value));
+export const isAssetInvalid = (db: Db, ref: string) =>
+  Boolean(db.prepare('SELECT 1 FROM invalidated_assets WHERE asset_ref = ?').get(ref));
+export const invalidateAsset = (db: Db, ref: string, reason: string) =>
+  db.prepare('INSERT OR IGNORE INTO invalidated_assets (asset_ref, reason, recorded_at) VALUES (?, ?, ?)').run(ref, reason, new Date().toISOString());
 
-// Bytes of an indexed asset, or undefined if the file no longer matches its recorded hash.
+// Bytes of an indexed asset, or undefined if the file is missing or no longer matches its recorded hash.
 export function readAsset(project: string, asset: AssetRow) {
-  const bytes = readFileSync(join(project, asset.path));
-  return sha256(bytes) === asset.sha256 ? bytes : undefined;
+  try {
+    const bytes = readFileSync(join(project, asset.path));
+    return sha256(bytes) === asset.sha256 ? bytes : undefined;
+  } catch { return undefined; }
 }
 
 // ---- Asset catalog operations (T06): register with rights, human usage clearance, scene templates, formal preflight.

@@ -51,6 +51,29 @@ CREATE TABLE IF NOT EXISTS ledger (
   operation TEXT NOT NULL CHECK (operation IN ('reserve', 'settle', 'release', 'cache_hit')), currency TEXT NOT NULL,
   amount_minor INTEGER NOT NULL CHECK (amount_minor >= 0), recorded_at TEXT NOT NULL, external_receipt TEXT,
   UNIQUE (project_id, version));
+CREATE TABLE IF NOT EXISTS render_jobs (
+  job_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id), version INTEGER NOT NULL,
+  scope TEXT NOT NULL CHECK (scope IN ('asset', 'shot', 'chapter', 'master')), target_id TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL, cache_key TEXT NOT NULL,
+  state TEXT NOT NULL CHECK (state IN ('QUEUED', 'RESERVED', 'SUBMITTING', 'RUNNING', 'SUCCEEDED', 'FAILED', 'UNKNOWN', 'CANCELLED')),
+  attempt INTEGER NOT NULL, body TEXT NOT NULL, updated_at TEXT NOT NULL,
+  UNIQUE (project_id, idempotency_key));
+CREATE TABLE IF NOT EXISTS render_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, project_id TEXT NOT NULL REFERENCES projects(project_id),
+  run_id TEXT NOT NULL, job_id TEXT, scope TEXT NOT NULL, target_id TEXT NOT NULL,
+  event TEXT NOT NULL, detail TEXT NOT NULL, recorded_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS checkpoints (
+  checkpoint_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id), version INTEGER NOT NULL,
+  chapter_id TEXT NOT NULL, input_snapshot_hash TEXT NOT NULL, continuity_state_hash TEXT NOT NULL,
+  body TEXT NOT NULL, continuity TEXT NOT NULL, recorded_at TEXT NOT NULL,
+  UNIQUE (project_id, chapter_id, version));
+CREATE TABLE IF NOT EXISTS change_plans (
+  plan_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id), version INTEGER NOT NULL,
+  base_snapshot_hash TEXT NOT NULL, request_body TEXT NOT NULL, plan_body TEXT NOT NULL,
+  applied_snapshot_hash TEXT, recorded_at TEXT NOT NULL,
+  UNIQUE (project_id, version));
+CREATE TABLE IF NOT EXISTS invalidated_assets (
+  asset_ref TEXT PRIMARY KEY REFERENCES assets(asset_ref), reason TEXT NOT NULL, recorded_at TEXT NOT NULL);
 `;
 
 export type Db = DatabaseSync;

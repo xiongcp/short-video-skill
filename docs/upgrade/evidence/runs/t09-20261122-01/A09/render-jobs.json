@@ -1,0 +1,296 @@
+[
+  {
+    "project_id": "render-demo",
+    "version": 6,
+    "job_id": "rjob-1c314e54-c8c1-45c6-86cc-e9054f592ed7",
+    "scope": "shot",
+    "target_id": "shot_001",
+    "idempotency_key": "render:shot:shot_001:f2977db97a7881a6",
+    "input_hashes": [
+      "sha256:f2977db97a7881a67ec405e0841f7befa94997ca9a5abb0fece8d98ecc61d614"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_shot_shot_001/v2"
+    ],
+    "attempt": 2
+  },
+  {
+    "project_id": "render-demo",
+    "version": 6,
+    "job_id": "rjob-70025016-80e4-4474-ae72-603236bbcb93",
+    "scope": "shot",
+    "target_id": "shot_002",
+    "idempotency_key": "render:shot:shot_002:fcf6926e6cac0a00",
+    "input_hashes": [
+      "sha256:fcf6926e6cac0a00ad2bef400bb79a94595d6274d121a140902318e01f390ab7"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_shot_shot_002/v2"
+    ],
+    "attempt": 2
+  },
+  {
+    "project_id": "render-demo",
+    "version": 5,
+    "job_id": "rjob-b0a1d30c-8dee-4c4c-9f0b-25fb317c9221",
+    "scope": "shot",
+    "target_id": "shot_003",
+    "idempotency_key": "render:shot:shot_003:addb4b599c9202d3",
+    "input_hashes": [
+      "sha256:addb4b599c9202d35fa004dad1b1d5fb1aeda4743ac0ef5377e659fe45fdcee4"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_shot_shot_003/v1"
+    ],
+    "attempt": 1
+  },
+  {
+    "project_id": "render-demo",
+    "version": 5,
+    "job_id": "rjob-d7ddbcf0-82de-4670-b126-1ad2743b7081",
+    "scope": "shot",
+    "target_id": "shot_004a",
+    "idempotency_key": "render:shot:shot_004a:fc597c6360940e1d",
+    "input_hashes": [
+      "sha256:fc597c6360940e1dba678fcdcf5978e1baf6635bfe12c8abcf991581d9cb6493"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_shot_shot_004a/v1"
+    ],
+    "attempt": 1
+  },
+  {
+    "project_id": "render-demo",
+    "version": 4,
+    "job_id": "rjob-5a10feee-2c3d-4cee-890f-c84dfc019d88",
+    "scope": "shot",
+    "target_id": "shot_004b",
+    "idempotency_key": "render:shot:shot_004b:29f3c9d83fae796b",
+    "input_hashes": [
+      "sha256:29f3c9d83fae796b5540046d9602c742b327831acbe1cc2b9fad7f0399a68e29"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_shot_shot_004b/v1"
+    ],
+    "attempt": 1
+  },
+  {
+    "project_id": "render-demo",
+    "version": 4,
+    "job_id": "rjob-89cadc64-9dce-4a05-be54-f4820cd4a17b",
+    "scope": "shot",
+    "target_id": "shot_005",
+    "idempotency_key": "render:shot:shot_005:95b8013e6fbcb59c",
+    "input_hashes": [
+      "sha256:95b8013e6fbcb59cdcfe87ba3eabf6fa2b777b181374a6c7d8cb2adad480f5e3"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_shot_shot_005/v1"
+    ],
+    "attempt": 1
+  },
+  {
+    "project_id": "render-demo",
+    "version": 5,
+    "job_id": "rjob-dd66c671-4b4f-4784-a476-1dd4050ce964",
+    "scope": "chapter",
+    "target_id": "ch_001",
+    "idempotency_key": "render:chapter:ch_001:21eb61392c838779",
+    "input_hashes": [
+      "sha256:21eb61392c83877982eb306d8149efd63d47856d39d7b4d41def621c4265da38",
+      "sha256:044c9852ad5024fc5e19cf9099c6cbcde9b095897df3a54a3a29a341e781d911"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_chapter_ch_001/v2"
+    ],
+    "attempt": 2
+  },
+  {
+    "project_id": "render-demo",
+    "version": 5,
+    "job_id": "rjob-dc10c3a6-d736-446c-a9e9-a2de25c263bc",
+    "scope": "chapter",
+    "target_id": "ch_002",
+    "idempotency_key": "render:chapter:ch_002:0831654da4d7a15e",
+    "input_hashes": [
+      "sha256:0831654da4d7a15ebd541e675b28520d9da1bb10628e762ab7b21d82c150ae8b",
+      "sha256:044c9852ad5024fc5e19cf9099c6cbcde9b095897df3a54a3a29a341e781d911"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_chapter_ch_002/v2"
+    ],
+    "attempt": 2
+  },
+  {
+    "project_id": "render-demo",
+    "version": 4,
+    "job_id": "rjob-d8fdf2c2-9b6e-4d19-86fd-8b12f58deaa3",
+    "scope": "chapter",
+    "target_id": "ch_003",
+    "idempotency_key": "render:chapter:ch_003:b28dadc00e85c1ad",
+    "input_hashes": [
+      "sha256:b28dadc00e85c1adc3947b3b02d4308ab10fed719e999815f039244a26047ba9",
+      "sha256:044c9852ad5024fc5e19cf9099c6cbcde9b095897df3a54a3a29a341e781d911"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_chapter_ch_003/v1"
+    ],
+    "attempt": 1
+  },
+  {
+    "project_id": "render-demo",
+    "version": 4,
+    "job_id": "rjob-0d385ec4-7062-49a0-b67c-9337156a9218",
+    "scope": "chapter",
+    "target_id": "ch_004",
+    "idempotency_key": "render:chapter:ch_004:390b14e9bd0cb34b",
+    "input_hashes": [
+      "sha256:390b14e9bd0cb34b866967297ef69877602e4028ec641490404ebf08ebc2fd93",
+      "sha256:044c9852ad5024fc5e19cf9099c6cbcde9b095897df3a54a3a29a341e781d911"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_chapter_ch_004/v1"
+    ],
+    "attempt": 1
+  },
+  {
+    "project_id": "render-demo",
+    "version": 4,
+    "job_id": "rjob-042f4eef-4fc3-4d45-86ac-b916fcefad99",
+    "scope": "chapter",
+    "target_id": "ch_005",
+    "idempotency_key": "render:chapter:ch_005:3a4abad9067231d9",
+    "input_hashes": [
+      "sha256:3a4abad9067231d96fde97df94761f23ad543dacd3ee429503cf2290c9c83860",
+      "sha256:044c9852ad5024fc5e19cf9099c6cbcde9b095897df3a54a3a29a341e781d911"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_chapter_ch_005/v1"
+    ],
+    "attempt": 1
+  },
+  {
+    "project_id": "render-demo",
+    "version": 6,
+    "job_id": "rjob-5f4c1fe4-57fc-4341-8a36-5f08f311d62a",
+    "scope": "master",
+    "target_id": "master",
+    "idempotency_key": "render:master:master:246d8f850ef1fd16",
+    "input_hashes": [
+      "sha256:246d8f850ef1fd16dbbbbaec50122a0940a2242b92d3bf74efca8e7fd691486d",
+      "sha256:044c9852ad5024fc5e19cf9099c6cbcde9b095897df3a54a3a29a341e781d911"
+    ],
+    "provider": "local-renderer",
+    "provider_job_id": null,
+    "state": "SUCCEEDED",
+    "cost_reservation": null,
+    "cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": 0
+    },
+    "artifact_refs": [
+      "asset://render-demo/render_master/v3"
+    ],
+    "attempt": 3
+  }
+]

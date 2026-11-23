@@ -1,0 +1,6 @@
+render-jobs.json valid against render-job
+checkpoints.json valid against workflow#ChapterCheckpoint
+shot-artifacts.json valid against workflow#ShotArtifacts
+render-shot-input.json valid against workflow#RenderShotInput
+tool-result.json valid against workflow#ToolResult
+timeline.json valid against workflow#CompiledTimeline

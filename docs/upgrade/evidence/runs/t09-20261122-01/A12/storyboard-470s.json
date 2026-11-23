@@ -1,0 +1,324 @@
+{
+  "project_id": "render-demo",
+  "version": 2,
+  "script_version": 2,
+  "timing_basis": "aligned",
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "sample_rate_hz": 48000
+  },
+  "total_frames": 14100,
+  "chapters": [
+    {
+      "chapter_id": "ch_001",
+      "title": "第1章",
+      "section_ids": [
+        "sec_001"
+      ],
+      "continuity_in": "第1章起点",
+      "continuity_out": "第1章终点",
+      "frame_range": {
+        "start": 0,
+        "end": 600
+      }
+    },
+    {
+      "chapter_id": "ch_002",
+      "title": "第2章",
+      "section_ids": [
+        "sec_002"
+      ],
+      "continuity_in": "第2章起点",
+      "continuity_out": "第2章终点",
+      "frame_range": {
+        "start": 600,
+        "end": 2100
+      }
+    },
+    {
+      "chapter_id": "ch_003",
+      "title": "第3章",
+      "section_ids": [
+        "sec_003"
+      ],
+      "continuity_in": "第3章起点",
+      "continuity_out": "第3章终点",
+      "frame_range": {
+        "start": 2100,
+        "end": 4800
+      }
+    },
+    {
+      "chapter_id": "ch_004",
+      "title": "第4章",
+      "section_ids": [
+        "sec_004"
+      ],
+      "continuity_in": "第4章起点",
+      "continuity_out": "第4章终点",
+      "frame_range": {
+        "start": 4800,
+        "end": 7800
+      }
+    },
+    {
+      "chapter_id": "ch_005",
+      "title": "第5章",
+      "section_ids": [
+        "sec_005"
+      ],
+      "continuity_in": "第5章起点",
+      "continuity_out": "第5章终点",
+      "frame_range": {
+        "start": 7800,
+        "end": 10800
+      }
+    },
+    {
+      "chapter_id": "ch_006",
+      "title": "第6章",
+      "section_ids": [
+        "sec_006"
+      ],
+      "continuity_in": "第6章起点",
+      "continuity_out": "第6章终点",
+      "frame_range": {
+        "start": 10800,
+        "end": 13200
+      }
+    },
+    {
+      "chapter_id": "ch_007",
+      "title": "第7章",
+      "section_ids": [
+        "sec_007"
+      ],
+      "continuity_in": "第7章起点",
+      "continuity_out": "第7章终点",
+      "frame_range": {
+        "start": 13200,
+        "end": 14100
+      }
+    }
+  ],
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "chapter_id": "ch_001",
+      "section_id": "sec_001",
+      "frame_range": {
+        "start": 0,
+        "end": 600
+      },
+      "purpose": "主持人开场",
+      "camera": "medium",
+      "scene_ref": "asset://render-demo/studio_host/v1",
+      "scene_layers": [
+        "asset://render-demo/studio_backdrop/v1"
+      ],
+      "character_actions": [
+        {
+          "character_ref": "asset://render-demo/host_main/v1",
+          "angle": "front",
+          "expression": "explaining",
+          "gesture": "point_right",
+          "gaze": "camera"
+        }
+      ],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": []
+    },
+    {
+      "shot_id": "shot_002",
+      "chapter_id": "ch_002",
+      "section_id": "sec_002",
+      "frame_range": {
+        "start": 600,
+        "end": 2100
+      },
+      "purpose": "图解第2章",
+      "camera": "wide",
+      "scene_ref": "asset://render-demo/diagram_flow_scene/v1",
+      "scene_layers": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "server",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ]
+    },
+    {
+      "shot_id": "shot_003",
+      "chapter_id": "ch_003",
+      "section_id": "sec_003",
+      "frame_range": {
+        "start": 2100,
+        "end": 4800
+      },
+      "purpose": "图解第3章",
+      "camera": "wide",
+      "scene_ref": "asset://render-demo/diagram_flow_scene/v1",
+      "scene_layers": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "browser",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ]
+    },
+    {
+      "shot_id": "shot_004a",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "frame_range": {
+        "start": 4800,
+        "end": 6300
+      },
+      "purpose": "第四章前半",
+      "camera": "wide",
+      "scene_ref": "asset://render-demo/diagram_flow_scene/v1",
+      "scene_layers": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "browser",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ]
+    },
+    {
+      "shot_id": "shot_004b",
+      "chapter_id": "ch_004",
+      "section_id": "sec_004",
+      "frame_range": {
+        "start": 6300,
+        "end": 7800
+      },
+      "purpose": "第四章后半",
+      "camera": "wide",
+      "scene_ref": "asset://render-demo/diagram_flow_scene/v1",
+      "scene_layers": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "server",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ]
+    },
+    {
+      "shot_id": "shot_005",
+      "chapter_id": "ch_005",
+      "section_id": "sec_005",
+      "frame_range": {
+        "start": 7800,
+        "end": 10800
+      },
+      "purpose": "图解第5章",
+      "camera": "wide",
+      "scene_ref": "asset://render-demo/diagram_flow_scene/v1",
+      "scene_layers": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "browser",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ]
+    },
+    {
+      "shot_id": "shot_006",
+      "chapter_id": "ch_006",
+      "section_id": "sec_006",
+      "frame_range": {
+        "start": 10800,
+        "end": 13200
+      },
+      "purpose": "图解第6章",
+      "camera": "wide",
+      "scene_ref": "asset://render-demo/diagram_flow_scene/v1",
+      "scene_layers": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "server",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ]
+    },
+    {
+      "shot_id": "shot_007",
+      "chapter_id": "ch_007",
+      "section_id": "sec_007",
+      "frame_range": {
+        "start": 13200,
+        "end": 14100
+      },
+      "purpose": "图解第7章",
+      "camera": "wide",
+      "scene_ref": "asset://render-demo/diagram_flow_scene/v1",
+      "scene_layers": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_actions": [],
+      "audio_anchors": [],
+      "approval": "pending",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "browser",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ]
+    }
+  ]
+}

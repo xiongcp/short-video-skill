@@ -12,7 +12,7 @@ import { type Correction, type EngineWord, alignSections } from '../tools/align_
 import { FPS, RATE, toFrame, totalFrames } from './timebase.ts';
 
 
-function wavFile(channels: number, data: Buffer) {
+export function wavFile(channels: number, data: Buffer) {
   const header = Buffer.alloc(44);
   header.write('RIFF', 0); header.writeUInt32LE(36 + data.length, 4); header.write('WAVEfmt ', 8);
   header.writeUInt32LE(16, 16); header.writeUInt16LE(1, 20); header.writeUInt16LE(channels, 22); header.writeUInt32LE(RATE, 24);
@@ -90,14 +90,14 @@ export function saveAudio(project: string, request: AudioRequest): Outcome {
 const VISEMES = new Set(['closed', 'rounded', 'open', 'rest']);
 const SENTENCE_END = /[。！？；!?;]/;
 
-function srtTime(frame: number) {
+export function srtTime(frame: number) {
   const ms = Math.round((frame * 1000) / FPS);
   const pad = (value: number, width = 2) => String(value).padStart(width, '0');
   return `${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms / 60000) % 60)}:${pad(Math.floor(ms / 1000) % 60)},${pad(ms % 1000, 3)}`;
 }
 
 // One subtitle line per sentence: its words are those whose text starts inside the sentence.
-function subtitleCues(sections: any[], tokens: any[], cueMap: { cue_id: string; word_ids: string[] }[]) {
+export function subtitleCues(sections: any[], tokens: any[], cueMap: { cue_id: string; word_ids: string[] }[]) {
   return sections.flatMap((section) => {
     const own = tokens.filter((token) => token.section_id === section.section_id);
     let offset = 0;
@@ -120,7 +120,7 @@ function subtitleCues(sections: any[], tokens: any[], cueMap: { cue_id: string; 
 
 // Contiguous ranges over [0, total): each word's shape, 'rest' in gaps. Words that round to zero frames keep their
 // anchors in the alignment and yield the frame to the neighbour.
-function visemeRanges(tokens: any[], marks: Map<string, string>, total: number) {
+export function visemeRanges(tokens: any[], marks: Map<string, string>, total: number) {
   const ranges: ({ word_id: string; shape: string; range: { start: number; end: number } } | { shape: 'rest'; range: { start: number; end: number } })[] = [];
   let cursor = 0;
   for (const token of tokens) {

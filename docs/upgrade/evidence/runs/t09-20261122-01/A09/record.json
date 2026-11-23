@@ -1,0 +1,110 @@
+{
+  "task_id": "T09",
+  "case_id": "A09",
+  "run_id": "t09-20261122-01",
+  "status": "PASS",
+  "evidence_level": "RUNTIME",
+  "environment": {
+    "node": "v26.9.0",
+    "platform": "darwin-arm64",
+    "python": "Python 3.14.4",
+    "ffmpeg": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "renderer": {
+      "name": "software-rgb24-shot",
+      "version": "1.0.0"
+    }
+  },
+  "commands_and_exit_codes": [
+    {
+      "command": "node docs/upgrade/evidence/replay_t09.mjs t09-20261122-01 python",
+      "note": "render, recover and revise calls saved under audit/"
+    },
+    {
+      "command": "python -B -c <validate A09 contracts>",
+      "exit_code": 0,
+      "saved_as": "schema-check.txt"
+    }
+  ],
+  "input_hashes": [
+    {
+      "path": "tools/render_shot/contract.yaml",
+      "sha256": "sha256:6760860241e71e1aa53977e210f5444aed7bf6d79d847aa1194a55768371662e"
+    },
+    {
+      "path": "schemas/render-job.schema.json",
+      "sha256": "sha256:f9c3f2cb5eb3c9572a2ad8e15fe7afd7e665f6a0a5d884b62e1f4d6e038becf5"
+    },
+    {
+      "path": "schemas/workflow.schema.json",
+      "sha256": "sha256:01e59870477a9c4a02938f05d7dc90447ecf3d0c9eb22b93b355eab27fabfc6a"
+    },
+    {
+      "path": "tools/render_shot/adapter.ts",
+      "sha256": "sha256:8cc0bab5193b5d0955724141fa8b82eca463f85561569e39f9cbbaaf8a0eb53f"
+    },
+    {
+      "path": "runtime/render.ts",
+      "sha256": "sha256:8702d6f1cea0001764db6d2e436fd3ff129a4255f738c75d9cfe43ccfcb58ee0"
+    },
+    {
+      "path": "runtime/revision.ts",
+      "sha256": "sha256:c590e70b0991e3de2397fb88641e8383374bd2df3ba424d3c6ec1d0863938d92"
+    }
+  ],
+  "output_hashes": [
+    {
+      "path": "checkpoints.json",
+      "sha256": "sha256:a7e7c0af323b6e90f7c81e840b843dbfe3e67abcce1609210666be5e59ae1e14"
+    },
+    {
+      "path": "comparisons.json",
+      "sha256": "sha256:b91436f0118378d34a2debb83e1f0449ad472c6579a22af76a214dd6abde5649"
+    },
+    {
+      "path": "recovery-events.json",
+      "sha256": "sha256:5df97f9cb4eb259d101f7a2967fa5993aacace61d1f7d7e7404fec98ed7b5c43"
+    },
+    {
+      "path": "render-jobs.json",
+      "sha256": "sha256:4fba183645e454e83855e30a0304e11d2943975425378c9b10d79baf129d7e92"
+    },
+    {
+      "path": "render-shot-input.json",
+      "sha256": "sha256:b17a495344fa0856a2042421ffd5d4bdd8b73eb2c1a44569f59c66c6808fbd74"
+    },
+    {
+      "path": "schema-check.txt",
+      "sha256": "sha256:095c682be851fd61d71ffb53746fc321e4b7b0dd456983ee238c08d2b6ff21f1"
+    },
+    {
+      "path": "shot-artifacts.json",
+      "sha256": "sha256:ca7d27f4098c8f240bf299e40e63f06827a3a8a2211d07546a074b18585ef994"
+    },
+    {
+      "path": "timeline.json",
+      "sha256": "sha256:cefc53f268c2755fb38d4db2643c6245965e95391c313cbc307e3dcd8c4a4370"
+    },
+    {
+      "path": "tool-result.json",
+      "sha256": "sha256:e3d64566272bc6de9636dcb81b7c544e9791d391daf8e0ef3b8ffcfba5c938f9"
+    }
+  ],
+  "observations": [
+    "checks: {\"warm_100pct_cached\":true,\"crash_tmp_recovered\":true,\"crash_rename_recovered\":true,\"crash_index_recovered\":true,\"corrupt_shot_rebuilt_only\":true,\"corrupt_bake_rebuilt_only\":true,\"decoded_frames_and_audio_match\":true,\"schemas_valid\":true}",
+    "fault injection: real worker process exit (137) via SVS_RENDER_STOP_AT at after_tmp_write, after_rename and after_index in chapter 4, plus on-disk corruption of an indexed shot and a cached character-bake trajectory",
+    "scope: synthetic audio, solid-colour fixture backgrounds and simulated-2d rig; original art (A06/A11), real speech (A05) and Studio UI (T11) are NOT_RUN"
+  ],
+  "evidence_paths": [
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/checkpoints.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/comparisons.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/recovery-events.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/render-jobs.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/render-shot-input.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/schema-check.txt",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/shot-artifacts.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/timeline.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/tool-result.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A09/audit/"
+  ],
+  "reviewer": null
+}

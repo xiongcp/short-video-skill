@@ -1,0 +1,199 @@
+{
+  "seq": 0,
+  "label": "cap-sample1",
+  "op": "render",
+  "session": null,
+  "request": {
+    "project_id": "render-demo",
+    "scope": "master",
+    "target_id": "sample",
+    "shot_ids": [
+      "shot_001"
+    ],
+    "plan_ref": "asset://render-demo/character_plan/v1",
+    "seed": 7
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "RENDERED",
+    "project_id": "render-demo",
+    "state": "RENDERING",
+    "version": 15,
+    "event_count": 14,
+    "run_id": "run-0a62dd1f-5466-4319-a7b7-ee511aba9286",
+    "timeline_version": 1,
+    "input_snapshot_hash": "sha256:ae94c1efcf639858d8efa3dbb6b298055e59178672a58454aabb0faae1d5688a",
+    "elapsed_ms": 590,
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 1,
+      "bake_cached": 0,
+      "shot_rendered": 1,
+      "shot_cached": 0,
+      "chapter_assembled": 0,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "recovery": {
+      "removed_temp_files": [],
+      "removed_orphan_files": [],
+      "corrupt_artifacts": [],
+      "reset_jobs": [],
+      "verified_checkpoints": [],
+      "invalidated_checkpoints": [],
+      "events": []
+    },
+    "shots": [
+      {
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "absolute_range": {
+          "start": 0,
+          "end": 30
+        },
+        "local_frames": 30,
+        "visual_layer_key": "sha256:ede867a70d70dbe3b566b545c5f377424c6dda95ff6c3a755575ff19ca46a126",
+        "local_cache_key": "sha256:3eb87218686a2753b1ab6c2f8aa040c2794cbf780779dcb7ab8f8cd21bb1aa34",
+        "bake_cache_key": "sha256:cccec0b51a15eb2704aa004ce538e3bf5a27599e857d73ec8611194f551d733b",
+        "bake_asset_ref": "asset://render-demo/character_bake/v1",
+        "end_state_hash": "sha256:e11f9b0aa1e01fdc968352098131d7439832cab323116688c22795061a476ea7",
+        "artifact_ref": "asset://render-demo/render_shot_shot_001/v1",
+        "path": "assets/render_shot_shot_001/v1.mp4",
+        "sha256": "sha256:75cea3e12920ab2e93b6e39e836ff7d4c0144cd154d2f0afec5144d66e733e55",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-99d29138-072d-47e0-93c8-d8bdb79890aa",
+          "scope": "shot",
+          "target_id": "shot_001",
+          "media_ref": "asset://render-demo/render_shot_shot_001/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/character_bake/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:75cea3e12920ab2e93b6e39e836ff7d4c0144cd154d2f0afec5144d66e733e55",
+          "frame_count": 30
+        }
+      }
+    ],
+    "chapters": [],
+    "master": {
+      "target_id": "sample",
+      "assembly_cache_key": "sha256:6ca7fede0717def4e844a60a3668d427bf24b848a871ccd641cbddf307adf9d8",
+      "artifact_ref": "asset://render-demo/render_sample/v1",
+      "path": "assets/render_sample/v1.mp4",
+      "sha256": "sha256:4788de019dc922c58cba039b080f1b84a0c593cfeb976cf9bde5154373390052",
+      "frame_count": 30,
+      "duration_seconds": 1,
+      "cached": false,
+      "shot_artifacts": {
+        "project_id": "render-demo",
+        "version": 1,
+        "job_id": "rjob-019c1a01-b0b2-4a0e-b332-cd61ec95f2f5",
+        "scope": "master",
+        "target_id": "sample",
+        "media_ref": "asset://render-demo/render_sample/v1",
+        "layer_refs": [
+          "asset://render-demo/render_shot_shot_001/v1",
+          "asset://render-demo/voice-master/v1"
+        ],
+        "content_hash": "sha256:4788de019dc922c58cba039b080f1b84a0c593cfeb976cf9bde5154373390052",
+        "frame_count": 30
+      },
+      "render_shot_input": {
+        "scope": "master",
+        "target_id": "sample",
+        "timeline_ref": "asset://render-demo/timeline/v1",
+        "input_refs": [
+          "asset://render-demo/render_shot_shot_001/v1",
+          "asset://render-demo/voice-master/v1",
+          "asset://render-demo/character_plan/v1"
+        ],
+        "output_spec": {
+          "media": {
+            "width": 1920,
+            "height": 1080,
+            "fps": 30,
+            "sample_rate_hz": 48000
+          },
+          "video_codec": "h264",
+          "pixel_format": "yuv420p",
+          "audio_codec": "aac"
+        }
+      }
+    },
+    "render_jobs": [
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-99d29138-072d-47e0-93c8-d8bdb79890aa",
+        "scope": "shot",
+        "target_id": "shot_001",
+        "idempotency_key": "render:shot:shot_001:3eb87218686a2753",
+        "input_hashes": [
+          "sha256:3eb87218686a2753b1ab6c2f8aa040c2794cbf780779dcb7ab8f8cd21bb1aa34"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_001/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-019c1a01-b0b2-4a0e-b332-cd61ec95f2f5",
+        "scope": "master",
+        "target_id": "sample",
+        "idempotency_key": "render:master:sample:6ca7fede0717def4",
+        "input_hashes": [
+          "sha256:6ca7fede0717def4e844a60a3668d427bf24b848a871ccd641cbddf307adf9d8",
+          "sha256:ae94c1efcf639858d8efa3dbb6b298055e59178672a58454aabb0faae1d5688a"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_sample/v1"
+        ],
+        "attempt": 1
+      }
+    ],
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "rjob-019c1a01-b0b2-4a0e-b332-cd61ec95f2f5",
+      "artifact_refs": [
+        "asset://render-demo/render_sample/v1"
+      ],
+      "warnings": [],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 0,
+        "actual_minor": 0
+      },
+      "retryable": false,
+      "next_action": "review"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

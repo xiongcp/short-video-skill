@@ -15,6 +15,8 @@ import { generateTts } from '../tools/generate_tts/adapter.ts';
 import { clearOp, preflightOp, registerOp, sceneOp } from './assets.ts';
 import { compileOp, saveStoryboard } from './compiler.ts';
 import { bakeOp, planOp } from './baker.ts';
+import { recoverOp, renderOp } from './render.ts';
+import { reviseOp } from './revision.ts';
 import { CATALOGS, DEFAULT_LOCALE, isSupported, localize, translate } from './i18n.ts';
 
 type Outcome = { report: { issues: { code: string }[] } & Record<string, unknown>; exitCode: number };
@@ -46,6 +48,9 @@ const operations: Record<string, (project: string, request: any) => Outcome | Pr
   compile: compileOp,
   plan: planOp,
   bake: bakeOp,
+  render: renderOp,
+  recover: recoverOp,
+  revise: reviseOp,
 };
 
 async function main(argv: string[]) {

@@ -1,0 +1,1069 @@
+{
+  "seq": 9,
+  "label": "long-480s",
+  "op": "render",
+  "session": null,
+  "request": {
+    "project_id": "render-demo",
+    "scope": "master",
+    "target_id": "master",
+    "plan_ref": "asset://render-demo/character_plan/v1",
+    "seed": 7
+  },
+  "exit_code": 0,
+  "response": {
+    "status": "RENDERED",
+    "project_id": "render-demo",
+    "state": "COMPILED",
+    "version": 12,
+    "event_count": 11,
+    "run_id": "run-73da8ffd-b4d8-4e8f-92f2-a0b53a32b741",
+    "timeline_version": 1,
+    "input_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+    "elapsed_ms": 24133,
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 1,
+      "bake_cached": 0,
+      "shot_rendered": 8,
+      "shot_cached": 0,
+      "chapter_assembled": 7,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "recovery": {
+      "removed_temp_files": [],
+      "removed_orphan_files": [],
+      "corrupt_artifacts": [],
+      "reset_jobs": [],
+      "verified_checkpoints": [],
+      "invalidated_checkpoints": [],
+      "events": []
+    },
+    "shots": [
+      {
+        "shot_id": "shot_001",
+        "chapter_id": "ch_001",
+        "absolute_range": {
+          "start": 0,
+          "end": 600
+        },
+        "local_frames": 600,
+        "visual_layer_key": "sha256:23c274b015656d5089e21fa8f0960e5d953dd54158f06707f1431e697bfbc2c2",
+        "local_cache_key": "sha256:6a749366ec8b74ba2ec1937fb8e2a34fc30cc53830829a51bb777d43c851d13c",
+        "bake_cache_key": "sha256:c23bb52eb9649fdccd75f6611163faee596e275507393aa509db5cbd7a8f773b",
+        "bake_asset_ref": "asset://render-demo/character_bake/v1",
+        "end_state_hash": "sha256:be5bb9e7ff55b83403b36ade9bce92c61832c64fa8f44533aa513747b3107dd5",
+        "artifact_ref": "asset://render-demo/render_shot_shot_001/v1",
+        "path": "assets/render_shot_shot_001/v1.mp4",
+        "sha256": "sha256:7de1d94ba208072a4613a99721ad34722b6ded0f2ee876c9e5a47dea2e78930a",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-0fdd3095-bf01-412a-a4f8-b33d3325a0e5",
+          "scope": "shot",
+          "target_id": "shot_001",
+          "media_ref": "asset://render-demo/render_shot_shot_001/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/character_bake/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:7de1d94ba208072a4613a99721ad34722b6ded0f2ee876c9e5a47dea2e78930a",
+          "frame_count": 600
+        }
+      },
+      {
+        "shot_id": "shot_002",
+        "chapter_id": "ch_002",
+        "absolute_range": {
+          "start": 600,
+          "end": 2100
+        },
+        "local_frames": 1500,
+        "visual_layer_key": "sha256:c184587a09678195086a713e7e9a8bde8b6d6d8b783f408aaf73bfcd900c07fc",
+        "local_cache_key": "sha256:cfdbc6cfacecb26475daa94b3c4616e610868fbdcbcd0d393e67373c4b4cd0b7",
+        "bake_cache_key": null,
+        "bake_asset_ref": null,
+        "end_state_hash": null,
+        "artifact_ref": "asset://render-demo/render_shot_shot_002/v1",
+        "path": "assets/render_shot_shot_002/v1.mp4",
+        "sha256": "sha256:624499976e76bd562517067e1ea3df30b2418b668f6add0495c4a7707c2e77e2",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-f69699ea-d9ab-4052-a01f-b3ed1859e8d5",
+          "scope": "shot",
+          "target_id": "shot_002",
+          "media_ref": "asset://render-demo/render_shot_shot_002/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/diagram_flow/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:624499976e76bd562517067e1ea3df30b2418b668f6add0495c4a7707c2e77e2",
+          "frame_count": 1500
+        }
+      },
+      {
+        "shot_id": "shot_003",
+        "chapter_id": "ch_003",
+        "absolute_range": {
+          "start": 2100,
+          "end": 4800
+        },
+        "local_frames": 2700,
+        "visual_layer_key": "sha256:d5cf8803fcfd5655d844d3762527a22f11c8fa3cc57bc236f1ed9844343ee76a",
+        "local_cache_key": "sha256:b5f2c98530150e08ab8f5650eb891c7ba0b37598d9ee8fce5e72a32cecb27ceb",
+        "bake_cache_key": null,
+        "bake_asset_ref": null,
+        "end_state_hash": null,
+        "artifact_ref": "asset://render-demo/render_shot_shot_003/v1",
+        "path": "assets/render_shot_shot_003/v1.mp4",
+        "sha256": "sha256:d69058325fb0ee58329299b56e9f135d2622bc90c3d925827c2f3d03db058621",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-4776afaf-da0b-4026-aa44-ddb66766da2b",
+          "scope": "shot",
+          "target_id": "shot_003",
+          "media_ref": "asset://render-demo/render_shot_shot_003/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/diagram_flow/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:d69058325fb0ee58329299b56e9f135d2622bc90c3d925827c2f3d03db058621",
+          "frame_count": 2700
+        }
+      },
+      {
+        "shot_id": "shot_004a",
+        "chapter_id": "ch_004",
+        "absolute_range": {
+          "start": 4800,
+          "end": 6450
+        },
+        "local_frames": 1650,
+        "visual_layer_key": "sha256:80074ebf5e069879ac16f6c758b638fd0e25b4a36064092fc74ec713b9361576",
+        "local_cache_key": "sha256:caca5f674a95fa489ccb00c580610160423ed0bac2c8ff7f76c3b73a71ae0391",
+        "bake_cache_key": null,
+        "bake_asset_ref": null,
+        "end_state_hash": null,
+        "artifact_ref": "asset://render-demo/render_shot_shot_004a/v1",
+        "path": "assets/render_shot_shot_004a/v1.mp4",
+        "sha256": "sha256:853fdd07f1395dd13e8d9bb8967a50d404608769eaa03f84869ad4567ef50fc7",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-2edb9221-e199-4c93-9f4b-8184adb30edb",
+          "scope": "shot",
+          "target_id": "shot_004a",
+          "media_ref": "asset://render-demo/render_shot_shot_004a/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/diagram_flow/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:853fdd07f1395dd13e8d9bb8967a50d404608769eaa03f84869ad4567ef50fc7",
+          "frame_count": 1650
+        }
+      },
+      {
+        "shot_id": "shot_004b",
+        "chapter_id": "ch_004",
+        "absolute_range": {
+          "start": 6450,
+          "end": 8100
+        },
+        "local_frames": 1650,
+        "visual_layer_key": "sha256:f196aa191c24b3f9397f2aff9bf1d1a9c24df8672ce24fc585fc7573fc0a22fd",
+        "local_cache_key": "sha256:e4009e7815038d5ec7aaa8584664f754093830198a111c0ee0907564670640f6",
+        "bake_cache_key": null,
+        "bake_asset_ref": null,
+        "end_state_hash": null,
+        "artifact_ref": "asset://render-demo/render_shot_shot_004b/v1",
+        "path": "assets/render_shot_shot_004b/v1.mp4",
+        "sha256": "sha256:bd472e9110c151bed6df24fd7915ccf5b48487dda77a372a2f4e5769aa90b827",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-48786c4f-1be0-4e74-97a6-a46c1b4efd2b",
+          "scope": "shot",
+          "target_id": "shot_004b",
+          "media_ref": "asset://render-demo/render_shot_shot_004b/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/diagram_flow/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:bd472e9110c151bed6df24fd7915ccf5b48487dda77a372a2f4e5769aa90b827",
+          "frame_count": 1650
+        }
+      },
+      {
+        "shot_id": "shot_005",
+        "chapter_id": "ch_005",
+        "absolute_range": {
+          "start": 8100,
+          "end": 11100
+        },
+        "local_frames": 3000,
+        "visual_layer_key": "sha256:101efe06013d3f44ca60e1ebe63907cf19fc711972efd5133dda25231d5a5440",
+        "local_cache_key": "sha256:e0f80d28a364dfeaaad7390193aaeb84e59f7d9f808676a9949082520fb64d47",
+        "bake_cache_key": null,
+        "bake_asset_ref": null,
+        "end_state_hash": null,
+        "artifact_ref": "asset://render-demo/render_shot_shot_005/v1",
+        "path": "assets/render_shot_shot_005/v1.mp4",
+        "sha256": "sha256:ddead62dade659d6328b1f97ddf1d596bc6f177586221fd258426c49abfd4591",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-00a51d58-1430-4e43-8bd4-3feb6bcf5f52",
+          "scope": "shot",
+          "target_id": "shot_005",
+          "media_ref": "asset://render-demo/render_shot_shot_005/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/diagram_flow/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:ddead62dade659d6328b1f97ddf1d596bc6f177586221fd258426c49abfd4591",
+          "frame_count": 3000
+        }
+      },
+      {
+        "shot_id": "shot_006",
+        "chapter_id": "ch_006",
+        "absolute_range": {
+          "start": 11100,
+          "end": 13500
+        },
+        "local_frames": 2400,
+        "visual_layer_key": "sha256:0f776e2b9395e56b0ba6fea912ba79e8ab41bad190ff63c62825b2faf86a37fa",
+        "local_cache_key": "sha256:74d0fe1350909338a37eab8b3853ad16c289f519f03591244014b489176ca34f",
+        "bake_cache_key": null,
+        "bake_asset_ref": null,
+        "end_state_hash": null,
+        "artifact_ref": "asset://render-demo/render_shot_shot_006/v1",
+        "path": "assets/render_shot_shot_006/v1.mp4",
+        "sha256": "sha256:ff286c71d932f589e98628dd2c08b059db4a96ad5f6baaa21ab570ac70680e86",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-43ec8323-83dd-41ea-a42a-9aa57f867745",
+          "scope": "shot",
+          "target_id": "shot_006",
+          "media_ref": "asset://render-demo/render_shot_shot_006/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/diagram_flow/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:ff286c71d932f589e98628dd2c08b059db4a96ad5f6baaa21ab570ac70680e86",
+          "frame_count": 2400
+        }
+      },
+      {
+        "shot_id": "shot_007",
+        "chapter_id": "ch_007",
+        "absolute_range": {
+          "start": 13500,
+          "end": 14400
+        },
+        "local_frames": 900,
+        "visual_layer_key": "sha256:d8e8f34178cf28403f3ca3c97c4b4205c8e6d3cec5362127e4dd3ab1e381e94b",
+        "local_cache_key": "sha256:ffb2238f1af7c6331656cae1ab8a95f73bfa9b06ea83592a57f31e49bf83e74e",
+        "bake_cache_key": null,
+        "bake_asset_ref": null,
+        "end_state_hash": null,
+        "artifact_ref": "asset://render-demo/render_shot_shot_007/v1",
+        "path": "assets/render_shot_shot_007/v1.mp4",
+        "sha256": "sha256:0fb6ea3777389dc8274c7b5440fc1c72be1798867692f013918ae97e86ec5b14",
+        "cached": false,
+        "shot_artifacts": {
+          "project_id": "render-demo",
+          "version": 1,
+          "job_id": "rjob-4d040cfc-c24a-4119-9255-605fe596ceed",
+          "scope": "shot",
+          "target_id": "shot_007",
+          "media_ref": "asset://render-demo/render_shot_shot_007/v1",
+          "layer_refs": [
+            "asset://render-demo/studio_backdrop/v1",
+            "asset://render-demo/diagram_flow/v1",
+            "asset://render-demo/subtitle_style/v1"
+          ],
+          "content_hash": "sha256:0fb6ea3777389dc8274c7b5440fc1c72be1798867692f013918ae97e86ec5b14",
+          "frame_count": 900
+        }
+      }
+    ],
+    "chapters": [
+      {
+        "chapter_id": "ch_001",
+        "chapter_cache_key": "sha256:bb1a3807c58e2f25e4b807cbf881703d3bb2c2e389974ae0d546e21955886d00",
+        "checkpoint": {
+          "project_id": "render-demo",
+          "version": 1,
+          "chapter_id": "ch_001",
+          "frame_range": {
+            "start": 0,
+            "end": 600
+          },
+          "input_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+          "completed_shots": [
+            {
+              "shot_id": "shot_001",
+              "local_cache_key": "sha256:6a749366ec8b74ba2ec1937fb8e2a34fc30cc53830829a51bb777d43c851d13c",
+              "artifact_ref": "asset://render-demo/render_shot_shot_001/v1",
+              "artifact_hash": "sha256:7de1d94ba208072a4613a99721ad34722b6ded0f2ee876c9e5a47dea2e78930a"
+            }
+          ],
+          "pending_shot_ids": [],
+          "continuity_state_hash": "sha256:899d0ed68465caca809a522bf2866c244fcec98dc1e00eacb279abdef8e37391"
+        },
+        "continuity": {
+          "chapter_id": "ch_001",
+          "continuity_in": "第1章起点",
+          "continuity_out": "第1章终点",
+          "pose": "neutral",
+          "stage_coordinates": "normalized_top_left",
+          "legend": [],
+          "sound_ref": "asset://render-demo/voice-master/v1",
+          "inherited_end_state_hash": "sha256:be5bb9e7ff55b83403b36ade9bce92c61832c64fa8f44533aa513747b3107dd5"
+        },
+        "artifact_ref": "asset://render-demo/render_chapter_ch_001/v1",
+        "path": "assets/render_chapter_ch_001/v1.mp4",
+        "sha256": "sha256:7de1d94ba208072a4613a99721ad34722b6ded0f2ee876c9e5a47dea2e78930a",
+        "cached": false
+      },
+      {
+        "chapter_id": "ch_002",
+        "chapter_cache_key": "sha256:5a45121a951e654362fdf686161ac52f17524e05ff6c64b0f314a3af24b7cde5",
+        "checkpoint": {
+          "project_id": "render-demo",
+          "version": 1,
+          "chapter_id": "ch_002",
+          "frame_range": {
+            "start": 600,
+            "end": 2100
+          },
+          "input_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+          "completed_shots": [
+            {
+              "shot_id": "shot_002",
+              "local_cache_key": "sha256:cfdbc6cfacecb26475daa94b3c4616e610868fbdcbcd0d393e67373c4b4cd0b7",
+              "artifact_ref": "asset://render-demo/render_shot_shot_002/v1",
+              "artifact_hash": "sha256:624499976e76bd562517067e1ea3df30b2418b668f6add0495c4a7707c2e77e2"
+            }
+          ],
+          "pending_shot_ids": [],
+          "continuity_state_hash": "sha256:9861cf39482f46e62e2f1a7b8f0afb2945cd242bd4975d59592f875e96284463"
+        },
+        "continuity": {
+          "chapter_id": "ch_002",
+          "continuity_in": "第2章起点",
+          "continuity_out": "第2章终点",
+          "pose": null,
+          "stage_coordinates": "normalized_top_left",
+          "legend": [
+            "asset://render-demo/diagram_flow/v1"
+          ],
+          "sound_ref": "asset://render-demo/voice-master/v1",
+          "inherited_end_state_hash": null
+        },
+        "artifact_ref": "asset://render-demo/render_chapter_ch_002/v1",
+        "path": "assets/render_chapter_ch_002/v1.mp4",
+        "sha256": "sha256:cbbdbf17be3f0ed1cc6740074bd981bb5286e2e33ef1a57f5a3bff15fad78c04",
+        "cached": false
+      },
+      {
+        "chapter_id": "ch_003",
+        "chapter_cache_key": "sha256:4d2ede9adbf5ac539a261eae6546fc50889c6bdc8f28e5ae81753edc4316e48b",
+        "checkpoint": {
+          "project_id": "render-demo",
+          "version": 1,
+          "chapter_id": "ch_003",
+          "frame_range": {
+            "start": 2100,
+            "end": 4800
+          },
+          "input_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+          "completed_shots": [
+            {
+              "shot_id": "shot_003",
+              "local_cache_key": "sha256:b5f2c98530150e08ab8f5650eb891c7ba0b37598d9ee8fce5e72a32cecb27ceb",
+              "artifact_ref": "asset://render-demo/render_shot_shot_003/v1",
+              "artifact_hash": "sha256:d69058325fb0ee58329299b56e9f135d2622bc90c3d925827c2f3d03db058621"
+            }
+          ],
+          "pending_shot_ids": [],
+          "continuity_state_hash": "sha256:2ee4f027fb728f27737c0244f7ac3674a996a4f090637916282c756c0af666b5"
+        },
+        "continuity": {
+          "chapter_id": "ch_003",
+          "continuity_in": "第3章起点",
+          "continuity_out": "第3章终点",
+          "pose": null,
+          "stage_coordinates": "normalized_top_left",
+          "legend": [
+            "asset://render-demo/diagram_flow/v1"
+          ],
+          "sound_ref": "asset://render-demo/voice-master/v1",
+          "inherited_end_state_hash": null
+        },
+        "artifact_ref": "asset://render-demo/render_chapter_ch_003/v1",
+        "path": "assets/render_chapter_ch_003/v1.mp4",
+        "sha256": "sha256:1c4cbd8d341acb4cc76514b47560167e9e69c281819d04aa785ba7d13456a1a2",
+        "cached": false
+      },
+      {
+        "chapter_id": "ch_004",
+        "chapter_cache_key": "sha256:49558ac68e24a1d12a0901b2d72420d4a51eda30a046c22479b63dcb0d59c342",
+        "checkpoint": {
+          "project_id": "render-demo",
+          "version": 2,
+          "chapter_id": "ch_004",
+          "frame_range": {
+            "start": 4800,
+            "end": 8100
+          },
+          "input_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+          "completed_shots": [
+            {
+              "shot_id": "shot_004a",
+              "local_cache_key": "sha256:caca5f674a95fa489ccb00c580610160423ed0bac2c8ff7f76c3b73a71ae0391",
+              "artifact_ref": "asset://render-demo/render_shot_shot_004a/v1",
+              "artifact_hash": "sha256:853fdd07f1395dd13e8d9bb8967a50d404608769eaa03f84869ad4567ef50fc7"
+            },
+            {
+              "shot_id": "shot_004b",
+              "local_cache_key": "sha256:e4009e7815038d5ec7aaa8584664f754093830198a111c0ee0907564670640f6",
+              "artifact_ref": "asset://render-demo/render_shot_shot_004b/v1",
+              "artifact_hash": "sha256:bd472e9110c151bed6df24fd7915ccf5b48487dda77a372a2f4e5769aa90b827"
+            }
+          ],
+          "pending_shot_ids": [],
+          "continuity_state_hash": "sha256:2f38ec710854162c61675e25e860f238babd4b9149fafeab13aecc5079a5a8f5"
+        },
+        "continuity": {
+          "chapter_id": "ch_004",
+          "continuity_in": "第4章起点",
+          "continuity_out": "第4章终点",
+          "pose": null,
+          "stage_coordinates": "normalized_top_left",
+          "legend": [
+            "asset://render-demo/diagram_flow/v1"
+          ],
+          "sound_ref": "asset://render-demo/voice-master/v1",
+          "inherited_end_state_hash": null
+        },
+        "artifact_ref": "asset://render-demo/render_chapter_ch_004/v1",
+        "path": "assets/render_chapter_ch_004/v1.mp4",
+        "sha256": "sha256:19dc1eb09d98ca7d7c78722240ec3809fbdba4c90904a28f46a3eaf3883541ea",
+        "cached": false
+      },
+      {
+        "chapter_id": "ch_005",
+        "chapter_cache_key": "sha256:0132f93312e7e7426fcf246ada5c4c2a0829c1f8acf4d9b726d010aef6408cd0",
+        "checkpoint": {
+          "project_id": "render-demo",
+          "version": 1,
+          "chapter_id": "ch_005",
+          "frame_range": {
+            "start": 8100,
+            "end": 11100
+          },
+          "input_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+          "completed_shots": [
+            {
+              "shot_id": "shot_005",
+              "local_cache_key": "sha256:e0f80d28a364dfeaaad7390193aaeb84e59f7d9f808676a9949082520fb64d47",
+              "artifact_ref": "asset://render-demo/render_shot_shot_005/v1",
+              "artifact_hash": "sha256:ddead62dade659d6328b1f97ddf1d596bc6f177586221fd258426c49abfd4591"
+            }
+          ],
+          "pending_shot_ids": [],
+          "continuity_state_hash": "sha256:6094abdcece019d735ef31e8c525fbb08c2c51a4f93d7b003249eeffa51bbde6"
+        },
+        "continuity": {
+          "chapter_id": "ch_005",
+          "continuity_in": "第5章起点",
+          "continuity_out": "第5章终点",
+          "pose": null,
+          "stage_coordinates": "normalized_top_left",
+          "legend": [
+            "asset://render-demo/diagram_flow/v1"
+          ],
+          "sound_ref": "asset://render-demo/voice-master/v1",
+          "inherited_end_state_hash": null
+        },
+        "artifact_ref": "asset://render-demo/render_chapter_ch_005/v1",
+        "path": "assets/render_chapter_ch_005/v1.mp4",
+        "sha256": "sha256:faf7229c560615f372be8ecf14da9251d4f612a7f5971e770a32db9b49bf88b1",
+        "cached": false
+      },
+      {
+        "chapter_id": "ch_006",
+        "chapter_cache_key": "sha256:6bda800aec43b83ad6ce904dad12022ec48f6bf9218d3428cf3db1bbc65693f9",
+        "checkpoint": {
+          "project_id": "render-demo",
+          "version": 1,
+          "chapter_id": "ch_006",
+          "frame_range": {
+            "start": 11100,
+            "end": 13500
+          },
+          "input_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+          "completed_shots": [
+            {
+              "shot_id": "shot_006",
+              "local_cache_key": "sha256:74d0fe1350909338a37eab8b3853ad16c289f519f03591244014b489176ca34f",
+              "artifact_ref": "asset://render-demo/render_shot_shot_006/v1",
+              "artifact_hash": "sha256:ff286c71d932f589e98628dd2c08b059db4a96ad5f6baaa21ab570ac70680e86"
+            }
+          ],
+          "pending_shot_ids": [],
+          "continuity_state_hash": "sha256:301fd7d0b0291e0129a6bd6ee66e33a74aa4b64fb350042600b3c44202b6a9a5"
+        },
+        "continuity": {
+          "chapter_id": "ch_006",
+          "continuity_in": "第6章起点",
+          "continuity_out": "第6章终点",
+          "pose": null,
+          "stage_coordinates": "normalized_top_left",
+          "legend": [
+            "asset://render-demo/diagram_flow/v1"
+          ],
+          "sound_ref": "asset://render-demo/voice-master/v1",
+          "inherited_end_state_hash": null
+        },
+        "artifact_ref": "asset://render-demo/render_chapter_ch_006/v1",
+        "path": "assets/render_chapter_ch_006/v1.mp4",
+        "sha256": "sha256:d1667fe228ae21456963822ec73171d659ced18c65d1a13948f62dd3eed25b1c",
+        "cached": false
+      },
+      {
+        "chapter_id": "ch_007",
+        "chapter_cache_key": "sha256:11184d5a03ae321b6f0e0d386696d94424f1a407c3706f3c33e6df68b5279445",
+        "checkpoint": {
+          "project_id": "render-demo",
+          "version": 1,
+          "chapter_id": "ch_007",
+          "frame_range": {
+            "start": 13500,
+            "end": 14400
+          },
+          "input_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+          "completed_shots": [
+            {
+              "shot_id": "shot_007",
+              "local_cache_key": "sha256:ffb2238f1af7c6331656cae1ab8a95f73bfa9b06ea83592a57f31e49bf83e74e",
+              "artifact_ref": "asset://render-demo/render_shot_shot_007/v1",
+              "artifact_hash": "sha256:0fb6ea3777389dc8274c7b5440fc1c72be1798867692f013918ae97e86ec5b14"
+            }
+          ],
+          "pending_shot_ids": [],
+          "continuity_state_hash": "sha256:3c0492b9ebbe256434274d6acc5168c55961096e162f8650f74c18785da9811d"
+        },
+        "continuity": {
+          "chapter_id": "ch_007",
+          "continuity_in": "第7章起点",
+          "continuity_out": "第7章终点",
+          "pose": null,
+          "stage_coordinates": "normalized_top_left",
+          "legend": [
+            "asset://render-demo/diagram_flow/v1"
+          ],
+          "sound_ref": "asset://render-demo/voice-master/v1",
+          "inherited_end_state_hash": null
+        },
+        "artifact_ref": "asset://render-demo/render_chapter_ch_007/v1",
+        "path": "assets/render_chapter_ch_007/v1.mp4",
+        "sha256": "sha256:8058bb4e31f906c747fb1d6071bb3c789da6f2389d798b9a1078451c801d8d1f",
+        "cached": false
+      }
+    ],
+    "master": {
+      "target_id": "master",
+      "assembly_cache_key": "sha256:828657f449ee0d6d8c6216d1dc102d5cebce7c88a744f985595a605f7dd6df77",
+      "artifact_ref": "asset://render-demo/render_master/v1",
+      "path": "assets/render_master/v1.mp4",
+      "sha256": "sha256:6c5de90be890b2a121327c319e5d1c9135fd2edbde4393f97cf4db26c8d598da",
+      "frame_count": 14400,
+      "duration_seconds": 480,
+      "cached": false,
+      "shot_artifacts": {
+        "project_id": "render-demo",
+        "version": 1,
+        "job_id": "rjob-0bc5125b-b40e-4b67-8b4a-61706177c76f",
+        "scope": "master",
+        "target_id": "master",
+        "media_ref": "asset://render-demo/render_master/v1",
+        "layer_refs": [
+          "asset://render-demo/render_shot_shot_001/v1",
+          "asset://render-demo/render_shot_shot_002/v1",
+          "asset://render-demo/render_shot_shot_003/v1",
+          "asset://render-demo/render_shot_shot_004a/v1",
+          "asset://render-demo/render_shot_shot_004b/v1",
+          "asset://render-demo/render_shot_shot_005/v1",
+          "asset://render-demo/render_shot_shot_006/v1",
+          "asset://render-demo/render_shot_shot_007/v1",
+          "asset://render-demo/voice-master/v1"
+        ],
+        "content_hash": "sha256:6c5de90be890b2a121327c319e5d1c9135fd2edbde4393f97cf4db26c8d598da",
+        "frame_count": 14400
+      },
+      "render_shot_input": {
+        "scope": "master",
+        "target_id": "master",
+        "timeline_ref": "asset://render-demo/timeline/v1",
+        "input_refs": [
+          "asset://render-demo/render_shot_shot_001/v1",
+          "asset://render-demo/render_shot_shot_002/v1",
+          "asset://render-demo/render_shot_shot_003/v1",
+          "asset://render-demo/render_shot_shot_004a/v1",
+          "asset://render-demo/render_shot_shot_004b/v1",
+          "asset://render-demo/render_shot_shot_005/v1",
+          "asset://render-demo/render_shot_shot_006/v1",
+          "asset://render-demo/render_shot_shot_007/v1",
+          "asset://render-demo/voice-master/v1",
+          "asset://render-demo/character_plan/v1"
+        ],
+        "output_spec": {
+          "media": {
+            "width": 1920,
+            "height": 1080,
+            "fps": 30,
+            "sample_rate_hz": 48000
+          },
+          "video_codec": "h264",
+          "pixel_format": "yuv420p",
+          "audio_codec": "aac"
+        }
+      }
+    },
+    "render_jobs": [
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-0fdd3095-bf01-412a-a4f8-b33d3325a0e5",
+        "scope": "shot",
+        "target_id": "shot_001",
+        "idempotency_key": "render:shot:shot_001:6a749366ec8b74ba",
+        "input_hashes": [
+          "sha256:6a749366ec8b74ba2ec1937fb8e2a34fc30cc53830829a51bb777d43c851d13c"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_001/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-f69699ea-d9ab-4052-a01f-b3ed1859e8d5",
+        "scope": "shot",
+        "target_id": "shot_002",
+        "idempotency_key": "render:shot:shot_002:cfdbc6cfacecb264",
+        "input_hashes": [
+          "sha256:cfdbc6cfacecb26475daa94b3c4616e610868fbdcbcd0d393e67373c4b4cd0b7"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_002/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-4776afaf-da0b-4026-aa44-ddb66766da2b",
+        "scope": "shot",
+        "target_id": "shot_003",
+        "idempotency_key": "render:shot:shot_003:b5f2c98530150e08",
+        "input_hashes": [
+          "sha256:b5f2c98530150e08ab8f5650eb891c7ba0b37598d9ee8fce5e72a32cecb27ceb"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_003/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-2edb9221-e199-4c93-9f4b-8184adb30edb",
+        "scope": "shot",
+        "target_id": "shot_004a",
+        "idempotency_key": "render:shot:shot_004a:caca5f674a95fa48",
+        "input_hashes": [
+          "sha256:caca5f674a95fa489ccb00c580610160423ed0bac2c8ff7f76c3b73a71ae0391"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_004a/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-48786c4f-1be0-4e74-97a6-a46c1b4efd2b",
+        "scope": "shot",
+        "target_id": "shot_004b",
+        "idempotency_key": "render:shot:shot_004b:e4009e7815038d5e",
+        "input_hashes": [
+          "sha256:e4009e7815038d5ec7aaa8584664f754093830198a111c0ee0907564670640f6"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_004b/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-00a51d58-1430-4e43-8bd4-3feb6bcf5f52",
+        "scope": "shot",
+        "target_id": "shot_005",
+        "idempotency_key": "render:shot:shot_005:e0f80d28a364dfea",
+        "input_hashes": [
+          "sha256:e0f80d28a364dfeaaad7390193aaeb84e59f7d9f808676a9949082520fb64d47"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_005/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-43ec8323-83dd-41ea-a42a-9aa57f867745",
+        "scope": "shot",
+        "target_id": "shot_006",
+        "idempotency_key": "render:shot:shot_006:74d0fe1350909338",
+        "input_hashes": [
+          "sha256:74d0fe1350909338a37eab8b3853ad16c289f519f03591244014b489176ca34f"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_006/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-4d040cfc-c24a-4119-9255-605fe596ceed",
+        "scope": "shot",
+        "target_id": "shot_007",
+        "idempotency_key": "render:shot:shot_007:ffb2238f1af7c633",
+        "input_hashes": [
+          "sha256:ffb2238f1af7c6331656cae1ab8a95f73bfa9b06ea83592a57f31e49bf83e74e"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_shot_shot_007/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-d10be13d-4cc4-4e02-a9c9-a9be9a4bdc88",
+        "scope": "chapter",
+        "target_id": "ch_001",
+        "idempotency_key": "render:chapter:ch_001:bb1a3807c58e2f25",
+        "input_hashes": [
+          "sha256:bb1a3807c58e2f25e4b807cbf881703d3bb2c2e389974ae0d546e21955886d00",
+          "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_chapter_ch_001/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-5c06df57-a8ec-4021-adb3-348e619e6b8f",
+        "scope": "chapter",
+        "target_id": "ch_002",
+        "idempotency_key": "render:chapter:ch_002:5a45121a951e6543",
+        "input_hashes": [
+          "sha256:5a45121a951e654362fdf686161ac52f17524e05ff6c64b0f314a3af24b7cde5",
+          "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_chapter_ch_002/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-fec37e38-2713-467d-96bf-46033c9bb886",
+        "scope": "chapter",
+        "target_id": "ch_003",
+        "idempotency_key": "render:chapter:ch_003:4d2ede9adbf5ac53",
+        "input_hashes": [
+          "sha256:4d2ede9adbf5ac539a261eae6546fc50889c6bdc8f28e5ae81753edc4316e48b",
+          "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_chapter_ch_003/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-18c756b8-1b24-4724-94ce-b9fcce52f89f",
+        "scope": "chapter",
+        "target_id": "ch_004",
+        "idempotency_key": "render:chapter:ch_004:49558ac68e24a1d1",
+        "input_hashes": [
+          "sha256:49558ac68e24a1d12a0901b2d72420d4a51eda30a046c22479b63dcb0d59c342",
+          "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_chapter_ch_004/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-7e29eedf-2d7b-4419-9394-ea3a353fd729",
+        "scope": "chapter",
+        "target_id": "ch_005",
+        "idempotency_key": "render:chapter:ch_005:0132f93312e7e742",
+        "input_hashes": [
+          "sha256:0132f93312e7e7426fcf246ada5c4c2a0829c1f8acf4d9b726d010aef6408cd0",
+          "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_chapter_ch_005/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-7f67445b-e4ad-42ce-9615-206cdf7ceaf0",
+        "scope": "chapter",
+        "target_id": "ch_006",
+        "idempotency_key": "render:chapter:ch_006:6bda800aec43b83a",
+        "input_hashes": [
+          "sha256:6bda800aec43b83ad6ce904dad12022ec48f6bf9218d3428cf3db1bbc65693f9",
+          "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_chapter_ch_006/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-9fdc9981-f332-4e98-8ddc-312b400af081",
+        "scope": "chapter",
+        "target_id": "ch_007",
+        "idempotency_key": "render:chapter:ch_007:11184d5a03ae321b",
+        "input_hashes": [
+          "sha256:11184d5a03ae321b6f0e0d386696d94424f1a407c3706f3c33e6df68b5279445",
+          "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_chapter_ch_007/v1"
+        ],
+        "attempt": 1
+      },
+      {
+        "project_id": "render-demo",
+        "version": 2,
+        "job_id": "rjob-0bc5125b-b40e-4b67-8b4a-61706177c76f",
+        "scope": "master",
+        "target_id": "master",
+        "idempotency_key": "render:master:master:828657f449ee0d6d",
+        "input_hashes": [
+          "sha256:828657f449ee0d6d8c6216d1dc102d5cebce7c88a744f985595a605f7dd6df77",
+          "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356"
+        ],
+        "provider": "local-renderer",
+        "provider_job_id": null,
+        "state": "SUCCEEDED",
+        "cost_reservation": null,
+        "cost": {
+          "currency": "CNY",
+          "estimated_minor": 0,
+          "actual_minor": 0
+        },
+        "artifact_refs": [
+          "asset://render-demo/render_master/v1"
+        ],
+        "attempt": 1
+      }
+    ],
+    "tool_result": {
+      "status": "succeeded",
+      "job_id": "rjob-0bc5125b-b40e-4b67-8b4a-61706177c76f",
+      "artifact_refs": [
+        "asset://render-demo/render_master/v1"
+      ],
+      "warnings": [],
+      "cost": {
+        "currency": "CNY",
+        "estimated_minor": 0,
+        "actual_minor": 0
+      },
+      "retryable": false,
+      "next_action": "continue"
+    },
+    "issues": [],
+    "locale": "zh-CN"
+  }
+}

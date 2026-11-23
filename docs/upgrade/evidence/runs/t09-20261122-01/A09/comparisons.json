@@ -1,0 +1,782 @@
+{
+  "cold": {
+    "elapsed_ms": 3135,
+    "status": "RENDERED",
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 1,
+      "bake_cached": 0,
+      "shot_rendered": 6,
+      "shot_cached": 0,
+      "chapter_assembled": 5,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "master_sha256": "sha256:8bb5f3ac3190b0f51bd649d07ea3add99e7cf28ec5279260d555cce47e842b5e",
+    "shots": [
+      {
+        "shot_id": "shot_001",
+        "local_cache_key": "sha256:f2977db97a7881a67ec405e0841f7befa94997ca9a5abb0fece8d98ecc61d614",
+        "sha256": "sha256:c8c8eabf2dc9a6c044277e0d16d058345cd1ad3ae030a20e34f64934fb9d8a8d",
+        "cached": false
+      },
+      {
+        "shot_id": "shot_002",
+        "local_cache_key": "sha256:fcf6926e6cac0a00ad2bef400bb79a94595d6274d121a140902318e01f390ab7",
+        "sha256": "sha256:21894f4d7a1618f95b1a845fd2693806b101dff2a395c80933b60bc95e471261",
+        "cached": false
+      },
+      {
+        "shot_id": "shot_003",
+        "local_cache_key": "sha256:addb4b599c9202d35fa004dad1b1d5fb1aeda4743ac0ef5377e659fe45fdcee4",
+        "sha256": "sha256:c1d353cedb69b437638222d7d61c11fd80018be004d523d4fcbedb3ab445aa85",
+        "cached": false
+      },
+      {
+        "shot_id": "shot_004a",
+        "local_cache_key": "sha256:fc597c6360940e1dba678fcdcf5978e1baf6635bfe12c8abcf991581d9cb6493",
+        "sha256": "sha256:15c5b0ea228c5e2750f942960e0b8c5208b96f923ed70f4de310f8532c831419",
+        "cached": false
+      },
+      {
+        "shot_id": "shot_004b",
+        "local_cache_key": "sha256:29f3c9d83fae796b5540046d9602c742b327831acbe1cc2b9fad7f0399a68e29",
+        "sha256": "sha256:9b328ed8e28f88e66fd0d58b28bde8faa035e2c5fa1ce458e13931906295810f",
+        "cached": false
+      },
+      {
+        "shot_id": "shot_005",
+        "local_cache_key": "sha256:95b8013e6fbcb59cdcfe87ba3eabf6fa2b777b181374a6c7d8cb2adad480f5e3",
+        "sha256": "sha256:26fb4408cf4862579c394c1bcc7c8a879f36b3a040381f94efdc60538f4e4ad1",
+        "cached": false
+      }
+    ],
+    "decode": {
+      "video_frames": 180,
+      "width": 1920,
+      "height": 1080,
+      "video_codec": "h264",
+      "pix_fmt": "yuv420p",
+      "audio_codec": "aac",
+      "sample_rate_hz": 48000,
+      "audio_pcm_samples": 288000,
+      "audio_pcm_sha256": "sha256:b909cac92ba31165fe5e3a0eb3bd489e7e9a6dde921417ef0d606e9e8a8da69c",
+      "sampled_frame_hashes": {
+        "0": "sha256:304070101d8e1df33243a9f5507d5202de479fb2b05ce4c18d69a3580854e179",
+        "90": "sha256:817a41c521032090dfc80329e974e01bb5ffd988d6c6bc1daa1fca66c5d9c0cb",
+        "179": "sha256:9c5bc923161a7daaac6d97026c959a621a0e7c4b81518b21c97747a15d84d257"
+      }
+    }
+  },
+  "warm": {
+    "elapsed_ms": 12,
+    "status": "CACHED",
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 0,
+      "bake_cached": 1,
+      "shot_rendered": 0,
+      "shot_cached": 6,
+      "chapter_assembled": 0,
+      "chapter_cached": 5,
+      "master_assembled": 0,
+      "master_cached": 1
+    },
+    "master_sha256": "sha256:8bb5f3ac3190b0f51bd649d07ea3add99e7cf28ec5279260d555cce47e842b5e"
+  },
+  "crash_after_tmp_write": {
+    "crash_exit": 137,
+    "tmp_found": [
+      "v1.mp4.tmp"
+    ],
+    "recovery": {
+      "removed_temp_files": [
+        "assets/render_shot_shot_004b/v1.mp4.tmp"
+      ],
+      "removed_orphan_files": [],
+      "corrupt_artifacts": [],
+      "reset_jobs": [
+        {
+          "job_id": "rjob-70edfb99-1d37-4876-9977-e1524c451943",
+          "scope": "shot",
+          "target_id": "shot_004b",
+          "previous_state": "RUNNING"
+        }
+      ],
+      "verified_checkpoints": [
+        "ch_001",
+        "ch_002",
+        "ch_003",
+        "ch_004"
+      ],
+      "invalidated_checkpoints": [],
+      "events": [
+        {
+          "scope": "recovery",
+          "target_id": "assets/render_shot_shot_004b/v1.mp4.tmp",
+          "event": "temp_file_removed",
+          "detail": {
+            "path": "assets/render_shot_shot_004b/v1.mp4.tmp"
+          }
+        },
+        {
+          "scope": "shot",
+          "target_id": "shot_004b",
+          "event": "job_reset",
+          "detail": {
+            "job_id": "rjob-70edfb99-1d37-4876-9977-e1524c451943",
+            "previous_state": "RUNNING"
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_001",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_002",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_003",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_004",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 1
+          }
+        }
+      ]
+    },
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 0,
+      "bake_cached": 1,
+      "shot_rendered": 2,
+      "shot_cached": 4,
+      "chapter_assembled": 5,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "master_sha256": "sha256:8bb5f3ac3190b0f51bd649d07ea3add99e7cf28ec5279260d555cce47e842b5e",
+    "decode": {
+      "video_frames": 180,
+      "width": 1920,
+      "height": 1080,
+      "video_codec": "h264",
+      "pix_fmt": "yuv420p",
+      "audio_codec": "aac",
+      "sample_rate_hz": 48000,
+      "audio_pcm_samples": 288000,
+      "audio_pcm_sha256": "sha256:b909cac92ba31165fe5e3a0eb3bd489e7e9a6dde921417ef0d606e9e8a8da69c",
+      "sampled_frame_hashes": {
+        "0": "sha256:304070101d8e1df33243a9f5507d5202de479fb2b05ce4c18d69a3580854e179",
+        "90": "sha256:817a41c521032090dfc80329e974e01bb5ffd988d6c6bc1daa1fca66c5d9c0cb",
+        "179": "sha256:9c5bc923161a7daaac6d97026c959a621a0e7c4b81518b21c97747a15d84d257"
+      }
+    }
+  },
+  "crash_after_rename": {
+    "crash_exit": 137,
+    "orphan_existed": true,
+    "recovery": {
+      "removed_temp_files": [],
+      "removed_orphan_files": [
+        "assets/render_shot_shot_004b/v1.mp4"
+      ],
+      "corrupt_artifacts": [],
+      "reset_jobs": [
+        {
+          "job_id": "rjob-606be63d-8995-4ffe-8879-198b47d6ce81",
+          "scope": "shot",
+          "target_id": "shot_004b",
+          "previous_state": "RUNNING"
+        }
+      ],
+      "verified_checkpoints": [
+        "ch_001",
+        "ch_002",
+        "ch_003",
+        "ch_004"
+      ],
+      "invalidated_checkpoints": [],
+      "events": [
+        {
+          "scope": "recovery",
+          "target_id": "assets/render_shot_shot_004b/v1.mp4",
+          "event": "orphan_file_removed",
+          "detail": {
+            "path": "assets/render_shot_shot_004b/v1.mp4"
+          }
+        },
+        {
+          "scope": "shot",
+          "target_id": "shot_004b",
+          "event": "job_reset",
+          "detail": {
+            "job_id": "rjob-606be63d-8995-4ffe-8879-198b47d6ce81",
+            "previous_state": "RUNNING"
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_001",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_002",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_003",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_004",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 1
+          }
+        }
+      ]
+    },
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 0,
+      "bake_cached": 1,
+      "shot_rendered": 2,
+      "shot_cached": 4,
+      "chapter_assembled": 5,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "master_sha256": "sha256:8bb5f3ac3190b0f51bd649d07ea3add99e7cf28ec5279260d555cce47e842b5e",
+    "decode": {
+      "video_frames": 180,
+      "width": 1920,
+      "height": 1080,
+      "video_codec": "h264",
+      "pix_fmt": "yuv420p",
+      "audio_codec": "aac",
+      "sample_rate_hz": 48000,
+      "audio_pcm_samples": 288000,
+      "audio_pcm_sha256": "sha256:b909cac92ba31165fe5e3a0eb3bd489e7e9a6dde921417ef0d606e9e8a8da69c",
+      "sampled_frame_hashes": {
+        "0": "sha256:304070101d8e1df33243a9f5507d5202de479fb2b05ce4c18d69a3580854e179",
+        "90": "sha256:817a41c521032090dfc80329e974e01bb5ffd988d6c6bc1daa1fca66c5d9c0cb",
+        "179": "sha256:9c5bc923161a7daaac6d97026c959a621a0e7c4b81518b21c97747a15d84d257"
+      }
+    }
+  },
+  "crash_after_index": {
+    "crash_exit": 137,
+    "partial_ch4_checkpoint": {
+      "project_id": "render-demo",
+      "version": 1,
+      "chapter_id": "ch_004",
+      "frame_range": {
+        "start": 90,
+        "end": 150
+      },
+      "input_snapshot_hash": "sha256:044c9852ad5024fc5e19cf9099c6cbcde9b095897df3a54a3a29a341e781d911",
+      "completed_shots": [
+        {
+          "shot_id": "shot_004a",
+          "local_cache_key": "sha256:fc597c6360940e1dba678fcdcf5978e1baf6635bfe12c8abcf991581d9cb6493",
+          "artifact_ref": "asset://render-demo/render_shot_shot_004a/v1",
+          "artifact_hash": "sha256:15c5b0ea228c5e2750f942960e0b8c5208b96f923ed70f4de310f8532c831419"
+        }
+      ],
+      "pending_shot_ids": [
+        "shot_004b"
+      ],
+      "continuity_state_hash": "sha256:2f38ec710854162c61675e25e860f238babd4b9149fafeab13aecc5079a5a8f5"
+    },
+    "recovery": {
+      "removed_temp_files": [],
+      "removed_orphan_files": [],
+      "corrupt_artifacts": [],
+      "reset_jobs": [],
+      "verified_checkpoints": [
+        "ch_001",
+        "ch_002",
+        "ch_003",
+        "ch_004"
+      ],
+      "invalidated_checkpoints": [],
+      "events": [
+        {
+          "scope": "chapter",
+          "target_id": "ch_001",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_002",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_003",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_004",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 1
+          }
+        }
+      ]
+    },
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 0,
+      "bake_cached": 1,
+      "shot_rendered": 2,
+      "shot_cached": 4,
+      "chapter_assembled": 5,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "master_sha256": "sha256:8bb5f3ac3190b0f51bd649d07ea3add99e7cf28ec5279260d555cce47e842b5e",
+    "decode": {
+      "video_frames": 180,
+      "width": 1920,
+      "height": 1080,
+      "video_codec": "h264",
+      "pix_fmt": "yuv420p",
+      "audio_codec": "aac",
+      "sample_rate_hz": 48000,
+      "audio_pcm_samples": 288000,
+      "audio_pcm_sha256": "sha256:b909cac92ba31165fe5e3a0eb3bd489e7e9a6dde921417ef0d606e9e8a8da69c",
+      "sampled_frame_hashes": {
+        "0": "sha256:304070101d8e1df33243a9f5507d5202de479fb2b05ce4c18d69a3580854e179",
+        "90": "sha256:817a41c521032090dfc80329e974e01bb5ffd988d6c6bc1daa1fca66c5d9c0cb",
+        "179": "sha256:9c5bc923161a7daaac6d97026c959a621a0e7c4b81518b21c97747a15d84d257"
+      }
+    }
+  },
+  "corrupt_cached_shot": {
+    "recover_step": {
+      "removed_temp_files": [],
+      "removed_orphan_files": [],
+      "corrupt_artifacts": [
+        {
+          "asset_ref": "asset://render-demo/render_shot_shot_002/v1",
+          "kind": "render-shot",
+          "target_id": "shot_002",
+          "path": "assets/render_shot_shot_002/v1.mp4"
+        }
+      ],
+      "reset_jobs": [
+        {
+          "job_id": "rjob-dc10c3a6-d736-446c-a9e9-a2de25c263bc",
+          "scope": "chapter",
+          "target_id": "ch_002",
+          "previous_state": "SUCCEEDED"
+        },
+        {
+          "job_id": "rjob-5f4c1fe4-57fc-4341-8a36-5f08f311d62a",
+          "scope": "master",
+          "target_id": "master",
+          "previous_state": "SUCCEEDED"
+        },
+        {
+          "job_id": "rjob-70025016-80e4-4474-ae72-603236bbcb93",
+          "scope": "shot",
+          "target_id": "shot_002",
+          "previous_state": "SUCCEEDED"
+        }
+      ],
+      "verified_checkpoints": [
+        "ch_001",
+        "ch_003",
+        "ch_004",
+        "ch_005"
+      ],
+      "invalidated_checkpoints": [
+        "ch_002"
+      ],
+      "events": [
+        {
+          "scope": "render-shot",
+          "target_id": "shot_002",
+          "event": "artifact_corrupt",
+          "detail": {
+            "asset_ref": "asset://render-demo/render_shot_shot_002/v1",
+            "path": "assets/render_shot_shot_002/v1.mp4",
+            "expected_sha256": "sha256:21894f4d7a1618f95b1a845fd2693806b101dff2a395c80933b60bc95e471261"
+          }
+        },
+        {
+          "scope": "render-chapter",
+          "target_id": "ch_002",
+          "event": "artifact_dependency_invalidated",
+          "detail": {
+            "asset_ref": "asset://render-demo/render_chapter_ch_002/v1"
+          }
+        },
+        {
+          "scope": "render-master",
+          "target_id": "master",
+          "event": "artifact_dependency_invalidated",
+          "detail": {
+            "asset_ref": "asset://render-demo/render_master/v1"
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_002",
+          "event": "job_invalidated",
+          "detail": {
+            "job_id": "rjob-dc10c3a6-d736-446c-a9e9-a2de25c263bc",
+            "previous_state": "SUCCEEDED"
+          }
+        },
+        {
+          "scope": "master",
+          "target_id": "master",
+          "event": "job_invalidated",
+          "detail": {
+            "job_id": "rjob-5f4c1fe4-57fc-4341-8a36-5f08f311d62a",
+            "previous_state": "SUCCEEDED"
+          }
+        },
+        {
+          "scope": "shot",
+          "target_id": "shot_002",
+          "event": "job_invalidated",
+          "detail": {
+            "job_id": "rjob-70025016-80e4-4474-ae72-603236bbcb93",
+            "previous_state": "SUCCEEDED"
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_001",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_002",
+          "event": "checkpoint_invalidated",
+          "detail": {
+            "version": 1,
+            "continuity_ok": true,
+            "shots_ok": false
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_003",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_004",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 2,
+            "completed": 2,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_005",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        }
+      ]
+    },
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 0,
+      "bake_cached": 1,
+      "shot_rendered": 1,
+      "shot_cached": 5,
+      "chapter_assembled": 1,
+      "chapter_cached": 4,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "master_sha256": "sha256:8bb5f3ac3190b0f51bd649d07ea3add99e7cf28ec5279260d555cce47e842b5e"
+  },
+  "corrupt_cached_bake": {
+    "recovery": {
+      "removed_temp_files": [],
+      "removed_orphan_files": [],
+      "corrupt_artifacts": [
+        {
+          "asset_ref": "asset://render-demo/character_bake/v1",
+          "kind": "character-bake",
+          "target_id": "shot_001",
+          "path": "assets/character_bake/v1.json"
+        }
+      ],
+      "reset_jobs": [
+        {
+          "job_id": "rjob-dd66c671-4b4f-4784-a476-1dd4050ce964",
+          "scope": "chapter",
+          "target_id": "ch_001",
+          "previous_state": "SUCCEEDED"
+        },
+        {
+          "job_id": "rjob-5f4c1fe4-57fc-4341-8a36-5f08f311d62a",
+          "scope": "master",
+          "target_id": "master",
+          "previous_state": "SUCCEEDED"
+        },
+        {
+          "job_id": "rjob-1c314e54-c8c1-45c6-86cc-e9054f592ed7",
+          "scope": "shot",
+          "target_id": "shot_001",
+          "previous_state": "SUCCEEDED"
+        }
+      ],
+      "verified_checkpoints": [
+        "ch_002",
+        "ch_003",
+        "ch_004",
+        "ch_005"
+      ],
+      "invalidated_checkpoints": [
+        "ch_001"
+      ],
+      "events": [
+        {
+          "scope": "character-bake",
+          "target_id": "shot_001",
+          "event": "artifact_corrupt",
+          "detail": {
+            "asset_ref": "asset://render-demo/character_bake/v1",
+            "path": "assets/character_bake/v1.json",
+            "expected_sha256": "sha256:fcfa23be8f74ad7ebf2d0a2b724e055fcd19930e992b9a2ba64707005d4ffe7f"
+          }
+        },
+        {
+          "scope": "render-shot",
+          "target_id": "shot_001",
+          "event": "artifact_dependency_invalidated",
+          "detail": {
+            "asset_ref": "asset://render-demo/render_shot_shot_001/v1"
+          }
+        },
+        {
+          "scope": "render-chapter",
+          "target_id": "ch_001",
+          "event": "artifact_dependency_invalidated",
+          "detail": {
+            "asset_ref": "asset://render-demo/render_chapter_ch_001/v1"
+          }
+        },
+        {
+          "scope": "render-master",
+          "target_id": "master",
+          "event": "artifact_dependency_invalidated",
+          "detail": {
+            "asset_ref": "asset://render-demo/render_master/v2"
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_001",
+          "event": "job_invalidated",
+          "detail": {
+            "job_id": "rjob-dd66c671-4b4f-4784-a476-1dd4050ce964",
+            "previous_state": "SUCCEEDED"
+          }
+        },
+        {
+          "scope": "master",
+          "target_id": "master",
+          "event": "job_invalidated",
+          "detail": {
+            "job_id": "rjob-5f4c1fe4-57fc-4341-8a36-5f08f311d62a",
+            "previous_state": "SUCCEEDED"
+          }
+        },
+        {
+          "scope": "shot",
+          "target_id": "shot_001",
+          "event": "job_invalidated",
+          "detail": {
+            "job_id": "rjob-1c314e54-c8c1-45c6-86cc-e9054f592ed7",
+            "previous_state": "SUCCEEDED"
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_001",
+          "event": "checkpoint_invalidated",
+          "detail": {
+            "version": 1,
+            "continuity_ok": true,
+            "shots_ok": false
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_002",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 2,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_003",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_004",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 2,
+            "completed": 2,
+            "pending": 0
+          }
+        },
+        {
+          "scope": "chapter",
+          "target_id": "ch_005",
+          "event": "checkpoint_verified",
+          "detail": {
+            "version": 1,
+            "completed": 1,
+            "pending": 0
+          }
+        }
+      ]
+    },
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 1,
+      "bake_cached": 0,
+      "shot_rendered": 1,
+      "shot_cached": 5,
+      "chapter_assembled": 1,
+      "chapter_cached": 4,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "master_sha256": "sha256:8bb5f3ac3190b0f51bd649d07ea3add99e7cf28ec5279260d555cce47e842b5e",
+    "decode": {
+      "video_frames": 180,
+      "width": 1920,
+      "height": 1080,
+      "video_codec": "h264",
+      "pix_fmt": "yuv420p",
+      "audio_codec": "aac",
+      "sample_rate_hz": 48000,
+      "audio_pcm_samples": 288000,
+      "audio_pcm_sha256": "sha256:b909cac92ba31165fe5e3a0eb3bd489e7e9a6dde921417ef0d606e9e8a8da69c",
+      "sampled_frame_hashes": {
+        "0": "sha256:304070101d8e1df33243a9f5507d5202de479fb2b05ce4c18d69a3580854e179",
+        "90": "sha256:817a41c521032090dfc80329e974e01bb5ffd988d6c6bc1daa1fca66c5d9c0cb",
+        "179": "sha256:9c5bc923161a7daaac6d97026c959a621a0e7c4b81518b21c97747a15d84d257"
+      }
+    }
+  }
+}

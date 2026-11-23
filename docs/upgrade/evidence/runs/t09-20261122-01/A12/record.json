@@ -1,0 +1,110 @@
+{
+  "task_id": "T09",
+  "case_id": "A12",
+  "run_id": "t09-20261122-01",
+  "status": "PASS",
+  "evidence_level": "RUNTIME",
+  "environment": {
+    "node": "v26.9.0",
+    "platform": "darwin-arm64",
+    "python": "Python 3.14.4",
+    "ffmpeg": "ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers",
+    "renderer": {
+      "name": "software-rgb24-shot",
+      "version": "1.0.0"
+    }
+  },
+  "commands_and_exit_codes": [
+    {
+      "command": "node docs/upgrade/evidence/replay_t09.mjs t09-20261122-01 python",
+      "note": "render, recover and revise calls saved under audit/"
+    },
+    {
+      "command": "python -B -c <validate A12 contracts>",
+      "exit_code": 0,
+      "saved_as": "schema-check.txt"
+    }
+  ],
+  "input_hashes": [
+    {
+      "path": "tools/render_shot/contract.yaml",
+      "sha256": "sha256:6760860241e71e1aa53977e210f5444aed7bf6d79d847aa1194a55768371662e"
+    },
+    {
+      "path": "schemas/render-job.schema.json",
+      "sha256": "sha256:f9c3f2cb5eb3c9572a2ad8e15fe7afd7e665f6a0a5d884b62e1f4d6e038becf5"
+    },
+    {
+      "path": "schemas/workflow.schema.json",
+      "sha256": "sha256:01e59870477a9c4a02938f05d7dc90447ecf3d0c9eb22b93b355eab27fabfc6a"
+    },
+    {
+      "path": "tools/render_shot/adapter.ts",
+      "sha256": "sha256:8cc0bab5193b5d0955724141fa8b82eca463f85561569e39f9cbbaaf8a0eb53f"
+    },
+    {
+      "path": "runtime/render.ts",
+      "sha256": "sha256:8702d6f1cea0001764db6d2e436fd3ff129a4255f738c75d9cfe43ccfcb58ee0"
+    },
+    {
+      "path": "runtime/revision.ts",
+      "sha256": "sha256:c590e70b0991e3de2397fb88641e8383374bd2df3ba424d3c6ec1d0863938d92"
+    }
+  ],
+  "output_hashes": [
+    {
+      "path": "calls-and-gates.json",
+      "sha256": "sha256:71809c0c79cc15354f97f5de8ea593af9f0d9155ac042d5a74f27125436ff5f3"
+    },
+    {
+      "path": "change-plans.json",
+      "sha256": "sha256:e5ae8a2db9fcd39bb602faf6a332576bd7e590b5704850f6478f49f393be68d3"
+    },
+    {
+      "path": "diffs.json",
+      "sha256": "sha256:d5337ece89ddc571cec43c3e928ef047626d7c2d354ea189e0e7377d4c469bcd"
+    },
+    {
+      "path": "media-check-470s.json",
+      "sha256": "sha256:4d3ae0ace273286b23af914709588a4f61905b454589a7b08b920d08d82bb0fe"
+    },
+    {
+      "path": "media-check-480s.json",
+      "sha256": "sha256:aa56467fd637214a605a80339ec2d975e8b2cfa62d00e93893306bb1a141d3f4"
+    },
+    {
+      "path": "revision-requests.json",
+      "sha256": "sha256:9670acaf00acda22070417b6777f68246c8432d93997cf58714ea6855b9eee7d"
+    },
+    {
+      "path": "schema-check.txt",
+      "sha256": "sha256:346819040e7165e3bba251141a9107a2e286809a62b9928aa80cfc918eedcbd1"
+    },
+    {
+      "path": "storyboard-470s.json",
+      "sha256": "sha256:dee1b7de1e95847651378bfe7e6fa845272c98e07e32455018e50a11f45a35a6"
+    },
+    {
+      "path": "timeline-470s.json",
+      "sha256": "sha256:0fccd6a35c080afa476749874df0b8cda01efa202c72cf97a52bf7ef0a1664a8"
+    }
+  ],
+  "observations": [
+    "checks: {\"caption_zero_bakes_tts\":true,\"caption_g3_stale_g1_g2_kept\":true,\"expression_independent_identical\":true,\"chapter4_boundary_7800_master_470s\":true,\"chapter4_shifted_local_cache_hits\":true,\"media_480s_pass\":true,\"media_470s_pass\":true,\"schemas_valid\":true}",
+    "media acceptance: evals/check_design.py --media passed on both the 480-second (14,400 frames) and 470-second (14,100 frames) standard8 masters",
+    "scope: synthetic audio, fixture aligner, solid-colour placeholder art, simulated-2d rig and host-simulated owner session; real speech (A05), original art (A06/A11) and UI sign-off (T11) are NOT_RUN"
+  ],
+  "evidence_paths": [
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/calls-and-gates.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/change-plans.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/diffs.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/media-check-470s.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/media-check-480s.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/revision-requests.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/schema-check.txt",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/storyboard-470s.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/timeline-470s.json",
+    "docs/upgrade/evidence/runs/t09-20261122-01/A12/audit/"
+  ],
+  "reviewer": null
+}

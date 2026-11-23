@@ -6,7 +6,7 @@
 
 **架构**　一个 Orchestrator 管状态和授权。Node.js / TypeScript 服务消费现有 JSON Schema，SQLite 保存项目及作业。角色、图解和音频按镜头编译，再由确定性 Worker 生产。Python 保留为离线验收入口。
 
-**给接手模型**　先读[项目计划](项目计划书.md)、[升级设计](升级详细设计.md)、[验收计划](验收计划.md)与[当前状态](交接状态与证据.md)。T00–T04 已实际完成，T05 的数据通路、T06 的资产目录、T07 的编译器与 T08 的烘焙器已在 RUNTIME 级完成（真实语音的 A05、原创美术的 A06/A11 验收待办），下一张卡是 T09。`runtime/cli.ts`、`runtime/doctor.ts`、`runtime/preview.ts`、`runtime/i18n.ts` 与 `tests/runtime/` 由 T01 建立，`runtime/project-store.ts`、`runtime/orchestrator.ts`、`runtime/approvals.ts` 由 T02 建立，`runtime/jobs.ts`、`runtime/ledger.ts` 由 T03 建立，`runtime/content.ts`、`tools/search_sources/adapter.ts` 由 T04 建立，`runtime/audio.ts`、`runtime/assets.ts`、`tools/align_audio/adapter.ts`、`tools/generate_tts/adapter.ts` 由 T05 建立，T06 在 `runtime/assets.ts` 中加入资产登记、授权、场景模板与装配前检查，`runtime/compiler.ts`、`runtime/timebase.ts` 由 T07 建立，`runtime/baker.ts`、`tools/bake_character/adapter.ts`、`tests/runtime/studio-fixture.mjs` 由 T08 建立；仓库尚无 package.json、Studio 或生产 Worker。以下 `runtime/`、`studio/` 和 `tests/runtime/` 路径是实施时创建的位置，现有 `schemas/`、`skills/`、`policies/` 和 `tools/` 继续作为权威入口。
+**给接手模型**　先读[项目计划](项目计划书.md)、[升级设计](升级详细设计.md)、[验收计划](验收计划.md)与[当前状态](交接状态与证据.md)。T00–T04 已实际完成，T05 的数据通路、T06 的资产目录、T07 的编译器、T08 的烘焙器与 T09 的渲染/返修/恢复运行时已在 RUNTIME 级完成（真实语音的 A05、原创美术的 A06/A11 验收待办），下一张卡是 T10。`runtime/cli.ts`、`runtime/doctor.ts`、`runtime/preview.ts`、`runtime/i18n.ts` 与 `tests/runtime/` 由 T01 建立，`runtime/project-store.ts`、`runtime/orchestrator.ts`、`runtime/approvals.ts` 由 T02 建立，`runtime/jobs.ts`、`runtime/ledger.ts` 由 T03 建立，`runtime/content.ts`、`tools/search_sources/adapter.ts` 由 T04 建立，`runtime/audio.ts`、`runtime/assets.ts`、`tools/align_audio/adapter.ts`、`tools/generate_tts/adapter.ts` 由 T05 建立，T06 在 `runtime/assets.ts` 中加入资产登记、授权、场景模板与装配前检查，`runtime/compiler.ts`、`runtime/timebase.ts` 由 T07 建立，`runtime/baker.ts`、`tools/bake_character/adapter.ts`、`tests/runtime/studio-fixture.mjs` 由 T08 建立，`tools/render_shot/adapter.ts`、`runtime/render.ts`、`runtime/revision.ts` 由 T09 建立；仓库尚无 package.json、Studio 或 QA 质检器。以下 `runtime/`、`studio/` 和 `tests/runtime/` 路径是实施时创建的位置，现有 `schemas/`、`skills/`、`policies/` 和 `tools/` 继续作为权威入口。
 
 ## 开工与每张卡的闭环
 
@@ -118,10 +118,10 @@ python3 -B -m unittest discover -s evals -p 'test_*.py' -v
 
 创建 `tools/render_shot/adapter.ts`、`runtime/render.ts`、`runtime/revision.ts`、`tests/runtime/T09-render.test.mjs`。持久化 RenderJob、ChapterCheckpoint、ChangePlan。
 
-- [ ] **RED**　改字幕颜色后角色烘焙和 TTS 调用计数应为 0。只换一镜表情时，独立镜头哈希相同。修改第 4 章旁白少 10 秒，应产生第 7,800 帧切点与 470 秒新母版。
-- [ ] **RED**　在第 4 章临时文件落盘、原子改名、索引已登记三个位置分别停 worker。另破坏一个已缓存镜头的实物。重启后只领取未完成或损坏的任务。
-- [ ] **GREEN**　局部输入投影生成层键，绝对顺序进入组装键。校验内容哈希再提交索引，恢复时核验实物并重建失效依赖。最终统一混音与编码。
-- [ ] **REFACTOR**　对比冷渲、热渲与恢复产物。运行 `node --test tests/runtime/T09-render.test.mjs`。留耗时、命中、调用次数、解码帧对比和恢复事件 → A09、A12。
+- [x] **RED**　改字幕颜色后角色烘焙和 TTS 调用计数应为 0。只换一镜表情时，独立镜头哈希相同。修改第 4 章旁白少 10 秒，应产生第 7,800 帧切点与 470 秒新母版。
+- [x] **RED**　在第 4 章临时文件落盘、原子改名、索引已登记三个位置分别停 worker。另破坏一个已缓存镜头的实物。重启后只领取未完成或损坏的任务。
+- [x] **GREEN**　局部输入投影生成层键，绝对顺序进入组装键。校验内容哈希再提交索引，恢复时核验实物并重建失效依赖。最终统一混音与编码。
+- [x] **REFACTOR**　对比冷渲、热渲与恢复产物。运行 `node --test tests/runtime/T09-render.test.mjs`。留耗时、命中、调用次数、解码帧对比和恢复事件 → A09、A12。
 
 ## T10　三级 QA、有声样片与人工评审
 

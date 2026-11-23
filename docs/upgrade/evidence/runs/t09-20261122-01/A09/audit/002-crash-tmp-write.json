@@ -1,0 +1,15 @@
+{
+  "seq": 2,
+  "label": "crash-tmp-write",
+  "op": "render",
+  "session": null,
+  "request": {
+    "project_id": "render-demo",
+    "scope": "master",
+    "target_id": "master",
+    "plan_ref": "asset://render-demo/character_plan/v1",
+    "seed": 7
+  },
+  "exit_code": 137,
+  "response": null
+}

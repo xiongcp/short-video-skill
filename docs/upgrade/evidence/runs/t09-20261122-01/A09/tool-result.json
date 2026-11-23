@@ -1,0 +1,15 @@
+{
+  "status": "succeeded",
+  "job_id": "rjob-c645c86f-f566-40ae-9755-7b54538039a2",
+  "artifact_refs": [
+    "asset://render-demo/render_master/v1"
+  ],
+  "warnings": [],
+  "cost": {
+    "currency": "CNY",
+    "estimated_minor": 0,
+    "actual_minor": 0
+  },
+  "retryable": false,
+  "next_action": "continue"
+}

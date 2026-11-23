@@ -1,0 +1,151 @@
+{
+  "caption_recolor": {
+    "reopen_gates": [
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "stale_g3_rejection": [
+      {
+        "code": "APPROVAL_STALE",
+        "gate": "G3",
+        "current_target_hash": "sha256:4294829f9fc7e8a8d6c7e46d3b9c3171b5b048cf5df558fc821e2c7b636c3439",
+        "approved_target_hash": "sha256:4788de019dc922c58cba039b080f1b84a0c593cfeb976cf9bde5154373390052",
+        "message": "G3 的批准针对旧材料 sha256:4788de019dc922c58cba039b080f1b84a0c593cfeb976cf9bde5154373390052，当前材料为 sha256:4294829f9fc7e8a8d6c7e46d3b9c3171b5b048cf5df558fc821e2c7b636c3439，须重新审核"
+      }
+    ],
+    "calls_sample2": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 0,
+      "bake_cached": 1,
+      "shot_rendered": 1,
+      "shot_cached": 0,
+      "chapter_assembled": 0,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "calls_master2": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 0,
+      "bake_cached": 3,
+      "shot_rendered": 2,
+      "shot_cached": 1,
+      "chapter_assembled": 2,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "master_hash_changed": true
+  },
+  "expression_edit": {
+    "reopen_gates": [
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 2,
+      "bake_cached": 1,
+      "shot_rendered": 2,
+      "shot_cached": 1,
+      "chapter_assembled": 2,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "before_shots": [
+      {
+        "shot_id": "shot_001",
+        "bake_cache_key": "sha256:cccec0b51a15eb2704aa004ce538e3bf5a27599e857d73ec8611194f551d733b",
+        "local_cache_key": "sha256:3eb87218686a2753b1ab6c2f8aa040c2794cbf780779dcb7ab8f8cd21bb1aa34",
+        "sha256": "sha256:75cea3e12920ab2e93b6e39e836ff7d4c0144cd154d2f0afec5144d66e733e55"
+      },
+      {
+        "shot_id": "shot_002",
+        "bake_cache_key": "sha256:0e8018d7b0dd98c5d209508453d7c89ae7327524f5faaa82056dabab83623c1a",
+        "local_cache_key": "sha256:eea21ec90b1f890f2bddaa90dc55ff96d81f7e307e24320dfe279a4dc16348f1",
+        "sha256": "sha256:d8d0c4619bf08c00b0b0e37790b71eef7efe16a0791b736b58f098c025cc06a5"
+      },
+      {
+        "shot_id": "shot_003",
+        "bake_cache_key": "sha256:f27b0ce3f02960eb77e7a0b8b9007f0e1ac8311c1c5a9023e353df18186bd6ff",
+        "local_cache_key": "sha256:b544fd882d07e5e2074651b80ae7f7229378d5e83227614f3d5844acd51397db",
+        "sha256": "sha256:bc452860f5ce1b15c611db10a5346b04861af8c2c810348c19f66c7435ce1c7a"
+      }
+    ],
+    "after_shots": [
+      {
+        "shot_id": "shot_001",
+        "bake_cache_key": "sha256:4ec66e0bf0e7647d295a5913c21d28cc91421486e92e50253e37a22bc745c8c1",
+        "local_cache_key": "sha256:fcd2331bca71ced59c5fb41b96b9323df0ecde78e1b0d4d846c61e7b671e77a1",
+        "sha256": "sha256:9a1b3e53c6066f421df6208cb3cf213751798fba605037fc07b87aff102ec639",
+        "cached": false
+      },
+      {
+        "shot_id": "shot_002",
+        "bake_cache_key": "sha256:c42947112751cf34be9d8b6d4d62a4575a861071317361c29fb81ce117486558",
+        "local_cache_key": "sha256:e1f757de2e69b6767e7176a7f375498d9d3465cfd2873c3128b9c25fd8e7dea6",
+        "sha256": "sha256:665160b4293f057c5d59137f81b51a143a4fe742c0fba377e9dc46b4284c973d",
+        "cached": false
+      },
+      {
+        "shot_id": "shot_003",
+        "bake_cache_key": "sha256:f27b0ce3f02960eb77e7a0b8b9007f0e1ac8311c1c5a9023e353df18186bd6ff",
+        "local_cache_key": "sha256:b544fd882d07e5e2074651b80ae7f7229378d5e83227614f3d5844acd51397db",
+        "sha256": "sha256:bc452860f5ce1b15c611db10a5346b04861af8c2c810348c19f66c7435ce1c7a",
+        "cached": true
+      }
+    ]
+  },
+  "chapter4_cut_10s": {
+    "reopen_gates": [
+      "G2",
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "calls": {
+      "tts": 0,
+      "image": 0,
+      "video": 0,
+      "bake_executed": 0,
+      "bake_cached": 1,
+      "shot_rendered": 2,
+      "shot_cached": 6,
+      "chapter_assembled": 7,
+      "chapter_cached": 0,
+      "master_assembled": 1,
+      "master_cached": 0
+    },
+    "ch4_before": {
+      "start": 4800,
+      "end": 8100
+    },
+    "ch4_after": {
+      "start": 4800,
+      "end": 7800
+    },
+    "ch5_after": {
+      "start": 7800,
+      "end": 10800
+    },
+    "before_frames": 14400,
+    "after_frames": 14100,
+    "reused_shifted_shots": [
+      "shot_001",
+      "shot_002",
+      "shot_003",
+      "shot_005",
+      "shot_006",
+      "shot_007"
+    ]
+  }
+}

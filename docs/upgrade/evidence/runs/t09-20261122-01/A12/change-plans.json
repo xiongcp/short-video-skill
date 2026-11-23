@@ -1,0 +1,155 @@
+[
+  {
+    "project_id": "render-demo",
+    "version": 1,
+    "base_snapshot_hash": "sha256:ae94c1efcf639858d8efa3dbb6b298055e59178672a58454aabb0faae1d5688a",
+    "patches": [
+      {
+        "target_id": "subtitle_style",
+        "field": "color",
+        "new_value": "#FFE066",
+        "reason": "提升移动端对比度"
+      }
+    ],
+    "invalidate": [
+      "shot_001",
+      "ch_001",
+      "shot_002",
+      "ch_002",
+      "shot_003",
+      "master"
+    ],
+    "reuse": [
+      "evidence",
+      "script",
+      "audio",
+      "alignment",
+      "bake_shot_001",
+      "bake_shot_002",
+      "bake_shot_003",
+      "sec_001",
+      "sec_002"
+    ],
+    "reopen_gates": [
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "estimated_cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": null
+    }
+  },
+  {
+    "project_id": "render-demo",
+    "version": 1,
+    "base_snapshot_hash": "sha256:ae94c1efcf639858d8efa3dbb6b298055e59178672a58454aabb0faae1d5688a",
+    "patches": [
+      {
+        "target_id": "shot_001",
+        "field": "character_actions[0].expression",
+        "new_value": "focused",
+        "reason": "强调问题焦点"
+      }
+    ],
+    "invalidate": [
+      "shot_001",
+      "ch_001",
+      "shot_002",
+      "ch_002",
+      "master"
+    ],
+    "reuse": [
+      "evidence",
+      "script",
+      "audio",
+      "alignment",
+      "sec_001",
+      "sec_002",
+      "shot_003"
+    ],
+    "reopen_gates": [
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "estimated_cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": null
+    }
+  },
+  {
+    "project_id": "render-demo",
+    "version": 1,
+    "base_snapshot_hash": "sha256:6bf1c0e903ad82c99185bd2d61f5a7081b67078a88fa65dd644630bdae0af356",
+    "patches": [
+      {
+        "target_id": "sec_004",
+        "field": "audio",
+        "new_value": {
+          "import": {
+            "path": "incoming/sec_004_short.wav",
+            "recordist": "owner",
+            "voice_ref": "asset://render-demo/host_voice/v1"
+          },
+          "words": [
+            {
+              "text": "第四章前半段讲解作业",
+              "start_sample": 0,
+              "end_sample": 2398400,
+              "confidence": 0.95
+            },
+            {
+              "text": "第四章后半段确认提交",
+              "start_sample": 2400000,
+              "end_sample": 4798400,
+              "confidence": 0.95
+            }
+          ]
+        },
+        "reason": "删去冗余示例，缩短 10 秒"
+      }
+    ],
+    "invalidate": [
+      "sec_004",
+      "shot_004a",
+      "shot_004b",
+      "ch_004",
+      "ch_005",
+      "ch_006",
+      "ch_007",
+      "master"
+    ],
+    "reuse": [
+      "evidence",
+      "sec_001",
+      "sec_002",
+      "sec_003",
+      "sec_005",
+      "sec_006",
+      "sec_007",
+      "ch_001",
+      "ch_002",
+      "ch_003",
+      "shot_001",
+      "shot_002",
+      "shot_003",
+      "shot_005",
+      "shot_006",
+      "shot_007"
+    ],
+    "reopen_gates": [
+      "G2",
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "estimated_cost": {
+      "currency": "CNY",
+      "estimated_minor": 0,
+      "actual_minor": null
+    }
+  }
+]

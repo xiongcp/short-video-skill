@@ -1,0 +1,164 @@
+{
+  "project_id": "render-demo",
+  "version": 1,
+  "storyboard_version": 1,
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "sample_rate_hz": 48000
+  },
+  "total_frames": 180,
+  "input_snapshot_hash": "sha256:044c9852ad5024fc5e19cf9099c6cbcde9b095897df3a54a3a29a341e781d911",
+  "alignment_ref": "asset://render-demo/alignment/v1",
+  "shots": [
+    {
+      "shot_id": "shot_001",
+      "chapter_id": "ch_001",
+      "absolute_range": {
+        "start": 0,
+        "end": 30
+      },
+      "local_frames": 30,
+      "layer_refs": [
+        "asset://render-demo/studio_backdrop/v1"
+      ],
+      "character_plan_ref": null,
+      "audio_ref": "asset://render-demo/voice-master/v1",
+      "cache_key": "sha256:005087ac3c1b3e4c0c912d85121d8c96862f8887bb3798b1d91710b7e022e022",
+      "camera": "medium",
+      "visual_cues": [],
+      "subtitle_ref": "asset://render-demo/subtitles-srt/v1"
+    },
+    {
+      "shot_id": "shot_002",
+      "chapter_id": "ch_002",
+      "absolute_range": {
+        "start": 30,
+        "end": 60
+      },
+      "local_frames": 30,
+      "layer_refs": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_plan_ref": null,
+      "audio_ref": "asset://render-demo/voice-master/v1",
+      "cache_key": "sha256:6d4222edb95536660f0c0bd8a57be46a3dc26b0f1c4c45575d6c5623e99544a3",
+      "camera": "wide",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "server",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ],
+      "subtitle_ref": "asset://render-demo/subtitles-srt/v1"
+    },
+    {
+      "shot_id": "shot_003",
+      "chapter_id": "ch_003",
+      "absolute_range": {
+        "start": 60,
+        "end": 90
+      },
+      "local_frames": 30,
+      "layer_refs": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_plan_ref": null,
+      "audio_ref": "asset://render-demo/voice-master/v1",
+      "cache_key": "sha256:4fa727b063d9ac6263d9e1ff744ba0512fe2f8f0fc6f3971f2df4d3188a5b350",
+      "camera": "wide",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "browser",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ],
+      "subtitle_ref": "asset://render-demo/subtitles-srt/v1"
+    },
+    {
+      "shot_id": "shot_004a",
+      "chapter_id": "ch_004",
+      "absolute_range": {
+        "start": 90,
+        "end": 120
+      },
+      "local_frames": 30,
+      "layer_refs": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_plan_ref": null,
+      "audio_ref": "asset://render-demo/voice-master/v1",
+      "cache_key": "sha256:a8b1621527f7a5eb811ded659807316413d108eb43dadddc47475b15f95fc07c",
+      "camera": "wide",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "browser",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ],
+      "subtitle_ref": "asset://render-demo/subtitles-srt/v1"
+    },
+    {
+      "shot_id": "shot_004b",
+      "chapter_id": "ch_004",
+      "absolute_range": {
+        "start": 120,
+        "end": 150
+      },
+      "local_frames": 30,
+      "layer_refs": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_plan_ref": null,
+      "audio_ref": "asset://render-demo/voice-master/v1",
+      "cache_key": "sha256:7460a2d74eb4d4242cec54ea9bc71ce8e76e661e7decad32a4ff99bb05ee0666",
+      "camera": "wide",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "server",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ],
+      "subtitle_ref": "asset://render-demo/subtitles-srt/v1"
+    },
+    {
+      "shot_id": "shot_005",
+      "chapter_id": "ch_005",
+      "absolute_range": {
+        "start": 150,
+        "end": 180
+      },
+      "local_frames": 30,
+      "layer_refs": [
+        "asset://render-demo/studio_backdrop/v1",
+        "asset://render-demo/diagram_flow/v1"
+      ],
+      "character_plan_ref": null,
+      "audio_ref": "asset://render-demo/voice-master/v1",
+      "cache_key": "sha256:b6c96f9e8e8dd3d9b97143f91b8099130ab9b443c39020a1765e9f3d1fe50d59",
+      "camera": "wide",
+      "visual_cues": [
+        {
+          "target_ref": "asset://render-demo/diagram_flow/v1",
+          "element_id": "browser",
+          "operation": "highlight",
+          "at_local_frame": 10
+        }
+      ],
+      "subtitle_ref": "asset://render-demo/subtitles-srt/v1"
+    }
+  ]
+}
