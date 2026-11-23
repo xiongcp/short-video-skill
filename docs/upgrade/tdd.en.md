@@ -141,11 +141,11 @@ Owner approved **Plan A (Pure Agent Skill descoping)**: because all authoring an
 
 ## T12 · Genuine episodes and production acceptance
 
-Create `tests/e2e/T12-programmes.test.mjs` and an independent evidence directory per episode under the [acceptance plan](acceptance.en.md). Use owner-approved topics and sources, original art and real voice.
+Create `tests/e2e/T12-programmes.test.mjs` and an independent evidence directory per episode under the [acceptance plan](acceptance.en.md). Use owner-approved topics and sources, original art and real voice. As the owner decided, production sign-off uses a **local passphrase login** (`runtime/owner.ts`, interactive owner terminal only; `runtime/cli.ts` has no sign-in operation) and a **per-episode owner attestation** (`attest`), summarized by `accept` / `programme` in `runtime/acceptance.ts`.
 
-- [ ] **RED** Missing real media, a stale approval or a missing review must identify the missing evidence and withhold production PASS. Demonstrate the failing check on a controlled input first.
-- [ ] **GREEN** Verify exact short frame counts, real sound, human gates, budget and restorable project. Cover 60/120/180 seconds, including at least one genuine end-to-end short. Produce three consecutive eight-minute episodes and exercise cross-chapter revision and recovery on at least one.
-- [ ] **REFACTOR** Aggregate by `run_id` and retain per-episode details. Run `node --test tests/e2e/T12-programmes.test.mjs` and check each actual master. Example for an exact long cut: `python3 -B evals/check_design.py --media evidence/runs/long-01/A15/final.mp4 --profile standard8 --target-seconds 480`. The owner watches, signs and verifies costs for A14/A15.
+- [x] **RED** Missing real media, a stale approval or a missing review must identify the missing evidence and withhold production PASS. Demonstrate the failing check on a controlled input first. (Verified on the T11 fixture: host-hook sign-offs, a missing attestation and a wrong master frame count are all listed as missing; see handoff section 18.)
+- [ ] **GREEN** Verify exact short frame counts, real sound, human gates, budget and restorable project. (The checks are in place; genuine episodes wait on owner material and sign-off, so this box stays open.) Cover 60/120/180 seconds, including at least one genuine end-to-end short. Produce three consecutive eight-minute episodes and exercise cross-chapter revision and recovery on at least one.
+- [ ] **REFACTOR** Aggregate by `run_id` and retain per-episode details (`programme` is implemented). Run `node --test tests/e2e/T12-programmes.test.mjs` and check each actual master. Example for an exact long cut: `python3 -B evals/check_design.py --media evidence/runs/long-01/A15/final.mp4 --profile standard8 --target-seconds 480`. The owner watches, signs and verifies costs for A14/A15.
 
 ## T13 · Optional generated inserts
 

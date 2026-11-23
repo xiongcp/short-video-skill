@@ -95,6 +95,13 @@ CREATE TABLE IF NOT EXISTS export_manifests (
   manifest_ref TEXT NOT NULL, manifest_hash TEXT NOT NULL, g4_approval_id TEXT NOT NULL,
   final_media_ref TEXT NOT NULL, qa_ref TEXT NOT NULL, body TEXT NOT NULL, recorded_at TEXT NOT NULL,
   UNIQUE (project_id, version));
+CREATE TABLE IF NOT EXISTS owner_credentials (
+  reviewer_id TEXT PRIMARY KEY, salt TEXT NOT NULL, hash TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS attestations (
+  attestation_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id), package_id TEXT NOT NULL,
+  archive_hash TEXT NOT NULL, items TEXT NOT NULL, actual_cost_minor INTEGER NOT NULL CHECK (actual_cost_minor >= 0),
+  currency TEXT NOT NULL, reviewer_id TEXT NOT NULL, session_id TEXT NOT NULL REFERENCES sessions(session_id),
+  notes TEXT NOT NULL, recorded_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS packages (
   package_id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(project_id), version INTEGER NOT NULL,
   manifest_hash TEXT NOT NULL, g5_approval_id TEXT NOT NULL, archive_ref TEXT NOT NULL, archive_hash TEXT NOT NULL,
@@ -111,6 +118,10 @@ export function openStore(project: string): Db {
   const db = new DatabaseSync(join(project, 'studio.sqlite'), { timeout: 10000 });
   db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
   db.exec(SCHEMA);
+  // T12: sessions record how they were authenticated and when they expire; databases from T01–T11 gain the columns.
+  const sessionColumns = new Set((db.prepare('PRAGMA table_info(sessions)').all() as { name: string }[]).map((c) => c.name));
+  if (!sessionColumns.has('auth')) db.exec("ALTER TABLE sessions ADD COLUMN auth TEXT NOT NULL DEFAULT 'host-hook'");
+  if (!sessionColumns.has('expires_at')) db.exec('ALTER TABLE sessions ADD COLUMN expires_at TEXT');
   return db;
 }
 

@@ -53,6 +53,13 @@ function inspectArchiveSafety(archivePath: string): Issue | null {
   return null;
 }
 
+function listFiles(dir: string, prefix = ''): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    return entry.isDirectory() ? listFiles(join(dir, entry.name), rel) : [rel];
+  });
+}
+
 function copyTree(srcDir: string, dstDir: string) {
   mkdirSync(dstDir, { recursive: true });
   for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
@@ -342,6 +349,11 @@ export function restoreOp(project: string, request: RestoreRequest): Outcome {
       }
       verifiedFiles.push({ relative_path: entry.relative_path, hash: actualHash });
     }
+
+    // Refuse any archived file that the manifest does not list (besides the manifest and G5 receipt themselves).
+    const listed = new Set(['manifest.json', 'g5-receipt.json', ...verifiedFiles.map((f) => f.relative_path)]);
+    const unlisted = listFiles(work).find((rel) => !listed.has(rel));
+    if (unlisted) return reject([{ code: 'ARCHIVE_UNLISTED_FILE', path: unlisted }]);
 
     // All files verified; materialize into target_dir.
     copyTree(work, targetAbs);

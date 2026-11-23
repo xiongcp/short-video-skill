@@ -111,7 +111,6 @@ export interface QaRequest {
   seed?: number;
   profile?: string;
   target_seconds?: number;
-  declared_holds?: { shot_id: string; frame_range?: { start: number; end: number }; local_range?: { start: number; end: number }; kind?: 'static' | 'black' | 'silence'; reason: string }[];
   freeze_threshold_frames?: number;
   silence_threshold_frames?: number;
 }
@@ -188,7 +187,7 @@ export function qaOp(project: string, request: QaRequest): Outcome {
   });
   const winByShot = new Map(shotWindows.map((w) => [w.shot_id, w]));
 
-  // Merge declared reading holds from storyboard DSL shots + request.declared_holds.
+  // Declared reading holds come only from the storyboard DSL; a QA request cannot add its own.
   const declaredHolds: DeclaredHold[] = [];
   for (const w of shotWindows) {
     const dsl = dslByShot.get(w.shot_id);
@@ -203,23 +202,15 @@ export function qaOp(project: string, request: QaRequest): Outcome {
       }
     }
   }
-  for (const h of request.declared_holds ?? []) {
-    const w = winByShot.get(h.shot_id);
-    const frame_range = h.frame_range ?? (w && h.local_range
-      ? { start: w.frame_range.start + h.local_range.start, end: w.frame_range.start + h.local_range.end }
-      : null);
-    if (frame_range && h.reason) {
-      declaredHolds.push({ shot_id: h.shot_id, frame_range, kind: h.kind ?? 'static', reason: h.reason });
-    }
-  }
 
   // ---- Level 2: Run technical + per-frame visual + audio inspection first so we know real media hash & frames.
   const technical = inspectTechnical(mediaPath, DEFAULT_MEDIA_SPEC, request.profile, request.target_seconds);
   const targetHash = technical.media_hash ?? mediaAsset.sha256;
   const inspectedFrames = Number(technical.observed.frames ?? 0);
   const canDecodeVideo = !technical.issues.includes('DECODE') && !technical.issues.includes('INPUT_FILE');
-  const freezeThreshold = request.freeze_threshold_frames ?? 60;
-  const silenceThreshold = request.silence_threshold_frames ?? 30;
+  // A request may tighten the policy thresholds but never loosen them.
+  const freezeThreshold = Math.min(request.freeze_threshold_frames ?? 60, 60);
+  const silenceThreshold = Math.min(request.silence_threshold_frames ?? 30, 30);
   const visual = canDecodeVideo
     ? scanVideoFrames(mediaPath, shotWindows, declaredHolds, freezeThreshold)
     : { ok: false as const, frame_count: 0, flashes: [], blacks: [], freezes: [], declared_holds: [], motion_heatmap: { per_second: [], mean_mad: 0 } };
@@ -740,7 +731,10 @@ export function compareOp(project: string, request: any, token = process.env.SVS
       ? { asset_ref: baseAsset.asset_ref, sha256: baseAsset.sha256, path: baseAsset.path }
       : { asset_ref: upgAsset.asset_ref, sha256: upgAsset.sha256, path: upgAsset.path };
     const comparison_id = newId('cmp');
-    const target_hash = request.target_hash ?? upgAsset.sha256;
+    if (request.target_hash !== undefined && request.target_hash !== upgAsset.sha256) {
+      return reject({ code: 'COMPARE_TARGET_MISMATCH', target_hash: request.target_hash, upgrade_hash: upgAsset.sha256 });
+    }
+    const target_hash = upgAsset.sha256;
     const historical_comparison_status = request.baseline_kind === 'historical' ? 'READY' : 'NOT_RUN';
     const blinded_packet = {
       comparison_id, target_hash, baseline_kind: request.baseline_kind, historical_comparison_status,

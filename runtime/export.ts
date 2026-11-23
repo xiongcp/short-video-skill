@@ -391,6 +391,7 @@ export function manifestOp(project: string, request: ManifestRequest): Outcome {
     try {
       snapDb.exec(`
         UPDATE sessions SET token_hash = 'redacted:' || session_id;
+        DELETE FROM owner_credentials;
         DELETE FROM asset_usage WHERE asset_ref IN (SELECT asset_ref FROM assets WHERE kind LIKE 'export-%' OR kind = 'final-package');
         DELETE FROM invalidated_assets WHERE asset_ref IN (SELECT asset_ref FROM assets WHERE kind LIKE 'export-%' OR kind = 'final-package');
         DELETE FROM assets WHERE kind LIKE 'export-%' OR kind = 'final-package';

@@ -1,0 +1,40 @@
+T12 runtime prerequisites + T10/T11 security hardening — TDD log (run t12-20261123-01, 2026-11-23, China Standard Time)
+Environment: Node.js v26.9.0, FFmpeg/ffprobe 9.0.2, bsdtar 3.5.3, Python venv with pyyaml + jsonschema.
+Material: synthetic 220 Hz PCM, code-generated PNG, simulated-2d rig, test-created owner passphrase. No genuine media.
+Evidence level reached: RUNTIME. No production PASS was produced or claimed.
+
+01 RED  security hardening (review of commit 6349a90)
+   node --test tests/runtime/T10-qa.test.mjs tests/runtime/T11-delivery.test.mjs
+   - A10: request-level declared_holds hid the shot_003 freeze/silence; freeze/silence thresholds of 100000 suppressed detection.
+   - A11: compare prepare accepted target_hash sha256:000…0 that differs from the upgrade clip (expected COMPARE_TARGET_MISMATCH).
+   - A13: restore accepted an archive carrying project/planted.txt not listed in the ExportManifest (exit 0, expected 1).
+   (First A13 attempt repacked with a "./" prefix and was rejected as ARCHIVE_PATH_INVALID; the test was corrected to repack
+    the original top-level entries so it fails for the intended reason. The first A10 freeze assertion assumed the fixture
+    freeze exceeded the 60-frame policy; it is 45 frames, so the test was rewritten to compare against a default-policy run.
+    Verified by stashing runtime/qa.ts: the rewritten test fails without the fix and passes with it.)
+02 GREEN qa holds only from the storyboard DSL; thresholds clamped to min(request, 60/30); compare rejects a foreign
+   target_hash (COMPARE_TARGET_MISMATCH); restore refuses unlisted files (ARCHIVE_UNLISTED_FILE). T10 5/5, T11 5/5.
+
+03 RED  node --test tests/runtime/T12-owner.test.mjs  -> ERR_MODULE_NOT_FOUND runtime/owner.ts
+04 GREEN owner passphrase setup/login (scrypt N=2^15), sessions.auth ('host-hook' | 'passphrase') and sessions.expires_at
+   migrated on open, humanSession honours expiry, owner.ts refuses non-TTY stdin (exit 2, OWNER_TTY_REQUIRED),
+   runtime/cli.ts has no login/owner/setup operation. 4/4.
+   Manual check under a pseudo-terminal (script -q): setup asks twice, login prints the export line on the terminal only.
+   Note: the pseudo-terminal shows the TTY check is a misuse guard, not a security boundary; the boundary is the passphrase.
+
+05 RED  node --test tests/e2e/T12-programmes.test.mjs -> ERR_MODULE_NOT_FOUND runtime/acceptance.ts
+   (T11 deliveryStudio moved to tests/runtime/delivery-fixture.mjs first; T11 stayed 5/5.)
+06 GREEN attest / accept / programme operations; attestations table; owner_credentials deleted from archived snapshots.
+   - controlled input (host-hook sign-offs, no attestation, 22 s master for a 60 s target):
+     status INCOMPLETE, evidence_level BELOW_PRODUCTION, missing [exact_frames, gates, attestation, cost],
+     ACCEPT_GATE_NOT_OWNER for G1–G5; agent attest -> HUMAN_REQUIRED; host-hook attest -> OWNER_AUTH_REQUIRED.
+   - passphrase-signed gates: stale archive -> ATTESTATION_TARGET_MISMATCH; non-boolean item -> ATTESTATION_ITEMS_INVALID;
+     voice_genuine=false -> ACCEPT_ATTESTATION_ITEM; cost 500 vs ledger 0 -> ACCEPT_COST_MISMATCH;
+     full attestation -> missing [exact_frames] only (fixture length is not a 60 s programme). Restored DB has 0 owner credentials.
+   - aggregation by run_id: A14 needs frame-exact 60/120/180 and one production PASS; A15 needs three distinct production
+     passes and one cross-chapter revision + recovery; duplicate run_id reported. 3/3.
+
+07 Full regression
+   node --test tests/runtime/ tests/e2e/                         -> 71/71 pass, 0 fail
+   python3 -B evals/check_design.py                              -> exit 0
+   python3 -B -m unittest discover -s evals -p 'test_*.py'       -> 25/25 OK

@@ -307,6 +307,21 @@ test('A10 injected defects: single-frame white flash, mid-motion caption collisi
   assert.ok(existsSync(join(project, out.contact_sheet.path)));
   assert.ok(existsSync(join(project, out.waveform.png_path)));
 
+  // 5b. Request-level overrides cannot weaken policy: holds come only from the storyboard DSL and thresholds are capped.
+  const held = await call(project, 'qa', { project_id: ID, scope: 'sample', media_ref: regDefect.asset.asset_ref,
+    freeze_threshold_frames: 45, silence_threshold_frames: 30,
+    declared_holds: [{ shot_id: 'shot_003', local_range: { start: 0, end: 10000 }, kind: 'static', reason: '试图掩盖静止' }] });
+  assert.equal(held.code, 1, 'a request-level hold must not unblock QA');
+  assert.ok(held.json.levels.media_qa.visual_anomalies.freezes.some((f) => f.shot_id === 'shot_003'), 'request-level hold must not hide the freeze');
+  assert.ok(held.json.waveform.silence_ranges.some((s) => s.shot_id === 'shot_003'), 'request-level hold must not hide the silence');
+  assert.ok(!held.json.declared_holds.some((h) => h.shot_id === 'shot_003'), 'request-level holds must be ignored');
+  const policy = await call(project, 'qa', { project_id: ID, scope: 'sample', media_ref: regDefect.asset.asset_ref });
+  const loose = await call(project, 'qa', { project_id: ID, scope: 'sample', media_ref: regDefect.asset.asset_ref,
+    freeze_threshold_frames: 100000, silence_threshold_frames: 100000 });
+  assert.equal(loose.code, 1, 'loosened thresholds must still block');
+  assert.deepEqual(loose.json.levels.media_qa.visual_anomalies.freezes, policy.json.levels.media_qa.visual_anomalies.freezes, 'freeze threshold capped at policy default');
+  assert.ok(loose.json.waveform.silence_ranges.some((s) => s.shot_id === 'shot_003'), 'silence threshold capped at policy default');
+
   // 6. Missing audio track MP4 must fail with AUDIO_TRACK hard defect
   const noAudioMp4 = join(project, 'incoming', 'no-audio.mp4');
   runFfmpeg(['-i', join(project, master.path), '-c:v', 'copy', '-an', noAudioMp4]);
@@ -384,6 +399,15 @@ test('A11 blinded A/B comparison enforces human-only review and blocks G3 until 
   await ok(call(project, 'event', { ...(await envelope(project, 's-rend')), event: 'sample_rendered',
     payload: { artifact_hash: upgradeQa.sample.sha256, timeline_snapshot_hash: upgradeQa.sample.input_snapshot_hash } }));
   await ok(call(project, 'event', { ...(await envelope(project, 's-chk')), event: 'sample_checked', payload: {} }));
+
+  // A comparison cannot be bound to a hash other than the upgrade clip it compares.
+  const wrongTarget = await call(project, 'compare', {
+    project_id: ID, action: 'prepare', target_hash: 'sha256:' + '0'.repeat(64),
+    baseline_ref: regBase.asset.asset_ref, upgrade_ref: upgradeQa.sample.artifact_ref,
+    baseline_kind: 'controlled_baseline', seed: 42,
+  });
+  assert.equal(wrongTarget.code, 1);
+  assert.equal(wrongTarget.json.issues[0].code, 'COMPARE_TARGET_MISMATCH');
 
   // Prepare blinded A/B packet.
   const prep = await ok(call(project, 'compare', {

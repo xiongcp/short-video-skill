@@ -21,6 +21,7 @@ import { compareOp, qaOp, targetOp } from './qa.ts';
 import { manifestOp, traceOp } from './export.ts';
 import { inspectOp } from '../tools/inspect_media/adapter.ts';
 import { packageOp, restoreOp } from '../tools/package_project/adapter.ts';
+import { acceptOp, attestOp, programmeOp } from './acceptance.ts';
 import { CATALOGS, DEFAULT_LOCALE, isSupported, localize, translate } from './i18n.ts';
 
 type Outcome = { report: { issues: { code: string }[] } & Record<string, unknown>; exitCode: number };
@@ -63,6 +64,9 @@ const operations: Record<string, (project: string, request: any) => Outcome | Pr
   manifest: manifestOp,
   package: packageOp,
   restore: restoreOp,
+  attest: attestOp,
+  accept: acceptOp,
+  programme: programmeOp,
 };
 
 async function main(argv: string[]) {

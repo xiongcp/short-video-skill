@@ -141,11 +141,11 @@ python3 -B -m unittest discover -s evals -p 'test_*.py' -v
 
 ## T12　真实节目与整体验收
 
-创建 `tests/e2e/T12-programmes.test.mjs`，按[验收计划](验收计划.md)为每期建立独立证据目录。使用所有者批准的主题、来源、原创角色与真实声音。
+创建 `tests/e2e/T12-programmes.test.mjs`，按[验收计划](验收计划.md)为每期建立独立证据目录。使用所有者批准的主题、来源、原创角色与真实声音。经所有者确认，生产签收使用**本地口令登录**（`runtime/owner.ts`，只在所有者交互终端运行，`runtime/cli.ts` 不提供登录操作）与**逐期所有者证明**（`attest`），由 `runtime/acceptance.ts` 的 `accept` / `programme` 汇总。
 
-- [ ] **RED**　缺真实媒体、任一阶段使用过期批准或缺审片记录时，验收汇总返回相应缺项。不能产生生产 PASS。先在受控样本上证明这项检查会失败。
-- [ ] **GREEN**　核对精确短片帧数、实际声音、人工门、预算和可还原工程。完成 60/120/180 秒三规格，其中至少一支真实全流程短片。连续生产三期约 8 分钟，至少一期做跨章返修与恢复。
-- [ ] **REFACTOR**　按 run_id 聚合证据并保留每期明细。运行 `node --test tests/e2e/T12-programmes.test.mjs` 以及各成片的技术验收命令。例如精确 480 秒长片归档在下列路径时，执行 `python3 -B evals/check_design.py --media evidence/runs/long-01/A15/final.mp4 --profile standard8 --target-seconds 480`。由所有者回看、签收与核对成本 → A14、A15。
+- [x] **RED**　缺真实媒体、任一阶段使用过期批准或缺审片记录时，验收汇总返回相应缺项。不能产生生产 PASS。先在受控样本上证明这项检查会失败。（已在 T11 夹具上验证：宿主钩子签收、缺证明、成片帧数不符均列为缺项，见交接文档第 18 节。）
+- [ ] **GREEN**　核对精确短片帧数、实际声音、人工门、预算和可还原工程。（核对逻辑已就绪；真实节目等待所有者素材与签收，此框保持未勾。）完成 60/120/180 秒三规格，其中至少一支真实全流程短片。连续生产三期约 8 分钟，至少一期做跨章返修与恢复。
+- [ ] **REFACTOR**　按 run_id 聚合证据并保留每期明细（`programme` 已实现）。运行 `node --test tests/e2e/T12-programmes.test.mjs` 以及各成片的技术验收命令。例如精确 480 秒长片归档在下列路径时，执行 `python3 -B evals/check_design.py --media evidence/runs/long-01/A15/final.mp4 --profile standard8 --target-seconds 480`。由所有者回看、签收与核对成本 → A14、A15。
 
 ## T13　可选的生成式插镜
 

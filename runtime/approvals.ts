@@ -12,7 +12,7 @@ export const GATES: Record<string, { material: string; review: string; reenter: 
 };
 export const MATERIAL_EVENTS = new Set(Object.values(GATES).map((gate) => gate.material));
 
-const tokenHash = (token: string) => 'sha256:' + createHash('sha256').update(token).digest('hex');
+export const tokenHash = (token: string) => 'sha256:' + createHash('sha256').update(token).digest('hex');
 
 // Host-side authentication hook. It is deliberately not a CLI operation, so an agent cannot mint a human session.
 export function createSession(project: string, { reviewer_id, kind }: { reviewer_id: string; kind: 'human' | 'agent' }) {
@@ -23,11 +23,13 @@ export function createSession(project: string, { reviewer_id, kind }: { reviewer
   return token;
 }
 
-export interface Session { session_id: string; reviewer_id: string; kind: string }
+export interface Session { session_id: string; reviewer_id: string; kind: string; auth: string; expires_at: string | null }
 
-export function humanSession(db: Db, token: string | undefined): Session | undefined {
-  const session = token ? db.prepare('SELECT session_id, reviewer_id, kind FROM sessions WHERE token_hash = ?').get(tokenHash(token)) as
+// A human session counts only until it expires. `auth` says whether it came from the owner passphrase or the host hook.
+export function humanSession(db: Db, token: string | undefined, now = new Date()): Session | undefined {
+  const session = token ? db.prepare('SELECT session_id, reviewer_id, kind, auth, expires_at FROM sessions WHERE token_hash = ?').get(tokenHash(token)) as
     Session | undefined : undefined;
+  if (session?.expires_at && Date.parse(session.expires_at) <= now.getTime()) return undefined;
   return session?.kind === 'human' ? session : undefined;
 }
 
