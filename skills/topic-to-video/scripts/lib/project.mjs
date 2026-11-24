@@ -5,6 +5,11 @@ import { countChars, splitSentences } from './captions.mjs';
 export const CHARS_PER_SECOND = 4;
 export const DEFAULT_SENTENCE_GAP_MS = 250;
 export const MAX_SENTENCE_CHARS = 30;
+// Words that make a claim absolute. Without sources, script.md asks for neutral wording or an open question.
+// 都 counts only in a sentence without a hedge such as 大部分 or 通常.
+export const ABSOLUTE_WORDS = ['所有', '全部', '一切', '任何', '总是', '从不', '永远', '一定', '必然', '绝对', '完全', '彻底', '唯一', '都'];
+const HEDGES = ['大部分', '大多', '多数', '基本', '通常', '一般', '往往'];
+const absoluteWords = (sentence) => ABSOLUTE_WORDS.filter((w) => sentence.includes(w) && (w !== '都' || !HEDGES.some((h) => sentence.includes(h))));
 
 const LIST_FIELD = { bullets: 'items', flow: 'nodes', bars: 'items' };
 
@@ -33,18 +38,20 @@ export const VISUAL_LIMITS = {
 const TITLE_LIMIT = 40;
 const SECTION_TITLE_LIMIT = 20;
 
-function checkLimits(value, limit, path, add) {
+// `label` names the owner (段落 s01 的标题, 镜头 sh06 的 compare 图解); `field` is the dotted path below it.
+function checkLimits(value, limit, path, add, label, where, field = '') {
   if (value === undefined || limit === undefined) return;
+  const name = field ? `${label} ${field} ` : label; // a space only around the ASCII field path
   if (typeof limit === 'number') {
     const length = [...String(value)].length;
-    if (length > limit) add(path, 'TEXT_TOO_LONG', `${path} 有 ${length} 字，上限 ${limit} 字`);
+    if (length > limit) add(path, 'TEXT_TOO_LONG', `${name}有 ${length} 字，上限 ${limit} 字${where}`);
   } else if (Array.isArray(limit)) {
     if (!Array.isArray(value)) return;
     const [min, max, item] = limit;
-    if (value.length < min || value.length > max) add(path, 'ITEM_COUNT', `${path} 有 ${value.length} 项，应为 ${min}–${max} 项`);
-    value.forEach((v, i) => checkLimits(v, item, `${path}/${i}`, add));
+    if (value.length < min || value.length > max) add(path, 'ITEM_COUNT', `${name}有 ${value.length} 项，应为 ${min}–${max} 项${where}`);
+    value.forEach((v, i) => checkLimits(v, item, `${path}/${i}`, add, label, where, `${field}[${i}]`));
   } else if (isObject(value)) {
-    Object.entries(limit).forEach(([key, l]) => checkLimits(value[key], l, `${path}/${key}`, add));
+    Object.entries(limit).forEach(([key, l]) => checkLimits(value[key], l, `${path}/${key}`, add, label, where, field ? `${field}.${key}` : key));
   }
 }
 
@@ -79,16 +86,17 @@ export function checkProject(project) {
   if (shape.length) return shape;
   const errors = [];
   const add = (path, code, message) => errors.push({ path, code, message });
-  checkLimits(project.title, TITLE_LIMIT, '/title', add);
-  project.sections.forEach((s, i) => checkLimits(s.title, SECTION_TITLE_LIMIT, `/sections/${i}/title`, add));
-  project.shots.forEach((shot, i) => checkLimits(shot.visual.data, VISUAL_LIMITS[shot.visual.template], `/shots/${i}/visual/data`, add));
+  checkLimits(project.title, TITLE_LIMIT, '/title', add, '项目标题', '（见 script.md）');
+  project.sections.forEach((s, i) => checkLimits(s.title, SECTION_TITLE_LIMIT, `/sections/${i}/title`, add, `段落 ${s.id} 的标题`, '（见 script.md）'));
+  project.shots.forEach((shot, i) => checkLimits(shot.visual.data, VISUAL_LIMITS[shot.visual.template], `/shots/${i}/visual/data`, add,
+    `镜头 ${shot.id} 的 ${shot.visual.template} 图解`, '（见 storyboard.md 的图解模板表）'));
   duplicates(project.sections.map((s) => s.id)).forEach((id) => add('/sections', 'DUPLICATE_ID', `段落 ${id} 重复`));
   duplicates(project.shots.map((s) => s.id)).forEach((id) => add('/shots', 'DUPLICATE_ID', `镜头 ${id} 重复`));
   const sources = new Set(project.brief.sources.map((s) => s.id));
   project.sections.forEach((s, i) => (s.source_ids ?? []).forEach((id) => {
     if (!sources.has(id)) add(`/sections/${i}/source_ids`, 'UNKNOWN_SOURCE', `段落 ${s.id} 引用了不存在的来源 ${id}`);
   }));
-  checkCoverage(project, add);
+  if (project.shots.length) checkCoverage(project, add); // empty after step 1, before the storyboard
   project.shots.forEach((shot, i) => checkCues(shot, `/shots/${i}`, add));
   project.checkpoints.forEach((c, i) => {
     if (c.revision > project.revision) add(`/checkpoints/${i}/revision`, 'CHECKPOINT_REVISION', `确认记录的版本 ${c.revision} 比项目当前版本 ${project.revision} 还新`);
@@ -149,6 +157,17 @@ export function estimateSeconds(project) {
   return project.sections.reduce((sum, s) => sum + estimateSentences(project, s, splitSentences(s.text).map((_, i) => i)), 0);
 }
 
+/** Planning estimates the agent copies into 讲稿.md and 分镜.md: whole seconds per section and shot, one decimal in total. */
+export function estimateReport(project) {
+  const bySection = new Map(project.sections.map((s) => [s.id, s]));
+  return {
+    total_seconds: Math.round(estimateSeconds(project) * 10) / 10,
+    sections: project.sections.map((s) => ({ id: s.id, seconds: Math.round(estimateSentences(project, s, splitSentences(s.text).map((_, i) => i))) })),
+    shots: project.shots.filter((shot) => bySection.has(shot.section))
+      .map((shot) => ({ id: shot.id, seconds: Math.round(estimateSentences(project, bySection.get(shot.section), shot.sentences)) })),
+  };
+}
+
 /** Advisory checks from references/script.md; these are warnings, not errors. Empty when checkProject reports MISSING_FIELD. */
 export function lintScript(project) {
   if (checkShape(project).length) return [];
@@ -156,6 +175,8 @@ export function lintScript(project) {
   project.sections.forEach((s, i) => splitSentences(s.text).forEach((sentence, j) => {
     const length = [...sentence].length;
     if (length > MAX_SENTENCE_CHARS) warnings.push({ path: `/sections/${i}/text`, code: 'SENTENCE_TOO_LONG', message: `段落 ${s.id} 第 ${j} 句有 ${length} 字，超过 ${MAX_SENTENCE_CHARS} 字` });
+    const absolute = project.brief.sources.length ? [] : absoluteWords(sentence);
+    if (absolute.length) warnings.push({ path: `/sections/${i}/text`, code: 'ABSOLUTE_CLAIM', message: `段落 ${s.id} 第 ${j} 句用了${absolute.map((w) => `“${w}”`).join('')}；没有来源时改成中性说法，或写进 brief.open_questions` });
   }));
   const estimate = estimateSeconds(project);
   const target = project.settings.target_seconds;

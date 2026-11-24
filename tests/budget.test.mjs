@@ -58,3 +58,21 @@ test('agents/openai.yaml short_description is 25–64 characters', () => {
   const short = readFileSync(join(SKILL, 'agents/openai.yaml'), 'utf8').match(/short_description: "([^"]+)"/)[1];
   assert.ok([...short].length >= 25 && [...short].length <= 64, `${[...short].length} characters`);
 });
+
+// Line counts alone miss long lines: a 49-line entry can still be 20 KB. Bytes are what fill the context.
+const KB = 1024;
+const bytes = (file) => statSync(file).size;
+
+test('SKILL.md stays within 8 KB and each reference within 10 KB', () => {
+  assert.ok(bytes(join(SKILL, 'SKILL.md')) <= 8 * KB, `SKILL.md: ${bytes(join(SKILL, 'SKILL.md'))} bytes`);
+  for (const name of readdirSync(join(SKILL, 'references'))) {
+    const file = join(SKILL, 'references', name);
+    assert.ok(bytes(file) <= 10 * KB, `${name}: ${bytes(file)} bytes`);
+  }
+});
+
+test('a full L0 run reads at most 24 KB of skill files', () => {
+  const read = ['SKILL.md', 'references/script.md', 'references/storyboard.md', 'references/prompt-pack.md', 'assets/host/profile.json'];
+  const total = read.reduce((sum, f) => sum + bytes(join(SKILL, f)), 0);
+  assert.ok(total <= 24 * KB, `${total} bytes`);
+});

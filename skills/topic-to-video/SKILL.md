@@ -28,7 +28,7 @@ description: 把主题、资料或已有讲稿做成中文知识解说视频：�
 | 3 | 写 `提示词包.md` | [prompt-pack.md](references/prompt-pack.md) | 交付，结束 |
 
 - 按步读取：每一步只读表里那一份 reference；只需要向用户提问时一份都不读。schema 和 `scripts/` 的源码都不用读。
-- 自检：写完第 2 步、第 3 步和每次返修后，运行 `node <本 skill 目录>/scripts/check.mjs <项目文件夹>`。`errors` 和 `docs` 必须为空，`warnings` 是建议，按 reference 调整或在回复里说明。
+- 自检：写完每一步和每次返修后，运行 `node <本 skill 目录>/scripts/check.mjs <项目文件夹>`。`errors` 和 `docs` 必须为空；`warnings` 是建议，按 reference 调整或在回复里说明；估时照抄输出里的 `estimates`，不要自己数字。
 - `project.json` 是唯一的数据源，必填字段在 reference 的示例里都有；自检报 `MISSING_FIELD` 时再查 [project.schema.json](schema/project.schema.json)。两份 md 必须与它一致：`讲稿.md` 逐字包含每段的 `text`，`分镜.md` 列出每个镜头 ID。
 - 新项目的 `revision` 从 1 开始，`voice.provider` 写 `undecided`，`checkpoints` 和 `jobs` 都是空数组。
 - 确认①之前不写提示词包。只有用户明确说"不用确认，直接给提示词"时，才可以一口气做完三步，并在 `提示词包.md` 标题下第一行写"未经确认的方案"。

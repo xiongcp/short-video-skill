@@ -43,7 +43,7 @@ export function inspectProject(file) {
     check_errors: schema.ok ? checkProject(project) : 'skipped: schema errors',
     lint_warnings: schema.ok ? lintScript(project) : 'skipped: schema errors',
     derived_docs: schema.ok && script !== null && board !== null
-      ? checkDerivedDocs(project, script, board)
+      ? checkDerivedDocs(project, script, board, read('提示词包.md'))
       : 'skipped: schema errors or missing 讲稿.md/分镜.md',
     revision: project.revision,
     target_seconds: project.settings?.target_seconds,
