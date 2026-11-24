@@ -1,0 +1,56 @@
+{
+  "scenario": "01",
+  "title": "缺主题时一次问齐，给出主题后用默认值出方案",
+  "mode": "skill",
+  "agent": "agy",
+  "agent_version": "agy 1.5.16",
+  "model": "gemini-3.8-flash-high",
+  "skill": {
+    "commit": "3aed074208892e0b639f4b72f793dd18b0af46eb",
+    "dirty": false
+  },
+  "isolated_home": false,
+  "at": "2026-11-24T09:52:29.898Z",
+  "projects": [
+    {
+      "file": "airplane-cruising-altitude/project.json",
+      "files": [
+        "project.json",
+        "分镜.md",
+        "讲稿.md"
+      ],
+      "schema_errors": [
+        "/shots/5/visual/template must be equal to constant",
+        "/shots/5/visual/data must have required property 'heading'",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/template must be equal to constant",
+        "/shots/5/visual/data must have required property 'items'",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/template must be equal to constant",
+        "/shots/5/visual/data must have required property 'nodes'",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/data/left/label must NOT have more than 8 characters",
+        "/shots/5/visual/data/right/label must NOT have more than 8 characters",
+        "/shots/5/visual/template must be equal to constant",
+        "/shots/5/visual/data must have required property 'value'",
+        "/shots/5/visual/data must have required property 'label'",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/template must be equal to constant",
+        "/shots/5/visual/data must have required property 'items'",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual/data must NOT have additional properties",
+        "/shots/5/visual must match exactly one schema in oneOf"
+      ],
+      "check_errors": "skipped: schema errors",
+      "lint_warnings": "skipped: schema errors",
+      "derived_docs": "skipped: schema errors or missing 讲稿.md/分镜.md",
+      "revision": 1,
+      "target_seconds": 120,
+      "checkpoints": []
+    }
+  ]
+}
