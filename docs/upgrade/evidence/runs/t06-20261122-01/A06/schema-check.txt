@@ -1,3 +1,0 @@
-asset-catalog.json valid against workflow#AssetCatalog
-3 scenes valid against scene
-1 character profile valid against character

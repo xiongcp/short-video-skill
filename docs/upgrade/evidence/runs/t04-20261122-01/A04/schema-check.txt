@@ -1,7 +1,0 @@
-docs/upgrade/evidence/runs/t04-20261122-01/A04/brief-v1.json valid against topic-brief
-docs/upgrade/evidence/runs/t04-20261122-01/A04/evidence-v1.json valid against evidence-set
-docs/upgrade/evidence/runs/t04-20261122-01/A04/evidence-v2.json valid against evidence-set
-docs/upgrade/evidence/runs/t04-20261122-01/A04/script-v1.json valid against script
-docs/upgrade/evidence/runs/t04-20261122-01/A04/script-v2.json valid against script
-4 approvals valid against workflow#Approval
-search tool_result valid against workflow#ToolResult

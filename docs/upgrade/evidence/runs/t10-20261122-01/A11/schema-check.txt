@@ -1,3 +1,0 @@
-qa-report-no-target.json valid against workflow#QAReport
-qa-report-sample.json valid against workflow#QAReport
-approval-g3.json valid against workflow#Approval

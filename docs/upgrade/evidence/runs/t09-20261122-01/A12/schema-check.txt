@@ -1,4 +1,0 @@
-revision-requests.json valid against workflow#RevisionRequest
-change-plans.json valid against workflow#ChangePlan
-timeline-470s.json valid against workflow#CompiledTimeline
-storyboard-470s.json valid against storyboard

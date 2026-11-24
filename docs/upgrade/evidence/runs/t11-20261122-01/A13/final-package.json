@@ -1,9 +1,0 @@
-{
-  "project_id": "deliver-demo",
-  "version": 1,
-  "manifest_hash": "sha256:e8d5c89ae0324d86b4c933957a222dca8c31515eb9c6bce6427fc12a81a329e9",
-  "g5_approval_id": "apv-a39046d5-2bb2-41be-aeca-db45221f8c4b",
-  "archive_ref": "asset://deliver-demo/final_package/v1",
-  "archive_hash": "sha256:93c4f0414ade45a4a17d936574b3ed162013bf8f723223eb18d40732b7d50b5c",
-  "verified_file_count": 55
-}
