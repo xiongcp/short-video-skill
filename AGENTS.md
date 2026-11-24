@@ -8,7 +8,7 @@ The previous Studio implementation (13 skills, a TypeScript runtime, a SQLite st
 
 | Path | Contents |
 | --- | --- |
-| `skills/topic-to-video/` | The installable skill: `SKILL.md`, `agents/`, `references/`, `schema/`, `scripts/lib/`, `assets/host/` |
+| `skills/topic-to-video/` | The installable skill: `SKILL.md`, `agents/`, `references/`, `schema/`, `scripts/`, `assets/host/` |
 | `examples/` | Example projects as JSON and Markdown, no media |
 | `tests/` | `node --test` suites and the agent scenario evaluations in `tests/scenarios/` |
 | `docs/lite/` | Plans, in Chinese |

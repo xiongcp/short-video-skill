@@ -1,6 +1,6 @@
 // Sentence rules shared by the references, the example checks and (from P2) the renderer.
 // A sentence ends at a run of 。！？!? plus any closing quotes or brackets right after it.
-const SENTENCE = /[^。！？!?]+[。！？!?]+[」』”’）)]*|[^。！？!?]+$/g;
+const SENTENCE = /[^。！？!?]+[。！？!?]+[」』”’）)》】\]"']*|[^。！？!?]+$/g;
 
 /** Splits narration into sentences; a trailing fragment without a terminator is kept. */
 export function splitSentences(text) {

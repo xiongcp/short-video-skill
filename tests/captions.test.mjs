@@ -29,3 +29,8 @@ test('ignores whitespace between sentences', () => {
 test('counts spoken characters without punctuation or spaces', () => {
   assert.equal(countChars('HTTP 缓存，快！'), 7);
 });
+
+test('keeps ASCII quotes, book-title marks and square brackets with their sentence', () => {
+  assert.deepEqual(splitSentences('他说："好。"然后走了。'), ['他说："好。"', '然后走了。']);
+  assert.deepEqual(splitSentences('读完《缓存。》再看【注意！】和 [1.]'), ['读完《缓存。》', '再看【注意！】', '和 [1.]']);
+});

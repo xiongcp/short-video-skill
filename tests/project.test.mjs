@@ -124,3 +124,21 @@ test('isApproved follows the revision', () => {
   p.revision = 2;
   assert.equal(isApproved(p, 'plan'), false);
 });
+
+test('reports missing fields instead of throwing', () => {
+  const p = minimal();
+  delete p.checkpoints;
+  delete p.shots[0].sentences;
+  assert.deepEqual(placed(p), ['MISSING_FIELD /checkpoints']);
+  const q = minimal();
+  delete q.shots[0].sentences;
+  q.shots[1].visual = { template: 'bullets', data: {} };
+  assert.deepEqual(placed(q), ['MISSING_FIELD /shots/0/sentences', 'MISSING_FIELD /shots/1/visual/data/items']);
+  assert.deepEqual(placed(null), ['MISSING_FIELD ']);
+});
+
+test('lintScript returns no warnings for a project with missing fields', () => {
+  const p = minimal();
+  delete p.settings;
+  assert.deepEqual(lintScript(p), []);
+});

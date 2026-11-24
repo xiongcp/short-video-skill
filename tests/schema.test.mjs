@@ -16,6 +16,8 @@ const valid = {
   'an openai-compatible voice with a key variable': (p) => { p.voice = { ...KEY_VOICE, api_key_env: 'SVS_TTS_API_KEY' }; },
   'an expression cue on a host shot': (p) => { p.shots[0].cues = [{ sentence: 0, do: 'expr', target: 'happy' }]; },
   'a closing quote after the last terminator': (p) => { p.sections[0].text = '他说：“答案藏在阳光里。”'; },
+  'an ASCII closing quote after the last terminator': (p) => { p.sections[0].text = '他说："答案藏在阳光里。"'; },
+  'a closing book-title mark after the last terminator': (p) => { p.sections[0].text = '去读《缓存。》'; },
 };
 for (const [name, mutate] of Object.entries(valid)) {
   test(`accepts ${name}`, () => {

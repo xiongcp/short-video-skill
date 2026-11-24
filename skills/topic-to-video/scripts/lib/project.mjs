@@ -17,8 +17,37 @@ export function elementCount(visual) {
 
 const duplicates = (ids) => [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
 
+const isObject = (v) => typeof v === 'object' && v !== null;
+
+// The fields the checks below read. A project missing one gets MISSING_FIELD errors instead of a crash;
+// nested fields are checked only when the top level is complete.
+function checkShape(project) {
+  const errors = [];
+  const need = (ok, path, what) => { if (!ok) errors.push({ path, code: 'MISSING_FIELD', message: `缺少或格式不对：${what}，字段见 schema/project.schema.json` }); };
+  need(isObject(project), '', 'project.json 应是一个对象');
+  if (errors.length) return errors;
+  need(Number.isInteger(project.revision), '/revision', 'revision 应是整数');
+  need(Array.isArray(project.brief?.sources), '/brief/sources', 'brief.sources 应是数组');
+  need(typeof project.settings?.target_seconds === 'number', '/settings/target_seconds', 'settings.target_seconds 应是数字');
+  ['sections', 'shots', 'checkpoints'].forEach((key) => need(Array.isArray(project[key]), `/${key}`, `${key} 应是数组`));
+  if (errors.length) return errors;
+  project.brief.sources.forEach((s, i) => need(isObject(s), `/brief/sources/${i}`, '来源应是对象'));
+  project.sections.forEach((s, i) => need(typeof s?.text === 'string', `/sections/${i}/text`, `段落 ${s?.id ?? i} 的 text 应是字符串`));
+  project.checkpoints.forEach((c, i) => need(isObject(c), `/checkpoints/${i}`, '确认记录应是对象'));
+  project.shots.forEach((shot, i) => {
+    need(Array.isArray(shot?.sentences) && shot.sentences.every(Number.isInteger), `/shots/${i}/sentences`, `镜头 ${shot?.id ?? i} 的 sentences 应是整数数组`);
+    need(isObject(shot?.visual), `/shots/${i}/visual`, `镜头 ${shot?.id ?? i} 缺少 visual`);
+    const field = LIST_FIELD[shot?.visual?.template];
+    if (field) need(Array.isArray(shot.visual.data?.[field]), `/shots/${i}/visual/data/${field}`, `镜头 ${shot.id ?? i} 的 visual.data.${field} 应是数组`);
+    need(shot?.cues === undefined || (Array.isArray(shot.cues) && shot.cues.every(isObject)), `/shots/${i}/cues`, `镜头 ${shot?.id ?? i} 的 cues 应是对象数组`);
+  });
+  return errors;
+}
+
 /** @returns {{path: string, code: string, message: string}[]} */
 export function checkProject(project) {
+  const shape = checkShape(project);
+  if (shape.length) return shape;
   const errors = [];
   const add = (path, code, message) => errors.push({ path, code, message });
   duplicates(project.sections.map((s) => s.id)).forEach((id) => add('/sections', 'DUPLICATE_ID', `段落 ${id} 重复`));
@@ -88,8 +117,9 @@ export function estimateSeconds(project) {
   return project.sections.reduce((sum, s) => sum + estimateSentences(project, s, splitSentences(s.text).map((_, i) => i)), 0);
 }
 
-/** Advisory checks from references/script.md; these are warnings, not errors. */
+/** Advisory checks from references/script.md; these are warnings, not errors. Empty when checkProject reports MISSING_FIELD. */
 export function lintScript(project) {
+  if (checkShape(project).length) return [];
   const warnings = [];
   project.sections.forEach((s, i) => splitSentences(s.text).forEach((sentence, j) => {
     const length = [...sentence].length;
