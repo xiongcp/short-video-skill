@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { cpSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
-import { agentInvocation, findProjects, inspectProject, parseAgyStream } from './scenarios/run.mjs';
+import { agentInvocation, findProjects, inspectProject, parseAgyStream, skillVersion } from './scenarios/run.mjs';
 
 const scratch = (name) => mkdtempSync(join(tmpdir(), `svs-${name}-`));
 const put = (dir, path, content) => {
@@ -63,4 +63,19 @@ test('parseAgyStream returns the conversation id, final reply and tools used', (
     { event: 'result', result: { conversation_id: 'c1', status: 'SUCCESS', response: '好的\n' } },
   ].map((e) => JSON.stringify(e)).join('\n');
   assert.deepEqual(parseAgyStream(stream), { conversationId: 'c1', status: 'SUCCESS', response: '好的\n', tools: ['read_file', 'run_command'] });
+});
+
+test('agentInvocation refuses a later agy turn without a conversation id', () => {
+  assert.throws(() => agentInvocation({ agent: 'agy', index: 1, turn: 'ok' }), /conversation id/);
+});
+
+test('parseAgyStream skips lines that are not valid JSON', () => {
+  const stream = ['{partial', JSON.stringify({ event: 'init', conversation_id: 'c1' }), '{"event": "result", "result": {"status": "SUCCESS", "response": "好"}}'].join('\n');
+  assert.deepEqual(parseAgyStream(stream), { conversationId: 'c1', status: 'SUCCESS', response: '好', tools: [] });
+});
+
+test('skillVersion records the commit and whether the skill folder has uncommitted changes', () => {
+  const version = skillVersion();
+  assert.match(version.commit, /^[0-9a-f]{40}$/);
+  assert.equal(typeof version.dirty, 'boolean');
 });

@@ -54,6 +54,7 @@ export function inspectProject(file) {
 /** Command and arguments for one turn. Codex resumes the latest session; agy resumes by conversation id. */
 export function agentInvocation({ agent, index, turn, model, lastFile, conversationId }) {
   if (agent === 'agy') {
+    if (index > 0 && !conversationId) throw new Error('agy 第 1 轮的输出里没有 conversation id，无法继续后面的轮次');
     const args = ['-p', turn, ...(model ? ['--model', model] : []), '--dangerously-skip-permissions', '--sandbox', '--output-format', 'stream-json'];
     return { cmd: 'agy', args: index === 0 ? args : [...args, '--conversation', conversationId] };
   }
@@ -63,7 +64,13 @@ export function agentInvocation({ agent, index, turn, model, lastFile, conversat
 
 /** Conversation id, final status and reply, and the tools an agy turn ran, from its stream-json output. */
 export function parseAgyStream(text) {
-  const events = text.split('\n').filter((line) => line.trim().startsWith('{')).map((line) => JSON.parse(line));
+  const events = text.split('\n').flatMap((line) => {
+    try {
+      return line.trim().startsWith('{') ? [JSON.parse(line)] : [];
+    } catch {
+      return [];
+    }
+  });
   const result = events.find((e) => e.event === 'result')?.result ?? {};
   return {
     conversationId: events.find((e) => e.event === 'init')?.conversation_id ?? result.conversation_id,
@@ -74,6 +81,12 @@ export function parseAgyStream(text) {
       .filter((s) => s?.step_type === 'tool' && s.state === 'DONE')
       .map((s) => s.tool_name),
   };
+}
+
+/** The repository commit and whether skills/topic-to-video differs from it, so each run names the skill it used. */
+export function skillVersion() {
+  const git = (...args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }).trim();
+  return { commit: git('rev-parse', 'HEAD'), dirty: git('status', '--porcelain', '--', 'skills/topic-to-video') !== '' };
 }
 
 function reviewTemplate(spec, report) {
@@ -137,6 +150,7 @@ function main() {
     env.HOME = mkdtempSync(join(tmpdir(), 'svs-home-'));
   }
 
+  const skill = skillVersion();
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
   const out = join(HERE, 'results', `${stamp}-${spec.id}-${values.mode}`);
   mkdirSync(out, { recursive: true });
@@ -165,6 +179,7 @@ function main() {
     agent: values.agent,
     agent_version: `${values.agent} ${execFileSync(values.agent, ['--version'], { encoding: 'utf8' }).trim()}`,
     model: values.model ?? 'default',
+    skill: values.mode === 'skill' ? skill : null,
     isolated_home: isolated,
     at: new Date().toISOString(),
     projects: findProjects(work).map((file) => ({ file: relative(work, file), ...inspectProject(file) })),
