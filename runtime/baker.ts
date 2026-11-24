@@ -8,13 +8,13 @@ import { assetByMeta, getAsset, nextVersion, readAsset, registerAsset, sha256, u
 import { latest } from './content.ts';
 import { type Db, type Issue, type Outcome, getProject, openStore, requestHash, summary, transaction } from './project-store.ts';
 import { FPS } from './timebase.ts';
-import { BAKER, ORDER, type State, actionTarget, initialState, png, render, step } from '../tools/bake_character/adapter.ts';
+import { BAKER, ORDER, type State, actionTarget, characterPlacement, initialState, png, render, step } from '../tools/bake_character/adapter.ts';
 
 export interface PlanAction { local_range: { start: number; end: number }; action: { character_ref: string; angle: string; expression: string; gesture: string; gaze: string }; cue_id?: string | null }
 export interface PlanShot { shot_id: string; character_ref: string; initial_pose: string; exit_pose: string; actions: PlanAction[] }
 export interface PlanRequest { project_id: string; timeline_version?: number; shots: PlanShot[] }
 
-const SUPPORTED_RIG = 'simulated-2d';
+const SUPPORTED_RIGS = ['simulated-2d', 'vector-2d'];
 const rigOf = (project: string, db: Db, characterRef: string) => {
   const profile = getAsset(db, characterRef)?.meta.profile;
   const asset = profile && getAsset(db, profile.rig_ref);
@@ -44,7 +44,11 @@ export function validateAndSavePlan(db: Db, project: string, id: string, timelin
       fail('shot_id', { code: 'PLAN_SHOT_UNKNOWN', character_ref: shot.character_ref, timeline_version: timeline.version }); continue;
     }
     const { profile, rigRef, rig } = rigOf(project, db, shot.character_ref);
-    if (rig?.rig !== SUPPORTED_RIG) { fail('character_ref', { code: 'RIG_UNSUPPORTED', asset_ref: rigRef ?? null, rig: rig?.rig ?? null, supported: SUPPORTED_RIG }); continue; }
+    if (!SUPPORTED_RIGS.includes(rig?.rig)) { fail('character_ref', { code: 'RIG_UNSUPPORTED', asset_ref: rigRef ?? null, rig: rig?.rig ?? null, supported: SUPPORTED_RIGS.join(',') }); continue; }
+    const at = characterPlacement(rig);
+    if (!(at.x >= 0 && at.y >= 0 && at.x + rig.canvas.width <= 1920 && at.y + rig.canvas.height <= 1080)) {
+      fail('character_ref', { code: 'RIG_PLACEMENT_INVALID', asset_ref: rigRef ?? null, x: at.x, y: at.y }); continue;
+    }
     for (const field of ['initial_pose', 'exit_pose'] as const) if (!rig.poses[shot[field]]) fail(field, { code: 'POSE_UNKNOWN', pose: shot[field] });
     const previous = predecessor(timeline.document, shot.shot_id, planned);
     if (previous && rig.poses[shot.initial_pose] && shot.initial_pose !== previous.exit_pose) {

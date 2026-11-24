@@ -45,3 +45,13 @@ Evidence level reached: RUNTIME. No production PASS was produced or claimed.
      0, -5 and 1.5 were also accepted (expected QA_THRESHOLD_INVALID).
 09 GREEN episodes are keyed by realpath(project_dir):project_id; a repeat is reported as PROGRAMME_EPISODE_DUPLICATE and
    counted once. QA thresholds must be integers >= 1 before clamping. Full regression 71/71, Python 25/25, check_design exit 0.
+
+10 Default host and voice
+   - vector-2d rig (tools/bake_character/adapter.ts renderVector) + assets/default-host/build.ts; placement checked in
+     runtime/baker.ts (RIG_PLACEMENT_INVALID) and used by tools/render_shot/adapter.ts overlay.
+   - assets/default-voice/voice.ts: macOS `say -v Tingting` -> 48 kHz s16 mono WAV with provenance; sectionTakes.
+   - T12-default-host 5/5, T12-default-voice 2/2.
+   node --test tests/runtime/ tests/e2e/                         -> 78/78 pass, 0 fail
+   python3 -B evals/check_design.py                              -> exit 0
+   python3 -B -m unittest discover -s evals -p 'test_*.py'       -> 25/25 OK
+   python3 -B docs/upgrade/evidence/replay_media.py              -> pass

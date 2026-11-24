@@ -1,0 +1,48 @@
+{
+  "character_id": "host_hare",
+  "name": "晴",
+  "style_lock": [
+    "墨蓝短外套",
+    "藏青短发配一缕青色挑染",
+    "青色眼睛",
+    "青色领结",
+    "头顶一根呆毛"
+  ],
+  "rig_ref": "asset://<project>/host_rig/v1",
+  "voice_ref": "asset://<project>/host_voice/v1",
+  "supported_angles": [
+    "front",
+    "three_quarter"
+  ],
+  "expressions": [
+    "explaining",
+    "focused"
+  ],
+  "gestures": [
+    "idle",
+    "point_right",
+    "wave"
+  ],
+  "parameters": [
+    {
+      "parameter_id": "ParamAngleX",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamArmR",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamEyeOpen",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamMouthOpenY",
+      "min": 0,
+      "max": 1
+    }
+  ]
+}

@@ -547,3 +547,22 @@ Run `t12-20261123-01` executed on November 23, 2026 (China Standard Time), in th
 | A11 | Baseline and upgrade samples with the same script, voice and spec; the owner watches 20–30 s in full, reviews blind via `compare review`, closes required fixes and signs G3. |
 | A14 | Shorts at 60, 120 and 180 s, at least one with a real topic, sources, voice and original host through G1–G5; the owner watches in full and runs `attest`. |
 | A15 | Three distinct ~8-minute episodes reusing one approved character pack, each with its own run_id; at least one restarted and revised across chapters; each watched, signed and cost-checked. |
+
+## 19 · Default host and default voice
+
+Added 2026-11-23 so the owner can start without supplying their own material. **Still RUNTIME evidence; not a production PASS for A05/A06.**
+
+| Test | Result |
+| --- | --- |
+| `tests/runtime/T12-default-host.test.mjs` | 5/5: vector rasterizer antialiases without fringes, deterministic output, each parameter moves only its own region, out-of-frame `placement` gives `RIG_PLACEMENT_INVALID`, default rig plans and bakes through T08. |
+| `tests/runtime/T12-default-voice.test.mjs` | 2/2: 48 kHz / 16-bit / mono WAV with provenance; per-section `audio` import entries from a script. Skipped where `say` or the voice is unavailable. |
+| Full | Runtime and e2e **78/78**, Python **25/25**, `check_design.py` exit 0, `replay_media.py` passes. |
+
+**Contents**
+- **Default host "晴" (`assets/default-host/`).** New rig type `vector-2d`: layered path art rendered by the antialiased rasterizer in `tools/bake_character/adapter.ts`, using the T08 parameters `ParamAngleX`, `ParamArmR`, `ParamEyeOpen`, `ParamMouthOpenY`, blink and hair spring. `placement` in `rig.json` positions the character in the 1920×1080 frame (used by the overlay in `tools/render_shot/adapter.ts`). `node assets/default-host/build.ts` regenerates `rig.json`, `profile.json`, `rights.json`, `host.png` and the dark/light/checker sheet `preview.png`. The style is simple flat vector.
+- **Default voice (`assets/default-voice/voice.ts`).** The macOS Mandarin system voice `Tingting` (`say`) converted to 48 kHz, 16-bit mono WAV, with engine, voice, OS version and hash recorded. `--script <script.json> --project <dir>` writes `incoming/<section_id>.wav` and `incoming/voice-takes.json` per section for the `audio` import. **Apple system voices are licensed with macOS; the owner should check that licence before publishing or commercial use.**
+
+**Still for the owner**
+- `rights.json` is `pending`: the owner runs `register` and then `clear` in their own terminal; an agent never clears usage.
+- A05: synthesized narration removes the recording step, but real alignment and at least 100 hand-checked word anchors are still needed; the repository has no forced aligner yet, and `align` takes supplied word timings.
+- A06/A11/A14/A15: G1–G5 sign-offs, blind review, full watch-through and `attest` remain the owner's; `voice_genuine` and `art_original` in `attest` must be answered truthfully.

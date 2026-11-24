@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { crc32, deflateSync, inflateSync } from 'node:zlib';
 import { readWav } from '../../runtime/preview.ts';
 import { FPS, RATE, SAMPLES_PER_FRAME } from '../../runtime/timebase.ts';
-import { render as renderCharacter } from '../bake_character/adapter.ts';
+import { characterPlacement, render as renderCharacter } from '../bake_character/adapter.ts';
 
 export const RENDERER = { name: 'software-rgb24-shot', version: '1.0.0' };
 export const W = 1920, H = 1080;
@@ -271,12 +271,12 @@ export function renderShotMedia(spec: RenderShotMediaSpec) {
         encodeStaticSegment(basePng, len, segOut, work, k);
       } else {
         const { rig, trajectory } = spec.character;
-        const cw = rig.canvas.width, ch = rig.canvas.height;
+        const cw = rig.canvas.width, ch = rig.canvas.height, at = characterPlacement(rig);
         const rgbaFrames = Buffer.concat(Array.from({ length: len }, (_, i) => renderCharacter(rig, trajectory.frames[start + i])));
         runFfmpeg([
           '-loop', '1', '-framerate', String(FPS), '-i', basePng,
           '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', `${cw}x${ch}`, '-r', String(FPS), '-i', 'pipe:0',
-          '-filter_complex', '[0:v][1:v]overlay=x=240:y=540:format=auto,format=yuv420p',
+          '-filter_complex', `[0:v][1:v]overlay=x=${at.x}:y=${at.y}:format=auto,format=yuv420p`,
           '-frames:v', String(len), ...VIDEO_ENCODE, '-f', 'mp4', segOut,
         ], rgbaFrames);
       }
