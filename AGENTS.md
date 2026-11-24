@@ -36,5 +36,5 @@ The previous Studio implementation (13 skills, a TypeScript runtime, a SQLite st
 ```sh
 npm install   # development dependencies
 npm test      # every node --test suite
-npm run scenario -- --scenario 01 --mode skill   # agent scenario run; spends Codex quota, ask the owner first
+npm run scenario -- --scenario 01 --mode skill --agent agy   # agent scenario run (codex or agy); spends quota, ask the owner first
 ```

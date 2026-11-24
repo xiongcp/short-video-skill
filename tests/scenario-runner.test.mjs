@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { cpSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
-import { findProjects, inspectProject } from './scenarios/run.mjs';
+import { agentInvocation, findProjects, inspectProject, parseAgyStream } from './scenarios/run.mjs';
 
 const scratch = (name) => mkdtempSync(join(tmpdir(), `svs-${name}-`));
 const put = (dir, path, content) => {
@@ -37,4 +37,30 @@ test('inspectProject runs every check on the example', () => {
   const r = inspectProject(join(dir, 'project.json'));
   assert.deepEqual([r.schema_errors, r.check_errors, r.lint_warnings, r.derived_docs], [[], [], [], []]);
   assert.deepEqual(r.files, ['project.json', '分镜.md', '讲稿.md']);
+});
+
+test('agentInvocation builds codex turns with resume after the first', () => {
+  const first = agentInvocation({ agent: 'codex', index: 0, turn: 'hi', lastFile: 'o.md', model: 'm' });
+  assert.deepEqual(first, { cmd: 'codex', args: ['exec', '--skip-git-repo-check', '-c', 'sandbox_mode="workspace-write"', '-m', 'm', '-o', 'o.md', 'hi'] });
+  const next = agentInvocation({ agent: 'codex', index: 1, turn: 'ok', lastFile: 'o.md' });
+  assert.deepEqual(next.args.slice(0, 3), ['exec', 'resume', '--last']);
+});
+
+test('agentInvocation builds agy turns that resume by conversation id', () => {
+  const first = agentInvocation({ agent: 'agy', index: 0, turn: 'hi', model: 'gemini-3.8-flash-high' });
+  assert.equal(first.cmd, 'agy');
+  assert.deepEqual(first.args, ['-p', 'hi', '--model', 'gemini-3.8-flash-high', '--dangerously-skip-permissions', '--sandbox', '--output-format', 'stream-json']);
+  const next = agentInvocation({ agent: 'agy', index: 1, turn: 'ok', conversationId: 'c1' });
+  assert.deepEqual(next.args.slice(-2), ['--conversation', 'c1']);
+});
+
+test('parseAgyStream returns the conversation id, final reply and tools used', () => {
+  const stream = [
+    { event: 'init', conversation_id: 'c1' },
+    { event: 'step_update', step_update: { state: 'ACTIVE', step_type: 'tool', tool_name: 'read_file' } },
+    { event: 'step_update', step_update: { state: 'DONE', step_type: 'tool', tool_name: 'read_file' } },
+    { event: 'step_update', step_update: { state: 'DONE', step_type: 'tool', tool_name: 'run_command' } },
+    { event: 'result', result: { conversation_id: 'c1', status: 'SUCCESS', response: '好的\n' } },
+  ].map((e) => JSON.stringify(e)).join('\n');
+  assert.deepEqual(parseAgyStream(stream), { conversationId: 'c1', status: 'SUCCESS', response: '好的\n', tools: ['read_file', 'run_command'] });
 });

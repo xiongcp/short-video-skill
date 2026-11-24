@@ -1,6 +1,6 @@
 // Runs one agent scenario in a throwaway git repository and keeps everything a reviewer needs.
-//   npm run scenario -- --scenario 01 --mode baseline|skill [--model <id>] [--shared-home]
-// Each run spends Codex quota: ask the owner before running.
+//   npm run scenario -- --scenario 01 --mode baseline|skill [--agent codex|agy] [--model <id>] [--shared-home]
+// Each run spends the agent's quota: ask the owner before running.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
@@ -51,11 +51,36 @@ export function inspectProject(file) {
   };
 }
 
+/** Command and arguments for one turn. Codex resumes the latest session; agy resumes by conversation id. */
+export function agentInvocation({ agent, index, turn, model, lastFile, conversationId }) {
+  if (agent === 'agy') {
+    const args = ['-p', turn, ...(model ? ['--model', model] : []), '--dangerously-skip-permissions', '--sandbox', '--output-format', 'stream-json'];
+    return { cmd: 'agy', args: index === 0 ? args : [...args, '--conversation', conversationId] };
+  }
+  const common = ['--skip-git-repo-check', '-c', 'sandbox_mode="workspace-write"', ...(model ? ['-m', model] : []), '-o', lastFile, turn];
+  return { cmd: 'codex', args: index === 0 ? ['exec', ...common] : ['exec', 'resume', '--last', ...common] };
+}
+
+/** Conversation id, final status and reply, and the tools an agy turn ran, from its stream-json output. */
+export function parseAgyStream(text) {
+  const events = text.split('\n').filter((line) => line.trim().startsWith('{')).map((line) => JSON.parse(line));
+  const result = events.find((e) => e.event === 'result')?.result ?? {};
+  return {
+    conversationId: events.find((e) => e.event === 'init')?.conversation_id ?? result.conversation_id,
+    status: result.status,
+    response: result.response ?? '',
+    tools: events
+      .map((e) => e.step_update)
+      .filter((s) => s?.step_type === 'tool' && s.state === 'DONE')
+      .map((s) => s.tool_name),
+  };
+}
+
 function reviewTemplate(spec, report) {
   return [
     `# 场景 ${spec.id}：${spec.title}（${report.mode}）`,
     '',
-    `运行：${report.at} · ${report.codex_version} · 模型 ${report.model} · 隔离用户级 skills：${report.isolated_home ? '是' : '否'}`,
+    `运行：${report.at} · ${report.agent_version} · 模型 ${report.model} · 隔离用户级 skills：${report.isolated_home ? '是' : '否'}`,
     '',
     '## 检查清单',
     '',
@@ -78,11 +103,12 @@ function main() {
       scenario: { type: 'string' },
       mode: { type: 'string' },
       model: { type: 'string' },
+      agent: { type: 'string', default: 'codex' },
       'shared-home': { type: 'boolean', default: false },
     },
   });
-  if (!values.scenario || !['baseline', 'skill'].includes(values.mode)) {
-    console.error('usage: npm run scenario -- --scenario 01 --mode baseline|skill [--model <id>] [--shared-home]');
+  if (!values.scenario || !['baseline', 'skill'].includes(values.mode) || !['codex', 'agy'].includes(values.agent)) {
+    console.error('usage: npm run scenario -- --scenario 01 --mode baseline|skill [--agent codex|agy] [--model <id>] [--shared-home]');
     process.exit(2);
   }
   const specFile = readdirSync(HERE).find((f) => f.startsWith(`${values.scenario}-`) && f.endsWith('.json'));
@@ -102,9 +128,11 @@ function main() {
       filter: (p) => !p.split(/[\\/]/).includes('node_modules'),
     });
   }
-  // Hide user-level skills in ~/.agents/skills from the run; Codex keeps its login through CODEX_HOME.
+  // Hide user-level skills in ~/.agents/skills from Codex runs; Codex keeps its login through CODEX_HOME.
+  // agy keeps its login under ~/.gemini, so agy runs always use the real HOME.
   const env = { ...process.env };
-  if (!values['shared-home']) {
+  const isolated = values.agent === 'codex' && !values['shared-home'];
+  if (isolated) {
     env.CODEX_HOME = process.env.CODEX_HOME ?? join(homedir(), '.codex');
     env.HOME = mkdtempSync(join(tmpdir(), 'svs-home-'));
   }
@@ -112,16 +140,18 @@ function main() {
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
   const out = join(HERE, 'results', `${stamp}-${spec.id}-${values.mode}`);
   mkdirSync(out, { recursive: true });
-  const model = values.model ? ['-m', values.model] : [];
-  const sandbox = ['-c', 'sandbox_mode="workspace-write"'];
+  let conversationId;
   spec.turns.forEach((turn, i) => {
     const last = join(out, `turn-${i + 1}.md`);
-    const args = i === 0
-      ? ['exec', '--skip-git-repo-check', ...sandbox, ...model, '-o', last, turn]
-      : ['exec', 'resume', '--last', '--skip-git-repo-check', ...sandbox, ...model, '-o', last, turn];
-    const result = spawnSync('codex', args, { cwd: work, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    const { cmd, args } = agentInvocation({ agent: values.agent, index: i, turn, model: values.model, lastFile: last, conversationId });
+    const result = spawnSync(cmd, args, { cwd: work, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
     writeFileSync(join(out, `turn-${i + 1}.log`), `${result.stdout}\n--- stderr ---\n${result.stderr}`);
-    if (result.status !== 0) throw new Error(`codex 在第 ${i + 1} 轮退出码 ${result.status}，日志在 ${out}`);
+    if (result.status !== 0) throw new Error(`${cmd} 在第 ${i + 1} 轮退出码 ${result.status}，日志在 ${out}`);
+    if (cmd === 'agy') {
+      const parsed = parseAgyStream(result.stdout);
+      conversationId ??= parsed.conversationId;
+      writeFileSync(last, `${parsed.response}\n\n<!-- status: ${parsed.status}; tools: ${parsed.tools.join(', ') || 'none'} -->\n`);
+    }
     cpSync(work, join(out, `workspace-turn-${i + 1}`), {
       recursive: true,
       filter: (p) => !relative(work, p).split(/[\\/]/).some((part) => SKIP.has(part)),
@@ -132,9 +162,10 @@ function main() {
     scenario: spec.id,
     title: spec.title,
     mode: values.mode,
-    codex_version: execFileSync('codex', ['--version'], { encoding: 'utf8' }).trim(),
+    agent: values.agent,
+    agent_version: `${values.agent} ${execFileSync(values.agent, ['--version'], { encoding: 'utf8' }).trim()}`,
     model: values.model ?? 'default',
-    isolated_home: !values['shared-home'],
+    isolated_home: isolated,
     at: new Date().toISOString(),
     projects: findProjects(work).map((file) => ({ file: relative(work, file), ...inspectProject(file) })),
   };
