@@ -19,6 +19,35 @@ const duplicates = (ids) => [...new Set(ids.filter((id, i) => ids.indexOf(id) !=
 
 const isObject = (v) => typeof v === 'object' && v !== null;
 
+// Length limits from schema/project.schema.json, kept in sync by tests/project.test.mjs. A number is the
+// maximum length in characters; [min, max, item] is the allowed list length and the limit for each item.
+const COLUMN = { label: 8, rows: [1, 3, 12] };
+export const VISUAL_LIMITS = {
+  title: { heading: 16, sub: 24 },
+  bullets: { items: [1, 4, 14] },
+  flow: { nodes: [2, 5, 6] },
+  compare: { left: COLUMN, right: COLUMN },
+  number: { value: 8, label: 12 },
+  bars: { items: [1, 6, { label: 6 }], unit: 4 },
+};
+const TITLE_LIMIT = 40;
+const SECTION_TITLE_LIMIT = 20;
+
+function checkLimits(value, limit, path, add) {
+  if (value === undefined || limit === undefined) return;
+  if (typeof limit === 'number') {
+    const length = [...String(value)].length;
+    if (length > limit) add(path, 'TEXT_TOO_LONG', `${path} 有 ${length} 字，上限 ${limit} 字`);
+  } else if (Array.isArray(limit)) {
+    if (!Array.isArray(value)) return;
+    const [min, max, item] = limit;
+    if (value.length < min || value.length > max) add(path, 'ITEM_COUNT', `${path} 有 ${value.length} 项，应为 ${min}–${max} 项`);
+    value.forEach((v, i) => checkLimits(v, item, `${path}/${i}`, add));
+  } else if (isObject(value)) {
+    Object.entries(limit).forEach(([key, l]) => checkLimits(value[key], l, `${path}/${key}`, add));
+  }
+}
+
 // The fields the checks below read. A project missing one gets MISSING_FIELD errors instead of a crash;
 // nested fields are checked only when the top level is complete.
 function checkShape(project) {
@@ -50,6 +79,9 @@ export function checkProject(project) {
   if (shape.length) return shape;
   const errors = [];
   const add = (path, code, message) => errors.push({ path, code, message });
+  checkLimits(project.title, TITLE_LIMIT, '/title', add);
+  project.sections.forEach((s, i) => checkLimits(s.title, SECTION_TITLE_LIMIT, `/sections/${i}/title`, add));
+  project.shots.forEach((shot, i) => checkLimits(shot.visual.data, VISUAL_LIMITS[shot.visual.template], `/shots/${i}/visual/data`, add));
   duplicates(project.sections.map((s) => s.id)).forEach((id) => add('/sections', 'DUPLICATE_ID', `段落 ${id} 重复`));
   duplicates(project.shots.map((s) => s.id)).forEach((id) => add('/shots', 'DUPLICATE_ID', `镜头 ${id} 重复`));
   const sources = new Set(project.brief.sources.map((s) => s.id));
