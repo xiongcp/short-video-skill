@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么飞机要在万米高空巡航？",
+  "brief": {
+    "topic": "为什么飞机要在万米高空巡航？",
+    "audience": "对航空没有专业基础的普通观众",
+    "promise": "飞机爬上一万米平流层，主要是为了空气稀薄省油提速、避开颠簸雷雨天气，并留足应对故障的安全滑翔高度。",
+    "sources": [],
+    "open_questions": [
+      "民航客机通常巡航高度在 9,000 至 12,000 米之间，本讲稿以通俗常见的万米高空为例。",
+      "不同机型（如波音737、空客A320与波音787、空客A350）的最优巡航高度存在差异，讲稿聚焦通用航空物理与气象原理。"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 120,
+    "lang": "zh-CN",
+    "host": "hare",
+    "theme": "light",
+    "sentence_gap_ms": 250
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "舷窗外的宁静",
+      "text": "坐飞机穿过厚厚的云层后，窗外是不是瞬间万里无云？此时机长广播通常会说，飞机已到达一万米巡航高度。为什么客机非要费力爬到这么高才平飞呢？"
+    },
+    {
+      "id": "s02",
+      "title": "稀薄空气高速省油",
+      "text": "最核心的原因，就是为了省油和提速。地面附近的空气稠密，飞机高速飞行阻力极大。而一万米高空的空气密度，只有海平面的四分之一。阻力大幅减小，发动机就能用更少的燃油飞得更快。"
+    },
+    {
+      "id": "s03",
+      "title": "告别颠簸进入平流层",
+      "text": "第二个原因，是为了告别剧烈颠簸。一万米以下是对流层，气流上下翻滚，雷雨大多发生在这里。一万米以上进入了平流层，气流主要是平稳的水平流动。客机在平流层巡航，能避开绝大多数暴雨和剧烈颠簸。"
+    },
+    {
+      "id": "s04",
+      "title": "高度就是安全余量",
+      "text": "万米高空还是飞行安全的重要保障。如果发动机在高空意外熄火，客机并不会立刻坠落。客机具备滑翔能力，高度越高，能滑翔的距离越远。万米高空能给机组留下二十分钟以上的处置时间。"
+    },
+    {
+      "id": "s05",
+      "title": "为什么不能飞更高",
+      "text": "既然高空阻力小，为什么不飞到两万米呢？因为机翼产生升力需要空气，发动机工作也需要氧气。再往上空气太稀薄，飞机会失去升力甚至熄火。一万米，正是升力、阻力与引擎效率的最佳平衡点。"
+    },
+    {
+      "id": "s06",
+      "title": "总结航线黄金点",
+      "text": "下次看舷窗外平静的云海，你就知道了。这一万米高空，用稀薄空气省下燃油，用平流层避开颠簸。它是航空科学算出来的最佳黄金通道。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": { "expr": "curious", "gesture": "wave" },
+      "visual": { "template": "title", "data": { "heading": "万米高空巡航", "sub": "为什么飞机要飞这么高？" } },
+      "cues": [{ "sentence": 1, "do": "gesture", "target": "idle" }],
+      "note": "开场打招呼，带出飞机穿云见晴天并爬升到万米高空的悬念"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": { "expr": "curious", "gesture": "point_right" },
+      "visual": { "template": "bullets", "data": { "items": ["省油与提速", "平稳与避险", "安全滑翔余量"] } },
+      "note": "抛出三大疑问，引出后续的三大核心原因"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": { "label": "低空近地面", "rows": ["空气稠密", "飞行阻力极大", "油耗极高"] },
+          "right": { "label": "万米高空", "rows": ["空气稀薄", "飞行阻力小", "经济省油"] }
+        }
+      },
+      "cues": [{ "sentence": 1, "do": "highlight", "target": 0 }],
+      "note": "对比低空与高空的空气状态与飞行阻力"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [2, 3],
+      "layout": "full",
+      "visual": {
+        "template": "bars",
+        "data": {
+          "items": [{ "label": "海平面", "value": 100 }, { "label": "万米高空", "value": 25 }],
+          "unit": "%"
+        }
+      },
+      "cues": [{ "sentence": 3, "do": "highlight", "target": 1 }],
+      "note": "用柱状图直观展现万米高空空气密度仅剩25%，阻力骤降"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [0],
+      "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "point_right" },
+      "visual": { "template": "title", "data": { "heading": "告别颠簸", "sub": "进入平稳的平流层" } },
+      "note": "主持人转场，引出对流层与平流层的大气分层概念"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [1, 2],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": { "label": "对流层(低空)", "rows": ["垂直对流剧烈", "雷雨多发", "颠簸频繁"] },
+          "right": { "label": "平流层(高空)", "rows": ["水平稳定气流", "少有云雨天气", "视野极佳"] }
+        }
+      },
+      "cues": [{ "sentence": 2, "do": "reveal", "target": 1 }],
+      "note": "展现对流层与平流层的气流运动方式及天气差异"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [3],
+      "layout": "full",
+      "visual": { "template": "flow", "data": { "nodes": ["穿透积雨云", "进入平流层", "平稳无颠簸"] } },
+      "note": "展示飞机跃出对流层后在平静平流层平稳航行的动态"
+    },
+    {
+      "id": "sh08",
+      "section": "s04",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": { "expr": "focused", "gesture": "emphasize" },
+      "visual": { "template": "title", "data": { "heading": "安全生命线", "sub": "高空带来的滑翔余量" } },
+      "note": "严肃强调高度带来的安全缓冲，打破客机熄火即坠落的误区"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [2, 3],
+      "layout": "full",
+      "visual": { "template": "number", "data": { "value": "20分钟+", "label": "应急滑翔时间" } },
+      "note": "展示万米高空带来的20分钟以上黄金处置时间"
+    },
+    {
+      "id": "sh10",
+      "section": "s05",
+      "sentences": [0],
+      "layout": "host-left",
+      "host": { "expr": "curious", "gesture": "point_right" },
+      "visual": { "template": "title", "data": { "heading": "为什么不高飞？", "sub": "两万米为什么不行？" } },
+      "note": "提出边界反问：既然空气阻力小，为何不能飞得更高？"
+    },
+    {
+      "id": "sh11",
+      "section": "s05",
+      "sentences": [1, 2],
+      "layout": "full",
+      "visual": { "template": "bullets", "data": { "items": ["升力依赖气流托举", "发动机燃烧需氧气", "过高将失速熄火"] } },
+      "cues": [{ "sentence": 2, "do": "highlight", "target": 2 }],
+      "note": "解释升力与发动机吸氧的物理限制"
+    },
+    {
+      "id": "sh12",
+      "section": "s05",
+      "sentences": [3],
+      "layout": "full",
+      "visual": { "template": "flow", "data": { "nodes": ["升力充足", "阻力极低", "引擎高效", "黄金高度"] } },
+      "note": "展示升力、阻力与引擎效率在一万米处达到系统平衡"
+    },
+    {
+      "id": "sh13",
+      "section": "s06",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": { "expr": "happy", "gesture": "emphasize" },
+      "visual": { "template": "bullets", "data": { "items": ["稀薄空气省油提速", "平流层避开颠簸", "高空预留安全余量"] } },
+      "note": "回扣开篇，逐条总结万米高空的核心价值"
+    },
+    {
+      "id": "sh14",
+      "section": "s06",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": { "expr": "happy", "gesture": "wave" },
+      "visual": { "template": "title", "data": { "heading": "航线黄金通道", "sub": "科学与工程的完美平衡" } },
+      "note": "点出航空科学计算的精髓，挥手告别结束全片"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}

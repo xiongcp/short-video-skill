@@ -1,5 +1,0 @@
-docs/upgrade/evidence/runs/t05-20261122-01/A05/audio-manifest-import.json valid against audio-manifest
-docs/upgrade/evidence/runs/t05-20261122-01/A05/audio-manifest-tts.json valid against audio-manifest
-docs/upgrade/evidence/runs/t05-20261122-01/A05/alignment.json valid against workflow#Alignment
-docs/upgrade/evidence/runs/t05-20261122-01/A05/subtitles.json valid against workflow#SubtitleTrack
-5 tool results valid against workflow#ToolResult

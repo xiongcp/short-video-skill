@@ -1,0 +1,470 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么飞机要在万米高空巡航？",
+  "brief": {
+    "topic": "为什么飞机要在万米高空巡航？",
+    "audience": "对航空没有了解的上班族",
+    "promise": "万米高空巡航是阻力、发动机效率、平稳避雨与升力极限共同决定的最佳平衡点",
+    "sources": [
+      {
+        "id": "src01",
+        "title": "为什么飞机要在万米高空巡航？",
+        "where": "long-article.md"
+      }
+    ],
+    "open_questions": [
+      "资料中提到高空巡航比低空节油九成的说法缺乏可靠出处，讲稿已采用稳妥的中性表述（显著更省油），具体节油数值待后续查证权威民航工程资料。"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 120,
+    "lang": "zh-CN",
+    "host": "hare",
+    "theme": "light",
+    "sentence_gap_ms": 250
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "万米高空的广播",
+      "source_ids": [
+        "src01"
+      ],
+      "text": "每次坐飞机出差或度假，起飞二十多分钟后，机长总会广播。我们已经到达巡航高度，这个高度通常在九千到一万两千米之间。为什么不飞低一点呢？离地面更近一些，不是让人感觉更踏实吗？"
+    },
+    {
+      "id": "s02",
+      "title": "高空空气稀薄阻力小",
+      "source_ids": [
+        "src01"
+      ],
+      "text": "其实关键在空气。越往高空走，空气就越稀薄。到了万米高度，空气密度只有地面附近的三分之一。阻力大幅减小后，用同样的推力就能飞得更快、更省力。"
+    },
+    {
+      "id": "s03",
+      "title": "涡扇发动机更省油",
+      "source_ids": [
+        "src01"
+      ],
+      "text": "不仅阻力变小，客机使用的涡扇发动机，在高空也更有效率。万米高空的空气极为寒冷，通常低至零下四五十度。冷空气在发动机内部膨胀做功更充分，能带来更理想的节油表现。"
+    },
+    {
+      "id": "s04",
+      "title": "云层之上告别颠簸",
+      "source_ids": [
+        "src01"
+      ],
+      "text": "经常坐飞机的上班族最怕剧烈颠簸，而高空恰好能避开恶劣天气。大部分雷雨、浓云和强风对流，都发生在万米以下。冲出云层后上方气流平稳，大家在客舱里才能安心休息办公。"
+    },
+    {
+      "id": "s05",
+      "title": "为什么不能飞得更高",
+      "source_ids": [
+        "src01"
+      ],
+      "text": "既然高空优势这么多，为什么飞机不再往更高处飞呢？因为再往上空气就太稀薄了，机翼将无法产生足够的托举升力。同时发动机吸入的氧气也会不足，容易出现空中熄火的危险。"
+    },
+    {
+      "id": "s06",
+      "title": "多重力量的黄金平衡",
+      "source_ids": [
+        "src01"
+      ],
+      "text": "所以，每架飞机都会根据机型、重量和航线风向，精准选定高度。万米高空，正是综合多重因素计算出的黄金平衡点。它平衡了空气阻力、发动机效率、平稳避雨和升力极限。下次听到巡航广播，你就知道飞机正在最舒服的位置前行了。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [
+        0
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "wave"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "机长巡航广播",
+          "sub": "为什么选在万米高空？"
+        }
+      },
+      "note": "晴出场打招呼，引出坐飞机出差时常听到的巡航广播场景"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [
+        1
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "number",
+        "data": {
+          "value": "10000米",
+          "label": "常规巡航高度区间"
+        }
+      },
+      "note": "展示九千到一万两千米的巡航高度数字"
+    },
+    {
+      "id": "sh03",
+      "section": "s01",
+      "sentences": [
+        2,
+        3
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "idle"
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "gesture",
+          "target": "emphasize"
+        }
+      ],
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "为什么不飞低一点",
+            "离地更近不更踏实吗"
+          ]
+        }
+      },
+      "note": "晴提出反直觉疑问，引导观众思考低空与高空的优劣"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "point_right"
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "地面稠密",
+            "高空稀薄"
+          ]
+        }
+      },
+      "note": "展示随着飞行高度上升，空气密度逐渐下降的过程"
+    },
+    {
+      "id": "sh05",
+      "section": "s02",
+      "sentences": [
+        2
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "bars",
+        "data": {
+          "items": [
+            {
+              "label": "地面附近",
+              "value": 100
+            },
+            {
+              "label": "万米高空",
+              "value": 33
+            }
+          ],
+          "unit": "%"
+        }
+      },
+      "note": "用柱状图直观对比地面与万米高空的空气密度差异"
+    },
+    {
+      "id": "sh06",
+      "section": "s02",
+      "sentences": [
+        3
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "空气稀薄",
+            "阻力大减",
+            "更快更省力"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "highlight",
+          "target": 2
+        }
+      ],
+      "note": "图解空气稀薄如何转化为更小阻力与更省力的高速飞行"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "focused",
+        "gesture": "point_right"
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "reveal",
+          "target": 1
+        }
+      ],
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "现代涡扇发动机",
+            "高空零下四五十度"
+          ]
+        }
+      },
+      "note": "晴指出涡扇发动机在高空极低温环境下的特殊运作优势"
+    },
+    {
+      "id": "sh08",
+      "section": "s03",
+      "sentences": [
+        2
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "低空气温",
+            "rows": [
+              "内外温差较小",
+              "做功效率一般"
+            ]
+          },
+          "right": {
+            "label": "高空极冷",
+            "rows": [
+              "膨胀做功充分",
+              "节油表现更佳"
+            ]
+          }
+        }
+      },
+      "note": "对比高低温环境下涡扇发动机的热效率与做功表现"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [
+        0
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "客舱平稳的秘密",
+          "sub": "云层之上的平稳气流"
+        }
+      },
+      "note": "晴共情上班族坐飞机怕颠簸的痛点，引出云层分界"
+    },
+    {
+      "id": "sh10",
+      "section": "s04",
+      "sentences": [
+        1,
+        2
+      ],
+      "layout": "full",
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "万米以下",
+            "rows": [
+              "雷雨浓云多发",
+              "对流强易颠簸"
+            ]
+          },
+          "right": {
+            "label": "万米高空",
+            "rows": [
+              "处于云层之上",
+              "气流平稳安宁"
+            ]
+          }
+        }
+      },
+      "note": "对比对流层恶劣天气与平流层下方的平稳休息办公环境"
+    },
+    {
+      "id": "sh11",
+      "section": "s05",
+      "sentences": [
+        0
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "idle"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "不能飞更高吗？",
+          "sub": "万米之上存在的物理边界"
+        }
+      },
+      "note": "晴提出边界反问，为什么飞机不能飞到两万米更高处"
+    },
+    {
+      "id": "sh12",
+      "section": "s05",
+      "sentences": [
+        1,
+        2
+      ],
+      "layout": "full",
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "reveal",
+          "target": 1
+        }
+      ],
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "机翼升力严重不足",
+            "发动机缺氧易熄火"
+          ]
+        }
+      },
+      "note": "揭示过高空空气过于稀薄带来的升力不足与熄火风险"
+    },
+    {
+      "id": "sh13",
+      "section": "s06",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "point_right"
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "highlight",
+          "target": 2
+        }
+      ],
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "机型重量",
+            "航路风向",
+            "黄金平衡点"
+          ]
+        }
+      },
+      "note": "晴说明飞机根据机型风向精准计算平衡点的过程"
+    },
+    {
+      "id": "sh14",
+      "section": "s06",
+      "sentences": [
+        2
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "空气阻力减到较小",
+            "发动机热效率较高",
+            "避开颠簸平稳省心",
+            "保障充沛托举升力"
+          ]
+        }
+      },
+      "note": "四要素归纳万米高空达成的黄金平衡"
+    },
+    {
+      "id": "sh15",
+      "section": "s06",
+      "sentences": [
+        3
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "wave"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "万米巡航黄金点",
+          "sub": "安全·省油·平稳前行"
+        }
+      },
+      "note": "晴微笑挥手做总结，回扣开头的巡航广播"
+    }
+  ],
+  "checkpoints": [
+    {
+      "stage": "plan",
+      "revision": 1,
+      "at": "2026-11-24T00:30:10",
+      "note": "可以，按这个出提示词包。"
+    }
+  ],
+  "jobs": []
+}
