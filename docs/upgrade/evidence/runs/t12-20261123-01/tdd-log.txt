@@ -55,3 +55,16 @@ Evidence level reached: RUNTIME. No production PASS was produced or claimed.
    python3 -B evals/check_design.py                              -> exit 0
    python3 -B -m unittest discover -s evals -p 'test_*.py'       -> 25/25 OK
    python3 -B docs/upgrade/evidence/replay_media.py              -> pass
+
+11 Motion and voice upgrade
+   RED  T12-host-motion: adapter has no export bonePoint.
+   GREEN vector-2d bones (boneMatrices/bonePoint), stepMotion springs + idle + talk + saccades + gaze; host v2 rig
+        (22 params, 8 bones, explain/emphasize, happy/curious, 3 hand shapes). T12-host-motion 7/7.
+   RED  T12-default-voice: no DEFAULT_ENGINE; after implementing Kokoro, two syntheses of one request differed
+        (sha256 483ab08f… vs dde3c451…) because the decoder injects noise.
+   GREEN onnxruntime.set_seed(seed) per request -> sample-identical takes; mixed zh/en G2P with espeak-ng fallback;
+        pronunciation readings applied. T12-default-voice 4/4.
+   node --test tests/runtime/ tests/e2e/                         -> 87/87 pass, 0 fail
+   python3 -B evals/check_design.py                              -> exit 0
+   python3 -B -m unittest discover -s evals -p 'test_*.py'       -> 25/25 OK
+   python3 -B docs/upgrade/evidence/replay_media.py              -> pass

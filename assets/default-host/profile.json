@@ -16,12 +16,16 @@
   ],
   "expressions": [
     "explaining",
-    "focused"
+    "focused",
+    "happy",
+    "curious"
   ],
   "gestures": [
     "idle",
     "point_right",
-    "wave"
+    "wave",
+    "explain",
+    "emphasize"
   ],
   "parameters": [
     {
@@ -30,9 +34,69 @@
       "max": 1
     },
     {
-      "parameter_id": "ParamArmR",
+      "parameter_id": "ParamAngleY",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamAngleZ",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamBodyX",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamBodyZ",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamBreath",
       "min": 0,
       "max": 1
+    },
+    {
+      "parameter_id": "ParamArmR",
+      "min": -0.1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamElbowR",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamWristR",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamHandR",
+      "min": 0,
+      "max": 2
+    },
+    {
+      "parameter_id": "ParamArmL",
+      "min": -0.1,
+      "max": 0.5
+    },
+    {
+      "parameter_id": "ParamElbowL",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamWristL",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamHandL",
+      "min": 0,
+      "max": 2
     },
     {
       "parameter_id": "ParamEyeOpen",
@@ -40,8 +104,38 @@
       "max": 1
     },
     {
+      "parameter_id": "ParamEyeSmile",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamEyeBallX",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamEyeBallY",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamBrowY",
+      "min": -1,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamBrowAngle",
+      "min": -1,
+      "max": 1
+    },
+    {
       "parameter_id": "ParamMouthOpenY",
       "min": 0,
+      "max": 1
+    },
+    {
+      "parameter_id": "ParamMouthForm",
+      "min": -1,
       "max": 1
     }
   ]

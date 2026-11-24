@@ -1,16 +1,17 @@
-// T12 default narration voice: the macOS Mandarin system voice rendered locally and converted to the project's audio
-// contract (48 kHz, 16-bit PCM WAV) with its provenance, ready for the `audio` import path. Skips where `say` or the
-// voice is unavailable.
+// T12 default narration voice: Kokoro-82M v1.1-zh (Apache-2.0) run locally through kokoro-onnx, with the macOS system
+// voice kept as a fallback engine. Output follows the project's audio contract (48 kHz, 16-bit PCM WAV, mono) and carries
+// its provenance, ready for the `audio` import path. Each engine's tests skip where it is not installed.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeProject } from './helpers.mjs';
-import { DEFAULT_VOICE, sectionTakes, synthesize } from '../../assets/default-voice/voice.ts';
+import { DEFAULT_ENGINE, DEFAULT_VOICE, SAY_VOICE, kokoroAvailable, sectionTakes, synthesize } from '../../assets/default-voice/voice.ts';
 
-const available = process.platform === 'darwin'
-  && (spawnSync('say', ['-v', '?'], { encoding: 'utf8' }).stdout ?? '').split('\n').some((line) => line.startsWith(`${DEFAULT_VOICE} `));
+const kokoro = kokoroAvailable();
+const say = process.platform === 'darwin'
+  && (spawnSync('say', ['-v', '?'], { encoding: 'utf8' }).stdout ?? '').split('\n').some((line) => line.startsWith(`${SAY_VOICE} `));
 
 function wavInfo(bytes) {
   assert.equal(bytes.toString('ascii', 0, 4), 'RIFF');
@@ -24,33 +25,59 @@ function wavInfo(bytes) {
   }
   return { ...fmt, data };
 }
-
-test('synthesize renders Mandarin narration as 48 kHz 16-bit mono PCM with provenance', { skip: !available && 'macOS voice unavailable' }, () => {
-  const dir = makeProject();
-  const out = join(dir, 'hello.wav');
-  const result = synthesize('大家好，我是晴。今天聊聊缓存。', out);
-  const info = wavInfo(readFileSync(out));
+function assertNarration(path, result) {
+  const info = wavInfo(readFileSync(path));
   assert.deepEqual([info.format, info.channels, info.rate, info.bits], [1, 1, 48000, 16]);
   const seconds = info.data.length / 2 / 48000;
-  assert.ok(seconds > 1 && seconds < 10, `duration ${seconds}s`);
+  assert.ok(seconds > 1 && seconds < 12, `duration ${seconds}s`);
   let peak = 0;
   for (let i = 0; i < info.data.length; i += 2) peak = Math.max(peak, Math.abs(info.data.readInt16LE(i)));
   assert.ok(peak > 1000, 'narration is audible');
-  assert.equal(result.engine, 'macos-say');
-  assert.equal(result.voice, DEFAULT_VOICE);
   assert.equal(result.samples, info.data.length / 2);
   assert.match(result.sha256, /^sha256:[0-9a-f]{64}$/);
+}
+
+test('the default engine is the local neural voice', () => {
+  assert.equal(DEFAULT_ENGINE, 'kokoro');
+  assert.match(DEFAULT_VOICE, /^z[fm]_\d{3}$/);
 });
 
-test('sectionTakes writes one take per script section for the audio import path', { skip: !available && 'macOS voice unavailable' }, () => {
+test('kokoro renders mixed Chinese/English narration reproducibly, with model provenance and term readings', { skip: !kokoro && 'Kokoro not installed' }, () => {
+  const dir = makeProject();
+  const text = '大家好，我是晴。今天聊聊 HTTP 缓存和 Nginx。';
+  const pronunciation = [{ term: 'Nginx', reading: 'engine x' }];
+  const a = synthesize(text, join(dir, 'a.wav'), { pronunciation });
+  assertNarration(join(dir, 'a.wav'), a);
+  assert.equal(a.engine, 'kokoro');
+  assert.equal(a.voice, DEFAULT_VOICE);
+  assert.equal(a.model, 'kokoro-v1.1-zh');
+  assert.match(a.model_sha256, /^sha256:[0-9a-f]{64}$/);
+  assert.equal(a.text, text);
+  assert.equal(a.reading_text, '大家好，我是晴。今天聊聊 HTTP 缓存和 engine x。');
+  assert.ok(a.phonemes.includes('ʧ') || /[a-zˈˌ]{3}/.test(a.phonemes), 'English words are phonemized, not dropped');
+  assert.ok(!a.phonemes.includes('❓'), 'no unknown tokens');
+  const b = synthesize(text, join(dir, 'b.wav'), { pronunciation });
+  assert.equal(b.sha256, a.sha256, 'same text, voice and model give the same take');
+});
+
+test('the macOS system voice stays available as an engine', { skip: !say && 'macOS voice unavailable' }, () => {
+  const dir = makeProject();
+  const result = synthesize('大家好，我是晴。今天聊聊缓存。', join(dir, 'hello.wav'), { engine: 'macos-say' });
+  assertNarration(join(dir, 'hello.wav'), result);
+  assert.equal(result.engine, 'macos-say');
+  assert.equal(result.voice, SAY_VOICE);
+});
+
+test('sectionTakes writes one take per script section, applying the section readings', { skip: !kokoro && 'Kokoro not installed' }, () => {
   const dir = makeProject();
   const script = { sections: [
-    { section_id: 'sec_001', narration: '先看第一段。' },
-    { section_id: 'sec_002', narration: '浏览器有副本，再看副本是否新鲜。' }] };
+    { section_id: 'sec_001', narration: '先看第一段。', pronunciation: [] },
+    { section_id: 'sec_002', narration: '浏览器有副本，再问 Nginx 副本是否新鲜。', pronunciation: [{ term: 'Nginx', reading: 'engine x' }] }] };
   const takes = sectionTakes(script, dir, 'incoming');
   assert.deepEqual(takes.map((t) => t.section_id), ['sec_001', 'sec_002']);
   for (const take of takes) {
     assert.ok(existsSync(join(dir, take.import.path)));
-    assert.equal(take.import.recordist, `macos-say:${DEFAULT_VOICE}`);
+    assert.equal(take.import.recordist, `kokoro:${DEFAULT_VOICE}`);
   }
+  assert.match(takes[1].provenance.reading_text, /engine x/);
 });

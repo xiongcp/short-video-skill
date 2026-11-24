@@ -566,3 +566,20 @@ Added 2026-11-23 so the owner can start without supplying their own material. **
 - `rights.json` is `pending`: the owner runs `register` and then `clear` in their own terminal; an agent never clears usage.
 - A05: synthesized narration removes the recording step, but real alignment and at least 100 hand-checked word anchors are still needed; the repository has no forced aligner yet, and `align` takes supplied word timings.
 - A06/A11/A14/A15: G1–G5 sign-offs, blind review, full watch-through and `attest` remain the owner's; `voice_genuine` and `art_original` in `attest` must be answered truthfully.
+
+### 19.1 · Motion and voice upgrade
+
+Added 2026-11-23 in response to "animation too simple, voice mechanical, joints stiff". Still RUNTIME evidence.
+
+| Run | Observed RED | Observed GREEN |
+| --- | --- | --- |
+| 01 → 02 | `tests/runtime/T12-host-motion.test.mjs`: `bonePoint` missing. | 7/7: the elbow moves only the forearm and hand while the shoulder carries the whole arm (forward kinematics); head tilt leaves the hem alone; new gestures, expressions and three hand shapes; idle breathing, sway and saccades, reproducible per seed; springs ease in, overshoot slightly and settle, with the forearm trailing the upper arm; phrase onsets nod and lift the brows, rounded vowels narrow the mouth; gaze points at the content and every parameter stays within the profile limits. |
+| 03 → 04 | `tests/runtime/T12-default-voice.test.mjs`: `DEFAULT_ENGINE` missing; then two syntheses of one request hashed differently (the decoder injects noise). | 4/4: Kokoro is the default engine, mixed Chinese/English text has no unknown phonemes, `pronunciation` readings apply, model hashes are recorded; with ONNX Runtime seeded the same request is sample-identical; the macOS system voice remains as a fallback engine. |
+| 05 | — | Runtime and e2e **87/87**, Python **25/25**, `check_design.py` exit 0, `replay_media.py` passes. |
+
+**Contents**
+- **Bones and motion (`tools/bake_character/adapter.ts`).** A `vector-2d` rig with a `motion` block has a bone hierarchy (torso → head; torso → upper arm → forearm → hand on both sides). Every parameter is a damped spring (4 sub-steps per frame), with an idle sine layer (breathing, body sway, head drift), a speech layer (nod and brow lift at a phrase onset, a small bob with the mouth), seeded eye saccades and `gaze` targets. `simulated-2d` and rigs without `motion` behave as before.
+- **Default host v2 (`assets/default-host/`).** 22 parameters, 8 bones; gestures `idle`, `point_right`, `wave`, `explain`, `emphasize`; expressions `explaining`, `focused`, `happy`, `curious`; relaxed, pointing and open hand shapes; smiling eyes and mouth; shoulder caps so sleeves grow out of the shoulders.
+- **Default voice (`assets/default-voice/`).** The default engine is now Kokoro-82M v1.1-zh (Apache-2.0, run locally via kokoro-onnx; default voice `zf_001`, speed 0.9). misaki zh does Chinese G2P; English words go through misaki en with the bundled espeak-ng; each section's `pronunciation` readings replace terms first; sentences are synthesized one at a time with 0.28 s pauses; provenance records the model and voice-pack hashes, seed and phonemes. Setup steps are in the header of `voice.ts`; the model and Python environment live in `~/.cache/short-video-skill/`, outside the repository. `--engine macos-say` remains available.
+
+**Still for the owner**: pick a voice (`--voice`), add `pronunciation` readings for terms, and complete the clearance, sign-offs and `attest` listed in section 19. Kokoro is a synthetic voice; answer `voice_genuine` in `attest` truthfully.
