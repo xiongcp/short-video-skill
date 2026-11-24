@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkProject, estimateSeconds, isApproved, lintScript, VISUAL_LIMITS } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { checkProject, estimateReport, estimateSeconds, isApproved, lintScript, VISUAL_LIMITS } from '../skills/topic-to-video/scripts/lib/project.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const codes = (p) => checkProject(p).map((e) => e.code);
@@ -177,4 +177,48 @@ test('VISUAL_LIMITS matches the length limits in the schema', () => {
     return [def.properties.template.const, limits(def.properties.data)];
   }));
   assert.deepEqual(VISUAL_LIMITS, fromSchema);
+});
+
+test('estimateReport gives rounded seconds per section, per shot and in total', () => {
+  assert.deepEqual(estimateReport(minimal()), {
+    total_seconds: 4.3,
+    sections: [{ id: 's01', seconds: 4 }],
+    shots: [{ id: 'sh01', seconds: 2 }, { id: 'sh02', seconds: 2 }],
+  });
+});
+
+test('a project without shots yet skips the coverage check', () => {
+  const p = minimal();
+  p.shots = [];
+  assert.deepEqual(checkProject(p), []);
+});
+
+test('warns about absolute claims only when the brief has no sources', () => {
+  const p = minimal();
+  p.settings.target_seconds = 5;
+  p.sections[0].text = '天空为什么总是蓝的？所有阳光都会散射。';
+  assert.deepEqual(lintScript(p).map((w) => `${w.code} ${w.path}`), ['ABSOLUTE_CLAIM /sections/0/text', 'ABSOLUTE_CLAIM /sections/0/text']);
+  assert.match(lintScript(p)[0].message, /s01 第 0 句.*“总是”/);
+  p.brief.sources = [{ id: 'src01', title: '大气光学' }];
+  assert.deepEqual(lintScript(p), []);
+});
+
+test('flags 都 unless the sentence is already hedged', () => {
+  const p = minimal();
+  p.settings.target_seconds = 5;
+  p.sections[0].text = '雷暴都发生在对流层。大部分雷暴都在下方。';
+  assert.deepEqual(lintScript(p).map((w) => w.message.match(/第 \d 句/)[0]), ['第 0 句']);
+});
+
+test('limit messages name the shot, the field and where the limits are listed', () => {
+  const p = minimal();
+  p.sections[0].title = '一'.repeat(21);
+  p.shots[1].visual = { template: 'compare', data: { left: { label: '对流层 (万米下)', rows: ['雷暴'] }, right: { label: '平流层', rows: ['平稳'] } } };
+  p.shots[1].cues = [];
+  assert.deepEqual(checkProject(p).map((e) => e.message), [
+    '段落 s01 的标题有 21 字，上限 20 字（见 script.md）',
+    '镜头 sh02 的 compare 图解 left.label 有 9 字，上限 8 字（见 storyboard.md 的图解模板表）',
+  ]);
+  p.shots[1].visual = { template: 'flow', data: { nodes: ['只有一个'] } };
+  assert.deepEqual(checkProject(p).map((e) => e.message).slice(1), ['镜头 sh02 的 flow 图解 nodes 有 1 项，应为 2–5 项（见 storyboard.md 的图解模板表）']);
 });

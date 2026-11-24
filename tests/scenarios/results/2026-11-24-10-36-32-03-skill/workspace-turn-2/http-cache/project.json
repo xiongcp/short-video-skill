@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么 HTTP 缓存能让网页变快？",
+  "brief": {
+    "topic": "为什么 HTTP 缓存能让网页变快？",
+    "audience": "不懂网络的普通人",
+    "promise": "网页第二次打开变快，不是网速变了，而是浏览器把不常变的文件存在本地缓存里，就近取用代替了远距离搬运。",
+    "sources": [],
+    "open_questions": [
+      "口播中提到‘第一次打开网页往往要等上一两秒’，为普通人日常体感的经验值，非严格网络性能测试基准。",
+      "口播中提到‘保质期标签’即 HTTP 协议中的 Cache-Control / Expires 响应头，为通俗化比喻。",
+      "口播中提到‘向服务器核对换新’即 304 Not Modified 条件请求 / ETag 验证机制，为通俗化比喻。"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 90,
+    "lang": "zh-CN",
+    "host": "hare",
+    "theme": "light"
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "两次打开，速度不同",
+      "text": "你有没有发现，第一次打开网页往往要等上一两秒？但关掉再打开，几乎瞬间就能刷出来！秘密就藏在浏览器的“HTTP 缓存”里。缓存，就是浏览器放在你身边的临时小仓库。",
+      "pronunciation": [
+        {
+          "term": "HTTP",
+          "reading": "H-T-T-P"
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "title": "初次访问：跨国搬运",
+      "text": "网页就像积木，由图标、图片和代码拼装而成。第一次访问，浏览器需要向远方服务器逐一索取。跨越网络搬运零件，自然需要耐心等待。"
+    },
+    {
+      "id": "s03",
+      "title": "存入缓存：本地备货",
+      "text": "但浏览器很聪明，拼好网页后顺手存下一份。它把不常变动的图标和样式，直接塞进本地缓存。"
+    },
+    {
+      "id": "s04",
+      "title": "再次打开：就近取用",
+      "text": "当你再次打开网页，浏览器先翻看本地缓存。发现图标就在手边，根本不用再去远方请求。省去漫长的网络往返，画面自然秒速呈现！"
+    },
+    {
+      "id": "s05",
+      "title": "内容更新：保质期标签",
+      "text": "那万一网站换了新图，本地存的会不会过时？服务器在发送文件时，通常会附带一张保质期标签。没过期就直接用，过期了才向服务器确认换新。"
+    },
+    {
+      "id": "s06",
+      "title": "总结：翻手边的抽屉",
+      "text": "所以，网页变快并不是网络踩了油门。而是把远距离搬运，变成了翻手边的抽屉。就近取用，就是网页秒开的秘密！"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": { "expr": "curious", "gesture": "idle" },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "网页为什么能秒开？",
+          "sub": "关掉再打开，速度大不同"
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "expr", "target": "happy" },
+        { "sentence": 1, "do": "gesture", "target": "point_right" }
+      ],
+      "note": "开场抛出生活场景：为什么第二次打开网页快得多"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [2, 3],
+      "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "emphasize" },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["HTTP 缓存机制", "身边的临时小仓库"]
+        }
+      },
+      "cues": [
+        { "sentence": 3, "do": "reveal", "target": 1 }
+      ],
+      "note": "引出核心概念：HTTP 缓存就像身边的临时小仓库"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["远方服务器", "网络运输", "浏览器"]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "reveal", "target": 1 },
+        { "sentence": 1, "do": "reveal", "target": 2 }
+      ],
+      "note": "图解第一次访问：网页零件需要长途运输"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [2],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["图标与图片", "排版代码", "千里搬运耗时"]
+        }
+      },
+      "note": "说明初次加载耗时的原因：所有零件全量远途下载"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": { "expr": "focused", "gesture": "point_right" },
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["下载零件", "拼装展示", "存入本地抽屉"]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "reveal", "target": 2 },
+        { "sentence": 1, "do": "expr", "target": "happy" }
+      ],
+      "note": "展示浏览器的聪慧举动：就地存一份常用副本"
+    },
+    {
+      "id": "sh06",
+      "section": "s04",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "初次打开",
+            "rows": ["联系远方服务器", "全量长途下载"]
+          },
+          "right": {
+            "label": "再次打开",
+            "rows": ["翻看本地缓存", "直接就地读取"]
+          }
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "reveal", "target": 1 }
+      ],
+      "note": "对比两次访问路径：从跨网运输变成本地就近读取"
+    },
+    {
+      "id": "sh07",
+      "section": "s04",
+      "sentences": [2],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["零网络延迟", "就地秒速拼装", "画面瞬间呈现"]
+        }
+      },
+      "note": "揭示秒开核心原因：省去网络往返耗时"
+    },
+    {
+      "id": "sh08",
+      "section": "s05",
+      "sentences": [0],
+      "layout": "host-left",
+      "host": { "expr": "curious", "gesture": "idle" },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "内容更新了怎么办？",
+          "sub": "本地副本会不会过时"
+        }
+      },
+      "note": "提出边界疑问：网站改版更新如何处理"
+    },
+    {
+      "id": "sh09",
+      "section": "s05",
+      "sentences": [1, 2],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "未过期",
+            "rows": ["标签有效", "直接使用本地副本"]
+          },
+          "right": {
+            "label": "已过期",
+            "rows": ["联系服务器", "核对并换取新内容"]
+          }
+        }
+      },
+      "cues": [
+        { "sentence": 2, "do": "reveal", "target": 1 }
+      ],
+      "note": "解释保质期机制：有效直接用，过期才换新"
+    },
+    {
+      "id": "sh10",
+      "section": "s06",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "emphasize" },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["不是网速变快", "而是就近取用"]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "reveal", "target": 1 }
+      ],
+      "note": "总结核心逻辑：翻手边的抽屉比跑远路快得多"
+    },
+    {
+      "id": "sh11",
+      "section": "s06",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": { "expr": "happy", "gesture": "wave" },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "就近取用，秒速呈现",
+          "sub": "这就是 HTTP 缓存的秘密"
+        }
+      },
+      "note": "结尾带走与致意：点题回扣"
+    }
+  ],
+  "checkpoints": [
+    {
+      "stage": "plan",
+      "revision": 1,
+      "at": "2026-11-24T02:40:42-08:00",
+      "note": "确认，没问题。"
+    }
+  ],
+  "jobs": []
+}

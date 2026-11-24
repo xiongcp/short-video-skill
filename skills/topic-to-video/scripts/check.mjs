@@ -1,9 +1,10 @@
 // Self-check for one project folder: node <skill>/scripts/check.mjs <project folder>
-// Prints {errors, warnings, docs} as JSON; exits 1 when errors or docs are not empty. Warnings are advice.
+// Prints {errors, warnings, docs, estimates} as JSON; exits 1 when errors or docs are not empty. Warnings are advice.
+// Before the storyboard (no shots yet) the shot coverage check and 分镜.md are skipped.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { checkDerivedDocs } from './lib/docs.mjs';
-import { checkProject, lintScript } from './lib/project.mjs';
+import { checkProject, estimateReport, lintScript } from './lib/project.mjs';
 
 const dir = process.argv[2] ?? '.';
 const read = (name) => (existsSync(join(dir, name)) ? readFileSync(join(dir, name), 'utf8') : null);
@@ -19,9 +20,10 @@ if (project !== undefined) {
   result.warnings = lintScript(project);
   if (!result.errors.some((e) => e.code === 'MISSING_FIELD')) {
     const script = read('讲稿.md');
-    const board = read('分镜.md');
+    const board = project.shots.length ? read('分镜.md') : '';
     result.docs = [...(script === null ? ['缺少 讲稿.md'] : []), ...(board === null ? ['缺少 分镜.md'] : [])];
-    if (script !== null && board !== null) result.docs = checkDerivedDocs(project, script, board);
+    if (script !== null && board !== null) result.docs = checkDerivedDocs(project, script, board, read('提示词包.md'));
+    result.estimates = estimateReport(project);
   }
 }
 console.log(JSON.stringify(result, null, 2));
