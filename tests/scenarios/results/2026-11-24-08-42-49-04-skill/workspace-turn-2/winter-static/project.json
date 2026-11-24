@@ -1,0 +1,303 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么冬天静电多？",
+  "brief": {
+    "topic": "为什么冬天静电多？",
+    "audience": "对这个主题没有专业基础的普通观众",
+    "promise": "冬天静电多不是因为电荷产生得更多，而是干燥环境让电荷难以导走。",
+    "sources": [
+      {
+        "id": "src01",
+        "title": "科普中国 · 为什么冬天静电格外多",
+        "where": "https://www.kepuchina.cn/article/articleinfo?business_type=100&classify=0&ar_id=38302",
+        "note": "阐释摩擦起电本质及空气湿度对静电消散的作用"
+      }
+    ],
+    "open_questions": []
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 60,
+    "lang": "zh-CN",
+    "host": "hare",
+    "theme": "light",
+    "sentence_gap_ms": 250
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "冬天的触电烦恼",
+      "text": "你是不是也有过这种经历？冬天脱下毛衣噼啪作响，摸门把手还经常被电得手麻。为什么到了夏天，这种触电感就突然消失了呢？",
+      "source_ids": [
+        "src01"
+      ]
+    },
+    {
+      "id": "s02",
+      "title": "摩擦一直在起电",
+      "text": "其实物体摩擦产生静电，一年四季都在发生。只要穿衣走动，化纤和皮肤互相摩擦，电荷就会不断转移。",
+      "source_ids": [
+        "src01"
+      ]
+    },
+    {
+      "id": "s03",
+      "title": "空气湿度是分水岭",
+      "text": "夏天的空气湿度大，物体表面的微薄水膜会把电荷悄悄导走。而冬天空气寒冷干燥，电荷散不出去，就会在身上越攒越多。",
+      "source_ids": [
+        "src01"
+      ]
+    },
+    {
+      "id": "s04",
+      "title": "高压击穿与化解",
+      "text": "当人体电压攒到几千伏，靠近金属把手就会瞬间击穿空气。想防静电也很简单。只要多涂护手霜或开加湿器，就能帮电荷提前溜走。",
+      "source_ids": [
+        "src01"
+      ]
+    },
+    {
+      "id": "s05",
+      "title": "一句话记牢",
+      "text": "冬天静电多不是电变多了。只是干燥的环境，让身上积攒的电荷无路可逃。",
+      "source_ids": [
+        "src01"
+      ]
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [
+        0
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "wave"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "为什么冬天静电多",
+          "sub": "脱衣噼啪响与触电之谜"
+        }
+      },
+      "note": "开场打招呼，抛出冬天静电常见困扰"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [
+        1,
+        2
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "point_right"
+      },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "脱毛衣火花噼啪响",
+            "摸门把手瞬间触电",
+            "夏天为什么没有"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "highlight",
+          "target": 2
+        },
+        {
+          "sentence": 2,
+          "do": "expr",
+          "target": "focused"
+        }
+      ],
+      "note": "罗列冬天的典型触电场景并抛出反差疑问"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "日常走动",
+            "相互摩擦",
+            "电荷转移"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "reveal",
+          "target": 2
+        },
+        {
+          "sentence": 1,
+          "do": "highlight",
+          "target": 2
+        }
+      ],
+      "note": "展示摩擦起电机制：电荷转移四季皆有"
+    },
+    {
+      "id": "sh04",
+      "section": "s03",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "夏天潮湿",
+            "rows": [
+              "空气湿度高",
+              "表面有微水膜",
+              "电荷自然导走"
+            ]
+          },
+          "right": {
+            "label": "冬天干燥",
+            "rows": [
+              "空气极度干燥",
+              "电荷无法溜走",
+              "在人体持续累积"
+            ]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "note": "对比冬夏湿度差异：水膜导电 vs 干燥积聚"
+    },
+    {
+      "id": "sh05",
+      "section": "s04",
+      "sentences": [
+        0
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "focused",
+        "gesture": "point_right"
+      },
+      "visual": {
+        "template": "number",
+        "data": {
+          "value": "数千伏",
+          "label": "人体累积静电电压"
+        }
+      },
+      "note": "展示人体静电高压，解释击穿空气产生放电"
+    },
+    {
+      "id": "sh06",
+      "section": "s04",
+      "sentences": [
+        1,
+        2
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "point_right"
+      },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "使用空气加湿器",
+            "涂抹保湿护手霜",
+            "先摸墙释放电荷"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "reveal",
+          "target": 0
+        },
+        {
+          "sentence": 2,
+          "do": "reveal",
+          "target": 1
+        },
+        {
+          "sentence": 2,
+          "do": "reveal",
+          "target": 2
+        },
+        {
+          "sentence": 2,
+          "do": "expr",
+          "target": "happy"
+        }
+      ],
+      "note": "回到主持人，展示日常简单实用的防静电妙招"
+    },
+    {
+      "id": "sh07",
+      "section": "s05",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "核心结论",
+          "sub": "不是电变多，而是干燥难散"
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "wave"
+        }
+      ],
+      "note": "总结全片核心要点，告别收尾"
+    }
+  ],
+  "checkpoints": [
+    {
+      "stage": "plan",
+      "revision": 1,
+      "at": "2026-11-24T00:47:21",
+      "note": "方案可以。"
+    }
+  ],
+  "jobs": []
+}

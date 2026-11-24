@@ -1,0 +1,426 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么飞机要在万米高空巡航？",
+  "brief": {
+    "topic": "为什么民航客机通常要在万米左右的高空巡航？",
+    "audience": "对航空和物理没有专业基础的普通观众",
+    "promise": "飞机飞上一万米，是为了用更稀薄的空气省油飞得更快，并避开对流层的恶劣颠簸天气",
+    "sources": [],
+    "open_questions": [
+      "民航客机巡航高度通常在 9000 到 12000 米（约 30000 到 40000 英尺），需核实该高度区间表述是否精确。",
+      "一万米高空处空气密度约为海平面的三分之一，需核实该比例数值。",
+      "万米高空气温常年在零下五十摄氏度左右，需核实该温度数值。",
+      "高空巡航相对低空巡航能省下一半以上燃油，需核实具体机型与航程下的省油比例数据范围。"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 120,
+    "lang": "zh-CN",
+    "host": "hare",
+    "theme": "light",
+    "sentence_gap_ms": 250
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "舷窗外的悬念",
+      "text": "坐飞机升空时，窗外云海渐渐被踩在脚下。飞机最终会平稳停在万米左右的高空巡航。地面空气更足，客机为什么非要费力飞这么高？核心原因只有两点：更省油、更安全。"
+    },
+    {
+      "id": "s02",
+      "title": "稀薄空气，阻力骤降",
+      "text": "客机的最大开销是燃油，油耗核心在于克服空气阻力。万米高空的平流层，空气密度只有海平面的三分之一。空气越稀薄，飞机高速飞行的摩擦阻力就越小。同样航程，高空巡航能省下一半以上的燃油。"
+    },
+    {
+      "id": "s03",
+      "title": "冰冷高空，动力更足",
+      "text": "阻力小了，喷气发动机在高空还能正常工作吗？现代涡扇发动机其实更适应高空环境。万米高空温度常年在零下五十度左右。冰冷的空气让发动机热效率显著提升。这样不仅不缺动力，反而能高速经济巡航。"
+    },
+    {
+      "id": "s04",
+      "title": "穿透云层，避开风暴",
+      "text": "除了省油，飞上万米更是为了飞行安全。万米以下是对流层，雷雨和积雨云几乎全挤在这里。低空巡航时，剧烈气流会让飞机如同过山车。爬升到平流层后，绝大部分风暴都在脚下。平稳的水平气流，让飞行体验安全又舒适。"
+    },
+    {
+      "id": "s05",
+      "title": "为什么不飞得更高",
+      "text": "既然高空这么好，为什么不飞到两万米甚至更高？因为再往上，空气就实在太稀薄了。机翼将很难产生足够升力托住沉重客机。发动机吸不到足够的氧气，也会面临熄火风险。"
+    },
+    {
+      "id": "s06",
+      "title": "黄金平衡的最优解",
+      "text": "万米高空，绝不是为了耍帅。它是升力、阻力、油耗与气象反复权衡的最优解。下次看云海时，你就读懂了这万米高空的智慧。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "idle"
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "point_right"
+        }
+      ],
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "飞机为什么飞万米",
+          "sub": "万米高空巡航的秘密"
+        }
+      },
+      "note": "引出悬念：为什么客机要大费周章爬到万米高空"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [
+        2,
+        3
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "idle"
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "expr",
+          "target": "happy"
+        },
+        {
+          "sentence": 3,
+          "do": "gesture",
+          "target": "emphasize"
+        },
+        {
+          "sentence": 3,
+          "do": "reveal",
+          "target": 1
+        }
+      ],
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "更省油",
+            "更安全"
+          ]
+        }
+      },
+      "note": "揭示两大核心答案：更省油与更安全"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "full",
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "visual": {
+        "template": "bars",
+        "data": {
+          "items": [
+            {
+              "label": "海平面",
+              "value": 100
+            },
+            {
+              "label": "万米高空",
+              "value": 33
+            }
+          ],
+          "unit": "%"
+        }
+      },
+      "note": "直观对比海平面与万米高空的空气密度差异"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [
+        2,
+        3
+      ],
+      "layout": "full",
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "highlight",
+          "target": 2
+        }
+      ],
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "空气稀薄",
+            "阻力骤降",
+            "油耗减半"
+          ]
+        }
+      },
+      "note": "梳理稀薄空气使摩擦阻力骤降并省下一半燃油的因果链"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "idle"
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "explaining"
+        },
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "point_right"
+        }
+      ],
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "发动机与高空",
+          "sub": "冰冷空气反而动力充沛"
+        }
+      },
+      "note": "提出高空发动机工作工况的疑问并给出转折"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [
+        2,
+        3
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "number",
+        "data": {
+          "value": "-50℃",
+          "label": "万米平流层温度"
+        }
+      },
+      "note": "展示零下五十度的极低气温"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [
+        4
+      ],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "吸入冰冷空气",
+            "热效率大幅提高",
+            "高速经济巡航"
+          ]
+        }
+      },
+      "note": "说明低温高密度进气使发动机热效率显著提升"
+    },
+    {
+      "id": "sh08",
+      "section": "s04",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "point_right"
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "emphasize"
+        }
+      ],
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "避开恶劣天气",
+          "sub": "对流层与平流层"
+        }
+      },
+      "note": "引出第二个关键支柱：避开对流层恶劣天气"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [
+        2,
+        3,
+        4
+      ],
+      "layout": "full",
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "reveal",
+          "target": 1
+        }
+      ],
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "低空对流层",
+            "rows": [
+              "雷暴积雨云",
+              "剧烈强气流",
+              "颠簸如过山车"
+            ]
+          },
+          "right": {
+            "label": "万米平流层",
+            "rows": [
+              "风暴在脚下",
+              "平稳水平流",
+              "安全且舒适"
+            ]
+          }
+        }
+      },
+      "note": "对比低空对流层与万米平流层的气象与颠簸差异"
+    },
+    {
+      "id": "sh10",
+      "section": "s05",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "idle"
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "explaining"
+        }
+      ],
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "为什么不能更高",
+          "sub": "两万米高空的物理极限"
+        }
+      },
+      "note": "探讨为什么客机不飞到两万米更高的物理边界"
+    },
+    {
+      "id": "sh11",
+      "section": "s05",
+      "sentences": [
+        2,
+        3
+      ],
+      "layout": "full",
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "机翼升力不足",
+            "发动机缺氧熄火"
+          ]
+        }
+      },
+      "note": "解释两万米以上升力不足与发动机熄火的双重限制"
+    },
+    {
+      "id": "sh12",
+      "section": "s06",
+      "sentences": [
+        0,
+        1
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "focused",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "克服阻力省燃油",
+            "避开风暴保安全",
+            "兼顾升力与供氧"
+          ]
+        }
+      },
+      "note": "总结万米高空是各项飞行因素的黄金平衡点"
+    },
+    {
+      "id": "sh13",
+      "section": "s06",
+      "sentences": [
+        2
+      ],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "wave"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "万米高空的智慧",
+          "sub": "平稳飞行的科学奥秘"
+        }
+      },
+      "note": "回扣主题，向观众亲切致意告别"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}

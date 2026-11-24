@@ -6,8 +6,8 @@ A lightweight skill for Codex, Claude Code and other agents. Give it a topic, so
 
 ## Status
 
-- Done: P0. The previous Studio implementation is archived at tag `studio-v1`; the repository now holds a single skill.
-- In progress: P1, the L0 text package and scenario evaluations.
+- Done: P0 (the previous Studio implementation is archived at tag `studio-v1`; the repository holds a single skill) and P1 (the L0 text package and scenario evaluations 01–04, see the [P1 summary](tests/scenarios/results/p1-summary.md), in Chinese).
+- Next: P2, a minimal local renderer.
 - The full plan (in Chinese) is in [docs/lite/轻量化Skill计划书.md](docs/lite/轻量化Skill计划书.md).
 
 ## Install

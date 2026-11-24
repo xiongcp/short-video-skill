@@ -6,8 +6,8 @@
 
 ## 当前状态
 
-- 已完成：P0。旧版工作室实现归档到 tag `studio-v1`，仓库瘦身为单一 skill。
-- 进行中：P1，L0 文本包与场景评测。
+- 已完成：P0（旧版工作室实现归档到 tag `studio-v1`，仓库瘦身为单一 skill）和 P1（L0 文本包，场景评测 01–04，见 [P1 汇总](tests/scenarios/results/p1-summary.md)）。
+- 下一步：P2，本地渲染最小可用版本。
 - 全部计划见 [轻量化 Skill 计划书](docs/lite/轻量化Skill计划书.md)。
 
 ## 安装
