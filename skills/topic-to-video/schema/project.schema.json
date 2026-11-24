@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:short-video-skill:project:1",
+  "title": "topic-to-video project",
+  "description": "单期视频项目的唯一数据源；讲稿.md、分镜.md、提示词包.md 都由它派生。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "revision", "title", "brief", "settings", "voice", "sections", "shots", "checkpoints", "jobs"],
+  "properties": {
+    "version": { "const": 1 },
+    "revision": { "type": "integer", "minimum": 1, "description": "sections 或 shots 每改动一次加 1" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "brief": { "$ref": "#/$defs/brief" },
+    "settings": { "$ref": "#/$defs/settings" },
+    "voice": { "$ref": "#/$defs/voice" },
+    "sections": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/section" } },
+    "shots": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/shot" } },
+    "checkpoints": { "type": "array", "items": { "$ref": "#/$defs/checkpoint" } },
+    "jobs": { "type": "array", "items": { "$ref": "#/$defs/job" } }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}" },
+    "expr": { "enum": ["explaining", "focused", "happy", "curious"] },
+    "gesture": { "enum": ["idle", "point_right", "wave", "emphasize"] },
+    "brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topic", "audience", "promise", "sources", "open_questions"],
+      "properties": {
+        "topic": { "$ref": "#/$defs/text" },
+        "audience": { "$ref": "#/$defs/text" },
+        "promise": { "$ref": "#/$defs/text", "description": "看完后观众能复述的一句话" },
+        "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+        "open_questions": { "type": "array", "items": { "$ref": "#/$defs/text" } }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^src\\d{2}$" },
+        "title": { "$ref": "#/$defs/text" },
+        "where": { "type": "string", "description": "网址、文件路径或书目信息" },
+        "note": { "type": "string" }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ratio", "target_seconds", "lang", "host", "theme"],
+      "properties": {
+        "ratio": { "enum": ["16:9", "9:16"] },
+        "target_seconds": { "type": "integer", "minimum": 10, "maximum": 600 },
+        "lang": { "const": "zh-CN" },
+        "host": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "theme": { "enum": ["light", "dark"] },
+        "sentence_gap_ms": { "type": "integer", "minimum": 0, "maximum": 2000 }
+      }
+    },
+    "voice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider"],
+      "properties": {
+        "provider": { "enum": ["undecided", "import", "openai-compatible", "command"] },
+        "model": { "$ref": "#/$defs/text" },
+        "voice": { "$ref": "#/$defs/text" },
+        "speed": { "type": "number", "minimum": 0.5, "maximum": 2 },
+        "base_url": { "type": "string", "pattern": "^https?://" },
+        "api_key_env": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+        "command": { "$ref": "#/$defs/text" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "provider": { "const": "openai-compatible" } } },
+          "then": { "required": ["base_url", "model", "voice", "api_key_env"] }
+        },
+        {
+          "if": { "properties": { "provider": { "const": "command" } } },
+          "then": { "required": ["command"] }
+        }
+      ]
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "text"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^s\\d{2}$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "text": { "type": "string", "minLength": 1, "pattern": "[。！？!?][」』”’）)]*$" },
+        "pronunciation": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["term", "reading"],
+            "properties": { "term": { "$ref": "#/$defs/text" }, "reading": { "$ref": "#/$defs/text" } }
+          }
+        },
+        "source_ids": { "type": "array", "items": { "type": "string", "pattern": "^src\\d{2}$" } }
+      }
+    },
+    "shot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "section", "sentences", "layout", "visual", "note"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^sh\\d{2,3}$" },
+        "section": { "type": "string", "pattern": "^s\\d{2}$" },
+        "sentences": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 0 } },
+        "layout": { "enum": ["host-left", "full"] },
+        "host": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["expr", "gesture"],
+          "properties": { "expr": { "$ref": "#/$defs/expr" }, "gesture": { "$ref": "#/$defs/gesture" } }
+        },
+        "visual": { "$ref": "#/$defs/visual" },
+        "cues": { "type": "array", "items": { "$ref": "#/$defs/cue" } },
+        "note": { "$ref": "#/$defs/text", "description": "这一镜观众要看懂的变化" }
+      },
+      "if": { "properties": { "layout": { "const": "host-left" } } },
+      "then": { "required": ["host"] },
+      "else": { "not": { "required": ["host"] } }
+    },
+    "cue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sentence", "do", "target"],
+      "properties": {
+        "sentence": { "type": "integer", "minimum": 0 },
+        "do": { "enum": ["reveal", "highlight", "expr", "gesture"] },
+        "target": { "type": ["integer", "string"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "do": { "enum": ["reveal", "highlight"] } } },
+          "then": { "properties": { "target": { "type": "integer", "minimum": 0 } } }
+        },
+        {
+          "if": { "properties": { "do": { "const": "expr" } } },
+          "then": { "properties": { "target": { "$ref": "#/$defs/expr" } } }
+        },
+        {
+          "if": { "properties": { "do": { "const": "gesture" } } },
+          "then": { "properties": { "target": { "$ref": "#/$defs/gesture" } } }
+        }
+      ]
+    },
+    "visual": {
+      "oneOf": [
+        { "$ref": "#/$defs/visual_title" },
+        { "$ref": "#/$defs/visual_bullets" },
+        { "$ref": "#/$defs/visual_flow" },
+        { "$ref": "#/$defs/visual_compare" },
+        { "$ref": "#/$defs/visual_number" },
+        { "$ref": "#/$defs/visual_bars" }
+      ]
+    },
+    "visual_title": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "data"],
+      "properties": {
+        "template": { "const": "title" },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["heading"],
+          "properties": {
+            "heading": { "type": "string", "minLength": 1, "maxLength": 16 },
+            "sub": { "type": "string", "minLength": 1, "maxLength": 24 }
+          }
+        }
+      }
+    },
+    "visual_bullets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "data"],
+      "properties": {
+        "template": { "const": "bullets" },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 14 } }
+          }
+        }
+      }
+    },
+    "visual_flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "data"],
+      "properties": {
+        "template": { "const": "flow" },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["nodes"],
+          "properties": {
+            "nodes": { "type": "array", "minItems": 2, "maxItems": 5, "items": { "type": "string", "minLength": 1, "maxLength": 6 } }
+          }
+        }
+      }
+    },
+    "visual_compare": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "data"],
+      "properties": {
+        "template": { "const": "compare" },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["left", "right"],
+          "properties": { "left": { "$ref": "#/$defs/column" }, "right": { "$ref": "#/$defs/column" } }
+        }
+      }
+    },
+    "column": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "rows"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 8 },
+        "rows": { "type": "array", "minItems": 1, "maxItems": 3, "items": { "type": "string", "minLength": 1, "maxLength": 12 } }
+      }
+    },
+    "visual_number": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "data"],
+      "properties": {
+        "template": { "const": "number" },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "label"],
+          "properties": {
+            "value": { "type": "string", "minLength": 1, "maxLength": 8 },
+            "label": { "type": "string", "minLength": 1, "maxLength": 12 }
+          }
+        }
+      }
+    },
+    "visual_bars": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "data"],
+      "properties": {
+        "template": { "const": "bars" },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["label", "value"],
+                "properties": {
+                  "label": { "type": "string", "minLength": 1, "maxLength": 6 },
+                  "value": { "type": "number", "minimum": 0 }
+                }
+              }
+            },
+            "unit": { "type": "string", "minLength": 1, "maxLength": 4 }
+          }
+        }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "revision", "at", "note"],
+      "properties": {
+        "stage": { "enum": ["plan", "sample", "final"] },
+        "revision": { "type": "integer", "minimum": 1 },
+        "at": { "$ref": "#/$defs/timestamp" },
+        "note": { "$ref": "#/$defs/text", "description": "用户原话摘录" }
+      }
+    },
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "provider", "kind", "status", "at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/text" },
+        "provider": { "$ref": "#/$defs/text" },
+        "kind": { "enum": ["tts", "image", "video"] },
+        "status": { "enum": ["submitted", "done", "failed", "unknown"] },
+        "ref": { "type": "string", "description": "对应的段落或镜头，例如 s02 或 sh05" },
+        "cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["amount", "unit"],
+          "properties": { "amount": { "type": "number", "minimum": 0 }, "unit": { "$ref": "#/$defs/text" } }
+        },
+        "at": { "$ref": "#/$defs/timestamp" }
+      }
+    }
+  }
+}
