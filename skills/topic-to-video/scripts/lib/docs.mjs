@@ -36,6 +36,8 @@ function checkPromptPack(project, packMd, shots) {
   const status = packMd.split('\n').find((line) => line.startsWith('>')) ?? '';
   if (isApproved(project, 'plan')) {
     if (!status.includes(`方案已确认（revision ${project.revision}`)) problems.push(`提示词包.md 标题下第一行应写“方案已确认（revision ${project.revision}，日期）”`);
+  } else if (project.checkpoints.some((c) => c.stage === 'plan')) {
+    problems.push(`提示词包.md 已过期：方案改到 revision ${project.revision} 后还没确认，在标题下加一行“以下镜头已过期，待确认后更新：sh…”，其他内容不动`);
   } else if (!status.includes('未经确认的方案')) {
     problems.push('提示词包.md 标题下第一行应写“未经确认的方案”');
   }

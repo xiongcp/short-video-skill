@@ -56,3 +56,9 @@ test('skips the prompt pack comparison while a stale line is waiting for confirm
   const stale = pack('方案已确认（revision 1，2026-11-24）', ['sh01']).replace('\n\n###', '\n> 以下镜头已过期，待确认后更新：sh02\n\n###');
   assert.deepEqual(checkDerivedDocs({ ...approved, revision: 2 }, script, board, stale), []);
 });
+
+test('after a revision of a confirmed plan, asks for the stale line instead of a new status', () => {
+  assert.deepEqual(checkDerivedDocs({ ...approved, revision: 2 }, script, board, pack('方案已确认（revision 1，2026-11-24）')), [
+    '提示词包.md 已过期：方案改到 revision 2 后还没确认，在标题下加一行“以下镜头已过期，待确认后更新：sh…”，其他内容不动',
+  ]);
+});
