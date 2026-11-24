@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么缓存能让网页变快？",
+  "brief": {
+    "topic": "为什么缓存能让网页变快？",
+    "audience": "经常用浏览器、没有网络基础的观众",
+    "promise": "同一张图第二次出现得快，是因为浏览器可能直接用副本、先问一句，或者换成新内容",
+    "sources": [
+      {
+        "id": "src01",
+        "title": "RFC 9111 · HTTP Caching",
+        "where": "https://www.rfc-editor.org/rfc/rfc9111.html",
+        "note": "§4 复用条件，§4.2 新鲜度，§4.3 验证"
+      }
+    ],
+    "open_questions": ["配音后核对每段实际时长和图解留白"]
+  },
+  "settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "hare", "theme": "light", "sentence_gap_ms": 250 },
+  "voice": { "provider": "undecided" },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "同一张图，两次打开",
+      "text": "你昨天见过的这张图标，今天再打开，还要从头下载吗？我们跟着它走两趟。"
+    },
+    {
+      "id": "s02",
+      "title": "第一次走多远",
+      "text": "第一趟，假设浏览器手边还没有副本。它向服务器要图标。箭头走过去，再带着图片走回来，屏幕上才有了这张图。如果响应允许缓存，浏览器可以把这次拿到的内容留下。之后的请求就能用上它。",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s03",
+      "title": "第二次发生了什么",
+      "text": "第二趟，我们仍然打开同一页。先把目光留在浏览器这边，看它能不能找到匹配的副本。找到之后还要看条件。假设这份响应允许复用，也还在有效的新鲜期内。在这个例子里，浏览器直接拿本地保存的图标来用。刚才那条通往服务器的长箭头，这一次可以省掉。把两趟路并排看。你省下的是一次来回等待，以及再次传输图片的时间。",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s04",
+      "title": "过期之后",
+      "text": "再把时钟拨快。现在副本已经过期，浏览器手里的内容还能用吗？先看它有没有可用的验证信息。有了验证信息，浏览器可以先询问服务器。资源没变时，服务器可以返回三零四，让浏览器继续用原来的内容。如果内容已经更新，就可能需要传回新的正文。两种情况都联系了服务器，真正传输的数据量却可能很不一样。",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s05",
+      "title": "用一句话带走",
+      "text": "记住三种动作。条件合适时直接用，需要确认时先问一句，拿到新内容时再替换。下次看见同一张图瞬间出现，你就能说清，它可能省掉了哪一段路。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01", "section": "s01", "sentences": [0], "layout": "host-left",
+      "host": { "expr": "curious", "gesture": "idle" },
+      "visual": { "template": "title", "data": { "heading": "同一张图，两次打开", "sub": "还要从头下载吗？" } },
+      "note": "抛出问题：第二次打开还要重新下载吗"
+    },
+    {
+      "id": "sh02", "section": "s01", "sentences": [1], "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "point_right" },
+      "visual": { "template": "compare", "data": { "left": { "label": "第一趟", "rows": ["手边没有副本"] }, "right": { "label": "第二趟", "rows": ["再打开同一页"] } } },
+      "note": "预告接下来要对比两趟访问"
+    },
+    {
+      "id": "sh03", "section": "s02", "sentences": [0, 1], "layout": "full",
+      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器"] } },
+      "cues": [{ "sentence": 1, "do": "reveal", "target": 1 }],
+      "note": "认识两个端点：浏览器和服务器"
+    },
+    {
+      "id": "sh04", "section": "s02", "sentences": [2], "layout": "full",
+      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器", "屏幕"] } },
+      "cues": [{ "sentence": 2, "do": "highlight", "target": 2 }],
+      "note": "请求去、图片回，屏幕上才出现图标"
+    },
+    {
+      "id": "sh05", "section": "s02", "sentences": [3, 4], "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "point_right" },
+      "visual": { "template": "bullets", "data": { "items": ["响应允许缓存", "把内容留下", "之后的请求能用"] } },
+      "cues": [{ "sentence": 4, "do": "reveal", "target": 2 }],
+      "note": "保存副本是有条件的"
+    },
+    {
+      "id": "sh06", "section": "s03", "sentences": [0, 1], "layout": "full",
+      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "本地副本"] } },
+      "cues": [{ "sentence": 1, "do": "reveal", "target": 1 }],
+      "note": "第二趟先在浏览器这边找副本"
+    },
+    {
+      "id": "sh07", "section": "s03", "sentences": [2, 3], "layout": "full",
+      "visual": { "template": "bullets", "data": { "items": ["找到匹配副本", "允许复用", "仍在新鲜期"] } },
+      "cues": [{ "sentence": 3, "do": "reveal", "target": 1 }, { "sentence": 3, "do": "reveal", "target": 2 }],
+      "note": "找到副本之后还要满足条件"
+    },
+    {
+      "id": "sh08", "section": "s03", "sentences": [4, 5], "layout": "full",
+      "visual": { "template": "flow", "data": { "nodes": ["打开页面", "本地副本", "显示图标"] } },
+      "cues": [{ "sentence": 4, "do": "highlight", "target": 1 }],
+      "note": "第二趟止于浏览器，省掉去服务器的路"
+    },
+    {
+      "id": "sh09", "section": "s03", "sentences": [6, 7], "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "point_right" },
+      "visual": { "template": "compare", "data": { "left": { "label": "第一趟", "rows": ["去服务器", "等待返回", "传输图片"] }, "right": { "label": "第二趟", "rows": ["本地直接用"] } } },
+      "cues": [{ "sentence": 7, "do": "highlight", "target": 1 }],
+      "note": "两趟并排，看出省下了什么"
+    },
+    {
+      "id": "sh10", "section": "s04", "sentences": [0, 1], "layout": "host-left",
+      "host": { "expr": "focused", "gesture": "idle" },
+      "visual": { "template": "title", "data": { "heading": "副本过期了", "sub": "还能用吗？" } },
+      "cues": [{ "sentence": 1, "do": "expr", "target": "curious" }],
+      "note": "时间推进，副本过期带来新问题"
+    },
+    {
+      "id": "sh11", "section": "s04", "sentences": [2, 3, 4], "layout": "full",
+      "visual": { "template": "flow", "data": { "nodes": ["验证信息", "询问服务器", "返回304"] } },
+      "cues": [{ "sentence": 3, "do": "reveal", "target": 1 }, { "sentence": 4, "do": "reveal", "target": 2 }],
+      "note": "过期后可以先问一句，没变就继续用"
+    },
+    {
+      "id": "sh12", "section": "s04", "sentences": [5, 6], "layout": "full",
+      "visual": { "template": "compare", "data": { "left": { "label": "没变", "rows": ["返回304", "继续用旧内容"] }, "right": { "label": "已更新", "rows": ["传回新正文", "替换旧内容"] } } },
+      "cues": [{ "sentence": 5, "do": "highlight", "target": 1 }],
+      "note": "两种结果都联系服务器，传输量不同"
+    },
+    {
+      "id": "sh13", "section": "s05", "sentences": [0, 1], "layout": "full",
+      "visual": { "template": "bullets", "data": { "items": ["直接用", "先问一句", "换新内容"] } },
+      "note": "总结三种动作"
+    },
+    {
+      "id": "sh14", "section": "s05", "sentences": [2], "layout": "host-left",
+      "host": { "expr": "happy", "gesture": "emphasize" },
+      "visual": { "template": "title", "data": { "heading": "省掉了哪段路？" } },
+      "note": "回扣开头的图标，留下可复述的结论"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}
