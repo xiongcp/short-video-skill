@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkProject, estimateSeconds, isApproved, lintScript } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { checkProject, estimateSeconds, isApproved, lintScript, VISUAL_LIMITS } from '../skills/topic-to-video/scripts/lib/project.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const codes = (p) => checkProject(p).map((e) => e.code);
@@ -141,4 +141,40 @@ test('lintScript returns no warnings for a project with missing fields', () => {
   const p = minimal();
   delete p.settings;
   assert.deepEqual(lintScript(p), []);
+});
+
+test('reports text past the schema limits', () => {
+  const p = minimal();
+  p.title = '一'.repeat(41);
+  p.sections[0].title = '一'.repeat(21);
+  p.shots[1].visual = { template: 'compare', data: { left: { label: '对流层 (万米下)', rows: ['雷暴'] }, right: { label: '平流层', rows: ['平稳'] } } };
+  p.shots[1].cues = [];
+  assert.deepEqual(placed(p), ['TEXT_TOO_LONG /title', 'TEXT_TOO_LONG /sections/0/title', 'TEXT_TOO_LONG /shots/1/visual/data/left/label']);
+});
+
+test('reports list lengths outside the schema limits', () => {
+  const p = minimal();
+  p.shots[1].visual.data.items = ['一', '二', '三', '四', '五'];
+  p.shots[0].layout = 'full';
+  delete p.shots[0].host;
+  p.shots[0].visual = { template: 'flow', data: { nodes: ['只有一个'] } };
+  assert.deepEqual(placed(p), ['ITEM_COUNT /shots/0/visual/data/nodes', 'ITEM_COUNT /shots/1/visual/data/items']);
+});
+
+test('VISUAL_LIMITS matches the length limits in the schema', () => {
+  const schema = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/schema/project.schema.json'), 'utf8'));
+  const resolve = (node) => (node.$ref ? schema.$defs[node.$ref.split('/').at(-1)] : node);
+  const limits = (raw) => {
+    const node = resolve(raw);
+    if (node.maxLength) return node.maxLength;
+    if (node.type === 'array') return [node.minItems, node.maxItems, limits(node.items)];
+    if (node.type !== 'object') return undefined;
+    const out = Object.fromEntries(Object.entries(node.properties).map(([k, v]) => [k, limits(v)]).filter(([, v]) => v !== undefined));
+    return Object.keys(out).length ? out : undefined;
+  };
+  const fromSchema = Object.fromEntries(schema.$defs.visual.oneOf.map((ref) => {
+    const def = resolve(ref);
+    return [def.properties.template.const, limits(def.properties.data)];
+  }));
+  assert.deepEqual(VISUAL_LIMITS, fromSchema);
 });
