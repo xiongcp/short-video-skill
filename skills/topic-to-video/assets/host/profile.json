@@ -1,0 +1,12 @@
+{
+  "id": "hare",
+  "name": "晴",
+  "style_lock": ["墨蓝短外套", "藏青短发配一缕青色挑染", "青色眼睛", "青色领结", "头顶一根呆毛"],
+  "expressions": ["explaining", "focused", "happy", "curious"],
+  "gestures": ["idle", "point_right", "wave", "emphasize"],
+  "mouths": ["closed", "half", "open"],
+  "prompt_lock": {
+    "zh": "原创日系动漫风格的知识节目主持人：藏青色短发，一缕青色挑染，头顶一根呆毛，青色眼睛，白衬衫配青色领结，墨蓝色短外套；赛璐璐平涂上色，干净的深色细描边，半身正面，表情亲切。",
+    "en": "Original anime-style explainer host: short navy hair with a single teal streak and one ahoge, teal eyes, white shirt with a teal bow tie, navy cropped jacket; flat cel shading with clean thin dark outlines, front-facing half-body shot, friendly expression."
+  }
+}

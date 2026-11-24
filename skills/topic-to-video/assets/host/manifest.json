@@ -1,0 +1,72 @@
+{
+  "host": "hare",
+  "name": "晴",
+  "source": {
+    "rig": "assets/default-host/rig.json",
+    "rig_commit": "5f2e9ad7e25df5f47913059c6d320476acc57860",
+    "tag": "studio-v1",
+    "script": "assets/default-host/export-sprites.ts"
+  },
+  "canvas": {
+    "width": 820,
+    "height": 900
+  },
+  "bodies": {
+    "idle": {
+      "file": "body-idle.png",
+      "sha256": "3ded51ff552a6b0f825a235c0331195985b32442f43539fa96b8fa5ebbe32082"
+    },
+    "point_right": {
+      "file": "body-point_right.png",
+      "sha256": "a041812c35cf4a128375ca01604cc06999f262a6a8683ad513709e4c7844107f"
+    },
+    "wave": {
+      "file": "body-wave.png",
+      "sha256": "b997c5c733516c124ff887f547a89114cd52b4a9e1b5c68a41b85b83f52f84cc"
+    },
+    "emphasize": {
+      "file": "body-emphasize.png",
+      "sha256": "5678791809a3e3e50e42314bbbc2d4607c73c18f37828c5a48d33ebe11c39436"
+    }
+  },
+  "faces": {
+    "file": "faces.png",
+    "sha256": "e542e6ff52c650241f6d8d119f4521dff6dde716c0946568aa1ae7a01277758c",
+    "rect": [
+      241,
+      241,
+      180,
+      172
+    ],
+    "rows": [
+      "explaining",
+      "focused",
+      "happy",
+      "curious"
+    ],
+    "columns": [
+      "closed",
+      "half",
+      "open",
+      "blink"
+    ]
+  },
+  "mouth_params": {
+    "closed": {
+      "ParamMouthOpenY": 0,
+      "ParamMouthForm": 0
+    },
+    "half": {
+      "ParamMouthOpenY": 0.5,
+      "ParamMouthForm": 0.15
+    },
+    "open": {
+      "ParamMouthOpenY": 1,
+      "ParamMouthForm": 0.3
+    }
+  },
+  "notes": [
+    "curious 的头部倾斜在导出时去掉了，需要时由渲染层整体旋转。",
+    "眨眼格为闭口。"
+  ]
+}
