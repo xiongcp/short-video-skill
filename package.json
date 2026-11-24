@@ -6,7 +6,8 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test \"tests/**/*.test.mjs\""
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "scenario": "node tests/scenarios/run.mjs"
   },
   "devDependencies": {
     "ajv": "^8.20.0"
