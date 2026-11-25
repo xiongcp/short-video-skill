@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { clampAngles, forwardKinematics, JOINTS, poseAngles, resolvePose, VIEWS } from '../skills/topic-to-video/scripts/lib/rig.mjs';
+import { clampAngles, drawHost, forwardKinematics, JOINTS, poseAngles, propTransform, resolvePose, VIEWS } from '../skills/topic-to-video/scripts/lib/rig.mjs';
 
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
 const H = manifest.height_px;
@@ -19,6 +19,8 @@ const stand = (gesture, prop) => {
   const pose = resolvePose(manifest, gesture);
   return forwardKinematics(manifest, poseAngles(manifest, gesture, prop, pose.view), { view: pose.view, x: 400, ground: 930, lift: pose.lift ?? 0 });
 };
+
+const draw = (state) => drawHost(manifest, { gesture: 'idle', expr: 'explaining', x: 400, ground: 930, seed: 'sh01', ...state });
 
 test('forward kinematics keeps every bone at its length in every view and facing', () => {
   const bones = [['pelvis', 'spine_mid', 'waist'], ['spine_mid', 'neck_base', 'chest'], ['neck_base', 'head_base', 'neck'],
@@ -119,4 +121,81 @@ test('point_right resolves to the point pose, walk to its key pose, and an unkno
 test('a prop for the other hand raises that arm; a prop for the acting hand keeps the pose', () => {
   assert.equal(poseAngles(manifest, 'idle', 'bulb').r_shoulder, manifest.props.bulb.arm.shoulder);
   assert.deepEqual(poseAngles(manifest, 'point', 'pointer'), poseAngles(manifest, 'point'));
+});
+
+test('point_right draws the same pose as point', () => {
+  assert.equal(draw({ gesture: 'point_right' }).replace('point_right', 'point'), draw({ gesture: 'point' }));
+});
+
+test('a held prop has its grip on the center of the hand that holds it', () => {
+  for (const [prop, p] of Object.entries(manifest.props)) {
+    const gesture = p.hand === 'acting' ? 'point' : 'idle';
+    const svg = draw({ gesture, prop });
+    const m = svg.match(new RegExp(`data-prop="${prop}" transform="translate\\(([-\\d.]+) ([-\\d.]+)\\) rotate\\(([-\\d.]+)\\) translate\\(([-\\d.]+) ([-\\d.]+)\\)"`));
+    assert.ok(m, prop);
+    const fk = stand(gesture, prop);
+    const t = propTransform(manifest, fk, prop);
+    const hand = mid(fk.points[`${t.side}_wrist`], fk.points[`${t.side}_hand`]);
+    // translate(x y) rotate(a) translate(-grip) takes the grip point to (x, y).
+    assert.ok(dist([Number(m[1]), Number(m[2])], hand) <= 0.5, `${prop} grip`);
+    assert.ok(Math.abs(Number(m[4]) + t.grip[0]) <= 0.01 && Math.abs(Number(m[5]) + t.grip[1]) <= 0.01, `${prop} grip offset`);
+    assert.equal(t.side, p.hand === 'acting' ? 'l' : 'r');
+  }
+});
+
+test('the same input draws exactly the same SVG, and another shot ID moves the ink', () => {
+  assert.equal(draw({ gesture: 'think', expr: 'curious' }), draw({ gesture: 'think', expr: 'curious' }));
+  assert.notEqual(draw({ gesture: 'think', seed: 'sh01' }), draw({ gesture: 'think', seed: 'sh02' }));
+});
+
+test('every expression draws its face and only its own emotion symbol', () => {
+  for (const [expr, e] of Object.entries(manifest.expressions)) {
+    const svg = draw({ expr });
+    assert.ok(svg.includes(`data-face="${expr}"`), expr);
+    const symbols = [...svg.matchAll(/data-symbol="(\w+)"/g)].map((m) => m[1]);
+    assert.deepEqual(symbols, e.symbol ? [e.symbol] : [], expr);
+  }
+});
+
+test('facing left mirrors the face but never the emotion symbol', () => {
+  const svg = draw({ expr: 'curious', facing: -1 });
+  assert.match(svg, /data-face="curious" transform="[^"]*scale\(-1 1\)"/);
+  assert.match(svg, /<g data-symbol="question"><path/);
+});
+
+test('far limbs are drawn behind the torso and near limbs in front; in the front view all limbs are in front', () => {
+  const at = (svg, keys) => keys.map((k) => svg.indexOf(k));
+  const sorted = (xs) => xs.every((x, i) => x >= 0 && (i === 0 || xs[i - 1] < x));
+  assert.ok(sorted(at(draw({ view: 'three_quarter' }), ['data-limb="r_arm"', 'data-part="spine"', 'data-limb="l_leg"', 'data-limb="l_arm"'])));
+  assert.ok(sorted(at(draw({ view: 'front' }), ['data-part="spine"', 'data-limb="r_arm"', 'data-limb="l_arm"'])));
+});
+
+test('point adds a finger to the acting hand only', () => {
+  assert.ok(draw({ gesture: 'point' }).includes('data-part="l_finger"'));
+  assert.ok(!draw({ gesture: 'point' }).includes('data-part="r_finger"'));
+  assert.ok(!draw({ gesture: 'idle' }).includes('_finger"'));
+});
+
+test('the prop none means an empty hand', () => {
+  assert.equal(draw({ prop: 'none' }), draw({}));
+  assert.ok(!draw({ prop: 'none' }).includes('data-prop'));
+});
+
+test('dark theme draws the body in light ink and keeps the teal scarf', () => {
+  const svg = draw({ theme: 'dark' });
+  assert.ok(svg.includes(manifest.ink.body.dark) && !svg.includes(manifest.ink.body.light));
+  assert.ok(svg.includes(manifest.ink.accent));
+});
+
+test('elbows, the head and the eyes carry their pivot so the site can animate them with CSS', () => {
+  const svg = draw({ gesture: 'wave', expr: 'happy' });
+  for (const part of ['data-joint="l_elbow"', 'data-joint="r_elbow"', 'data-joint="head"', 'data-face-part="eyes"']) {
+    assert.match(svg, new RegExp(`${part} style="transform-origin:-?[\\d.]+px -?[\\d.]+px"`), part);
+  }
+});
+
+test('an unknown gesture, expression or prop is a clear error', () => {
+  assert.throws(() => draw({ gesture: 'dance' }), /unknown gesture dance/);
+  assert.throws(() => draw({ expr: 'angry' }), /unknown expression angry/);
+  assert.throws(() => draw({ prop: 'umbrella' }), /unknown prop umbrella/);
 });
