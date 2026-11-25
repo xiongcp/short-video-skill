@@ -1,7 +1,7 @@
-// Storyboard advice that compares what is on screen with what is said (references/storyboard.md).
-// Warnings only: VISUAL_NOT_IN_NARRATION and POINT_MISSING.
+// Storyboard advice from references/storyboard.md: what is on screen against what is said, and how the host acts.
+// Warnings only: VISUAL_NOT_IN_NARRATION, POINT_MISSING, MOVE_TOO_MANY, FOCUS_SPLIT and STATIC_STRETCH.
 import { splitSentences } from './captions.mjs';
-import { checkShape } from './project.mjs';
+import { checkShape, estimateReport } from './project.mjs';
 
 const DIGITS = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
 const UNITS = { 十: 10, 百: 100, 千: 1000 };
@@ -60,6 +60,10 @@ export function visualKeywords(visual) {
 }
 
 const DEICTIC_WORDS = ['看右边', '右边的', '右侧', '看这张图', '看这里', '看这儿', '看这边', '右图'];
+// Gestures that aim at the focus element; point_right is the old name of point.
+const POINTING = ['point', 'point_right', 'present', 'tap'];
+export const MAX_MOVES = 2;
+export const STATIC_SECONDS = 8;
 
 // The gesture in effect at sentence n: the shot's gesture, changed by gesture cues up to that sentence.
 function gestureAt(shot, n) {
@@ -83,10 +87,43 @@ export function lintStoryboard(project) {
     if (shot.layout !== 'host-left') return;
     shot.sentences.forEach((n, j) => {
       const word = DEICTIC_WORDS.find((w) => said[j].includes(w));
-      if (word && gestureAt(shot, n) !== 'point_right') {
-        warnings.push({ path: `/shots/${i}`, code: 'POINT_MISSING', message: `镜头 ${shot.id} 第 ${n} 句说了“${word}”，这一句的手势应是 point_right（见 storyboard.md 的主持人一节）` });
+      if (word && !POINTING.includes(gestureAt(shot, n))) {
+        warnings.push({ path: `/shots/${i}`, code: 'POINT_MISSING', message: `镜头 ${shot.id} 第 ${n} 句说了“${word}”，这一句的动作应是 point、present 或 tap（见 storyboard.md 的主持人一节）` });
       }
     });
+    warnings.push(...lintActing(shot, i));
   });
+  warnings.push(...lintStatic(project));
   return warnings;
+}
+
+// MOVE_TOO_MANY and FOCUS_SPLIT: a host-left shot walks at most twice, and a sentence has one focus element.
+function lintActing(shot, i) {
+  const cues = shot.cues ?? [];
+  const out = [];
+  const moves = cues.filter((c) => c.do === 'move').length;
+  if (moves > MAX_MOVES) out.push({ path: `/shots/${i}/cues`, code: 'MOVE_TOO_MANY', message: `镜头 ${shot.id} 有 ${moves} 次 move，最多 ${MAX_MOVES} 次；走动跟着正在讲的对象（见 storyboard.md 的主持人一节）` });
+  for (const n of shot.sentences) {
+    const here = cues.filter((c) => c.sentence === n && Number.isInteger(c.target));
+    const walked = here.find((c) => c.do === 'move');
+    const shown = here.find((c) => (c.do === 'reveal' || c.do === 'highlight') && c.target !== walked?.target);
+    if (walked && shown) out.push({ path: `/shots/${i}/cues`, code: 'FOCUS_SPLIT', message: `镜头 ${shot.id} 第 ${n} 句 move 到元素 ${walked.target}，${shown.do} 的却是元素 ${shown.target}；同一句只留一个焦点（见 storyboard.md 的主持人一节）` });
+  }
+  return out;
+}
+
+// STATIC_STRETCH: by the planning estimate, the picture changes at the shot start, at every cue and at the shot end;
+// two neighbouring changes more than STATIC_SECONDS apart leave the picture still for too long.
+function lintStatic(project) {
+  const estimates = new Map(estimateReport(project).shots.map((s) => [s.id, s]));
+  const out = [];
+  project.shots.forEach((shot, i) => {
+    const estimate = estimates.get(shot.id);
+    if (!estimate) return;
+    const cueTimes = (shot.cues ?? []).map((c) => estimate.starts[shot.sentences.indexOf(c.sentence)]).filter((t) => t !== undefined);
+    const times = [0, ...cueTimes, estimate.seconds].sort((a, b) => a - b);
+    const k = times.findIndex((t, j) => j > 0 && t - times[j - 1] > STATIC_SECONDS);
+    if (k > 0) out.push({ path: `/shots/${i}`, code: 'STATIC_STRETCH', message: `镜头 ${shot.id} 在 ${times[k - 1]}–${times[k]} 秒之间画面没有变化，超过 ${STATIC_SECONDS} 秒；加一个 cue 或拆成两个镜头（见 storyboard.md）` });
+  });
+  return out;
 }

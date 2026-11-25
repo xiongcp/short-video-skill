@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkProject, estimateReport, estimateSeconds, isApproved, lintScript, SCHEMA_FIELDS, VISUAL_LIMITS } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { checkProject, estimateReport, estimateSeconds, HOST_ID, isApproved, lintScript, SCHEMA_FIELDS, VISUAL_LIMITS } from '../skills/topic-to-video/scripts/lib/project.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const codes = (p) => checkProject(p).map((e) => e.code);
@@ -92,6 +92,38 @@ test('reports a host cue on a full-screen shot', () => {
   const p = minimal();
   p.shots[1].cues = [{ sentence: 1, do: 'expr', target: 'happy' }];
   assert.deepEqual(codes(p), ['CUE_NEEDS_HOST']);
+});
+
+test('reports move and prop cues on a full-screen shot', () => {
+  const p = minimal();
+  p.shots[1].cues = [{ sentence: 1, do: 'move', target: 'left' }, { sentence: 1, do: 'prop', target: 'bulb' }];
+  assert.deepEqual(placed(p), ['CUE_NEEDS_HOST /shots/1/cues/0/do', 'CUE_NEEDS_HOST /shots/1/cues/1/do']);
+});
+
+test('a move to an element is checked like a reveal', () => {
+  const p = minimal();
+  p.shots[0].visual = { template: 'bullets', data: { items: ['阳光', '空气'] } };
+  p.shots[0].cues = [{ sentence: 0, do: 'move', target: 1 }];
+  assert.deepEqual(checkProject(p), []);
+  p.shots[0].cues[0].target = 2;
+  assert.deepEqual(placed(p), ['CUE_TARGET_RANGE /shots/0/cues/0/target']);
+});
+
+test('a title shot can move to a preset spot but not to an element', () => {
+  const p = minimal();
+  p.shots[0].cues = [{ sentence: 0, do: 'move', target: 'right' }];
+  assert.deepEqual(checkProject(p), []);
+  p.shots[0].cues[0].target = 0;
+  assert.deepEqual(codes(p), ['CUE_NOT_SUPPORTED']);
+  assert.match(checkProject(p)[0].message, /left、center 或 right/);
+});
+
+test('reports a host other than the profile, with the way to migrate an old project', () => {
+  assert.equal(HOST_ID, 'xiaoqing');
+  const p = minimal();
+  p.settings.host = 'hare';
+  assert.deepEqual(placed(p), ['UNKNOWN_HOST /settings/host']);
+  assert.match(checkProject(p)[0].message, /hare 直接改成 xiaoqing/);
 });
 
 test('reports a checkpoint newer than the project', () => {

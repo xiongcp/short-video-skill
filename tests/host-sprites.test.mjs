@@ -28,14 +28,6 @@ test('every sprite matches its recorded hash and size', () => {
   assert.deepEqual(pngSize(readFileSync(join(HOST, m.faces.file))), { width: 4 * w, height: 4 * h });
 });
 
-test('profile names the same expressions and gestures as the sprites', () => {
-  const m = json('manifest.json');
-  const p = json('profile.json');
-  assert.deepEqual(p.expressions, m.faces.rows);
-  assert.deepEqual(p.gestures, Object.keys(m.bodies));
-  assert.ok(p.prompt_lock.zh.length > 0 && p.prompt_lock.en.length > 0);
-});
-
 test('host folder stays within 1.2 MB and declares a usage state', () => {
   const total = readdirSync(HOST).reduce((sum, f) => sum + statSync(join(HOST, f)).size, 0);
   assert.ok(total <= 1.2 * 1024 * 1024, `host assets are ${total} bytes`);

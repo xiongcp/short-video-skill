@@ -16,7 +16,7 @@
     ],
     "open_questions": ["配音后核对每段实际时长和图解留白"]
   },
-  "settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "hare", "theme": "light", "sentence_gap_ms": 250 },
+  "settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "xiaoqing", "theme": "light", "sentence_gap_ms": 250 },
   "voice": { "provider": "undecided" },
   "sections": [
     {
@@ -95,7 +95,7 @@
     {
       "id": "sh08", "section": "s03", "sentences": [4, 5], "layout": "full",
       "visual": { "template": "flow", "data": { "nodes": ["打开页面", "本地副本", "显示图标"] } },
-      "cues": [{ "sentence": 4, "do": "highlight", "target": 1 }],
+      "cues": [{ "sentence": 4, "do": "highlight", "target": 1 }, { "sentence": 5, "do": "highlight", "target": 2 }],
       "note": "第二趟止于浏览器，省掉去服务器的路"
     },
     {
@@ -121,12 +121,13 @@
     {
       "id": "sh12", "section": "s04", "sentences": [5, 6], "layout": "full",
       "visual": { "template": "compare", "data": { "left": { "label": "没变", "rows": ["返回304", "继续用旧内容"] }, "right": { "label": "已更新", "rows": ["传回新正文", "替换旧内容"] } } },
-      "cues": [{ "sentence": 5, "do": "highlight", "target": 1 }],
+      "cues": [{ "sentence": 5, "do": "highlight", "target": 1 }, { "sentence": 6, "do": "highlight", "target": 0 }],
       "note": "两种结果都联系服务器，传输量不同"
     },
     {
       "id": "sh13", "section": "s05", "sentences": [0, 1], "layout": "full",
       "visual": { "template": "bullets", "data": { "items": ["直接用", "先问一句", "换新内容"] } },
+      "cues": [{ "sentence": 1, "do": "reveal", "target": 0 }, { "sentence": 1, "do": "reveal", "target": 1 }, { "sentence": 1, "do": "reveal", "target": 2 }],
       "note": "总结三种动作"
     },
     {

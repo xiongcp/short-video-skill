@@ -66,14 +66,18 @@ test('warns when the host says 看右边 without pointing', () => {
   assert.match(lintStoryboard(p)[0].message, /sh01 第 0 句说了“看右边”/);
 });
 
-test('a point_right gesture or gesture cue clears POINT_MISSING', () => {
+test('point, the old point_right, present or tap, as a gesture or a cue, clears POINT_MISSING', () => {
   const p = minimal();
   p.sections[0].text = '先看右边这张图。答案藏在阳光里。';
-  p.shots[0].host.gesture = 'point_right';
-  assert.deepEqual(lintStoryboard(p), []);
+  for (const gesture of ['point', 'point_right', 'present', 'tap']) {
+    p.shots[0].host.gesture = gesture;
+    assert.deepEqual(lintStoryboard(p), [], gesture);
+  }
   p.shots[0].host.gesture = 'idle';
-  p.shots[0].cues = [{ sentence: 0, do: 'gesture', target: 'point_right' }];
+  p.shots[0].cues = [{ sentence: 0, do: 'gesture', target: 'point' }];
   assert.deepEqual(lintStoryboard(p), []);
+  p.shots[0].cues[0].target = 'think';
+  assert.match(lintStoryboard(p)[0].message, /point、present 或 tap/);
 });
 
 test('does not treat 这张图标 as pointing at the diagram', () => {
@@ -130,4 +134,66 @@ test('survives visual data whose lists are not arrays', () => {
     p.shots[1].visual = visual;
     assert.doesNotThrow(() => lintStoryboard(p), visual.template);
   }
+});
+
+// A host-left bullets shot over both sentences of the fixture, so cues can walk between elements.
+const acting = () => {
+  const p = minimal();
+  p.shots = [{ ...p.shots[0], sentences: [0, 1], visual: { template: 'bullets', data: { items: ['阳光', '空气', '散射'] } } }];
+  return p;
+};
+
+test('warns about more than two moves in one shot', () => {
+  const p = acting();
+  p.shots[0].cues = [{ sentence: 0, do: 'move', target: 0 }, { sentence: 1, do: 'move', target: 1 }, { sentence: 1, do: 'move', target: 'left' }];
+  assert.deepEqual(codes(p), ['MOVE_TOO_MANY /shots/0/cues']);
+  assert.match(lintStoryboard(p)[0].message, /sh01 有 3 次 move，最多 2 次/);
+  p.shots[0].cues.pop();
+  assert.deepEqual(lintStoryboard(p), []);
+});
+
+test('warns when a sentence moves to one element and reveals another', () => {
+  const p = acting();
+  p.shots[0].cues = [{ sentence: 1, do: 'move', target: 1 }, { sentence: 1, do: 'reveal', target: 2 }];
+  assert.deepEqual(codes(p), ['FOCUS_SPLIT /shots/0/cues']);
+  assert.match(lintStoryboard(p)[0].message, /sh01 第 1 句 move 到元素 1，reveal 的却是元素 2/);
+});
+
+test('one focus per sentence: the same element, a preset spot or different sentences are fine', () => {
+  const p = acting();
+  p.shots[0].cues = [{ sentence: 1, do: 'move', target: 2 }, { sentence: 1, do: 'reveal', target: 2 }];
+  assert.deepEqual(lintStoryboard(p), []);
+  p.shots[0].cues = [{ sentence: 1, do: 'move', target: 'right' }, { sentence: 1, do: 'highlight', target: 0 }];
+  assert.deepEqual(lintStoryboard(p), []);
+  p.shots[0].cues = [{ sentence: 0, do: 'move', target: 1 }, { sentence: 1, do: 'highlight', target: 0 }];
+  assert.deepEqual(lintStoryboard(p), []);
+});
+
+// Sentences 1 and 2 have 15 and 17 characters: they start at 0 and 4 seconds, and the shot lasts about 9 seconds.
+const longShot = () => {
+  const p = minimal();
+  p.sections[0].text = '天空为什么是蓝的？阳光穿过空气时蓝光被散射得更多。散射的蓝光从四面八方进入我们的眼睛。';
+  p.shots[1] = { ...p.shots[1], sentences: [1, 2], visual: { template: 'bullets', data: { items: ['阳光', '散射'] } }, cues: [] };
+  return p;
+};
+
+test('warns when the picture stays still for more than 8 seconds by the estimate', () => {
+  const p = longShot();
+  assert.deepEqual(codes(p), ['STATIC_STRETCH /shots/1']);
+  assert.match(lintStoryboard(p)[0].message, /sh02 在 0–9 秒之间画面没有变化，超过 8 秒/);
+});
+
+test('a cue splits a long shot into stretches under 8 seconds', () => {
+  const p = longShot();
+  p.shots[1].cues = [{ sentence: 2, do: 'reveal', target: 1 }];
+  assert.deepEqual(lintStoryboard(p), []);
+});
+
+test('cues on a sentence outside the shot raise neither STATIC_STRETCH nor FOCUS_SPLIT', () => {
+  const p = minimal();
+  p.shots[1].cues = [{ sentence: 0, do: 'reveal', target: 0 }];
+  assert.deepEqual(lintStoryboard(p), []);
+  const q = acting();
+  q.shots[0].cues = [{ sentence: 5, do: 'move', target: 1 }, { sentence: 5, do: 'reveal', target: 2 }];
+  assert.deepEqual(lintStoryboard(q), []);
 });

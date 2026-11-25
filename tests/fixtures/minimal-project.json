@@ -9,7 +9,7 @@
     "sources": [],
     "open_questions": []
   },
-  "settings": { "ratio": "16:9", "target_seconds": 30, "lang": "zh-CN", "host": "hare", "theme": "light" },
+  "settings": { "ratio": "16:9", "target_seconds": 30, "lang": "zh-CN", "host": "xiaoqing", "theme": "light" },
   "voice": { "provider": "undecided" },
   "sections": [
     { "id": "s01", "title": "开场", "text": "天空为什么是蓝的？答案藏在阳光里。" }

@@ -71,8 +71,9 @@ test('SKILL.md stays within 8 KB and each reference within 10 KB', () => {
   }
 });
 
-test('a full L0 run reads at most 24 KB of skill files', () => {
+// 24 KB until S1; the stick-figure host added 8 expressions, 12 gestures, 6 props and walking (火柴人主持人设计 §10).
+test('a full L0 run reads at most 28 KB of skill files', () => {
   const read = ['SKILL.md', 'references/script.md', 'references/storyboard.md', 'references/prompt-pack.md', 'assets/host/profile.json'];
   const total = read.reduce((sum, f) => sum + bytes(join(SKILL, f)), 0);
-  assert.ok(total <= 24 * KB, `${total} bytes`);
+  assert.ok(total <= 28 * KB, `${total} bytes`);
 });
