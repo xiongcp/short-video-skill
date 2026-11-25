@@ -8,7 +8,8 @@
   "scripts": {
     "test": "node --test \"tests/**/*.test.mjs\"",
     "scenario": "node tests/scenarios/run.mjs",
-    "export-host": "node tools/export-host.mjs"
+    "export-host": "node tools/export-host.mjs",
+    "review-host": "node tools/review-host.mjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
