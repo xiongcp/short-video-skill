@@ -94,15 +94,16 @@ export function propTransform(manifest, fk, prop) {
 }
 
 /** Collar polyline and notched ribbon outlines for the teal scarf, mirrored with `fk.facing`. */
-export function scarfShape(manifest, fk) {
+export function scarfShape(manifest, fk, tailAngles = null) {
   const { points: p, H, view, facing } = fk;
   const wide = manifest.views[view].scarf_width;
   const ring = manifest.scarf.ring.map(([u, w]) => [p.neck_base[0] + facing * u * wide * H, p.neck_base[1] + w * H]);
   const knot = ring[manifest.scarf.knot];
   const notch = (manifest.scarf.notch ?? 0.02) * H;
-  const tails = manifest.scarf.tails.map((t) => {
-    const deg1 = 90 + facing * t.angle;
-    const deg2 = 90 + facing * t.angle * 1.4;
+  const tails = manifest.scarf.tails.map((t, i) => {
+    const a = tailAngles?.[i] ?? t.angle;
+    const deg1 = 90 + facing * a;
+    const deg2 = 90 + facing * a * 1.4;
     const midDeg = (deg1 + deg2) / 2;
     const bend = step(knot, deg1, (t.length * H) / 2);
     const tip = step(bend, deg2, (t.length * H) / 2);
@@ -130,7 +131,7 @@ function pen(ctx, name, points, width = ctx.width, color = ctx.ink, opts = {}) {
 }
 
 // Face features in head units (R = 1), drawn for a host facing right around (0, 0).
-function face(base, expr, view, blink) {
+function face(base, expr, view, blink, { mouthOpen = 0, mouthWidth = 0.5, gaze = null } = {}) {
   const ctx = { ...base, wobble: base.wobble * 0.2 }; // small features need a steadier hand
   const e = ctx.manifest.expressions[expr];
   const v = ctx.manifest.views[view];
@@ -139,10 +140,12 @@ function face(base, expr, view, blink) {
   const shift = (v.face_shift * ctx.H) / R;
   const line = ctx.lines.face;
   const at = (u, w) => [(shift + u) * R, w * R];
+  const [gx, gy] = gaze ? [gaze[0] * R, gaze[1] * R] : [0, 0];
   const parts = [];
   const eyes = v.eyes.map((u, i) => {
     const scale = e.eye_scale?.[i] ?? 1;
-    const [cx, cy] = at(u, -0.02);
+    const [bx, by] = at(u, -0.02);
+    const [cx, cy] = [bx + gx, by + gy];
     const k = scale * fs * R;
     if (blink >= 0.5) return pen(ctx, `eye${i}`, [[cx - 0.08 * k, cy], [cx + 0.08 * k, cy]], line);
     const inward = u < 0 ? 1 : -1;
@@ -180,7 +183,14 @@ function face(base, expr, view, blink) {
     smirk: () => pen(ctx, 'mouth', [m(-0.13, 0.03), m(0.05, 0.04), m(0.17, -0.05)], line),
   }[e.mouth];
   if (!mouth) throw new Error(`unknown mouth ${e.mouth}`);
-  parts.push(mouth());
+  if (mouthOpen > 0.04) {
+    const ls = ctx.manifest.lipsync ?? { open_max: 0.16, width: [0.12, 0.22] };
+    const rx = (ls.width[0] + (ls.width[1] - ls.width[0]) * Math.max(0, Math.min(1, mouthWidth))) * fs * R;
+    const ry = Math.max(0.03, mouthOpen * ls.open_max) * fs * R;
+    parts.push(ellipse(mx, my + 0.04 * fs * R, rx, ry, 0, ctx.ink, ' data-mouth-open="1"'));
+  } else {
+    parts.push(mouth());
+  }
   return parts.join('');
 }
 
@@ -263,7 +273,10 @@ function heldProp(ctx, fk, prop) {
  * view defaults to the pose's own view; seed keeps the ink lines fixed within a shot (use the shot ID).
  */
 export function drawHost(manifest, state) {
-  const { gesture, expr, facing = 1, x = 0, ground = 0, blink = 0, theme = 'light', seed = 'host' } = state;
+  const {
+    gesture, expr, facing = 1, x = 0, ground = 0, blink = 0, theme = 'light', seed = 'host',
+    angles = null, lift = null, mouthOpen = 0, mouthWidth = 0.5, gaze = null, scarfAngles = null, hands = null, symbolOpacity = 1,
+  } = state;
   const prop = state.prop === 'none' ? undefined : state.prop; // the prop cue's none puts the prop down
   if (!manifest.expressions[expr]) throw new Error(`unknown expression ${expr}`);
   if (prop && !manifest.props[prop]) throw new Error(`unknown prop ${prop}`);
@@ -271,7 +284,7 @@ export function drawHost(manifest, state) {
   const pose = resolvePose(manifest, gesture);
   const view = state.view ?? pose.view;
   if (!manifest.views[view]) throw new Error(`unknown view ${view}`);
-  const fk = forwardKinematics(manifest, poseAngles(manifest, gesture, prop, view), { view, facing, x, ground, lift: pose.lift ?? 0 });
+  const fk = forwardKinematics(manifest, angles ?? poseAngles(manifest, gesture, prop, view), { view, facing, x, ground, lift: lift ?? pose.lift ?? 0 });
   const { points: p, dirs, H, R } = fk;
   const ctx = {
     manifest, seed, H, R, ink: manifest.ink.body[theme], accent: manifest.ink.accent, markers: manifest.ink.markers,
@@ -282,7 +295,7 @@ export function drawHost(manifest, state) {
   const [fw, fh] = manifest.figure.foot.map((v) => (v * H) / 2);
   const origin = (pt) => `style="transform-origin:${num(pt[0])}px ${num(pt[1])}px"`;
   const drawHand = (s) => {
-    const type = pose.hands?.[s] ?? (pose.finger && s === ACTING ? 'point' : 'fist');
+    const type = hands?.[s] ?? pose.hands?.[s] ?? (pose.finger && s === ACTING ? 'point' : 'fist');
     const spec = manifest.figure.hands?.[type] ?? { size: manifest.figure.hand };
     const [hw, hh] = spec.size.map((v) => (v * H) / 2);
     const center = mid(p[`${s}_wrist`], p[`${s}_hand`]);
@@ -311,13 +324,14 @@ export function drawHost(manifest, state) {
     return `<g data-limb="${s}_leg">${pen(ctx, `${s}_leg`, [p.pelvis, p[`${s}_knee`], p[`${s}_ankle`]], ctx.width, ctx.ink, { smooth: 2 })}${ellipse(foot[0], foot[1], fw * scale, fh, dirs[`${s}_foot`], ctx.ink)}</g>`;
   };
   const torso = pen(ctx, 'spine', [p.pelvis, p.spine_mid, p.neck_base, p.head_base], ctx.width, ctx.ink, { smooth: 2 });
-  const scarfGeom = scarfShape(manifest, fk);
+  const scarfGeom = scarfShape(manifest, fk, scarfAngles);
   const tails = scarfGeom.tails.map((t, i) => `<path data-part="scarf_tail${i}" d="${markerFill(t.outline, { seed: `${ctx.seed}:scarf_tail${i}_fill`, shift: H * 0.0015 })}" fill="${ctx.accent}"/>`
     + `<path data-part="scarf_tail${i}_edge" d="${pathData(t.outline, true)}" fill="none" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[0])}" stroke-linejoin="round"/>`).join('');
   const scarf = `<g data-part="scarf">${pen(ctx, 'scarf_ring', scarfGeom.ring, ctx.lines.scarf, ctx.accent)}</g>`;
   const head = `<g data-joint="head" ${origin(p.head_base)}>${pen(ctx, 'head', circlePoints(p.head_center[0], p.head_center[1], R, { seed: `${seed}:head-circle` }))}`
-    + `<g data-face="${expr}" transform="translate(${num(p.head_center[0])} ${num(p.head_center[1])}) rotate(${num(dirs.head + 90)}) scale(${facing} 1)">${face(ctx, expr, view, blink)}</g></g>`;
-  const sym = manifest.expressions[expr].symbol ? symbol(ctx, manifest.expressions[expr].symbol, p.head_center, facing) : '';
+    + `<g data-face="${expr}" transform="translate(${num(p.head_center[0])} ${num(p.head_center[1])}) rotate(${num(dirs.head + 90)}) scale(${facing} 1)">${face(ctx, expr, view, blink, { mouthOpen, mouthWidth, gaze })}</g></g>`;
+  const rawSym = manifest.expressions[expr].symbol ? symbol(ctx, manifest.expressions[expr].symbol, p.head_center, facing) : '';
+  const sym = rawSym && symbolOpacity < 0.999 ? `<g opacity="${num(Math.max(0, symbolOpacity))}">${rawSym}</g>` : rawSym;
   // Far limbs behind the torso, near limbs in front; in the front view every limb is in front.
   // Mirroring keeps the left limbs on the near side whichever way the host faces.
   const body = view === 'front'
