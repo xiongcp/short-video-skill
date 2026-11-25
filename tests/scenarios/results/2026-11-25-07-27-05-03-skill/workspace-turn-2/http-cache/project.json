@@ -1,0 +1,385 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么 HTTP 缓存能让网页变快？",
+  "brief": {
+    "topic": "为什么 HTTP 缓存能让网页变快？",
+    "audience": "不懂网络的普通人",
+    "promise": "看完能说清：浏览器把看过的资源在本地存一份副本，下次直接调出来用，省去漫长的网络传输。",
+    "sources": [],
+    "open_questions": [
+      "本期面向零基础受众，已将强缓存、协商缓存等技术术语通俗化为“本地小仓库”与“发暗号核实”，需确认此简化程度是否符合预期"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 90,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "light"
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "两次打开的差距",
+      "text": "你有没有发现，第一次打开某个网页往往要等一下？但再次打开时，常常唰地一下就瞬间加载好了。难道是家里的宽带突然加速了吗？其实是浏览器使出了一个偷懒绝招，叫 HTTP 缓存。",
+      "pronunciation": [
+        {
+          "term": "HTTP",
+          "reading": "爱池梯梯屁"
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "title": "第一次打开网页",
+      "text": "第一次打开网页，手机必须向远处的服务器索要内容。各种文字和图片跨越网络送过来，自然需要花时间等待。展示页面的同时，浏览器悄悄在本地把文件存了一份副本。"
+    },
+    {
+      "id": "s03",
+      "title": "第二次直接调取",
+      "text": "当你第二次打开同一个网页，情况就不一样了。浏览器翻看本地的小仓库，发现需要的文件还在。它直接从本地设备调取内容，省去了漫长的网络传输。"
+    },
+    {
+      "id": "s04",
+      "title": "内容变了怎么办",
+      "text": "那要是网上的内容更新了，本地存的副本不就过时了吗？别担心，浏览器会先向服务器发一条极短的消息核对。内容没变就继续用本地副本，变了才重新下载最新版本。"
+    },
+    {
+      "id": "s05",
+      "title": "缓存的核心秘密",
+      "text": "所以，HTTP 缓存的提速秘诀其实非常朴素。就是就近留一份看过的资源，能少跑路就少跑路。这样不仅让页面瞬间加载，还能悄悄省下你的手机流量。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "think"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "网页为什么能秒开",
+          "sub": "第一次等一下，再次打开瞬间加载"
+        }
+      },
+      "cues": [
+        {
+          "sentence": 0,
+          "do": "prop",
+          "target": "question"
+        },
+        {
+          "sentence": 1,
+          "do": "prop",
+          "target": "none"
+        },
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "surprised"
+        }
+      ],
+      "note": "抛出疑问：为什么同一个网页第二次打开快得多"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [2, 3],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "shrug"
+      },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "宽带突然加速？",
+            "偷懒绝招：HTTP 缓存"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "reveal",
+          "target": 1
+        },
+        {
+          "sentence": 3,
+          "do": "expr",
+          "target": "happy"
+        },
+        {
+          "sentence": 3,
+          "do": "gesture",
+          "target": "present"
+        }
+      ],
+      "note": "揭示真相不是宽带加速，而是浏览器使用了 HTTP 缓存"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "手机索要",
+            "跨越网络",
+            "服务器送来"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "note": "展示第一次打开时跨越网络索要内容的长途流程"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "point"
+      },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "展示页面",
+            "本地存一份副本"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "reveal",
+          "target": 1
+        }
+      ],
+      "note": "说明浏览器展示的同时悄悄在本地存下副本"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "idle"
+      },
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "第二次打开",
+            "翻看本地仓库",
+            "发现文件还在"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "reveal",
+          "target": 1
+        },
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "focused"
+        },
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "point"
+        }
+      ],
+      "note": "展示第二次打开时浏览器先在本地小仓库找到文件"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [2],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "网络传输",
+            "rows": [
+              "漫长等待"
+            ]
+          },
+          "right": {
+            "label": "本地设备",
+            "rows": [
+              "直接调取内容"
+            ]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "note": "对比网络传输与本地设备直接调取的差异"
+    },
+    {
+      "id": "sh07",
+      "section": "s04",
+      "sentences": [0],
+      "layout": "host-left",
+      "host": {
+        "expr": "worried",
+        "gesture": "think"
+      },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "网上内容更新？",
+            "本地副本过时？"
+          ]
+        }
+      },
+      "note": "提出顾虑：如果网上的内容更新了，本地副本会不会过时"
+    },
+    {
+      "id": "sh08",
+      "section": "s04",
+      "sentences": [1],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "浏览器",
+            "发极短消息",
+            "向服务器核对"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "note": "展示浏览器向服务器发送极短消息进行核对"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [2],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "内容没变",
+            "rows": [
+              "继续用本地副本"
+            ]
+          },
+          "right": {
+            "label": "内容变了",
+            "rows": [
+              "下载最新版本"
+            ]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "highlight",
+          "target": 0
+        }
+      ],
+      "note": "对比内容没变继续用副本与内容变了下载新版本的处理方式"
+    },
+    {
+      "id": "sh10",
+      "section": "s05",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "proud",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "就近留一份资源",
+            "能少跑路就少跑路"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "happy"
+        },
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "present"
+        }
+      ],
+      "note": "总结 HTTP 缓存的核心思想：就近备一份，减少网络奔波"
+    },
+    {
+      "id": "sh11",
+      "section": "s05",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "wave"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "页面瞬间加载",
+          "sub": "还能省下手机流量"
+        }
+      },
+      "note": "结尾带走与致谢，点明瞬间加载和节省流量的实际好处"
+    }
+  ],
+  "checkpoints": [
+    {
+      "stage": "plan",
+      "revision": 1,
+      "at": "2026-11-24T23:30:51-08:00",
+      "note": "确认，没问题。"
+    }
+  ],
+  "jobs": []
+}
