@@ -13,6 +13,7 @@ The previous Studio implementation (13 skills, a TypeScript runtime, a SQLite st
 | `tests/` | `node --test` suites and the agent scenario evaluations in `tests/scenarios/` |
 | `docs/lite/` | Plans, in Chinese |
 | `site/` | The project website: one static page, no build step, published to GitHub Pages |
+| `tools/` | Development scripts outside the skill: `export-host.mjs` redraws the host images from `rig.mjs` |
 | `.github/workflows/` | `pages.yml` publishes `site/` |
 
 ## Budgets (enforced by `tests/budget.test.mjs`)
@@ -38,5 +39,6 @@ The previous Studio implementation (13 skills, a TypeScript runtime, a SQLite st
 ```sh
 npm install   # development dependencies
 npm test      # every node --test suite
+npm run export-host   # redraw host-ref.png, the site cheatsheet and hero after changing rig.mjs, ink.mjs or manifest.json
 npm run scenario -- --scenario 01 --mode skill --agent agy   # agent scenario run (codex or agy); spends quota, ask the owner first
 ```

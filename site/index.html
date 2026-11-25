@@ -62,24 +62,19 @@ details p { margin: 10px 0 0; color: var(--muted); }
 .roadmap { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 10px; }
 .roadmap li { display: grid; grid-template-columns: 64px 1fr auto; gap: 16px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 18px; }
 .roadmap b { color: var(--navy); }
-.host-row { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-top: 28px; }
-.cast { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 0; }
-.cast figure { margin: 0; background: linear-gradient(160deg, #e6eef7, #c9d7e8); border-radius: var(--radius); overflow: hidden; text-align: center; }
-.cast .figure { position: relative; aspect-ratio: 820 / 900; }
-.cast .figure img { width: 100%; height: 100%; display: block; }
-.cast .face { background-position-y: var(--row); animation: blink 5s step-end infinite; animation-delay: var(--delay); }
-.cast figcaption { background: var(--card); padding: 6px 0; font-size: 14px; color: var(--navy); font-weight: 600; }
+.cheatsheet { margin: 28px 0 0; background: #fbfaf6; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.cheatsheet img { width: 100%; height: auto; display: block; }
 .table-wrap { overflow-x: auto; margin-top: 28px; }
 .table-wrap table { margin-top: 0; min-width: 640px; }
 footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
 
-/* 成片画面示意：主持人在左，图解在右，底部字幕 */
+/* 成片画面示意：图解在上部，火柴人站在左下方，底部字幕 */
 .frame { position: relative; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: linear-gradient(160deg, #dfe9f4, #b9cbe0); box-shadow: 0 24px 60px rgba(31,42,85,.18); }
-.frame .host { position: absolute; left: 3%; bottom: 0; height: 94%; aspect-ratio: 820 / 900; transform-origin: 50% 100%; animation: breathe 4s ease-in-out infinite; }
-.frame .host img { width: 100%; height: 100%; display: block; }
-.face { position: absolute; left: 29.39%; top: 26.78%; width: 21.95%; height: 19.11%; background: url("assets/faces.png") 0% 0% / 400% 400% no-repeat; }
-.frame .face { background-position: 0% 66.667%; animation: face 6s step-end infinite; }
-.frame .diagram { position: absolute; right: 4%; top: 26%; width: 56%; display: flex; align-items: center; justify-content: space-between; gap: 2%; }
+.frame .host { position: absolute; left: 3%; bottom: 15%; height: 66%; aspect-ratio: 320 / 480; transform-origin: 50% 100%; animation: breathe 4s ease-in-out infinite; }
+.frame .host svg { width: 100%; height: 100%; display: block; }
+.frame .host [data-joint="l_elbow"] { animation: wave 4s ease-in-out infinite; }
+.frame .host [data-face-part="eyes"] { animation: blink 5s step-end infinite; }
+.frame .diagram { position: absolute; right: 4%; top: 18%; width: 60%; display: flex; align-items: center; justify-content: space-between; gap: 2%; }
 .frame .node { padding: .45em .8em; border-radius: 10px; border: 2px solid var(--navy); background: #fff; color: var(--ink); font-weight: 700; font-size: clamp(11px, 1.5vw, 17px); white-space: nowrap; opacity: 0; animation: 6s cubic-bezier(.22,1,.36,1) infinite; }
 .frame .arrow { flex: 1; height: 3px; background: var(--navy); transform-origin: 0 50%; position: relative; animation: 6s cubic-bezier(.65,0,.35,1) infinite; transform: scaleX(0); }
 .frame .arrow::after { content: ""; position: absolute; right: -2px; top: -5px; border: 6px solid transparent; border-left: 9px solid var(--navy); border-right: 0; }
@@ -91,13 +86,8 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
 .frame .caption em { font-style: normal; font-weight: 700; animation: kw 6s ease infinite; }
 .frame .badge { position: absolute; right: 12px; top: 10px; font-size: 12px; color: var(--navy); background: rgba(255,255,255,.8); padding: 2px 10px; border-radius: 999px; }
 @keyframes breathe { 50% { transform: scale(1.008); } }
-@keyframes blink { 0% { background-position-x: 0%; } 90% { background-position-x: 100%; } 93% { background-position-x: 0%; } }
-@keyframes face {
-  0% { background-position: 0% 66.667%; } 8% { background-position: 33.333% 66.667%; } 13% { background-position: 66.667% 66.667%; }
-  18% { background-position: 33.333% 66.667%; } 23% { background-position: 66.667% 66.667%; } 28% { background-position: 0% 66.667%; }
-  33% { background-position: 33.333% 66.667%; } 38% { background-position: 66.667% 66.667%; } 44% { background-position: 0% 66.667%; }
-  74% { background-position: 100% 66.667%; } 77% { background-position: 0% 66.667%; }
-}
+@keyframes wave { 0%, 30%, 100% { transform: rotate(0); } 5%, 15%, 25% { transform: rotate(-25deg); } 10%, 20% { transform: rotate(25deg); } }
+@keyframes blink { 0%, 97% { transform: none; } 94% { transform: scaleY(.1); } }
 @keyframes in1 { 0%, 6% { opacity: 0; transform: translateY(12px) scale(.96); } 12%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 @keyframes draw1 { 0%, 14% { transform: scaleX(0); opacity: 1; } 22%, 92% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
 @keyframes in2 { 0%, 22% { opacity: 0; transform: translateY(12px) scale(.96); } 28% { opacity: 1; transform: none; background: #fff; color: var(--ink); }
@@ -106,13 +96,12 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
 @keyframes in3 { 0%, 56% { opacity: 0; transform: translateY(12px) scale(.96); } 62%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 @keyframes kw { 0%, 36% { color: #fff; } 42%, 92% { color: #7fe3e0; } 100% { color: #fff; } }
 @media (prefers-reduced-motion: reduce) {
-  .frame .host, .face, .frame .node, .frame .arrow, .frame .caption em { animation: none; }
+  .frame .host, .frame .host [data-joint], .frame .host [data-face-part], .frame .node, .frame .arrow, .frame .caption em { animation: none; }
   .frame .node { opacity: 1; } .frame .arrow { transform: none; }
   .frame .n2 { background: var(--teal); border-color: var(--teal); color: #fff; } .frame .caption em { color: #7fe3e0; }
 }
 @media (max-width: 860px) {
-  .hero .wrap, .host-row, .grid, .grid.two { grid-template-columns: 1fr; }
-  .cast { grid-template-columns: repeat(2, 1fr); }
+  .hero .wrap, .grid, .grid.two { grid-template-columns: 1fr; }
   .top nav { display: none; }
   section { padding: 56px 0; }
 }
@@ -143,8 +132,8 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
       </div>
       <div class="status"><span class="pill ok">L0 文本包 · 可用 · 零依赖</span><span class="pill dev">L1 本地成片 · 开发中</span></div>
     </div>
-    <div class="frame" role="img" aria-label="成片画面示意：主持人晴在左侧打招呼，右侧流程图依次出现浏览器、本地副本、显示图标，底部字幕的关键词与图解同步高亮">
-      <div class="host"><img src="assets/body-wave.png" alt="" width="820" height="900"><span class="face"></span></div>
+    <div class="frame" role="img" aria-label="成片画面示意：火柴人小青在左下方挥手打招呼，上方流程图依次出现浏览器、本地副本、显示图标，底部字幕的关键词与图解同步高亮">
+      <div class="host"><!-- host:hero --><svg viewBox="0 0 320 480" aria-hidden="true"><g data-host="xiaoqing" data-gesture="wave" data-expr="happy" data-view="front"><path data-part="scarf_tail0" d="M149.44 163.36L146.13 168.9L142.02 174.17L140.2 179.99L139.91 186.28L137.74 192.06L133.8 197.16L131.14 202.85A3.6 3.6 0 0 0 137.66 205.92L137.66 205.92L141.57 200.81L146.51 196.19L149.39 190.38L149.91 183.48L151.25 177.17L154.3 171.55L156.28 165.59A3.6 3.6 0 0 0 149.44 163.36Z" fill="#20a5a3"/><path data-part="scarf_tail1" d="M150.04 163.04L146.04 166.61L142.09 170.2L139.71 174.46L136.2 177.47L132.26 180.36L129.73 185.09L126.75 189.38A3.6 3.6 0 0 0 131.86 194.45L131.86 194.45L135.82 191.15L139.14 187.19L143.92 184.32L148.14 180.41L150.31 175.34L153.32 171.16L156.15 166.86A3.6 3.6 0 0 0 150.04 163.04Z" fill="#20a5a3"/><path data-part="spine" d="M164.65 274.39L164.59 268.19L164.35 261.99L164.06 255.79L163.88 249.59L163.96 243.39L164.33 237.19L164.94 230.99L165.65 224.85L166.39 218.88L167.21 212.87L167.73 206.69L168 200.5L168.14 194.29L168.28 188.09L168.55 181.89L168.97 175.71L169.49 169.53L169.95 163.34L170.24 157.15L170.24 150.93A4.4 4.4 0 0 0 161.46 150.32L161.46 150.32L160.96 156.5L160.19 162.66L159.26 168.81L158.32 174.96L157.51 181.12L156.92 187.29L156.51 193.48L156.19 199.67L155.8 205.86L155.24 212.04L154.44 218.34L153.81 224.73L153.29 230.99L152.94 237.19L152.89 243.39L153.2 249.59L153.81 255.79L154.56 261.99L155.29 268.19L155.85 274.39A4.4 4.4 0 0 0 164.65 274.39Z" fill="#1f1f1f"/><g data-limb="r_leg"><path data-part="r_leg" d="M155.25 273.38L153.5 279.21L151.77 285.04L150.11 290.89L148.53 296.76L147.08 302.65L145.75 308.57L144.56 314.52L143.47 320.49L142.47 326.48L141.51 332.48L140.56 338.48L139.57 344.47L138.52 350.45L137.4 356.41L136.14 362.57L135.34 368.85L134.63 374.92L133.89 380.94L133.16 386.96L132.47 392.99L131.84 399.02L131.29 405.07L130.81 411.12L130.39 417.17L130.01 423.23L129.64 429.29L129.24 435.35L128.78 441.4L128.24 447.45L127.61 453.48A4.4 4.4 0 0 0 136.36 454.4L136.36 454.4L137.33 448.4L138.19 442.39L138.97 436.37L139.68 430.35L140.35 424.32L141.01 418.29L141.69 412.26L142.4 406.23L143.17 400.21L143.98 394.2L144.82 388.19L145.67 382.18L146.49 376.16L147.25 370.2L147.98 364.55L149.12 358.91L150.19 352.93L151.16 346.93L152.02 340.92L152.83 334.89L153.61 328.85L154.41 322.82L155.26 316.8L156.2 310.79L157.25 304.81L158.41 298.86L159.68 292.93L161.03 287.01L162.44 281.11L163.86 275.21A4.4 4.4 0 0 0 155.25 273.38Z" fill="#1f1f1f"/><ellipse cx="121.02" cy="452.79" rx="10.5" ry="5" transform="rotate(186 121.02 452.79)" fill="#1f1f1f"/></g><g data-limb="l_leg"><path data-part="l_leg" d="M156.37 274.9L156.68 280.98L156.94 287.07L157.2 293.16L157.5 299.25L157.86 305.32L158.33 311.38L158.93 317.42L159.68 323.44L160.57 329.45L161.59 335.43L162.72 341.4L163.93 347.35L165.19 353.3L166.45 359.25L167.66 365.13L168.63 371.04L169.47 377.04L170.21 383.06L170.84 389.09L171.37 395.14L171.82 401.19L172.21 407.25L172.58 413.31L172.96 419.37L173.39 425.43L173.89 431.47L174.48 437.51L175.16 443.54L175.95 449.56L176.82 455.57A4.4 4.4 0 0 0 185.57 454.65L185.57 454.65L185.03 448.6L184.58 442.55L184.21 436.49L183.93 430.42L183.73 424.34L183.59 418.26L183.46 412.17L183.33 406.08L183.14 400L182.88 393.93L182.5 387.87L181.99 381.82L181.34 375.79L180.54 369.75L179.57 363.64L178.31 357.58L177 351.64L175.66 345.7L174.33 339.76L173.05 333.82L171.84 327.86L170.75 321.89L169.77 315.9L168.91 309.89L168.16 303.87L167.5 297.84L166.9 291.8L166.32 285.75L165.72 279.71L165.08 273.67A4.4 4.4 0 0 0 156.37 274.9Z" fill="#1f1f1f"/><ellipse cx="192.65" cy="453.9" rx="10.5" ry="5" transform="rotate(-6 192.65 453.9)" fill="#1f1f1f"/></g><g data-part="scarf"><path data-part="scarf_ring" d="M142.87 160.43L147.54 165.14L153.36 169.04L160.18 171.53L167.39 171.74L174.5 169.83L180.61 165.93L184.31 160.11A3.6 3.6 0 0 0 179.06 155.18L179.06 155.18L175.3 159.18L170.87 160.83L166.02 161.51L161.54 161.3L156.98 160.04L152.85 158.39L148.13 155.51A3.6 3.6 0 0 0 142.87 160.43Z" fill="#20a5a3"/></g><g data-joint="head" style="transform-origin:164.88px 150.56px"><path data-part="head" d="M203.69 76.61L207.22 81.13L209.99 85.74L212.2 90.65L213.79 95.81L214.73 101.16L214.99 106.6L214.53 112.06L213.34 117.44L211.42 122.62L208.81 127.5L205.54 131.98L201.68 135.97L197.3 139.38L192.49 142.15L187.37 144.22L182.03 145.59L176.6 146.22L171.15 146.1L165.78 145.28L160.58 143.79L155.63 141.69L150.99 139.01L146.73 135.79L142.89 132.08L139.53 127.93L136.71 123.4L134.48 118.55L132.88 113.44L131.95 108.16L131.72 102.79L132.21 97.43L133.42 92.19L135.33 87.15L137.9 82.44L141.11 78.17L144.88 74.36L149.1 71.1L153.69 68.43L158.57 66.39L163.65 64.98L168.84 64.21L174.07 64.07L179.28 64.55L184.39 65.64L189.36 67.32L194.12 69.58L198.61 72.41L202.76 75.77L206.5 79.65L209.76 84.01L212.59 89.06A4.4 4.4 0 0 0 220.54 85.29L220.54 85.29L217.62 79.62L213.89 74.17L209.52 69.25L204.59 64.92L199.18 61.22L193.37 58.21L187.24 55.91L180.87 54.36L174.34 53.59L167.73 53.61L161.15 54.46L154.68 56.14L148.45 58.65L142.56 61.97L137.13 66.06L132.27 70.87L128.07 76.34L124.69 82.37L122.17 88.8L120.55 95.52L119.85 102.4L120.08 109.31L121.22 116.12L123.24 122.72L126.1 129L129.73 134.85L134.07 140.2L139.05 144.96L144.58 149.06L150.59 152.45L157 155.05L163.69 156.83L170.58 157.75L177.57 157.75L184.51 156.78L191.24 154.9L197.65 152.12L203.63 148.49L209.04 144.09L213.77 138.98L217.75 133.29L220.89 127.14L223.14 120.64L224.49 113.94L224.93 107.17L224.48 100.45L223.18 93.89L221.07 87.59L218.23 81.64L214.69 76.12L210.67 71.24A4.4 4.4 0 0 0 203.69 76.61Z" fill="#1f1f1f"/><g data-face="happy" transform="translate(173.04 104.27) rotate(10) scale(1 1)"><g data-face-part="eyes" style="transform-origin:0px -0.94px"><path data-part="eye0" d="M-17.74 2L-16.26 0.8L-14.63 -0.27L-13.66 -0.87L-14.51 -0.92L-13.53 -0.3L-11.98 0.83L-10.5 2.04A1.6 1.6 0 0 0 -8.23 -0.23L-8.23 -0.23L-9.35 -1.8L-10.6 -3.23L-12.56 -4.83L-15.62 -4.78L-17.56 -3.19L-18.89 -1.83L-20 -0.26A1.6 1.6 0 0 0 -17.74 2Z" fill="#1f1f1f"/><path data-part="eye1" d="M10.51 2.05L12.19 1.05L13.65 -0.18L14.28 -1.39L13.84 -1.23L14.53 -0.16L16.1 0.96L17.61 2.13A1.6 1.6 0 0 0 19.87 -0.13L19.87 -0.13L18.73 -1.67L17.46 -3.09L15.8 -5.14L12.32 -5.3L10.73 -3.1L9.56 -1.59L8.24 -0.22A1.6 1.6 0 0 0 10.51 2.05Z" fill="#1f1f1f"/></g><path data-part="brow0" d="M-19.73 -19.61L-17.88 -19.68L-16.04 -19.79L-14.54 -20.34L-13.25 -20.64L-11.71 -20.64L-9.91 -21.03L-8.12 -21.23A1.6 1.6 0 0 0 -7.95 -24.42L-7.95 -24.42L-9.71 -24.75L-11.49 -24.77L-13.5 -25L-15.6 -24.58L-17.35 -23.71L-19.06 -23.21L-20.75 -22.65A1.6 1.6 0 0 0 -19.73 -19.61Z" fill="#1f1f1f"/><path data-part="brow1" d="M8.13 -21.01L9.92 -20.85L11.72 -20.54L13.23 -20.41L14.57 -20.49L16.22 -20.32L17.91 -19.77L19.61 -19.24A1.6 1.6 0 0 0 20.62 -22.28L20.62 -22.28L19.09 -23.29L17.53 -24.25L15.64 -24.73L13.48 -24.78L11.5 -24.67L9.72 -24.57L7.96 -24.2A1.6 1.6 0 0 0 8.13 -21.01Z" fill="#1f1f1f"/><path d="M-9.4 19.74L9.4 19.74Q9.4 31.96 0 31.96Q-9.4 31.96 -9.4 19.74Z" fill="#1f1f1f"/></g></g><g data-limb="r_arm"><path data-part="r_upper_arm" d="M160.57 165.48L158.47 171.53L155.75 177.37L152.58 183.07L149.65 188.85L147.48 194.87L145.92 201.1L144.36 207.32L142.38 213.41L140.17 219.42L138.34 225.55A4.4 4.4 0 0 0 146.71 228.27L146.71 228.27L149.48 222.44L152.54 216.71L155.19 210.84L157.19 204.76L158.89 198.58L160.92 192.51L163.41 186.59L165.9 180.67L167.78 174.55L168.93 168.2A4.4 4.4 0 0 0 160.57 165.48Z" fill="#1f1f1f"/><g data-joint="r_elbow" style="transform-origin:143.99px 227.39px"><path data-part="r_forearm" d="M140.46 225.35L136.94 231.01L133.25 236.58L128.69 241.65L124.18 246.75L121.11 252.67L119.17 259.25L116.82 265.59L113.57 271.41L110.4 277.28A4.4 4.4 0 0 0 118.02 281.68L118.02 281.68L122.14 276.36L126.22 271.01L129.19 265.03L131.46 258.64L134.54 252.72L138.71 247.44L142.65 242.01L145.5 235.96L148.08 229.75A4.4 4.4 0 0 0 140.46 225.35Z" fill="#1f1f1f"/><ellipse cx="109.99" cy="286.28" rx="9" ry="6" transform="rotate(120 109.99 286.28)" fill="#1f1f1f"/></g></g><g data-limb="l_arm"><path data-part="l_upper_arm" d="M164.53 170.44L170.9 169.65L177.14 168.22L183.44 167.11L189.91 166.84L196.39 166.65L202.7 165.55L208.85 163.66L215.05 162.01L221.39 161.09L227.72 160.13A4.4 4.4 0 0 0 226.04 151.49L226.04 151.49L219.52 151.48L213.01 151.53L206.68 152.48L200.44 153.93L194.1 154.87L187.65 155.21L181.27 155.93L175.1 157.73L169.03 160.04L162.85 161.8A4.4 4.4 0 0 0 164.53 170.44Z" fill="#1f1f1f"/><g data-joint="l_elbow" style="transform-origin:226.59px 154.31px"><path data-part="l_forearm" d="M229.5 155.03L232.7 148.96L236.03 142.92L238.1 136.57L238.94 129.91L239.69 123.22L241.17 116.72L243.1 110.33L244.73 103.86L245.79 97.26A4.4 4.4 0 0 0 237.25 95.13L237.25 95.13L235.13 101.47L232.57 107.7L229.94 113.92L228.09 120.33L227.35 127.01L226.88 133.77L225.49 140.29L223.09 146.57L220.96 152.9A4.4 4.4 0 0 0 229.5 155.03Z" fill="#1f1f1f"/><ellipse cx="243.04" cy="88.33" rx="9" ry="6" transform="rotate(-76 243.04 88.33)" fill="#1f1f1f"/></g></g></g></svg><!-- /host:hero --></div>
       <div class="diagram"><span class="node n1">浏览器</span><i class="arrow a1"></i><span class="node n2">本地副本</span><i class="arrow a2"></i><span class="node n3">显示图标</span></div>
       <p class="caption"><span>第二趟，浏览器直接拿<em>本地副本</em>来用。</span></p>
       <span class="badge">示意 · L1 开发中</span>
@@ -173,7 +162,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
         <ul><li><code>project.json</code>：唯一的数据源</li><li><code>讲稿.md</code>：配音稿</li><li><code>分镜.md</code>：每镜的版式、主持人、图解和 cue</li><li><code>提示词包.md</code>：逐镜的外部模型提示词</li></ul>
         <p class="note">不需要 FFmpeg，也不调用付费服务。</p></div>
       <div class="card"><h3>L1 本地成片 <span class="pill dev">开发中</span></h3>
-        <ul><li>1080p60 成片，主持人"晴"出镜讲解</li><li>按句字幕，关键词与图解同步着色</li><li>封面、B 站章节时间戳</li><li>QA 报告：规格、响度、音画同步、跳变与卡顿</li></ul>
+        <ul><li>1080p60 成片，火柴人"小青"出镜讲解，能走到图解元素旁边</li><li>按句字幕，关键词与图解同步着色</li><li>封面、B 站章节时间戳</li><li>QA 报告：规格、响度、音画同步、跳变与卡顿</li></ul>
         <p class="note">需要 Node、FFmpeg 和一个 npm 包。</p></div>
     </div>
   </div>
@@ -181,21 +170,11 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
 
 <section id="host">
   <div class="wrap">
-    <h2>主持人"晴"</h2>
-    <div class="host-row">
-      <div>
-        <p class="lead">原创动漫主持人：藏青短发配一缕青色挑染，头顶一根呆毛，白衬衫、青色领结、墨蓝短外套。</p>
-        <p>现有立绘：4 种表情（讲解、专注、开心、好奇），每种都有闭口、半开、张开三种口型和眨眼；4 种手势（默认、指向右侧、挥手、强调）。</p>
-        <p><span class="pill dev">v2 设计中</span> 约 20 个矢量部件的骨架：渐变虹膜、三层头发、两色赛璐璐与边缘光；表情和手势平滑补间，口型连续开合，呼吸、眨眼、点头和视线自动跟随。</p>
-        <p>也可以换成你自己的角色：提供同名的素材和 <code>profile.json</code>。</p>
-      </div>
-      <div class="cast" role="list" aria-label="晴的 4 种表情">
-        <figure role="listitem"><div class="figure"><img src="assets/body-idle.png" alt="晴，讲解表情" width="820" height="900"><span class="face" style="--row: 0%; --delay: 0s"></span></div><figcaption>讲解</figcaption></figure>
-        <figure role="listitem"><div class="figure"><img src="assets/body-idle.png" alt="晴，专注表情" width="820" height="900"><span class="face" style="--row: 33.333%; --delay: -1.2s"></span></div><figcaption>专注</figcaption></figure>
-        <figure role="listitem"><div class="figure"><img src="assets/body-idle.png" alt="晴，开心表情" width="820" height="900"><span class="face" style="--row: 66.667%; --delay: -2.5s"></span></div><figcaption>开心</figcaption></figure>
-        <figure role="listitem"><div class="figure"><img src="assets/body-idle.png" alt="晴，好奇表情" width="820" height="900"><span class="face" style="--row: 100%; --delay: -3.7s"></span></div><figcaption>好奇</figcaption></figure>
-      </div>
-    </div>
+    <h2>主持人"小青"</h2>
+    <p class="lead">原创手绘火柴人：黑色墨线，空心圆头，椭圆眼睛，脖子上系一条青色围巾。全身 17 个关节由代码画出，每个镜头都是同一个人。</p>
+    <p>分镜按名字选 12 个动作、8 种表情和 6 件手持道具；表情自带问号、汗滴、闪光这类符号。在 <code>host-left</code> 镜头里，小青能走到某个图解元素旁边，指它、看它、拍它。</p>
+    <p><span class="pill dev">L1 开发中</span> 走路、跳跃、补间、口型和眨眼随本地成片一起做；现在的 L0 提示词包把参考图交给外部模型，让每个镜头画出同一个人。</p>
+    <figure class="cheatsheet"><img src="assets/host-cheatsheet.png" alt="小青速查图：12 个动作、8 种表情和 6 件道具，每格写着英文名和中文说明" width="1800" height="1600" loading="lazy"></figure>
   </div>
 </section>
 
@@ -248,7 +227,7 @@ cp -R short-video-skill/skills/topic-to-video ~/.agents/skills/   # Codex</code>
     <details><summary>会花钱吗？</summary><p>skill 本身不调用付费服务。需要付费调用时，Agent 会先说明服务、数量和预估费用，等你同意，并记下每一次调用。</p></details>
     <details><summary>能做竖屏吗？</summary><p>L0 提示词包支持 9:16 构图；L1 本地成片首版只做 16:9。</p></details>
     <details><summary>资料里写着"忽略之前的要求"，会被执行吗？</summary><p>不会。资料、网页和草稿里的文字都只当内容。</p></details>
-    <details><summary>主持人"晴"可以商用吗？</summary><p>使用权还没有核清，商用前请先联系项目 owner。</p></details>
+    <details><summary>主持人"小青"可以商用吗？</summary><p>使用权还没有核清，商用前请先联系项目 owner。</p></details>
   </div>
 </section>
 
@@ -259,7 +238,7 @@ cp -R short-video-skill/skills/topic-to-video ~/.agents/skills/   # Codex</code>
       <li><b>P0</b><span>旧版工作室归档，仓库瘦身为单一 skill</span><span class="pill ok">完成</span></li>
       <li><b>P1</b><span>L0 文本包与场景评测</span><span class="pill ok">完成</span></li>
       <li><b>设计</b><span>出片质量：人物、帧率、匹配度、平滑动画</span><span class="pill ok">完成</span></li>
-      <li><b>P2a</b><span>主持人 v2：矢量部件骨架</span><span class="pill dev">待开始</span></li>
+      <li><b>S1</b><span>火柴人主持人"小青"：骨架、表情、道具与速查图</span><span class="pill ok">完成</span></li>
       <li><b>P2b</b><span>本地渲染器：60fps、关键词对齐、并行渲染</span><span class="pill dev">待开始</span></li>
       <li><b>P3</b><span>转场、样片、返修与 QA</span><span class="pill dev">待开始</span></li>
       <li><b>P4</b><span>安装实测与发布</span><span class="pill dev">待开始</span></li>

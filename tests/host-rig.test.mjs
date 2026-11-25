@@ -1,8 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { JOINTS } from '../skills/topic-to-video/scripts/lib/rig.mjs';
+import { hostRefSvg, svgHash } from '../tools/export-host.mjs';
+import { pngSize, pngText } from './helpers/png.mjs';
 
 const SKILL = join(import.meta.dirname, '../skills/topic-to-video');
 const HOST = join(SKILL, 'assets/host');
@@ -40,4 +43,16 @@ test('host folder stays within 1.2 MB and declares a usage state', () => {
   const total = readdirSync(HOST).reduce((sum, f) => sum + statSync(join(HOST, f)).size, 0);
   assert.ok(total <= 1.2 * 1024 * 1024, `host assets are ${total} bytes`);
   assert.ok(['pending', 'cleared'].includes(json(join(HOST, 'rights.json')).usage));
+});
+
+test('host folder holds the rig data, the reference image and the rights record, nothing else', () => {
+  assert.deepEqual(readdirSync(HOST).sort(), ['host-ref.png', 'manifest.json', 'profile.json', 'rights.json']);
+});
+
+test('host-ref.png matches manifest.json and was drawn from the current rig', () => {
+  const png = readFileSync(join(HOST, manifest.ref.file));
+  assert.equal(createHash('sha256').update(png).digest('hex'), manifest.ref.sha256);
+  assert.deepEqual(pngSize(png), { width: manifest.ref.width, height: manifest.ref.height });
+  assert.ok(png.length <= 300 * 1024, `${png.length} bytes`);
+  assert.equal(pngText(png, 'svg-sha256'), svgHash(hostRefSvg(manifest)), 'rig.mjs or manifest.json changed: run npm run export-host');
 });

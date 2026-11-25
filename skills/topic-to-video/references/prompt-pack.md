@@ -19,7 +19,7 @@
 ## 主持人一致性
 
 - 主持人描述逐字使用 [profile.json](../assets/host/profile.json) 中的 `prompt_lock`，每个 `host-left` 镜头的首帧图提示词都要重复。
-- 把 [body-idle.png](../assets/host/body-idle.png) 复制到项目的 `ref/host.png`，并告诉用户：平台支持参考图时上传它。
+- 把 [host-ref.png](../assets/host/host-ref.png) 复制到项目的 `ref/host.png`，并告诉用户：平台支持参考图时上传它。
 - `full` 镜头不出现主持人，首帧图提示词里写"画面中没有人物"。
 
 ## 文字与声音

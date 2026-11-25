@@ -30,7 +30,7 @@ test('storyboard.md documents every template, expression, gesture, prop and cue 
 test('prompt-pack.md uses the host prompt lock and reference image', () => {
   const text = ref('prompt-pack.md');
   assert.ok(text.includes('prompt_lock'));
-  assert.ok(text.includes('body-idle.png'));
+  assert.ok(text.includes('](../assets/host/host-ref.png)'), 'links the reference image');
 });
 
 test('storyboard.md maps sentence intent to host acting and names the storyboard warnings', () => {

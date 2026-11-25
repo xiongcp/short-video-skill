@@ -3,7 +3,7 @@
   "name": "小青",
   "rig_version": 1,
   "height_px": 400,
-  "ref": {"file": "host-ref.png", "width": 1600, "height": 900, "sha256": ""},
+  "ref": {"file": "host-ref.png", "width": 1600, "height": 900, "sha256": "5c121654dbe47d7133abc17d17edf72ac0f5cc3ded1085515202212c0615bd2f"},
   "ink": {"width": [0.022, 0.03], "wobble": 0.004, "body": {"light": "#1f1f1f", "dark": "#f2f2f2"}, "accent": "#20a5a3", "markers": {"yellow": "#f6c945", "red": "#e05a47", "teal": "#7fd1cf"}},
   "joints": {
     "pelvis": {"parent": null, "length": 0, "range": [-20, 20]},
