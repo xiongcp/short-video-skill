@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>topic-to-video · 说一个主题，做出中文知识解说视频</title>
+<meta name="description" content="给 Codex、Claude Code 用的轻量 skill：把主题、资料或讲稿做成中文知识解说视频的讲稿、分镜和逐镜提示词包。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f2a55'/%3E%3Cpath d='M12 9l11 7-11 7z' fill='%2320a5a3'/%3E%3C/svg%3E">
+<style>
+:root {
+  --ink: #1c2333; --muted: #5b6478; --line: #e3e7f0; --bg: #f5f7fb; --card: #fff;
+  --navy: #1f2a55; --teal: #20a5a3; --teal-soft: #e3f5f4; --amber: #9a6412; --amber-soft: #fdf3e1;
+  --radius: 14px; color-scheme: light;
+  font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: var(--ink); background: var(--bg); line-height: 1.7;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: var(--teal); text-underline-offset: 3px; }
+code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: .9em; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.top { position: sticky; top: 0; z-index: 10; background: rgba(245,247,251,.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
+.brand { font-weight: 700; color: var(--navy); text-decoration: none; }
+.top nav { display: flex; gap: 18px; flex: 1; overflow-x: auto; }
+.top nav a { color: var(--muted); text-decoration: none; font-size: 15px; white-space: nowrap; }
+.top nav a:hover { color: var(--navy); }
+.btn { display: inline-block; padding: 10px 20px; border-radius: 999px; font-weight: 600; text-decoration: none; border: 2px solid var(--navy); }
+.btn.primary { background: var(--navy); color: #fff; }
+.btn.ghost { color: var(--navy); }
+.btn.small { padding: 6px 14px; font-size: 14px; }
+section { padding: 72px 0; }
+section + section { border-top: 1px solid var(--line); }
+h1 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.25; margin: 12px 0 20px; color: var(--navy); }
+.nb { display: inline-block; }
+h2 { font-size: 30px; margin: 0 0 12px; color: var(--navy); }
+.lead { font-size: 18px; color: var(--muted); margin: 0 0 28px; }
+.eyebrow { color: var(--teal); font-weight: 700; letter-spacing: .08em; font-size: 14px; }
+.hero { padding-top: 56px; }
+.hero .wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.status { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; font-size: 14px; }
+.pill { display: inline-block; padding: 2px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.pill.ok { background: var(--teal-soft); color: #11706e; }
+.pill.dev { background: var(--amber-soft); color: var(--amber); }
+.grid { display: grid; gap: 20px; grid-template-columns: repeat(3, 1fr); margin-top: 32px; }
+.grid.two { grid-template-columns: repeat(2, 1fr); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.card h3 { margin: 0 0 8px; color: var(--navy); font-size: 19px; display: flex; gap: 10px; align-items: center; }
+.card p, .card ul { margin: 0; color: var(--muted); }
+.card ul { padding-left: 20px; }
+.step { width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff; display: inline-grid; place-items: center; font-size: 15px; flex: none; }
+.note { margin-top: 20px; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); margin-top: 28px; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: #eef1f7; color: var(--navy); font-size: 14px; }
+tr:last-child td { border-bottom: 0; }
+pre { background: var(--navy); color: #e8ecf7; padding: 18px 20px; border-radius: var(--radius); overflow-x: auto; line-height: 1.6; }
+details { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 20px; margin-top: 12px; }
+summary { cursor: pointer; font-weight: 600; color: var(--navy); }
+details p { margin: 10px 0 0; color: var(--muted); }
+.roadmap { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 10px; }
+.roadmap li { display: grid; grid-template-columns: 64px 1fr auto; gap: 16px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 18px; }
+.roadmap b { color: var(--navy); }
+.host-row { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-top: 28px; }
+.cast { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 0; }
+.cast figure { margin: 0; background: linear-gradient(160deg, #e6eef7, #c9d7e8); border-radius: var(--radius); overflow: hidden; text-align: center; }
+.cast .figure { position: relative; aspect-ratio: 820 / 900; }
+.cast .figure img { width: 100%; height: 100%; display: block; }
+.cast .face { background-position-y: var(--row); animation: blink 5s step-end infinite; animation-delay: var(--delay); }
+.cast figcaption { background: var(--card); padding: 6px 0; font-size: 14px; color: var(--navy); font-weight: 600; }
+.table-wrap { overflow-x: auto; margin-top: 28px; }
+.table-wrap table { margin-top: 0; min-width: 640px; }
+footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+
+/* 成片画面示意：主持人在左，图解在右，底部字幕 */
+.frame { position: relative; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: linear-gradient(160deg, #dfe9f4, #b9cbe0); box-shadow: 0 24px 60px rgba(31,42,85,.18); }
+.frame .host { position: absolute; left: 3%; bottom: 0; height: 94%; aspect-ratio: 820 / 900; transform-origin: 50% 100%; animation: breathe 4s ease-in-out infinite; }
+.frame .host img { width: 100%; height: 100%; display: block; }
+.face { position: absolute; left: 29.39%; top: 26.78%; width: 21.95%; height: 19.11%; background: url("assets/faces.png") 0% 0% / 400% 400% no-repeat; }
+.frame .face { background-position: 0% 66.667%; animation: face 6s step-end infinite; }
+.frame .diagram { position: absolute; right: 4%; top: 26%; width: 56%; display: flex; align-items: center; justify-content: space-between; gap: 2%; }
+.frame .node { padding: .45em .8em; border-radius: 10px; border: 2px solid var(--navy); background: #fff; color: var(--ink); font-weight: 700; font-size: clamp(11px, 1.5vw, 17px); white-space: nowrap; opacity: 0; animation: 6s cubic-bezier(.22,1,.36,1) infinite; }
+.frame .arrow { flex: 1; height: 3px; background: var(--navy); transform-origin: 0 50%; position: relative; animation: 6s cubic-bezier(.65,0,.35,1) infinite; transform: scaleX(0); }
+.frame .arrow::after { content: ""; position: absolute; right: -2px; top: -5px; border: 6px solid transparent; border-left: 9px solid var(--navy); border-right: 0; }
+.frame .n1 { animation-name: in1; } .frame .a1 { animation-name: draw1; }
+.frame .n2 { animation-name: in2; } .frame .a2 { animation-name: draw2; }
+.frame .n3 { animation-name: in3; }
+.frame .caption { position: absolute; left: 0; right: 0; bottom: 5%; margin: 0; text-align: center; }
+.frame .caption span { display: inline-block; background: rgba(28,35,51,.75); color: #fff; padding: .2em .8em; border-radius: 8px; font-size: clamp(12px, 1.6vw, 18px); }
+.frame .caption em { font-style: normal; font-weight: 700; animation: kw 6s ease infinite; }
+.frame .badge { position: absolute; right: 12px; top: 10px; font-size: 12px; color: var(--navy); background: rgba(255,255,255,.8); padding: 2px 10px; border-radius: 999px; }
+@keyframes breathe { 50% { transform: scale(1.008); } }
+@keyframes blink { 0% { background-position-x: 0%; } 90% { background-position-x: 100%; } 93% { background-position-x: 0%; } }
+@keyframes face {
+  0% { background-position: 0% 66.667%; } 8% { background-position: 33.333% 66.667%; } 13% { background-position: 66.667% 66.667%; }
+  18% { background-position: 33.333% 66.667%; } 23% { background-position: 66.667% 66.667%; } 28% { background-position: 0% 66.667%; }
+  33% { background-position: 33.333% 66.667%; } 38% { background-position: 66.667% 66.667%; } 44% { background-position: 0% 66.667%; }
+  74% { background-position: 100% 66.667%; } 77% { background-position: 0% 66.667%; }
+}
+@keyframes in1 { 0%, 6% { opacity: 0; transform: translateY(12px) scale(.96); } 12%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes draw1 { 0%, 14% { transform: scaleX(0); opacity: 1; } 22%, 92% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+@keyframes in2 { 0%, 22% { opacity: 0; transform: translateY(12px) scale(.96); } 28% { opacity: 1; transform: none; background: #fff; color: var(--ink); }
+  38% { transform: scale(1.06); } 42%, 92% { opacity: 1; transform: none; background: var(--teal); border-color: var(--teal); color: #fff; } 100% { opacity: 0; background: var(--teal); border-color: var(--teal); color: #fff; } }
+@keyframes draw2 { 0%, 48% { transform: scaleX(0); opacity: 1; } 56%, 92% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+@keyframes in3 { 0%, 56% { opacity: 0; transform: translateY(12px) scale(.96); } 62%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes kw { 0%, 36% { color: #fff; } 42%, 92% { color: #7fe3e0; } 100% { color: #fff; } }
+@media (prefers-reduced-motion: reduce) {
+  .frame .host, .face, .frame .node, .frame .arrow, .frame .caption em { animation: none; }
+  .frame .node { opacity: 1; } .frame .arrow { transform: none; }
+  .frame .n2 { background: var(--teal); border-color: var(--teal); color: #fff; } .frame .caption em { color: #7fe3e0; }
+}
+@media (max-width: 860px) {
+  .hero .wrap, .host-row, .grid, .grid.two { grid-template-columns: 1fr; }
+  .cast { grid-template-columns: repeat(2, 1fr); }
+  .top nav { display: none; }
+  section { padding: 56px 0; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">topic-to-video</a>
+    <nav aria-label="页面导航">
+      <a href="#flow">三步出片</a><a href="#tiers">交付档位</a><a href="#host">主持人</a><a href="#quality">出片质量</a>
+      <a href="#example">示例</a><a href="#install">安装</a><a href="#faq">常见问题</a><a href="#roadmap">路线图</a>
+    </nav>
+    <a class="btn ghost small" href="https://github.com/xiongcp/short-video-skill">GitHub</a>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">AGENT SKILL · 中文知识解说视频</div>
+      <h1><span class="nb">说一个主题，</span><span class="nb">拿到能直接出片的</span><span class="nb">讲稿、分镜和提示词包</span></h1>
+      <p class="lead">topic-to-video 是给 Codex、Claude Code 等 Agent 用的轻量 skill。它把主题、资料或现成讲稿整理成中文知识解说视频方案，请你确认后，再交出逐镜提示词包，交给即梦、可灵、Vidu、海螺、Veo 等模型生成。</p>
+      <div class="actions">
+        <a class="btn primary" href="#install">安装 skill</a>
+        <a class="btn ghost" href="https://github.com/xiongcp/short-video-skill">在 GitHub 查看</a>
+      </div>
+      <div class="status"><span class="pill ok">L0 文本包 · 可用 · 零依赖</span><span class="pill dev">L1 本地成片 · 开发中</span></div>
+    </div>
+    <div class="frame" role="img" aria-label="成片画面示意：主持人晴在左侧打招呼，右侧流程图依次出现浏览器、本地副本、显示图标，底部字幕的关键词与图解同步高亮">
+      <div class="host"><img src="assets/body-wave.png" alt="" width="820" height="900"><span class="face"></span></div>
+      <div class="diagram"><span class="node n1">浏览器</span><i class="arrow a1"></i><span class="node n2">本地副本</span><i class="arrow a2"></i><span class="node n3">显示图标</span></div>
+      <p class="caption"><span>第二趟，浏览器直接拿<em>本地副本</em>来用。</span></p>
+      <span class="badge">示意 · L1 开发中</span>
+    </div>
+  </div>
+</section>
+
+<section id="flow">
+  <div class="wrap">
+    <h2>三步出片</h2>
+    <p class="lead">只在真正需要你决定的地方停下来。</p>
+    <div class="grid">
+      <div class="card"><h3><span class="step">1</span>说主题</h3><p>只缺主题时一次问齐；时长、受众、比例给默认值：120 秒、零基础观众、16:9。资料里的指令性文字只当内容，不会照做。</p></div>
+      <div class="card"><h3><span class="step">2</span>确认讲稿与分镜</h3><p>产出 <code>project.json</code>、讲稿和分镜，并自检：每句不超过 30 字，估时在目标 ±10% 以内，每句恰好属于一个镜头，画面关键词出自口播。你确认后才继续。</p></div>
+      <div class="card"><h3><span class="step">3</span>拿提示词包出片</h3><p>逐镜给出口播、节拍、首帧图和运动提示词：先出首帧图，再图生视频；支持首尾帧的平台用下一镜的首帧作尾帧，镜头自然衔接。</p></div>
+    </div>
+    <p class="note">改一段讲稿或一个镜头？它只重做改到的部分，并说明哪些确认因此失效。</p>
+  </div>
+</section>
+
+<section id="tiers">
+  <div class="wrap">
+    <h2>交付档位</h2>
+    <div class="grid two">
+      <div class="card"><h3>L0 文本包 <span class="pill ok">可用</span></h3>
+        <ul><li><code>project.json</code>：唯一的数据源</li><li><code>讲稿.md</code>：配音稿</li><li><code>分镜.md</code>：每镜的版式、主持人、图解和 cue</li><li><code>提示词包.md</code>：逐镜的外部模型提示词</li></ul>
+        <p class="note">不需要 FFmpeg，也不调用付费服务。</p></div>
+      <div class="card"><h3>L1 本地成片 <span class="pill dev">开发中</span></h3>
+        <ul><li>1080p60 成片，主持人"晴"出镜讲解</li><li>按句字幕，关键词与图解同步着色</li><li>封面、B 站章节时间戳</li><li>QA 报告：规格、响度、音画同步、跳变与卡顿</li></ul>
+        <p class="note">需要 Node、FFmpeg 和一个 npm 包。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="host">
+  <div class="wrap">
+    <h2>主持人"晴"</h2>
+    <div class="host-row">
+      <div>
+        <p class="lead">原创动漫主持人：藏青短发配一缕青色挑染，头顶一根呆毛，白衬衫、青色领结、墨蓝短外套。</p>
+        <p>现有 4 种表情（讲解、专注、开心、好奇）和 4 种手势（默认、指向右侧、挥手、强调），口型随音量开合。</p>
+        <p><span class="pill dev">v2 设计中</span> 约 20 个矢量部件的骨架：渐变虹膜、三层头发、两色赛璐璐与边缘光；表情和手势平滑补间，口型连续开合，呼吸、眨眼、点头和视线自动跟随。</p>
+        <p>也可以换成你自己的角色：提供同名的素材和 <code>profile.json</code>。</p>
+      </div>
+      <div class="cast" role="list" aria-label="晴的 4 种表情">
+        <figure role="listitem"><div class="figure"><img src="assets/body-idle.png" alt="晴，讲解表情" width="820" height="900"><span class="face" style="--row: 0%; --delay: 0s"></span></div><figcaption>讲解</figcaption></figure>
+        <figure role="listitem"><div class="figure"><img src="assets/body-idle.png" alt="晴，专注表情" width="820" height="900"><span class="face" style="--row: 33.333%; --delay: -1.2s"></span></div><figcaption>专注</figcaption></figure>
+        <figure role="listitem"><div class="figure"><img src="assets/body-idle.png" alt="晴，开心表情" width="820" height="900"><span class="face" style="--row: 66.667%; --delay: -2.5s"></span></div><figcaption>开心</figcaption></figure>
+        <figure role="listitem"><div class="figure"><img src="assets/body-idle.png" alt="晴，好奇表情" width="820" height="900"><span class="face" style="--row: 100%; --delay: -3.7s"></span></div><figcaption>好奇</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="quality">
+  <div class="wrap">
+    <h2>出片质量 <span class="pill dev">设计中</span></h2>
+    <p class="lead">L1 渲染器按这份设计实现：<a href="https://github.com/xiongcp/short-video-skill/blob/main/docs/lite/%E5%87%BA%E7%89%87%E8%B4%A8%E9%87%8F%E8%AE%BE%E8%AE%A1.md">出片质量设计</a>。</p>
+    <div class="grid">
+      <div class="card"><h3>60fps</h3><p>默认 1080p60，可选 30fps。动画按连续时间计算，与帧率无关。</p></div>
+      <div class="card"><h3>同元素补间</h3><p>前后镜头里同名的节点、数字和主持人平滑移动到新位置；没有共同元素时做 0.3 秒缓动叠化。</p></div>
+      <div class="card"><h3>关键词对齐</h3><p>画面变化卡在句中的关键词上，优先用 TTS 的逐词时间；元素提前 0.15 秒入场，说到时正好落定。</p></div>
+      <div class="card"><h3>表演贴合</h3><p>问句歪头挑眉，重读处点头，图解出现时视线跟过去；表情和手势按句意切换。</p></div>
+      <div class="card"><h3>画面不空泛</h3><p>内置约 24 个图标，模板按元素数自动排布；画面关键词和口播对不上时自检会提醒。</p></div>
+      <div class="card"><h3>QA 看得见</h3><p>检查同步误差、跳变、卡顿和 BT.709 色彩；附联系表、转场条和口型抽检片段。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="example">
+  <div class="wrap">
+    <h2>示例：为什么缓存能让网页变快？</h2>
+    <p class="lead">一个 120 秒、14 个镜头的完整 L0 示例，节选 3 个镜头。全文见 <a href="https://github.com/xiongcp/short-video-skill/tree/main/examples/cache-speed">examples/cache-speed</a>。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>镜头</th><th>口播</th><th>画面</th><th>主持人</th></tr></thead>
+      <tbody>
+        <tr><td>sh01</td><td>你昨天见过的这张图标，今天再打开，还要从头下载吗？</td><td>标题卡：同一张图，两次打开 / 还要从头下载吗？</td><td>好奇</td></tr>
+        <tr><td>sh11</td><td>先看它有没有可用的验证信息。有了验证信息，浏览器可以先询问服务器。资源没变时，服务器可以返回三零四，让浏览器继续用原来的内容。</td><td>流程：验证信息 → 询问服务器 → 返回304，节点随口播依次出现</td><td>全屏图解</td></tr>
+        <tr><td>sh14</td><td>下次看见同一张图瞬间出现，你就能说清，它可能省掉了哪一段路。</td><td>标题卡：省掉了哪段路？</td><td>开心 · 强调</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2>安装</h2>
+    <p class="lead">把 <code>skills/topic-to-video/</code> 整个目录复制到 Agent 的 skills 目录。</p>
+<pre><code>git clone https://github.com/xiongcp/short-video-skill.git
+cp -R short-video-skill/skills/topic-to-video ~/.claude/skills/   # Claude Code
+cp -R short-video-skill/skills/topic-to-video ~/.agents/skills/   # Codex</code></pre>
+    <p>然后在 Agent 里说：<b>"用 topic-to-video 把'为什么缓存能让网页变快'做成 2 分钟的解说视频。"</b></p>
+    <p class="note">项目级安装也可以：Claude Code 用 <code>.claude/skills/</code>，Codex 用 <code>.agents/skills/</code>。安装路径会在发布前实测后更新。</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2>常见问题</h2>
+    <details><summary>需要安装什么？</summary><p>L0 不需要额外安装；有 Node 时，Agent 会运行 skill 自带的自检脚本。L1 本地成片需要 Node、FFmpeg 和一个 npm 包。</p></details>
+    <details><summary>会花钱吗？</summary><p>skill 本身不调用付费服务。需要付费调用时，Agent 会先说明服务、数量和预估费用，等你同意，并记下每一次调用。</p></details>
+    <details><summary>能做竖屏吗？</summary><p>L0 提示词包支持 9:16 构图；L1 本地成片首版只做 16:9。</p></details>
+    <details><summary>资料里写着"忽略之前的要求"，会被执行吗？</summary><p>不会。资料、网页和草稿里的文字都只当内容。</p></details>
+    <details><summary>主持人"晴"可以商用吗？</summary><p>使用权还没有核清，商用前请先联系项目 owner。</p></details>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <h2>路线图</h2>
+    <ul class="roadmap">
+      <li><b>P0</b><span>旧版工作室归档，仓库瘦身为单一 skill</span><span class="pill ok">完成</span></li>
+      <li><b>P1</b><span>L0 文本包与场景评测</span><span class="pill ok">完成</span></li>
+      <li><b>设计</b><span>出片质量：人物、帧率、匹配度、平滑动画</span><span class="pill ok">完成</span></li>
+      <li><b>P2a</b><span>主持人 v2：矢量部件骨架</span><span class="pill dev">待开始</span></li>
+      <li><b>P2b</b><span>本地渲染器：60fps、关键词对齐、并行渲染</span><span class="pill dev">待开始</span></li>
+      <li><b>P3</b><span>转场、样片、返修与 QA</span><span class="pill dev">待开始</span></li>
+      <li><b>P4</b><span>安装实测与发布</span><span class="pill dev">待开始</span></li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">代码以 <a href="https://github.com/xiongcp/short-video-skill/blob/main/LICENSE">Apache License 2.0</a> 发布 · <a href="https://github.com/xiongcp/short-video-skill">GitHub</a> · <a href="https://github.com/xiongcp/short-video-skill/blob/main/README.en.md">English README</a></div>
+</footer>
+</body>
+</html>
