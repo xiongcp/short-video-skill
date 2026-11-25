@@ -49,6 +49,16 @@ test('host folder holds the rig data, the reference image and the rights record,
   assert.deepEqual(readdirSync(HOST).sort(), ['host-ref.png', 'manifest.json', 'profile.json', 'rights.json']);
 });
 
+test('every line width in manifest.ink stays at or above 0.0075 H (1.5 px at 540p)', () => {
+  assert.ok(manifest.ink.lines, 'manifest.ink.lines is defined');
+  for (const name of ['face', 'symbol', 'prop', 'fine', 'scarf']) {
+    assert.ok(Array.isArray(manifest.ink.lines[name]) && manifest.ink.lines[name].length === 2, name);
+  }
+  for (const [name, [thin, thick]] of [['width', manifest.ink.width], ...Object.entries(manifest.ink.lines)]) {
+    assert.ok(thin >= 0.0075 && thick >= thin, `${name}: [${thin}, ${thick}]`);
+  }
+});
+
 test('host-ref.png matches manifest.json and was drawn from the current rig', () => {
   const png = readFileSync(join(HOST, manifest.ref.file));
   assert.equal(createHash('sha256').update(png).digest('hex'), manifest.ref.sha256);

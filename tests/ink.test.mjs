@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { circlePoints, hashSeed, inkStroke, markerFill, num, random, resample } from '../skills/topic-to-video/scripts/lib/ink.mjs';
+import { chaikin, circlePoints, hashSeed, inkStroke, markerFill, num, random, resample } from '../skills/topic-to-video/scripts/lib/ink.mjs';
 
 const line = [[0, 0], [100, 0], [200, 40]];
 const opts = { seed: 'sh01:l_leg', width: [8.8, 12], wobble: 1.6 };
@@ -66,4 +66,40 @@ test('numbers are written with at most two decimals and no negative zero', () =>
   assert.equal(num(1.23456), '1.23');
   assert.equal(num(-0.001), '0');
   assert.equal(num(400), '400');
+});
+
+test('taper controls which end of the stroke is thin', () => {
+  const end = inkStroke(line, { ...opts, taper: 'end' }).widths;
+  assert.ok(Math.abs(end[0] - 12) < 1e-9 && Math.abs(end.at(-1) - 8.8) < 1e-9);
+  const start = inkStroke(line, { ...opts, taper: 'start' }).widths;
+  assert.ok(Math.abs(start[0] - 8.8) < 1e-9 && Math.abs(start.at(-1) - 12) < 1e-9);
+  const none = inkStroke(line, { ...opts, taper: 'none' }).widths;
+  assert.ok(none.every((w) => w === 12));
+  const both = inkStroke(line, { ...opts, taper: 'both' }).widths;
+  assert.ok(Math.abs(both[0] - 8.8) < 1e-9 && Math.abs(both.at(-1) - 8.8) < 1e-9);
+});
+
+test('chaikin keeps endpoints and rounds sharp corners to at most 45 degrees', () => {
+  const pts = chaikin([[0, 0], [100, 0], [100, 100]], 2);
+  assert.deepEqual(pts[0], [0, 0]);
+  assert.deepEqual(pts.at(-1), [100, 100]);
+  assert.ok(pts.length > 3);
+  for (let i = 1; i < pts.length - 1; i += 1) {
+    const u = [pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]];
+    const v = [pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]];
+    const cos = Math.max(-1, Math.min(1, (u[0] * v[0] + u[1] * v[1]) / (Math.hypot(...u) * Math.hypot(...v))));
+    assert.ok((Math.acos(cos) * 180) / Math.PI <= 45 + 1e-9, `corner ${i}`);
+  }
+});
+
+test('wobble is capped at 2% of the polyline length on short lines', () => {
+  const { base, center } = inkStroke([[0, 0], [30, 0]], { seed: 'short', width: [4, 6], wobble: 5 });
+  const drift = center.map((p, i) => Math.hypot(p[0] - base[i][0], p[1] - base[i][1]));
+  assert.ok(Math.max(...drift) <= 0.6 + 1e-9, `max drift ${Math.max(...drift)}`);
+  assert.ok(Math.max(...drift) > 0.05);
+});
+
+test('inkStroke with smooth and taper is deterministic', () => {
+  const o = { ...opts, smooth: 2, taper: 'end' };
+  assert.equal(inkStroke(line, o).d, inkStroke(line, o).d);
 });

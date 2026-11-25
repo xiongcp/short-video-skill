@@ -56,24 +56,55 @@ function normal(points, i) {
   return [-(b[1] - a[1]) / len, (b[0] - a[0]) / len];
 }
 
+/** Corner-cutting (Chaikin) smoothing for a polyline; endpoints stay fixed. */
+export function chaikin(points, iterations = 1) {
+  let cur = points;
+  for (let iter = 0; iter < iterations; iter += 1) {
+    if (cur.length < 3) break;
+    const next = [cur[0]];
+    for (let i = 0; i < cur.length - 1; i += 1) {
+      const [ax, ay] = cur[i];
+      const [bx, by] = cur[i + 1];
+      next.push([0.75 * ax + 0.25 * bx, 0.75 * ay + 0.25 * by]);
+      next.push([0.25 * ax + 0.75 * bx, 0.25 * ay + 0.75 * by]);
+    }
+    next.push(cur.at(-1));
+    cur = next;
+  }
+  return cur;
+}
+
 /**
  * A tapered ink line along `points`, drawn as a filled outline with round ends.
- * width: [thin, thick] in px, thin at both ends and thick in the middle; wobble: the largest sideways drift in px.
+ * width: [thin, thick] in px; wobble: max sideways drift in px (capped at 2% of stroke length);
+ * taper: 'both' | 'start' | 'end' | 'none'; smooth: Chaikin corner-cutting iterations before resampling.
  * @returns {{ d: string, base: number[][], center: number[][], widths: number[] }}
  */
-export function inkStroke(points, { seed, width, wobble = 0 }) {
-  const count = Math.max(8, Math.min(64, Math.ceil(lengths(points).at(-1) / 6)));
-  const base = resample(points, count);
+export function inkStroke(points, { seed, width, wobble = 0, taper = 'both', smooth = 0 }) {
+  const pts = smooth > 0 ? chaikin(points, smooth) : points;
+  const total = lengths(pts).at(-1);
+  const count = Math.max(8, Math.min(64, Math.ceil(total / 6)));
+  const base = resample(pts, count);
+  const amp = Math.min(wobble, 0.02 * total);
   const rnd = random(seed);
   const phase = [rnd() * 2 * Math.PI, rnd() * 2 * Math.PI];
   const cycles = [0.5 + rnd(), 1.5 + rnd()];
   const normals = base.map((_, i) => normal(base, i));
   const center = base.map(([x, y], i) => {
     const t = i / (count - 1);
-    const drift = wobble * (0.6 * Math.sin(2 * Math.PI * cycles[0] * t + phase[0]) + 0.4 * Math.sin(2 * Math.PI * cycles[1] * t + phase[1]));
+    const drift = amp * (0.6 * Math.sin(2 * Math.PI * cycles[0] * t + phase[0]) + 0.4 * Math.sin(2 * Math.PI * cycles[1] * t + phase[1]));
     return [x + normals[i][0] * drift, y + normals[i][1] * drift];
   });
-  const widths = center.map((_, i) => width[0] + (width[1] - width[0]) * Math.sin((Math.PI * i) / (count - 1)));
+  const widths = center.map((_, i) => {
+    const t = i / (count - 1);
+    switch (taper) {
+      case 'both': return width[0] + (width[1] - width[0]) * Math.sin(Math.PI * t);
+      case 'start': return width[0] + (width[1] - width[0]) * Math.sin((Math.PI / 2) * t);
+      case 'end': return width[0] + (width[1] - width[0]) * Math.sin((Math.PI / 2) * (1 - t));
+      case 'none': return width[1];
+      default: throw new Error(`unknown taper ${taper}`);
+    }
+  });
   const side = (sign) => center.map(([x, y], i) => [x + (sign * normals[i][0] * widths[i]) / 2, y + (sign * normals[i][1] * widths[i]) / 2]);
   const left = side(1);
   const right = side(-1).reverse();
