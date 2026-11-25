@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
 import { makeWavBuffer } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
 import { buildShotPlans, evaluateFrame, shotCacheKey } from '../skills/topic-to-video/scripts/lib/scene.mjs';
@@ -79,7 +79,9 @@ test('renderProject renders a valid 60fps BT.709 MP4, cover, captions and chapte
     }
     writeFileSync(join(dir, 'project.json'), JSON.stringify(p, null, 2));
 
-    const res = await renderProject(dir, { preview: true, workers: 2, runQa: false });
+    // Pass a relative projectDir to verify FFmpeg concat handles relative paths cleanly
+    const relDir = relative(process.cwd(), dir);
+    const res = await renderProject(relDir, { preview: true, workers: 2, runQa: false });
     assert.ok(existsSync(res.videoPath), 'preview.mp4 created');
     assert.ok(existsSync(join(dir, 'out/captions.srt')));
     assert.ok(existsSync(join(dir, 'out/captions.ass')));

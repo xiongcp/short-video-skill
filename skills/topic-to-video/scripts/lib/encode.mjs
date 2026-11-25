@@ -4,7 +4,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { cpus } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads';
 import { findCjkFont, findTitleFont } from '../doctor.mjs';
 import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from './mouth.mjs';
@@ -371,7 +371,8 @@ async function runPool(jobs, concurrency) {
 /**
  * End-to-end L1 project renderer: TTS -> timing -> parallel cached shot rendering -> concat + 2-pass loudnorm -> deliverables.
  */
-export async function renderProject(projectDir, opts = {}) {
+export async function renderProject(rawProjectDir, opts = {}) {
+  const projectDir = resolve(rawProjectDir);
   const project = JSON.parse(readFileSync(join(projectDir, 'project.json'), 'utf8'));
   const manifest = JSON.parse(readFileSync(new URL('../../assets/host/manifest.json', import.meta.url), 'utf8'));
   const ffmpeg = opts.ffmpeg ?? process.env.FFMPEG ?? 'ffmpeg';
