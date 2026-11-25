@@ -24,7 +24,7 @@
     "r_knee": {"parent": "r_hip", "length": 0.225, "range": [0, 150]},
     "r_ankle": {"parent": "r_knee", "length": 0.07, "range": [-30, 30]}
   },
-  "figure": {"hand": [0.045, 0.03], "foot": [0.07, 0.025], "finger": 0.035},
+  "figure": {"hand": [0.045, 0.03], "foot": [0.07, 0.025], "finger": 0.035, "face_scale": 1.2},
   "views": {
     "front": {"face_shift": 0, "eyes": [-0.3, 0.3], "foot_scale": 0.75, "scarf_width": 1},
     "three_quarter": {"face_shift": 0.06, "eyes": [-0.2, 0.2], "foot_scale": 1, "scarf_width": 0.8},

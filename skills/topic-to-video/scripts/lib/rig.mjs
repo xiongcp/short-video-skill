@@ -108,6 +108,7 @@ function face(base, expr, view, blink) {
   const e = ctx.manifest.expressions[expr];
   const v = ctx.manifest.views[view];
   const R = ctx.R;
+  const fs = ctx.manifest.figure.face_scale ?? 1;
   const shift = (v.face_shift * ctx.H) / R;
   const line = ctx.lines.face;
   const at = (u, w) => [(shift + u) * R, w * R];
@@ -115,7 +116,7 @@ function face(base, expr, view, blink) {
   const eyes = v.eyes.map((u, i) => {
     const scale = e.eye_scale?.[i] ?? 1;
     const [cx, cy] = at(u, -0.02);
-    const k = scale * R;
+    const k = scale * fs * R;
     if (blink >= 0.5) return pen(ctx, `eye${i}`, [[cx - 0.08 * k, cy], [cx + 0.08 * k, cy]], line);
     const inward = u < 0 ? 1 : -1;
     switch (e.eyes) {
@@ -135,17 +136,17 @@ function face(base, expr, view, blink) {
     const raise = (e.brow.lift * ctx.H) / R + (i === 0 ? 1 : -0.5) * ((e.brow.asym ?? 0) * ctx.H) / R;
     const [cx, cy] = at(u, -0.36 - raise);
     const t = inward * e.brow.angle * RAD;
-    const end = (sign) => [cx + sign * 0.13 * R * Math.cos(t), cy + sign * 0.13 * R * Math.sin(t)];
-    parts.push(pen(ctx, `brow${i}`, [end(-1), [cx, cy - 0.025 * R], end(1)], line));
+    const end = (sign) => [cx + sign * 0.13 * fs * R * Math.cos(t), cy + sign * 0.13 * fs * R * Math.sin(t)];
+    parts.push(pen(ctx, `brow${i}`, [end(-1), [cx, cy - 0.025 * fs * R], end(1)], line));
   });
   const [mx, my] = at(v.eyes.length === 1 ? v.eyes[0] - 0.05 : 0, 0.42);
-  const m = (u, w) => [mx + u * R, my + w * R];
+  const m = (u, w) => [mx + u * fs * R, my + w * fs * R];
   const mouth = {
     smile: () => pen(ctx, 'mouth', [m(-0.17, 0), m(0, 0.07), m(0.17, 0)], line),
     line: () => pen(ctx, 'mouth', [m(-0.14, 0.02), m(0.14, 0.02)], line),
     grin: () => `<path d="M${num(m(-0.2, 0)[0])} ${num(my)}L${num(m(0.2, 0)[0])} ${num(my)}Q${num(m(0.2, 0.26)[0])} ${num(m(0, 0.26)[1])} ${num(mx)} ${num(m(0, 0.26)[1])}Q${num(m(-0.2, 0)[0])} ${num(m(0, 0.26)[1])} ${num(m(-0.2, 0)[0])} ${num(my)}Z" fill="${ctx.ink}"/>`,
-    o: () => ellipse(mx, my + 0.03 * R, 0.055 * R, 0.065 * R, 0, ctx.ink),
-    gasp: () => ellipse(mx, my + 0.05 * R, 0.1 * R, 0.15 * R, 0, ctx.ink),
+    o: () => ellipse(mx, my + 0.03 * fs * R, 0.055 * fs * R, 0.065 * fs * R, 0, ctx.ink),
+    gasp: () => ellipse(mx, my + 0.05 * fs * R, 0.1 * fs * R, 0.15 * fs * R, 0, ctx.ink),
     wave: () => pen(ctx, 'mouth', [m(-0.17, 0.02), m(-0.085, -0.02), m(0, 0.02), m(0.085, -0.02), m(0.17, 0.02)], line),
     teeth: () => [pen(ctx, 'mouth', [m(-0.17, -0.05), m(0.17, -0.05), m(0.17, 0.08), m(-0.17, 0.08), m(-0.17, -0.05)], line),
       pen(ctx, 'teeth', [m(-0.17, 0.015), m(0.17, 0.015)], line)].join(''),

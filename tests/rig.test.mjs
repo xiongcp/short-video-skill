@@ -250,6 +250,22 @@ test('at 540p scale (H = 200), no rendered ink stroke or outline is thinner than
   }
 });
 
+test('face features scale by manifest.figure.face_scale (1.2x) without shifting anchors', () => {
+  const R = (manifest.joints.head.length * H) / 2;
+  const explaining = draw({ expr: 'explaining' });
+  const faceGroup = explaining.slice(explaining.indexOf('data-face="explaining"'));
+  const eyeRy = faceGroup.match(/<ellipse[^>]*ry="([\d.]+)"/);
+  assert.ok(eyeRy);
+  assert.equal(Number(eyeRy[1]), Math.round(0.12 * 1.2 * R * 100) / 100);
+
+  const happy = draw({ expr: 'happy' });
+  const happyFace = happy.slice(happy.indexOf('data-face="happy"'));
+  const grin = happyFace.match(/<path d="M(-?[\d.]+) (-?[\d.]+)L(-?[\d.]+)/);
+  assert.ok(grin, 'happy grin path');
+  const span = Math.abs(Number(grin[3]) - Number(grin[1]));
+  assert.ok(Math.abs(span - 0.4 * 1.2 * R) <= 0.05, `grin span ${span} vs ${0.4 * 1.2 * R}`);
+});
+
 test('an unknown gesture, expression, prop, view or theme is a clear error', () => {
   assert.throws(() => draw({ gesture: 'dance' }), /unknown gesture dance/);
   assert.throws(() => draw({ expr: 'angry' }), /unknown expression angry/);
