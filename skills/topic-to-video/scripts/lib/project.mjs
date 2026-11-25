@@ -157,14 +157,18 @@ export function estimateSeconds(project) {
   return project.sections.reduce((sum, s) => sum + estimateSentences(project, s, splitSentences(s.text).map((_, i) => i)), 0);
 }
 
-/** Planning estimates the agent copies into 讲稿.md and 分镜.md: whole seconds per section and shot, one decimal in total. */
+/** Planning estimates the agent copies into 讲稿.md, 分镜.md and 提示词包.md: whole seconds per section and shot,
+ *  where each sentence of a shot starts (one decimal), and one decimal in total. */
 export function estimateReport(project) {
   const bySection = new Map(project.sections.map((s) => [s.id, s]));
   return {
     total_seconds: Math.round(estimateSeconds(project) * 10) / 10,
     sections: project.sections.map((s) => ({ id: s.id, seconds: Math.round(estimateSentences(project, s, splitSentences(s.text).map((_, i) => i))) })),
-    shots: project.shots.filter((shot) => bySection.has(shot.section))
-      .map((shot) => ({ id: shot.id, seconds: Math.round(estimateSentences(project, bySection.get(shot.section), shot.sentences)) })),
+    shots: project.shots.filter((shot) => bySection.has(shot.section)).map((shot) => {
+      const section = bySection.get(shot.section);
+      const starts = shot.sentences.map((_, k) => Math.round(estimateSentences(project, section, shot.sentences.slice(0, k)) * 10) / 10);
+      return { id: shot.id, seconds: Math.round(estimateSentences(project, section, shot.sentences)), starts };
+    }),
   };
 }
 

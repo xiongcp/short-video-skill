@@ -183,8 +183,15 @@ test('estimateReport gives rounded seconds per section, per shot and in total', 
   assert.deepEqual(estimateReport(minimal()), {
     total_seconds: 4.3,
     sections: [{ id: 's01', seconds: 4 }],
-    shots: [{ id: 'sh01', seconds: 2 }, { id: 'sh02', seconds: 2 }],
+    shots: [{ id: 'sh01', seconds: 2, starts: [0] }, { id: 'sh02', seconds: 2, starts: [0] }],
   });
+});
+
+test('estimateReport lists where each sentence of a shot starts', () => {
+  const p = minimal();
+  p.shots = [{ ...p.shots[0], sentences: [0, 1] }];
+  // 天空为什么是蓝的？ is 8 characters: 8 / 4 + 0.25 = 2.25 seconds before the second sentence
+  assert.deepEqual(estimateReport(p).shots, [{ id: 'sh01', seconds: 4, starts: [0, 2.3] }]);
 });
 
 test('a project without shots yet skips the coverage check', () => {
