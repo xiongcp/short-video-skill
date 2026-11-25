@@ -31,11 +31,16 @@ const isObject = (v) => typeof v === 'object' && v !== null;
 
 // Length limits from schema/project.schema.json, kept in sync by tests/project.test.mjs. A number is the
 // maximum length in characters; [min, max, item] is the allowed list length and the limit for each item.
+export const ICON_NAMES = [
+  'browser', 'server', 'database', 'cache', 'clock', 'doc', 'user', 'phone',
+  'cloud', 'lock', 'key', 'chart', 'check', 'cross', 'warn', 'bulb',
+  'gear', 'network', 'folder', 'image', 'search', 'money', 'plane', 'globe',
+];
 const COLUMN = { label: 8, rows: [1, 3, 12] };
 export const VISUAL_LIMITS = {
   title: { heading: 16, sub: 24 },
-  bullets: { items: [1, 4, 14] },
-  flow: { nodes: [2, 5, 6] },
+  bullets: { items: [1, 4, 14], icons: [1, 4, undefined] },
+  flow: { nodes: [2, 5, 6], icons: [2, 5, undefined] },
   compare: { left: COLUMN, right: COLUMN },
   number: { value: 8, label: 12 },
   bars: { items: [1, 6, { label: 6 }], unit: 4 },
@@ -46,11 +51,11 @@ export const SCHEMA_FIELDS = {
   project: ['version', 'revision', 'title', 'brief', 'settings', 'voice', 'sections', 'shots', 'checkpoints', 'jobs'],
   brief: ['topic', 'audience', 'promise', 'sources', 'open_questions'],
   source: ['id', 'title', 'where', 'note'],
-  settings: ['ratio', 'target_seconds', 'lang', 'host', 'theme', 'sentence_gap_ms'],
+  settings: ['ratio', 'target_seconds', 'lang', 'host', 'theme', 'sentence_gap_ms', 'fps', 'resolution'],
   voice: ['provider', 'model', 'voice', 'speed', 'base_url', 'api_key_env', 'command'],
   section: ['id', 'title', 'text', 'pronunciation', 'source_ids'],
-  shot: ['id', 'section', 'sentences', 'layout', 'host', 'visual', 'cues', 'note'],
-  cue: ['sentence', 'do', 'target'],
+  shot: ['id', 'section', 'sentences', 'layout', 'host', 'visual', 'cues', 'transition', 'note'],
+  cue: ['sentence', 'at', 'do', 'target'],
   checkpoint: ['stage', 'revision', 'at', 'note'],
   job: ['id', 'provider', 'kind', 'status', 'ref', 'cost', 'at'],
 };
@@ -120,7 +125,8 @@ export function checkProject(project) {
     if (!sources.has(id)) add(`/sections/${i}/source_ids`, 'UNKNOWN_SOURCE', `段落 ${s.id} 引用了不存在的来源 ${id}`);
   }));
   if (project.shots.length) checkCoverage(project, add); // empty after step 1, before the storyboard
-  project.shots.forEach((shot, i) => checkCues(shot, `/shots/${i}`, add));
+  const sentencesBySection = new Map(project.sections.map((s) => [s.id, splitSentences(s.text)]));
+  project.shots.forEach((shot, i) => checkCues(shot, `/shots/${i}`, sentencesBySection.get(shot.section) ?? [], add));
   project.checkpoints.forEach((c, i) => {
     if (c.revision > project.revision) add(`/checkpoints/${i}/revision`, 'CHECKPOINT_REVISION', `确认记录的版本 ${c.revision} 比项目当前版本 ${project.revision} 还新`);
   });
@@ -179,7 +185,18 @@ const HOST_CUES = ['expr', 'gesture', 'move', 'prop'];
 const CUE_ACTIONS = ['reveal', 'highlight', ...HOST_CUES];
 const SPOTS = ['left', 'center', 'right'];
 
-function checkCues(shot, at, add) {
+function checkCues(shot, at, sentences, add) {
+  if (shot.visual.data?.icons !== undefined) {
+    const icons = shot.visual.data.icons;
+    const count = elementCount(shot.visual);
+    if (!Array.isArray(icons) || icons.length !== count) {
+      add(`${at}/visual/data/icons`, 'UNKNOWN_ICON', `镜头 ${shot.id} 的 icons 个数应等于元素个数 ${count}`);
+    } else {
+      icons.forEach((name, k) => {
+        if (!ICON_NAMES.includes(name)) add(`${at}/visual/data/icons/${k}`, 'UNKNOWN_ICON', `镜头 ${shot.id} 的图标 ${name ?? '空'} 不在内置 24 个图标里`);
+      });
+    }
+  }
   if (isObject(shot.host)) {
     if (!PROFILE.expressions.includes(shot.host.expr)) add(`${at}/host/expr`, 'INVALID_VALUE', `镜头 ${shot.id} 的表情 ${shot.host.expr ?? '空'} 不在可选列表里（见 storyboard.md 的主持人一节）`);
     if (!PROFILE.gestures.includes(shot.host.gesture)) add(`${at}/host/gesture`, 'INVALID_VALUE', `镜头 ${shot.id} 的动作 ${shot.host.gesture ?? '空'} 不在可选列表里（见 storyboard.md 的主持人一节）`);
@@ -187,6 +204,12 @@ function checkCues(shot, at, add) {
   (shot.cues ?? []).forEach((cue, j) => {
     const path = `${at}/cues/${j}`;
     if (!shot.sentences.includes(cue.sentence)) add(`${path}/sentence`, 'CUE_OUTSIDE_SHOT', `镜头 ${shot.id} 的 cue 指向不属于本镜头的第 ${cue.sentence} 句`);
+    if (cue.at !== undefined) {
+      const sentenceText = sentences[cue.sentence] ?? '';
+      if (typeof cue.at !== 'string' || !cue.at.length || !sentenceText.includes(cue.at)) {
+        add(`${path}/at`, 'ANCHOR_NOT_IN_SENTENCE', `镜头 ${shot.id} 第 ${cue.sentence} 句里找不到锚点词“${cue.at ?? ''}”`);
+      }
+    }
     if (!CUE_ACTIONS.includes(cue.do)) return add(`${path}/do`, 'INVALID_VALUE', `镜头 ${shot.id} 的 cue 动作 ${cue.do ?? '空'} 不存在，可选 ${CUE_ACTIONS.join('、')}`);
     if (HOST_CUES.includes(cue.do) && shot.layout !== 'host-left') {
       add(`${path}/do`, 'CUE_NEEDS_HOST', `镜头 ${shot.id} 不显示主持人，不能用 ${cue.do} cue`);

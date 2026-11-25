@@ -302,3 +302,23 @@ test('limit messages name the shot, the field and where the limits are listed', 
   p.shots[1].visual = { template: 'flow', data: { nodes: ['只有一个'] } };
   assert.deepEqual(checkProject(p).map((e) => e.message).slice(1), ['镜头 sh02 的 flow 图解 nodes 有 1 项，应为 2–5 项（见 storyboard.md 的图解模板表）']);
 });
+
+test('checks cue.at anchor substring and visual.data.icons names and length', () => {
+  const p = minimal();
+  p.settings.fps = 60;
+  p.settings.resolution = '1440p';
+  p.shots[0].transition = 'cut';
+  p.shots[1].visual.data.icons = ['bulb', 'globe', 'clock'];
+  p.shots[1].cues[0].at = '阳光';
+  assert.deepEqual(checkProject(p), []);
+
+  p.shots[1].cues[0].at = '红光';
+  assert.deepEqual(placed(p), ['ANCHOR_NOT_IN_SENTENCE /shots/1/cues/0/at']);
+
+  p.shots[1].cues[0].at = '阳光';
+  p.shots[1].visual.data.icons = ['bulb', 'unknown_icon', 'clock'];
+  assert.deepEqual(placed(p), ['UNKNOWN_ICON /shots/1/visual/data/icons/1']);
+
+  p.shots[1].visual.data.icons = ['bulb', 'clock'];
+  assert.deepEqual(placed(p), ['UNKNOWN_ICON /shots/1/visual/data/icons']);
+});

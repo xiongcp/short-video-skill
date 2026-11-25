@@ -24,6 +24,13 @@
     "expr": { "enum": ["explaining", "focused", "happy", "curious", "surprised", "worried", "frustrated", "proud"] },
     "gesture": { "enum": ["idle", "point_right", "wave", "emphasize", "point", "think", "shrug", "present", "sit", "jump", "cheer", "tap"] },
     "prop": { "enum": ["pointer", "magnifier", "phone", "doc", "bulb", "question"] },
+    "icon": {
+      "enum": [
+        "browser", "server", "database", "cache", "clock", "doc", "user", "phone",
+        "cloud", "lock", "key", "chart", "check", "cross", "warn", "bulb",
+        "gear", "network", "folder", "image", "search", "money", "plane", "globe"
+      ]
+    },
     "brief": {
       "type": "object",
       "additionalProperties": false,
@@ -57,7 +64,9 @@
         "lang": { "const": "zh-CN" },
         "host": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
         "theme": { "enum": ["light", "dark"] },
-        "sentence_gap_ms": { "type": "integer", "minimum": 0, "maximum": 2000 }
+        "sentence_gap_ms": { "type": "integer", "minimum": 0, "maximum": 2000 },
+        "fps": { "enum": [30, 60] },
+        "resolution": { "enum": ["1080p", "1440p", "2160p"] }
       }
     },
     "voice": {
@@ -121,6 +130,7 @@
         },
         "visual": { "$ref": "#/$defs/visual" },
         "cues": { "type": "array", "items": { "$ref": "#/$defs/cue" } },
+        "transition": { "enum": ["auto", "cut"] },
         "note": { "$ref": "#/$defs/text", "description": "这一镜观众要看懂的变化" }
       },
       "if": { "properties": { "layout": { "const": "host-left" } } },
@@ -133,6 +143,7 @@
       "required": ["sentence", "do", "target"],
       "properties": {
         "sentence": { "type": "integer", "minimum": 0 },
+        "at": { "$ref": "#/$defs/text" },
         "do": { "enum": ["reveal", "highlight", "expr", "gesture", "move", "prop"] },
         "target": { "type": ["integer", "string"] }
       },
@@ -197,7 +208,8 @@
           "additionalProperties": false,
           "required": ["items"],
           "properties": {
-            "items": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 14 } }
+            "items": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string", "minLength": 1, "maxLength": 14 } },
+            "icons": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "$ref": "#/$defs/icon" } }
           }
         }
       }
@@ -213,7 +225,8 @@
           "additionalProperties": false,
           "required": ["nodes"],
           "properties": {
-            "nodes": { "type": "array", "minItems": 2, "maxItems": 5, "items": { "type": "string", "minLength": 1, "maxLength": 6 } }
+            "nodes": { "type": "array", "minItems": 2, "maxItems": 5, "items": { "type": "string", "minLength": 1, "maxLength": 6 } },
+            "icons": { "type": "array", "minItems": 2, "maxItems": 5, "items": { "$ref": "#/$defs/icon" } }
           }
         }
       }

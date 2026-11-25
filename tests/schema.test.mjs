@@ -23,6 +23,13 @@ const valid = {
   'a closing quote after the last terminator': (p) => { p.sections[0].text = '他说：“答案藏在阳光里。”'; },
   'an ASCII closing quote after the last terminator': (p) => { p.sections[0].text = '他说："答案藏在阳光里。"'; },
   'a closing book-title mark after the last terminator': (p) => { p.sections[0].text = '去读《缓存。》'; },
+  'fps, resolution, transition cut, cue.at and visual icons': (p) => {
+    p.settings.fps = 60;
+    p.settings.resolution = '2160p';
+    p.shots[0].transition = 'cut';
+    p.shots[1].visual.data.icons = ['bulb', 'globe', 'clock'];
+    p.shots[1].cues[0].at = '蓝光';
+  },
 };
 for (const [name, mutate] of Object.entries(valid)) {
   test(`accepts ${name}`, () => {
@@ -53,6 +60,10 @@ const invalid = {
   'a lowercase key variable name': (p) => { p.voice = { ...KEY_VOICE, api_key_env: 'key' }; },
   'an unsupported ratio': (p) => { p.settings.ratio = '4:3'; },
   'a checkpoint with an unknown stage': (p) => { p.checkpoints.push({ stage: 'g3', revision: 1, at: '2026-11-23T10:00', note: '好' }); },
+  'an unsupported fps': (p) => { p.settings.fps = 24; },
+  'an unsupported resolution': (p) => { p.settings.resolution = '720p'; },
+  'an unknown transition': (p) => { p.shots[0].transition = 'wipe'; },
+  'an unknown icon': (p) => { p.shots[1].visual.data.icons = ['unicorn', 'globe', 'clock']; },
 };
 for (const [name, mutate] of Object.entries(invalid)) {
   test(`rejects ${name}`, () => {
