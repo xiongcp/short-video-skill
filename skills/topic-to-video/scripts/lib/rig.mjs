@@ -279,15 +279,31 @@ export function drawHost(manifest, state) {
     lines: Object.fromEntries(Object.entries(manifest.ink.lines).map(([k, w]) => [k, w.map((v) => v * H)])),
     wobble: manifest.ink.wobble * H,
   };
-  const [hw, hh] = manifest.figure.hand.map((v) => (v * H) / 2);
   const [fw, fh] = manifest.figure.foot.map((v) => (v * H) / 2);
   const origin = (pt) => `style="transform-origin:${num(pt[0])}px ${num(pt[1])}px"`;
+  const drawHand = (s) => {
+    const type = pose.hands?.[s] ?? (pose.finger && s === ACTING ? 'point' : 'fist');
+    const spec = manifest.figure.hands?.[type] ?? { size: manifest.figure.hand };
+    const [hw, hh] = spec.size.map((v) => (v * H) / 2);
+    const center = mid(p[`${s}_wrist`], p[`${s}_hand`]);
+    const dir = dirs[`${s}_hand`];
+    let extra = '';
+    if (type === 'point') {
+      extra = pen(ctx, `${s}_finger`, [p[`${s}_hand`], step(p[`${s}_hand`], dir, manifest.figure.finger * H)], ctx.lines.prop);
+    } else if (type === 'open') {
+      const baseDir = facing === 1 ? dir : 180 - dir;
+      const [a, b] = [baseDir - 40, baseDir + 40];
+      const sinDiff = Math.sin(a * RAD) - Math.sin(b * RAD);
+      const unmirrored = Math.abs(sinDiff) > 1e-6 ? (sinDiff < 0 ? a : b) : (s === ACTING ? a : b);
+      const thumbDeg = facing === 1 ? unmirrored : 180 - unmirrored;
+      extra = pen(ctx, `${s}_thumb`, [center, step(center, thumbDeg, spec.thumb * H)], ctx.lines.fine);
+    }
+    return `<g data-hand="${type}">${ellipse(center[0], center[1], hw, hh, dir, ctx.ink)}${extra}</g>`;
+  };
   const arm = (s) => {
-    const hand = mid(p[`${s}_wrist`], p[`${s}_hand`]);
-    const finger = pose.finger && s === ACTING ? pen(ctx, `${s}_finger`, [p[`${s}_hand`], step(p[`${s}_hand`], dirs[`${s}_hand`], manifest.figure.finger * H)], ctx.lines.prop) : '';
     const holds = prop && propTransform(manifest, fk, prop).side === s ? heldProp(ctx, fk, prop) : '';
     return `<g data-limb="${s}_arm">${pen(ctx, `${s}_upper_arm`, [p.neck_base, p[`${s}_elbow`]], ctx.width, ctx.ink, { taper: 'start' })}<g data-joint="${s}_elbow" ${origin(p[`${s}_elbow`])}>`
-      + `${pen(ctx, `${s}_forearm`, [p[`${s}_elbow`], p[`${s}_wrist`]], ctx.width, ctx.ink, { taper: 'end' })}${ellipse(hand[0], hand[1], hw, hh, dirs[`${s}_hand`], ctx.ink)}${finger}${holds}</g></g>`;
+      + `${pen(ctx, `${s}_forearm`, [p[`${s}_elbow`], p[`${s}_wrist`]], ctx.width, ctx.ink, { taper: 'end' })}${drawHand(s)}${holds}</g></g>`;
   };
   const leg = (s) => {
     const foot = mid(p[`${s}_ankle`], p[`${s}_toe`]);

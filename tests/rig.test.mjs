@@ -300,6 +300,41 @@ test('scarfShape gives long notched tails, mirrors cleanly when facing left, and
   }
 });
 
+test('poses choose fist, open or point hands, respect dark theme, and mirror thumbs when facing left', () => {
+  const count = (svg, type) => (svg.match(new RegExp(`data-hand="${type}"`, 'g')) ?? []).length;
+  assert.equal(count(draw({ gesture: 'shrug' }), 'open'), 2);
+  const pointSvg = draw({ gesture: 'point' });
+  assert.equal(count(pointSvg, 'point'), 1);
+  assert.ok(pointSvg.includes('data-part="l_finger"'));
+  assert.equal(count(draw({}), 'fist'), 2);
+
+  for (const gesture of POSES) {
+    const { hands } = resolvePose(manifest, gesture);
+    if (!hands) continue;
+    for (const [side, type] of Object.entries(hands)) {
+      assert.ok(['fist', 'open', 'point'].includes(type), `${gesture}.${side}: ${type}`);
+    }
+  }
+
+  const darkShrug = draw({ gesture: 'shrug', theme: 'dark' });
+  assert.ok(!darkShrug.includes(manifest.ink.body.light));
+
+  const thumbTip = (svg, side) => {
+    const m = svg.match(new RegExp(`data-part="${side}_thumb" d="([^"]+)"`));
+    assert.ok(m, `${side}_thumb`);
+    const cap = m[1].match(/(-?[\d.]+) (-?[\d.]+)A[\d.]+ [\d.]+ 0 0 0 (-?[\d.]+) (-?[\d.]+)/);
+    assert.ok(cap, `${side}_thumb cap`);
+    return [(Number(cap[1]) + Number(cap[3])) / 2, (Number(cap[2]) + Number(cap[4])) / 2];
+  };
+  const rightShrug = draw({ gesture: 'shrug', x: 400 });
+  const leftShrug = draw({ gesture: 'shrug', x: 400, facing: -1 });
+  for (const side of ['l', 'r']) {
+    const rt = thumbTip(rightShrug, side);
+    const lt = thumbTip(leftShrug, side);
+    assert.ok(dist(lt, [800 - rt[0], rt[1]]) <= 0.5, `${side} thumb mirror: ${lt} vs ${[800 - rt[0], rt[1]]}`);
+  }
+});
+
 test('an unknown gesture, expression, prop, view or theme is a clear error', () => {
   assert.throws(() => draw({ gesture: 'dance' }), /unknown gesture dance/);
   assert.throws(() => draw({ expr: 'angry' }), /unknown expression angry/);
