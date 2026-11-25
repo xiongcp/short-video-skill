@@ -312,8 +312,8 @@ export function drawHost(manifest, state) {
   };
   const torso = pen(ctx, 'spine', [p.pelvis, p.spine_mid, p.neck_base, p.head_base], ctx.width, ctx.ink, { smooth: 2 });
   const scarfGeom = scarfShape(manifest, fk);
-  const tails = scarfGeom.tails.map((t, i) => `<path data-part="scarf_tail${i}" d="${markerFill(t.outline, { seed: `${ctx.seed}:scarf_tail${i}_fill`, shift: H * 0.003 })}" fill="${ctx.accent}"/>`
-    + pen(ctx, `scarf_tail${i}_edge`, [...t.outline, t.outline[0]], ctx.lines.fine, ctx.ink)).join('');
+  const tails = scarfGeom.tails.map((t, i) => `<path data-part="scarf_tail${i}" d="${markerFill(t.outline, { seed: `${ctx.seed}:scarf_tail${i}_fill`, shift: H * 0.0015 })}" fill="${ctx.accent}"/>`
+    + `<path data-part="scarf_tail${i}_edge" d="${pathData(t.outline, true)}" fill="none" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[0])}" stroke-linejoin="round"/>`).join('');
   const scarf = `<g data-part="scarf">${pen(ctx, 'scarf_ring', scarfGeom.ring, ctx.lines.scarf, ctx.accent)}</g>`;
   const head = `<g data-joint="head" ${origin(p.head_base)}>${pen(ctx, 'head', circlePoints(p.head_center[0], p.head_center[1], R, { seed: `${seed}:head-circle` }))}`
     + `<g data-face="${expr}" transform="translate(${num(p.head_center[0])} ${num(p.head_center[1])}) rotate(${num(dirs.head + 90)}) scale(${facing} 1)">${face(ctx, expr, view, blink)}</g></g>`;

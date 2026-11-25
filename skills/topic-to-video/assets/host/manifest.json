@@ -3,7 +3,7 @@
   "name": "小青",
   "rig_version": 2,
   "height_px": 400,
-  "ref": {"file": "host-ref.png", "width": 1600, "height": 900, "sha256": "4071a2da981f5a622f459df7fa9add2db2c1277ba74c007e36b4e74cc42b801a"},
+  "ref": {"file": "host-ref.png", "width": 1600, "height": 900, "sha256": "a7c9fbbb1f344feeccd2c39f63a5b77d8c5ed750f981d87c678a8c039c19c724"},
   "ink": {"width": [0.022, 0.03], "lines": {"face": [0.008, 0.011], "symbol": [0.009, 0.013], "prop": [0.012, 0.016], "fine": [0.0075, 0.01], "scarf": [0.022, 0.03]}, "wobble": 0.004, "body": {"light": "#1f1f1f", "dark": "#f2f2f2"}, "accent": "#20a5a3", "markers": {"yellow": "#f6c945", "red": "#e05a47", "teal": "#7fd1cf"}},
   "joints": {
     "pelvis": {"parent": null, "length": 0, "range": [-20, 20]},
@@ -24,7 +24,7 @@
     "r_knee": {"parent": "r_hip", "length": 0.225, "range": [0, 150]},
     "r_ankle": {"parent": "r_knee", "length": 0.07, "range": [-30, 30]}
   },
-  "figure": {"hand": [0.045, 0.03], "hands": {"fist": {"size": [0.05, 0.04]}, "open": {"size": [0.06, 0.03], "thumb": 0.025}, "point": {"size": [0.05, 0.04]}}, "foot": [0.07, 0.025], "finger": 0.035, "face_scale": 1.2},
+  "figure": {"hand": [0.045, 0.03], "hands": {"fist": {"size": [0.05, 0.04]}, "open": {"size": [0.06, 0.03], "thumb": 0.042}, "point": {"size": [0.05, 0.04]}}, "foot": [0.07, 0.025], "finger": 0.035, "face_scale": 1.2},
   "views": {
     "front": {"face_shift": 0, "eyes": [-0.3, 0.3], "foot_scale": 0.75, "scarf_width": 1},
     "three_quarter": {"face_shift": 0.06, "eyes": [-0.2, 0.2], "foot_scale": 1, "scarf_width": 0.8},

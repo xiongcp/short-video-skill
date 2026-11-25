@@ -298,6 +298,20 @@ test('scarfShape gives long notched tails, mirrors cleanly when facing left, and
     const span = Math.max(...xs) - Math.min(...xs);
     assert.ok(span >= 0.12 * small.height_px, `${view} scarf span ${span} < ${0.12 * small.height_px}`);
   }
+
+  const idleSvg = draw({ gesture: 'idle', x: 500, ground: 930 });
+  right.tails.forEach((tail, i) => {
+    const edge = idleSvg.match(new RegExp(`<path data-part="scarf_tail${i}_edge"([^>]+)/>`));
+    assert.ok(edge, `scarf_tail${i}_edge`);
+    assert.match(edge[1], /fill="none"/);
+    assert.match(edge[1], /stroke-linejoin="round"/);
+    const d = edge[1].match(/d="([^"]+)"/)?.[1] ?? '';
+    const pts = [...d.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);
+    assert.equal(pts.length, tail.outline.length, `tail ${i} preserves all outline vertices including V-notch`);
+    tail.outline.forEach((pt, pi) => {
+      assert.ok(dist(pts[pi], pt) <= 0.02, `tail ${i} vertex ${pi} drift`);
+    });
+  });
 });
 
 test('poses choose fist, open or point hands, respect dark theme, and mirror thumbs when facing left', () => {
@@ -328,10 +342,17 @@ test('poses choose fist, open or point hands, respect dark theme, and mirror thu
   };
   const rightShrug = draw({ gesture: 'shrug', x: 400 });
   const leftShrug = draw({ gesture: 'shrug', x: 400, facing: -1 });
+  const shrugFk = stand('shrug');
+  const [ow, oh] = manifest.figure.hands.open.size.map((v) => (v * H) / 2);
+  const rad = Math.PI / 180;
+  const edgeAt40 = 1 / Math.hypot(Math.cos(40 * rad) / ow, Math.sin(40 * rad) / oh);
   for (const side of ['l', 'r']) {
     const rt = thumbTip(rightShrug, side);
     const lt = thumbTip(leftShrug, side);
     assert.ok(dist(lt, [800 - rt[0], rt[1]]) <= 0.5, `${side} thumb mirror: ${lt} vs ${[800 - rt[0], rt[1]]}`);
+    const center = mid(shrugFk.points[`${side}_wrist`], shrugFk.points[`${side}_hand`]);
+    const protrude = dist(rt, center) - edgeAt40;
+    assert.ok(protrude >= 0.015 * H, `${side} thumb protrudes only ${protrude.toFixed(2)} px past palm (need >= ${0.015 * H})`);
   }
 });
 
