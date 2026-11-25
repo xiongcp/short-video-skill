@@ -1,0 +1,122 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { clampAngles, forwardKinematics, JOINTS, poseAngles, resolvePose, VIEWS } from '../skills/topic-to-video/scripts/lib/rig.mjs';
+
+const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
+const H = manifest.height_px;
+const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+const segment = (p, a, b) => {
+  const [dx, dy] = [b[0] - a[0], b[1] - a[1]];
+  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy)));
+  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
+};
+// Every gesture with its own pose (point_right is an alias), plus the walk key pose.
+const POSES = [...Object.keys(manifest.poses).filter((g) => !manifest.poses[g].alias), 'walk'];
+const stand = (gesture, prop) => {
+  const pose = resolvePose(manifest, gesture);
+  return forwardKinematics(manifest, poseAngles(manifest, gesture, prop, pose.view), { view: pose.view, x: 400, ground: 930, lift: pose.lift ?? 0 });
+};
+
+test('forward kinematics keeps every bone at its length in every view and facing', () => {
+  const bones = [['pelvis', 'spine_mid', 'waist'], ['spine_mid', 'neck_base', 'chest'], ['neck_base', 'head_base', 'neck'],
+    ...['l', 'r'].flatMap((s) => [['neck_base', `${s}_elbow`, `${s}_shoulder`], [`${s}_elbow`, `${s}_wrist`, `${s}_elbow`],
+      [`${s}_wrist`, `${s}_hand`, `${s}_wrist`], ['pelvis', `${s}_knee`, `${s}_hip`], [`${s}_knee`, `${s}_ankle`, `${s}_knee`]])];
+  for (const view of VIEWS) {
+    for (const facing of [1, -1]) {
+      const { points } = forwardKinematics(manifest, manifest.poses.think.angles, { view, facing });
+      for (const [a, b, joint] of bones) assert.ok(Math.abs(dist(points[a], points[b]) - manifest.joints[joint].length * H) < 1e-9, `${view} ${facing} ${joint}`);
+      assert.ok(Math.abs(dist(points.head_base, points.head_center) - (manifest.joints.head.length * H) / 2) < 1e-9);
+    }
+  }
+});
+
+test('standing straight, the host is H tall with shoulders at 0.725 H and soles on the ground', () => {
+  const { points, R } = forwardKinematics(manifest, {}, { view: 'side', ground: 930 });
+  const sole = (manifest.figure.foot[1] * H) / 2;
+  assert.ok(Math.abs(points.l_ankle[1] + sole - 930) < 1e-9);
+  assert.ok(Math.abs(points.l_ankle[1] - (points.head_center[1] - R) - H) < 1e-9);
+  assert.ok(Math.abs(points.l_ankle[1] - points.neck_base[1] - 0.725 * H) < 1e-9);
+});
+
+test('facing left mirrors the figure around the pelvis', () => {
+  const opts = { view: 'three_quarter', x: 500, ground: 930 };
+  const right = forwardKinematics(manifest, manifest.poses.point.angles, opts);
+  const left = forwardKinematics(manifest, manifest.poses.point.angles, { ...opts, facing: -1 });
+  for (const [k, [x, y]] of Object.entries(right.points)) {
+    assert.ok(Math.abs(left.points[k][0] - (1000 - x)) < 1e-9, k);
+    assert.equal(left.points[k][1], y, k);
+  }
+});
+
+test('angles are clamped to the joint ranges and a missing joint is 0', () => {
+  const a = clampAngles(manifest, { l_elbow: -20, l_knee: 200, head: 10 });
+  assert.deepEqual(Object.keys(a), JOINTS);
+  assert.deepEqual([a.l_elbow, a.l_knee, a.head, a.waist], [0, 150, 10, 0]);
+});
+
+test('every pose and every prop arm stays inside the joint ranges without clamping', () => {
+  const inRange = (joint, deg, what) => {
+    const [lo, hi] = manifest.joints[joint].range;
+    assert.ok(deg >= lo && deg <= hi, `${what} ${joint} ${deg}`);
+  };
+  for (const gesture of POSES) {
+    const pose = resolvePose(manifest, gesture);
+    for (const angles of [pose.angles, ...Object.values(pose.view_angles ?? {})]) {
+      for (const [joint, deg] of Object.entries(angles)) inRange(joint, deg, gesture);
+    }
+  }
+  for (const [prop, p] of Object.entries(manifest.props)) for (const [joint, deg] of Object.entries(p.arm ?? {})) inRange(`r_${joint}`, deg, prop);
+});
+
+test('line of action: no pose mirrors its left and right limbs', () => {
+  for (const gesture of POSES) {
+    const { angles } = resolvePose(manifest, gesture);
+    const differs = ['shoulder', 'elbow', 'wrist', 'hip', 'knee', 'ankle'].some((j) => (angles[`l_${j}`] ?? 0) !== (angles[`r_${j}`] ?? 0));
+    assert.ok(differs, gesture);
+  }
+});
+
+test('clear silhouette: hands stay at least 0.08 H from the torso, except think and shrug', () => {
+  for (const gesture of POSES.filter((g) => !['think', 'shrug'].includes(g))) {
+    const { points: p } = stand(gesture);
+    for (const s of ['l', 'r']) assert.ok(segment(mid(p[`${s}_wrist`], p[`${s}_hand`]), p.pelvis, p.neck_base) >= 0.08 * H, `${gesture} ${s}`);
+  }
+});
+
+test('clear silhouette: raised arms pass beside the head, not through it, except the hand on the chin in think', () => {
+  for (const gesture of POSES.filter((g) => g !== 'think')) {
+    const { points: p, R } = stand(gesture);
+    for (const s of ['l', 'r']) assert.ok(dist(p[`${s}_elbow`], p.head_center) >= 1.2 * R, `${gesture} ${s}`);
+  }
+});
+
+test('balance: the pelvis is over the support foot, between both feet, or on the ground when sitting', () => {
+  const sole = (manifest.figure.foot[1] * H) / 2;
+  for (const gesture of POSES) {
+    const pose = resolvePose(manifest, gesture);
+    const { points: p } = stand(gesture);
+    const span = (feet) => feet.flatMap((s) => [p[`${s}_ankle`][0], p[`${s}_toe`][0]]);
+    if (pose.support === 'seat') {
+      assert.ok(Math.abs(p.pelvis[1] - 930) <= 0.02 * H, gesture);
+      continue;
+    }
+    const xs = span(pose.support === 'both' ? ['l', 'r'] : [pose.support]);
+    assert.ok(p.pelvis[0] >= Math.min(...xs) - 0.02 * H && p.pelvis[0] <= Math.max(...xs) + 0.02 * H, gesture);
+    const lowest = Math.max(...['l', 'r'].flatMap((s) => [p[`${s}_ankle`][1], p[`${s}_toe`][1]])) + sole;
+    assert.ok(Math.abs(lowest - (930 - (pose.lift ?? 0) * H)) < 1e-9, `${gesture} touches the ground`);
+  }
+});
+
+test('point_right resolves to the point pose, walk to its key pose, and an unknown gesture is a clear error', () => {
+  assert.deepEqual(resolvePose(manifest, 'point_right'), resolvePose(manifest, 'point'));
+  assert.equal(resolvePose(manifest, 'walk'), manifest.motions.walk.key);
+  assert.throws(() => resolvePose(manifest, 'dance'), /unknown gesture dance/);
+});
+
+test('a prop for the other hand raises that arm; a prop for the acting hand keeps the pose', () => {
+  assert.equal(poseAngles(manifest, 'idle', 'bulb').r_shoulder, manifest.props.bulb.arm.shoulder);
+  assert.deepEqual(poseAngles(manifest, 'point', 'pointer'), poseAngles(manifest, 'point'));
+});

@@ -1,72 +1,70 @@
 {
-  "host": "hare",
-  "name": "晴",
-  "source": {
-    "rig": "assets/default-host/rig.json",
-    "rig_commit": "5f2e9ad7e25df5f47913059c6d320476acc57860",
-    "tag": "studio-v1",
-    "script": "assets/default-host/export-sprites.ts"
+  "host": "xiaoqing",
+  "name": "小青",
+  "rig_version": 1,
+  "height_px": 400,
+  "ref": {"file": "host-ref.png", "width": 1600, "height": 900, "sha256": ""},
+  "ink": {"width": [0.022, 0.03], "wobble": 0.004, "body": {"light": "#1f1f1f", "dark": "#f2f2f2"}, "accent": "#20a5a3", "markers": {"yellow": "#f6c945", "red": "#e05a47", "teal": "#7fd1cf"}},
+  "joints": {
+    "pelvis": {"parent": null, "length": 0, "range": [-20, 20]},
+    "waist": {"parent": "pelvis", "length": 0.135, "range": [-30, 45]},
+    "chest": {"parent": "waist", "length": 0.135, "range": [-20, 30]},
+    "neck": {"parent": "chest", "length": 0.04, "range": [-30, 30]},
+    "head": {"parent": "neck", "length": 0.235, "range": [-35, 35]},
+    "l_shoulder": {"parent": "chest", "length": 0.16, "range": [-170, 170]},
+    "l_elbow": {"parent": "l_shoulder", "length": 0.15, "range": [0, 150]},
+    "l_wrist": {"parent": "l_elbow", "length": 0.04, "range": [-60, 60]},
+    "r_shoulder": {"parent": "chest", "length": 0.16, "range": [-170, 170]},
+    "r_elbow": {"parent": "r_shoulder", "length": 0.15, "range": [0, 150]},
+    "r_wrist": {"parent": "r_elbow", "length": 0.04, "range": [-60, 60]},
+    "l_hip": {"parent": "pelvis", "length": 0.23, "range": [-30, 120]},
+    "l_knee": {"parent": "l_hip", "length": 0.225, "range": [0, 150]},
+    "l_ankle": {"parent": "l_knee", "length": 0.07, "range": [-30, 30]},
+    "r_hip": {"parent": "pelvis", "length": 0.23, "range": [-30, 120]},
+    "r_knee": {"parent": "r_hip", "length": 0.225, "range": [0, 150]},
+    "r_ankle": {"parent": "r_knee", "length": 0.07, "range": [-30, 30]}
   },
-  "canvas": {
-    "width": 820,
-    "height": 900
+  "figure": {"hand": [0.045, 0.03], "foot": [0.07, 0.025], "finger": 0.035},
+  "views": {
+    "front": {"face_shift": 0, "eyes": [-0.3, 0.3], "foot_scale": 0.75, "scarf_width": 1},
+    "three_quarter": {"face_shift": 0.06, "eyes": [-0.2, 0.2], "foot_scale": 1, "scarf_width": 0.8},
+    "side": {"face_shift": 0.065, "eyes": [0.15], "foot_scale": 1, "scarf_width": 0.55}
   },
-  "bodies": {
-    "idle": {
-      "file": "body-idle.png",
-      "sha256": "3ded51ff552a6b0f825a235c0331195985b32442f43539fa96b8fa5ebbe32082"
-    },
-    "point_right": {
-      "file": "body-point_right.png",
-      "sha256": "a041812c35cf4a128375ca01604cc06999f262a6a8683ad513709e4c7844107f"
-    },
-    "wave": {
-      "file": "body-wave.png",
-      "sha256": "b997c5c733516c124ff887f547a89114cd52b4a9e1b5c68a41b85b83f52f84cc"
-    },
-    "emphasize": {
-      "file": "body-emphasize.png",
-      "sha256": "5678791809a3e3e50e42314bbbc2d4607c73c18f37828c5a48d33ebe11c39436"
-    }
+  "expressions": {
+    "explaining": {"eyes": "oval", "brow": {"angle": -4, "lift": 0}, "mouth": "smile"},
+    "focused": {"eyes": "narrow", "brow": {"angle": 12, "lift": -0.006}, "mouth": "line"},
+    "happy": {"eyes": "arc", "brow": {"angle": -8, "lift": 0.012}, "mouth": "grin"},
+    "curious": {"eyes": "oval", "eye_scale": [1.25, 0.8], "brow": {"angle": 0, "lift": 0.004, "asym": 0.02}, "mouth": "o", "symbol": "question"},
+    "surprised": {"eyes": "tall", "brow": {"angle": -6, "lift": 0.025}, "mouth": "gasp", "symbol": "exclaim"},
+    "worried": {"eyes": "oval", "brow": {"angle": -18, "lift": 0.01}, "mouth": "wave", "symbol": "sweat"},
+    "frustrated": {"eyes": "caret", "brow": {"angle": 20, "lift": -0.008}, "mouth": "teeth", "symbol": "shake"},
+    "proud": {"eyes": "half", "brow": {"angle": 4, "lift": 0, "asym": 0.02}, "mouth": "smirk", "symbol": "sparkle"}
   },
-  "faces": {
-    "file": "faces.png",
-    "sha256": "e542e6ff52c650241f6d8d119f4521dff6dde716c0946568aa1ae7a01277758c",
-    "rect": [
-      241,
-      241,
-      180,
-      172
-    ],
-    "rows": [
-      "explaining",
-      "focused",
-      "happy",
-      "curious"
-    ],
-    "columns": [
-      "closed",
-      "half",
-      "open",
-      "blink"
-    ]
+  "poses": {
+    "idle": {"type": "hold", "view": "three_quarter", "support": "l", "angles": {"waist": -3, "chest": 5, "neck": 3, "head": -2, "l_shoulder": 15, "l_elbow": 20, "l_wrist": 5, "r_shoulder": -25, "r_elbow": 20, "l_hip": 3, "l_knee": 3, "r_hip": 18, "r_knee": 12, "r_ankle": -10}, "view_angles": {"front": {"l_shoulder": 14, "l_elbow": 8, "r_shoulder": 10, "r_elbow": 12, "r_hip": 8, "r_knee": 4}}},
+    "point": {"type": "hold", "view": "three_quarter", "support": "r", "finger": true, "angles": {"waist": -6, "chest": 8, "neck": -6, "head": -8, "l_shoulder": 120, "l_elbow": 10, "r_shoulder": -30, "r_elbow": 30, "l_hip": 18, "l_knee": 10, "l_ankle": 4, "r_hip": -6, "r_knee": 2}},
+    "point_right": {"alias": "point"},
+    "emphasize": {"type": "hold", "view": "three_quarter", "support": "l", "angles": {"pelvis": 4, "waist": 8, "chest": 6, "neck": 2, "head": 6, "l_shoulder": 40, "l_elbow": 45, "l_wrist": 30, "r_shoulder": -30, "r_elbow": 30, "l_hip": 8, "l_knee": 10, "r_hip": -10, "r_knee": 6}},
+    "think": {"type": "hold", "view": "three_quarter", "support": "r", "angles": {"waist": -4, "chest": 6, "neck": 8, "head": 14, "l_shoulder": 35, "l_elbow": 140, "l_wrist": 10, "r_shoulder": 20, "r_elbow": 95, "l_hip": 14, "l_knee": 16, "r_hip": 2, "r_knee": 2}},
+    "shrug": {"type": "hold", "view": "front", "support": "both", "angles": {"chest": -4, "neck": -4, "head": 10, "l_shoulder": 30, "l_elbow": 80, "l_wrist": 20, "r_shoulder": 34, "r_elbow": 72, "r_wrist": 25, "l_hip": 6, "l_knee": 2, "r_hip": 10, "r_knee": 6}},
+    "present": {"type": "hold", "view": "three_quarter", "support": "r", "angles": {"waist": -4, "chest": 6, "neck": -2, "head": -4, "l_shoulder": 75, "l_elbow": 25, "l_wrist": -30, "r_shoulder": -30, "r_elbow": 35, "l_hip": 16, "l_knee": 8, "l_ankle": 4, "r_hip": -6, "r_knee": 2}},
+    "sit": {"type": "hold", "view": "three_quarter", "support": "seat", "angles": {"pelvis": 0, "waist": 4, "chest": 6, "neck": 2, "head": -4, "l_shoulder": 40, "l_elbow": 30, "r_shoulder": -40, "r_elbow": 20, "l_hip": 110, "l_knee": 41, "l_ankle": 10, "r_hip": 92, "r_knee": 3}},
+    "wave": {"type": "once", "seconds": 1.2, "view": "front", "support": "both", "angles": {"chest": 4, "head": 6, "l_shoulder": 105, "l_elbow": 65, "l_wrist": 0, "r_shoulder": 14, "r_elbow": 12, "l_hip": 8, "l_knee": 2, "r_hip": 12, "r_knee": 6}},
+    "jump": {"type": "once", "seconds": 0.8, "view": "front", "support": "both", "lift": 0.12, "angles": {"chest": -4, "head": -6, "l_shoulder": 120, "l_elbow": 20, "r_shoulder": 112, "r_elbow": 26, "l_hip": 28, "l_knee": 8, "r_hip": 24, "r_knee": 12, "r_ankle": -10}},
+    "cheer": {"type": "once", "seconds": 1, "view": "front", "support": "both", "lift": 0.04, "angles": {"chest": 0, "neck": -4, "head": -8, "l_shoulder": 122, "l_elbow": 18, "r_shoulder": 114, "r_elbow": 28, "l_hip": 6, "l_knee": 4, "r_hip": 9, "r_knee": 8}},
+    "tap": {"type": "once", "seconds": 0.6, "view": "three_quarter", "support": "r", "angles": {"pelvis": 4, "waist": 10, "chest": 4, "head": -6, "l_shoulder": 100, "l_elbow": 15, "l_wrist": -25, "r_shoulder": -35, "r_elbow": 30, "l_hip": 20, "l_knee": 14, "l_ankle": 6, "r_hip": -2, "r_knee": 3}}
   },
-  "mouth_params": {
-    "closed": {
-      "ParamMouthOpenY": 0,
-      "ParamMouthForm": 0
-    },
-    "half": {
-      "ParamMouthOpenY": 0.5,
-      "ParamMouthForm": 0.15
-    },
-    "open": {
-      "ParamMouthOpenY": 1,
-      "ParamMouthForm": 0.3
-    }
+  "motions": {
+    "walk": {"steps_per_second": 2, "step": 0.35, "bob": 0.015, "key": {"type": "motion", "view": "side", "support": "both", "angles": {"waist": 4, "chest": 2, "head": -2, "l_shoulder": -30, "l_elbow": 20, "r_shoulder": 30, "r_elbow": 25, "l_hip": -22, "l_knee": 8, "l_ankle": 5, "r_hip": 28, "r_knee": 4, "r_ankle": 12}}}
   },
-  "notes": [
-    "curious 的头部倾斜在导出时去掉了，需要时由渲染层整体旋转。",
-    "眨眼格为闭口。"
-  ]
+  "props": {
+    "pointer": {"hand": "acting", "grip": [0, 0], "tip": [0.3, 0]},
+    "magnifier": {"hand": "acting", "grip": [0, 0]},
+    "phone": {"hand": "other", "grip": [0.01, 0], "arm": {"shoulder": 30, "elbow": 105, "wrist": 0}},
+    "doc": {"hand": "other", "grip": [0.01, 0], "arm": {"shoulder": 30, "elbow": 100, "wrist": 0}},
+    "bulb": {"hand": "other", "grip": [0.01, 0], "arm": {"shoulder": 100, "elbow": 80, "wrist": 0}},
+    "question": {"hand": "other", "grip": [0, 0], "arm": {"shoulder": 120, "elbow": 30, "wrist": 0}}
+  },
+  "scarf": {"ring": [[-0.045, -0.022], [-0.03, -0.006], [0, 0.002], [0.03, -0.006], [0.045, -0.022]], "knot": 1, "tails": [{"angle": 18, "length": 0.11}, {"angle": 32, "length": 0.09}], "stiffness": 120, "damping": 14},
+  "lipsync": {"open_max": 0.16, "width": [0.12, 0.22]}
 }
