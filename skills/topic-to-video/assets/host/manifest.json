@@ -65,6 +65,6 @@
     "bulb": {"hand": "other", "grip": [0.01, 0], "arm": {"shoulder": 100, "elbow": 80, "wrist": 0}},
     "question": {"hand": "other", "grip": [0, 0], "arm": {"shoulder": 120, "elbow": 30, "wrist": 0}}
   },
-  "scarf": {"ring": [[-0.045, -0.022], [-0.03, -0.006], [0, 0.002], [0.03, -0.006], [0.045, -0.022]], "knot": 1, "tails": [{"angle": 18, "length": 0.11}, {"angle": 32, "length": 0.09}], "stiffness": 120, "damping": 14},
+  "scarf": {"ring": [[-0.055, -0.022], [-0.036, -0.005], [0, 0.004], [0.036, -0.005], [0.055, -0.022]], "knot": 1, "tails": [{"angle": 18, "length": 0.13}, {"angle": 32, "length": 0.105}], "notch": 0.02, "stiffness": 120, "damping": 14},
   "lipsync": {"open_max": 0.16, "width": [0.12, 0.22]}
 }

@@ -93,6 +93,33 @@ export function propTransform(manifest, fk, prop) {
   return { x, y, angle: fk.dirs[`${side}_hand`], grip: [gx, gy], side };
 }
 
+/** Collar polyline and notched ribbon outlines for the teal scarf, mirrored with `fk.facing`. */
+export function scarfShape(manifest, fk) {
+  const { points: p, H, view, facing } = fk;
+  const wide = manifest.views[view].scarf_width;
+  const ring = manifest.scarf.ring.map(([u, w]) => [p.neck_base[0] + facing * u * wide * H, p.neck_base[1] + w * H]);
+  const knot = ring[manifest.scarf.knot];
+  const notch = (manifest.scarf.notch ?? 0.02) * H;
+  const tails = manifest.scarf.tails.map((t) => {
+    const deg1 = 90 + facing * t.angle;
+    const deg2 = 90 + facing * t.angle * 1.4;
+    const midDeg = (deg1 + deg2) / 2;
+    const bend = step(knot, deg1, (t.length * H) / 2);
+    const tip = step(bend, deg2, (t.length * H) / 2);
+    const outline = [
+      step(knot, deg1 - facing * 90, 0.015 * H),
+      step(bend, midDeg - facing * 90, 0.013 * H),
+      step(tip, deg2 - facing * 90, 0.011 * H),
+      step(tip, deg2 + 180, notch),
+      step(tip, deg2 + facing * 90, 0.011 * H),
+      step(bend, midDeg + facing * 90, 0.013 * H),
+      step(knot, deg1 + facing * 90, 0.015 * H),
+    ];
+    return { outline, tip };
+  });
+  return { ring, tails };
+}
+
 // ---- drawing ----
 
 const ellipse = (cx, cy, rx, ry, deg, fill, extra = '') =>
@@ -268,15 +295,10 @@ export function drawHost(manifest, state) {
     return `<g data-limb="${s}_leg">${pen(ctx, `${s}_leg`, [p.pelvis, p[`${s}_knee`], p[`${s}_ankle`]], ctx.width, ctx.ink, { smooth: 2 })}${ellipse(foot[0], foot[1], fw * scale, fh, dirs[`${s}_foot`], ctx.ink)}</g>`;
   };
   const torso = pen(ctx, 'spine', [p.pelvis, p.spine_mid, p.neck_base, p.head_base], ctx.width, ctx.ink, { smooth: 2 });
-  const scarfWidth = ctx.lines.scarf;
-  const wide = manifest.views[view].scarf_width;
-  const ring = manifest.scarf.ring.map(([u, w]) => [p.neck_base[0] + facing * u * wide * H, p.neck_base[1] + w * H]);
-  const knot = ring[manifest.scarf.knot];
-  const tails = manifest.scarf.tails.map((t, i) => {
-    const bend = step(knot, 90 + facing * t.angle, (t.length * H) / 2);
-    return pen(ctx, `scarf_tail${i}`, [knot, bend, step(bend, 90 + facing * t.angle * 1.4, (t.length * H) / 2)], scarfWidth, ctx.accent);
-  }).join('');
-  const scarf = `<g data-part="scarf">${pen(ctx, 'scarf_ring', ring, scarfWidth, ctx.accent)}</g>`;
+  const scarfGeom = scarfShape(manifest, fk);
+  const tails = scarfGeom.tails.map((t, i) => `<path data-part="scarf_tail${i}" d="${markerFill(t.outline, { seed: `${ctx.seed}:scarf_tail${i}_fill`, shift: H * 0.003 })}" fill="${ctx.accent}"/>`
+    + pen(ctx, `scarf_tail${i}_edge`, [...t.outline, t.outline[0]], ctx.lines.fine, ctx.ink)).join('');
+  const scarf = `<g data-part="scarf">${pen(ctx, 'scarf_ring', scarfGeom.ring, ctx.lines.scarf, ctx.accent)}</g>`;
   const head = `<g data-joint="head" ${origin(p.head_base)}>${pen(ctx, 'head', circlePoints(p.head_center[0], p.head_center[1], R, { seed: `${seed}:head-circle` }))}`
     + `<g data-face="${expr}" transform="translate(${num(p.head_center[0])} ${num(p.head_center[1])}) rotate(${num(dirs.head + 90)}) scale(${facing} 1)">${face(ctx, expr, view, blink)}</g></g>`;
   const sym = manifest.expressions[expr].symbol ? symbol(ctx, manifest.expressions[expr].symbol, p.head_center, facing) : '';

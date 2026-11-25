@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { clampAngles, drawHost, forwardKinematics, JOINTS, poseAngles, propTransform, resolvePose, VIEWS } from '../skills/topic-to-video/scripts/lib/rig.mjs';
+import { clampAngles, drawHost, forwardKinematics, JOINTS, poseAngles, propTransform, resolvePose, scarfShape, VIEWS } from '../skills/topic-to-video/scripts/lib/rig.mjs';
 
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
 const H = manifest.height_px;
@@ -264,6 +264,40 @@ test('face features scale by manifest.figure.face_scale (1.2x) without shifting 
   assert.ok(grin, 'happy grin path');
   const span = Math.abs(Number(grin[3]) - Number(grin[1]));
   assert.ok(Math.abs(span - 0.4 * 1.2 * R) <= 0.05, `grin span ${span} vs ${0.4 * 1.2 * R}`);
+});
+
+test('scarfShape gives long notched tails, mirrors cleanly when facing left, and spans at least 0.12 H at 540p', () => {
+  const opts = { view: 'three_quarter', x: 500, ground: 930 };
+  const rightFk = forwardKinematics(manifest, manifest.poses.idle.angles, opts);
+  const leftFk = forwardKinematics(manifest, manifest.poses.idle.angles, { ...opts, facing: -1 });
+  const right = scarfShape(manifest, rightFk);
+  const left = scarfShape(manifest, leftFk);
+
+  const knot = right.ring[manifest.scarf.knot];
+  assert.equal(right.tails.length, manifest.scarf.tails.length);
+  for (const tail of right.tails) {
+    assert.ok(dist(tail.tip, knot) >= 0.1 * H, `tail tip dist ${dist(tail.tip, knot)} < ${0.1 * H}`);
+    assert.ok(tail.outline.length >= 6);
+  }
+
+  right.ring.forEach(([x, y], i) => {
+    assert.ok(Math.abs(left.ring[i][0] - (1000 - x)) < 1e-9 && Math.abs(left.ring[i][1] - y) < 1e-9, `ring ${i}`);
+  });
+  right.tails.forEach((tail, ti) => {
+    assert.ok(Math.abs(left.tails[ti].tip[0] - (1000 - tail.tip[0])) < 1e-9 && Math.abs(left.tails[ti].tip[1] - tail.tip[1]) < 1e-9, `tip ${ti}`);
+    tail.outline.forEach(([x, y], pi) => {
+      assert.ok(Math.abs(left.tails[ti].outline[pi][0] - (1000 - x)) < 1e-9 && Math.abs(left.tails[ti].outline[pi][1] - y) < 1e-9, `tail ${ti} pt ${pi}`);
+    });
+  });
+
+  const small = { ...manifest, height_px: 200 };
+  for (const view of VIEWS) {
+    const fk = forwardKinematics(small, small.poses.idle.angles, { view, x: 200, ground: 465 });
+    const shape = scarfShape(small, fk);
+    const xs = [...shape.ring, ...shape.tails.flatMap((t) => t.outline)].map(([x]) => x);
+    const span = Math.max(...xs) - Math.min(...xs);
+    assert.ok(span >= 0.12 * small.height_px, `${view} scarf span ${span} < ${0.12 * small.height_px}`);
+  }
 });
 
 test('an unknown gesture, expression, prop, view or theme is a clear error', () => {
