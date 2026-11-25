@@ -109,7 +109,7 @@
 | `move` | 元素序号，或 `left`、`center`、`right` | 主持人在这句开始时走过去（仅限 `host-left`） |
 | `prop` | 道具名，或 `none` | 主持人在这句开始时拿起道具，`none` 是放下（仅限 `host-left`） |
 
-- `sentence` 必须是本镜头 `sentences` 里的句子。
+- `sentence` 必须是本镜头 `sentences` 里的句子。可选：`cue.at` 填本句关键词子串（L1 精准卡点）；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（24 个内置图标）。
 - `title` 和 `number` 没有可单独指定的元素，不能用 `reveal`、`highlight` 或写序号的 `move`。
 
 ## 分镜.md 格式

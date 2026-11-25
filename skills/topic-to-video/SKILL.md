@@ -7,8 +7,8 @@ description: 把主题、资料或已有讲稿做成中文知识解说视频：�
 
 ## 交付什么
 
-- **L0 文本包**（本版本提供，不需要任何依赖）：`project.json`、`讲稿.md`、`分镜.md`、`提示词包.md`。交出确认过的 L0 就是完整完成。
-- **L1 本地成片**（后续版本提供）：本版本没有渲染器。用户要 MP4 时，先说明这一点，照常做 L0，并在提示词包里写清楚如何用外部视频模型和剪辑软件完成成片。不要为了出片擅自安装模型、Python 包，或调用付费服务。
+- **L0 文本包**（默认，不需要任何依赖）：`project.json`、`讲稿.md`、`分镜.md`、`提示词包.md`。交出确认过的 L0 就是完整完成。
+- **L1 本地成片**（需 Node ≥ 20、FFmpeg 与 `@resvg/resvg-js`）：输出 1080p60/4K `out/final.mp4`、字幕、封面、章节与 `qa.md`。先跑 `scripts/doctor.mjs`，缺项则退回 L0，不擅自装重型依赖或付费调用。
 
 ## 开工前
 
@@ -25,7 +25,8 @@ description: 把主题、资料或已有讲稿做成中文知识解说视频：�
 | --- | --- | --- | --- |
 | 1 | 写 `project.json` 的 `brief`、`settings`、`sections`，再写 `讲稿.md` | [script.md](references/script.md) | 接着做第 2 步 |
 | 2 | 写 `shots`，再写 `分镜.md` | [storyboard.md](references/storyboard.md) | **确认①**：请用户确认讲稿和分镜 |
-| 3 | 写 `提示词包.md` | [prompt-pack.md](references/prompt-pack.md) | 交付，结束 |
+| 3 | 写 `提示词包.md`（L0 终点） | [prompt-pack.md](references/prompt-pack.md) | 交付 L0，或按需进入 L1 |
+| 4 | 可选 L1：配音、样片确认与本地渲染 | [providers.md](references/providers.md) | 交付 `out/final.mp4` 与 `qa.md` |
 
 - 按步读取：每一步只读表里那一份 reference；只需要向用户提问时一份都不读。schema 和 `scripts/` 的源码都不用读。
 - 自检：写完每一步和每次返修后，运行 `node <本 skill 目录>/scripts/check.mjs <项目文件夹>`。`errors` 和 `docs` 必须为空；`warnings` 是建议，按 reference 调整或在回复里说明；估时照抄输出里的 `estimates`，不要自己数字。

@@ -2,7 +2,7 @@
 
 [English](README.en.md) · [官网](https://xiongcp.github.io/short-video-skill/)
 
-给 Codex、Claude Code 等 Agent 用的轻量 skill。说一个主题，或者给一份资料、一篇讲稿，它会写出中文知识解说视频的讲稿和分镜，请你确认后，再给出交给外部视频模型逐镜生成的提示词包。本地合成成片（原创手绘火柴人主持人"小青"、1080p60）正在开发。
+给 agy、Claude Code、Codex 等 Agent 用的轻量 skill。说一个主题，或者给一份资料、一篇讲稿，它会写出中文知识解说视频的讲稿和分镜，请你确认后，可输出交给外部视频模型的提示词包（L0），也可直接调用本地矢量渲染器（原创手绘火柴人主持人"小青"、1080p60/4K、平滑同元素转场、`edge-tts` 或离线配音）合成成片（L1）。
 
 ## 三步出片
 
@@ -17,9 +17,9 @@
 | 档位 | 状态 | 交付物 |
 | --- | --- | --- |
 | L0 文本包 | 可用，不需要任何依赖 | `project.json`、`讲稿.md`、`分镜.md`、`提示词包.md` |
-| L1 本地成片 | 开发中 | 在 L0 之外加 `out/final.mp4`（1080p60）、字幕、封面、章节时间戳和 QA 报告 |
+| L1 本地成片 | 可用（缺 FFmpeg 时自动退回 L0） | 在 L0 之外加 `out/final.mp4`（1080p60，可选 1440p/4K）、`.srt`/`.ass` 字幕、封面、章节时间戳和 QA 报告 |
 
-L1 的设计见 [出片质量设计](docs/lite/出片质量设计.md) 和 [火柴人主持人设计](docs/lite/火柴人主持人设计.md)：手绘火柴人主持人、60fps、同元素补间转场、关键词级音画对齐，以及 QA 中的同步检查。
+L1 的设计与路线图见 [出片质量设计](docs/lite/出片质量设计.md)、[火柴人主持人设计](docs/lite/火柴人主持人设计.md) 和 [超越路线图](docs/lite/超越路线图.md)：手绘火柴人全身骨架与两节逆解、60fps、同元素补间转场、快动作 4x 运动模糊、关键词级音画对齐，以及 BT.709/跳变/卡顿/遮挡自动 QA。
 
 ## 主持人
 
@@ -33,14 +33,17 @@ L1 的设计见 [出片质量设计](docs/lite/出片质量设计.md) 和 [火�
 
 | Agent | 目录 |
 | --- | --- |
+| agy | 用户级 `~/.gemini/antigravity/skills/` 或工作区 `.gemini/skills/` |
 | Codex | 用户级 `~/.agents/skills/`（官方文档也列出 `~/.codex/skills/`）；仓库级 `.agents/skills/` |
 | Claude Code | 用户级 `~/.claude/skills/`；项目级 `.claude/skills/` |
 
 ```sh
 cp -R skills/topic-to-video ~/.claude/skills/
+# 如需 L1 本地出片（可选，仅 1 个运行时包 + 系统 FFmpeg）：
+npm install --prefix ~/.claude/skills/topic-to-video/scripts
 ```
 
-然后在 Agent 里说："用 topic-to-video 把'为什么缓存能让网页变快'做成 2 分钟的解说视频。"安装路径会在 P4 实测后更新。
+然后运行 `node ~/.claude/skills/topic-to-video/scripts/doctor.mjs` 检查环境，在 Agent 里说："用 topic-to-video 把'为什么缓存能让网页变快'做成 2 分钟的解说视频。"
 
 ## 示例
 
@@ -53,10 +56,10 @@ cp -R skills/topic-to-video ~/.claude/skills/
 | P0 | 旧版工作室归档到 tag `studio-v1`，仓库瘦身为单一 skill | 完成 |
 | P1 | L0 文本包与场景评测（[汇总](tests/scenarios/results/p1-summary.md)） | 完成 |
 | 设计 | 出片质量：人物、帧率、匹配度、平滑动画 | 完成 |
-| S1 | 火柴人主持人"小青"：骨架、表情、道具与速查图（取代 P2a） | 完成 |
-| P2b | 本地渲染器：60fps、关键词对齐、并行渲染 | 待开始 |
-| P3 | 转场、样片、返修与 QA | 待开始 |
-| P4 | 安装实测与发布 | 待开始 |
+| S1 / M1 | 火柴人主持人"小青"：骨架、精修造型、3 种手型、V 形缺口围巾与评审工具 | 完成 |
+| M2–M4 | 本地渲染器：60fps/4K、24 手绘图标、6 套手绘模板、全身运动与两节逆解、本地配音（`edge-tts`/`say`） | 完成 |
+| M5 | 同元素补间转场、选择性运动模糊、BT.709/跳变/卡顿/同步/遮挡 QA 与交付物 | 完成 |
+| M6–M7 | 跨 Agent（agy/Claude Code/Codex）统一入口与端到端对标验收 | 进行中 |
 
 完整计划见 [轻量化 Skill 计划书](docs/lite/轻量化Skill计划书.md)。
 

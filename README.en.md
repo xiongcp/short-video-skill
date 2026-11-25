@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · [Website](https://xiongcp.github.io/short-video-skill/)
 
-A lightweight skill for Codex, Claude Code and other agents. Name a topic, or give it sources or a draft, and it writes the script and storyboard for a Chinese explainer video. Once you approve them, it hands you a prompt pack for generating each shot with an external video model. Local rendering (with 小青 (Xiaoqing), an original hand-drawn stick-figure host, at 1080p60) is in development.
+A lightweight skill for agy, Claude Code, Codex and other agents. Name a topic, or give it sources or a draft, and it writes the script and storyboard for a Chinese explainer video. Once you approve them, it outputs a prompt pack for external video models (L0) or renders the finished MP4 locally (L1) with 小青 (Xiaoqing), an original hand-drawn stick-figure host, at 1080p60/4K with matched-element transitions and local TTS (`edge-tts` / macOS `say`).
 
 ## Three steps
 
@@ -17,9 +17,9 @@ When you change the script or storyboard it redoes only what changed and tells y
 | Level | Status | Output |
 | --- | --- | --- |
 | L0 text package | Available, no dependencies | `project.json`, `讲稿.md`, `分镜.md`, `提示词包.md` |
-| L1 local render | In development | L0 plus `out/final.mp4` (1080p60), captions, a cover image, chapter timestamps and a QA report |
+| L1 local render | Available (falls back to L0 if FFmpeg is missing) | L0 plus `out/final.mp4` (1080p60, optional 1440p/4K), `.srt`/`.ass` captions, a cover image, chapter timestamps and a QA report |
 
-The L1 design is in the [render quality design](docs/lite/出片质量设计.md) and the [stick-figure host design](docs/lite/火柴人主持人设计.md) (both in Chinese): a hand-drawn stick-figure host, 60 fps, matched-element transitions, keyword-level sync between narration and picture, and sync checks in QA.
+The L1 design and roadmap are in the [render quality design](docs/lite/出片质量设计.md), the [stick-figure host design](docs/lite/火柴人主持人设计.md) and the [surpass roadmap](docs/lite/超越路线图.md) (in Chinese): hand-drawn stick-figure full-body rig with 2-bone IK, 60 fps, matched-element transitions, selective 4x motion blur, keyword-level sync and automated BT.709/jump/freeze/occlusion QA.
 
 ## The host
 
@@ -33,14 +33,17 @@ Copy the whole `skills/topic-to-video/` folder into the agent's skills folder:
 
 | Agent | Folder |
 | --- | --- |
+| agy | user `~/.gemini/antigravity/skills/` or workspace `.gemini/skills/` |
 | Codex | user `~/.agents/skills/` (the docs also list `~/.codex/skills/`); repository `.agents/skills/` |
 | Claude Code | user `~/.claude/skills/`; project `.claude/skills/` |
 
 ```sh
 cp -R skills/topic-to-video ~/.claude/skills/
+# Optional for L1 local rendering (1 runtime npm package + system FFmpeg):
+npm install --prefix ~/.claude/skills/topic-to-video/scripts
 ```
 
-Then ask your agent: "Use topic-to-video to make a 2-minute explainer on why caching makes web pages faster." These paths will be confirmed by installation tests in P4.
+Check your environment with `node ~/.claude/skills/topic-to-video/scripts/doctor.mjs`, then ask your agent: "Use topic-to-video to make a 2-minute explainer on why caching makes web pages faster."
 
 ## Example
 
@@ -53,10 +56,10 @@ Then ask your agent: "Use topic-to-video to make a 2-minute explainer on why cac
 | P0 | Archive the previous Studio at tag `studio-v1`; slim the repository down to one skill | Done |
 | P1 | L0 text package and scenario evaluations ([summary](tests/scenarios/results/p1-summary.md), in Chinese) | Done |
 | Design | Render quality: host detail, frame rate, sync, smooth animation | Done |
-| S1 | Stick-figure host 小青: rig, expressions, props and cheatsheet (replaces P2a) | Done |
-| P2b | Local renderer: 60 fps, keyword sync, parallel rendering | Not started |
-| P3 | Transitions, samples, revisions and QA | Not started |
-| P4 | Installation tests and release | Not started |
+| S1 / M1 | Stick-figure host 小青: rig, visual polish, 3 hand shapes, notched scarf and review tool | Done |
+| M2–M4 | Local renderer: 60 fps/4K, 24 hand-drawn icons, 6 templates, full-body motion & 2-bone IK, local TTS (`edge-tts`/`say`) | Done |
+| M5 | Matched-element transitions, selective motion blur, BT.709/jump/freeze/sync/occlusion QA and deliverables | Done |
+| M6–M7 | Cross-agent (agy/Claude Code/Codex) CLI & end-to-end benchmark acceptance | In progress |
 
 The full plan (in Chinese) is in [docs/lite/轻量化Skill计划书.md](docs/lite/轻量化Skill计划书.md).
 

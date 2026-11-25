@@ -14,10 +14,10 @@ test('README.md and README.en.md have the same sections and links', () => {
   assert.deepEqual(links(zh), links(en));
 });
 
-test('both READMEs link the website and say L1 is in development', () => {
+test('both READMEs link the website and describe L1 local rendering with L0 fallback', () => {
   assert.ok(read('README.md').includes('https://xiongcp.github.io/short-video-skill/'));
-  assert.ok(read('README.md').includes('开发中'));
-  assert.ok(read('README.en.md').includes('In development'));
+  assert.ok(read('README.md').includes('L1 本地成片'));
+  assert.ok(read('README.en.md').includes('L1 local render'));
 });
 
 test('both READMEs introduce the host 小青 with the cheatsheet and no longer name 晴', () => {
