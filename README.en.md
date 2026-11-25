@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · [Website](https://xiongcp.github.io/short-video-skill/)
 
-A lightweight skill for Codex, Claude Code and other agents. Name a topic, or give it sources or a draft, and it writes the script and storyboard for a Chinese explainer video. Once you approve them, it hands you a prompt pack for generating each shot with an external video model. Local rendering (the original anime host "晴" at 1080p60) is in development.
+A lightweight skill for Codex, Claude Code and other agents. Name a topic, or give it sources or a draft, and it writes the script and storyboard for a Chinese explainer video. Once you approve them, it hands you a prompt pack for generating each shot with an external video model. Local rendering (with 小青 (Xiaoqing), an original hand-drawn stick-figure host, at 1080p60) is in development.
 
 ## Three steps
 
@@ -19,7 +19,13 @@ When you change the script or storyboard it redoes only what changed and tells y
 | L0 text package | Available, no dependencies | `project.json`, `讲稿.md`, `分镜.md`, `提示词包.md` |
 | L1 local render | In development | L0 plus `out/final.mp4` (1080p60), captions, a cover image, chapter timestamps and a QA report |
 
-The L1 design is in the [render quality design](docs/lite/出片质量设计.md) (in Chinese): a vector host rig, 60 fps, matched-element transitions, keyword-level sync between narration and picture, and sync checks in QA.
+The L1 design is in the [render quality design](docs/lite/出片质量设计.md) and the [stick-figure host design](docs/lite/火柴人主持人设计.md) (both in Chinese): a hand-drawn stick-figure host, 60 fps, matched-element transitions, keyword-level sync between narration and picture, and sync checks in QA.
+
+## The host
+
+The host is 小青 (Xiaoqing), an original hand-drawn stick figure: black ink lines and a teal scarf, with 17 joints drawn by code. The storyboard picks from 12 gestures, 8 expressions and 6 props by name, and in `host-left` shots Xiaoqing can walk over to a diagram element and point at it.
+
+![Xiaoqing cheatsheet: 12 gestures, 8 expressions and 6 props](site/assets/host-cheatsheet.png)
 
 ## Install
 
@@ -47,7 +53,7 @@ Then ask your agent: "Use topic-to-video to make a 2-minute explainer on why cac
 | P0 | Archive the previous Studio at tag `studio-v1`; slim the repository down to one skill | Done |
 | P1 | L0 text package and scenario evaluations ([summary](tests/scenarios/results/p1-summary.md), in Chinese) | Done |
 | Design | Render quality: host detail, frame rate, sync, smooth animation | Done |
-| P2a | Host v2: a vector rig | Not started |
+| S1 | Stick-figure host 小青: rig, expressions, props and cheatsheet (replaces P2a) | Done |
 | P2b | Local renderer: 60 fps, keyword sync, parallel rendering | Not started |
 | P3 | Transitions, samples, revisions and QA | Not started |
 | P4 | Installation tests and release | Not started |
@@ -65,4 +71,4 @@ See [AGENTS.md](AGENTS.md) for the development rules. The previous Studio implem
 
 ## License
 
-The code is released under the [Apache License 2.0](LICENSE). Usage rights for the host "晴" are decided by the project owner; see [rights.json](skills/topic-to-video/assets/host/rights.json).
+The code is released under the [Apache License 2.0](LICENSE). Usage rights for the host 小青 (Xiaoqing) are decided by the project owner; see [rights.json](skills/topic-to-video/assets/host/rights.json).

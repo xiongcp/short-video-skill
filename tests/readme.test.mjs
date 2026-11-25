@@ -19,3 +19,12 @@ test('both READMEs link the website and say L1 is in development', () => {
   assert.ok(read('README.md').includes('开发中'));
   assert.ok(read('README.en.md').includes('In development'));
 });
+
+test('both READMEs introduce the host 小青 with the cheatsheet and no longer name 晴', () => {
+  for (const name of ['README.md', 'README.en.md']) {
+    const text = read(name);
+    assert.ok(text.includes('小青'), name);
+    assert.ok(text.includes('](site/assets/host-cheatsheet.png)'), name);
+    assert.ok(!text.includes('晴'), name);
+  }
+});

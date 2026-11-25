@@ -1,6 +1,6 @@
 ---
 name: topic-to-video
-description: 把主题、资料或已有讲稿做成中文知识解说视频：输出方案、口播讲稿、分镜和交给外部视频模型（即梦、可灵、Veo、海螺等）逐镜生成的提示词包，也用于返修这类项目；主持人是原创动漫角色“晴”。Use when the user wants a Chinese explainer video, its script, storyboard or a video-model prompt pack from a topic, sources or a draft, or wants to revise such a project.
+description: 把主题、资料或已有讲稿做成中文知识解说视频：输出方案、口播讲稿、分镜和交给外部视频模型（即梦、可灵、Veo、海螺等）逐镜生成的提示词包，也用于返修这类项目；主持人是原创手绘火柴人“小青”。Use when the user wants a Chinese explainer video, its script, storyboard or a video-model prompt pack from a topic, sources or a draft, or wants to revise such a project.
 ---
 
 # 主题做成中文解说视频

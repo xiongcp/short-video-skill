@@ -31,6 +31,7 @@ test('prompt-pack.md uses the host prompt lock and reference image', () => {
   const text = ref('prompt-pack.md');
   assert.ok(text.includes('prompt_lock'));
   assert.ok(text.includes('](../assets/host/host-ref.png)'), 'links the reference image');
+  for (const word of ['手绘', '墨线', '围巾', '走位', '道具']) assert.ok(text.includes(word), word);
 });
 
 test('storyboard.md maps sentence intent to host acting and names the storyboard warnings', () => {
@@ -66,4 +67,10 @@ test('the prompt-pack example takes its narration and beat seconds from the exam
 
 test('script.md says pronunciation goes in the section it belongs to', () => {
   assert.match(ref('script.md'), /段落的 `pronunciation`/);
+});
+
+test('SKILL.md names the stick-figure host 小青', () => {
+  const skill = readFileSync(join(SKILL, 'SKILL.md'), 'utf8');
+  assert.match(skill, /手绘火柴人“小青”/);
+  assert.ok(!skill.includes('晴'));
 });
