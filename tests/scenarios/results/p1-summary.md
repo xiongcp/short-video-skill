@@ -101,3 +101,12 @@ da5f59b 加了以下几项：按字节限制大小；`check.mjs` 输出估时；
   2. 节拍里的动作与分镜 cue 是否一致，目前没有自动检查。
   3. `prompt_lock` 不该带表情，或者 prompt-pack.md 写明末尾表情按镜头替换。
 - **遗留问题 1 已修复**：script.md 写明读音表放在所在段落的 `pronunciation` 里；`check.mjs` 对 schema 不认识的字段报 `UNKNOWN_FIELD`，顶层的 `pronunciation` 会附上"写在所在段落里"的提示。对场景 03 第 3 轮的产物重跑 `check.mjs`，已能报出这个错误；还没有用 Agent 复跑验证。
+
+## 未知字段检查后复测场景 03（skill commit 4887963）
+
+4887963 让 `check.mjs` 对 schema 不认识的字段报 `UNKNOWN_FIELD`，并在 script.md 写明读音表放在所在段落里。之后用 agy + gemini-3.8-flash-high 重跑场景 03，证据在 results/2026-11-25-02-08-53-03-skill。
+
+- **检查**：5 / 5 通过。
+- **读音表**：第 1 轮就把 `pronunciation` 写进了段落 s01、s04，三轮的项目顶层都没有；6 次 `check.mjs` 全部为空，没有触发 `UNKNOWN_FIELD`。这次是 script.md 的新说明起了作用，`UNKNOWN_FIELD` 的提示还没有在真实运行中出现过。
+- **返修范围**：改了 s02 及其三个镜头、sh01 的表情，以及 brief.open_questions 里关于旧比喻的那一条；其他内容逐字未变，提示词包只加了"已过期"一行。
+- **读文件**：共 5 份 L0 文件。
