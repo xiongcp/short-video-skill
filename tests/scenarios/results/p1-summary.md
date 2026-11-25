@@ -123,12 +123,12 @@ da5f59b 加了以下几项：按字节限制大小；`check.mjs` 输出估时；
 - **新动作和道具**：
   - 场景 02 用了 `point`、`think`、`shrug`、`present`、`emphasize`、`wave`，`move` 4 次（sh05 两次，sh08、sh12 各一次），没有用 `prop`。
   - 场景 03 用了 `think`、`shrug`、`present`、`point`、`emphasize`、`wave`，`prop` 一次（sh01 拿起再放下 `question` 问号牌），没有用 `move`。
-- **新警告**：`MOVE_TOO_MANY`、`FOCUS_SPLIT`、`STATIC_STRETCH` 在两个场景都没有触发，没有观察到 Agent 按它们修改。场景 03 第 1 轮报过一次 `TEXT_TOO_LONG`（flow 节点 7 字），改完后为空。
+- **新警告**：`STATIC_STRETCH` 在场景 02 第 1 轮触发一次（sh02 在 0–9 秒画面没有变化），Agent 加了 5.5 秒的 `shrug` cue 修好，之后 lint 为空；`MOVE_TOO_MANY`、`FOCUS_SPLIT` 在两个场景都没有触发。场景 03 第 1 轮报过一次 `TEXT_TOO_LONG`（flow 节点 7 字），改完后为空。
 - **读文件**：
   - 场景 03 只读了 L0 的 5 份文件，共 27,926 字节，第 3 轮返修没有再读。
   - 场景 02 读了 11 份、共 68,467 字节：L0 的 5 份加上 `check.mjs`、`docs.mjs`、`project.mjs`、`match.mjs`、`project.schema.json`、`captions.mjs`（共 40,541 字节），还用 `node -e` 自己数字数和估时，最后才运行 `check.mjs`。上一次复测只读 5 份。
 - **节拍**：两个场景的节拍秒数都对得上 `starts`；场景 02 的动作都出自分镜 cue，上一次的 3 处偏离没有再出现。
 - **遗留问题**：
-  1. prompt-pack.md 要求“站在哪个物件旁边”，Agent 只写了大致位置；可以在示例里加上“走到第二张卡片下方”这类写法，或者在自查清单里加一条。
+  1. prompt-pack.md 要求“站在哪个物件旁边”，两个场景的 Agent 都只写了大致位置（场景 03 的 host-left 首帧图也只写“站在画面左下方”，例如 workspace-turn-2/http-cache/提示词包.md 第 26、32 行，不过场景 03 没有这条检查）；可以在示例里加上“走到第二张卡片下方”这类写法，或者在自查清单里加一条。
   2. 场景 02 又读了脚本源码和 schema，读文件预算（4 份）再次被超过，上一次复测已经回到 5 份。原因不明，可能是这一轮的 Agent 没有先运行 `check.mjs` 看输出，需要再观察一次。
   3. 场景 03 返修时 Agent 顺手删掉了 sh01 句 1 的 `surprised` cue，回复里没有说明；它还把 open_questions 说成“已确认适用”，与 project.json 里的原文不符。

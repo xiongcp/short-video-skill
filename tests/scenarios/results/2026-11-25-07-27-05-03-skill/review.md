@@ -8,7 +8,7 @@
 
 - [x] 第 2 轮记录了 plan 确认，并产出提示词包.md
   - 证据：report.json checkpoints 有 {stage: plan, revision: 1, note: “确认，没问题。”}；workspace-turn-2 有 提示词包.md，脚本核对 11 镜都有口播、节拍、首帧图、运动四行，7 个 host-left 镜头首帧图都逐字含 prompt_lock.zh；turn-2.md：“主持人参考图：ref/host.png（“小青”手绘火柴人基准参考图）”，ref/host.png 与 host-ref.png 相同，提示词包.md 无“晴”
-- [x] 第 3 轮只改了第二段（s02）及其镜头，以及第一个镜头的表情；其他段落和镜头逐字未变（对比第 2、3 轮的 workspace）
+- [x] 第 3 轮只改了第二段（s02）及其镜头，以及第一个镜头的表情；其他段落和镜头逐字未变（对比第 2、3 轮的 workspace）；除表情外，Agent 还删掉了 sh01 句 1 的 `expr surprised` cue，并删去分镜.md sh01 的“，换惊叹表情”（仍在 sh01 内，判定不变）
   - 证据：diff workspace-turn-2 与 workspace-turn-3：project.json 只改了 revision、s02 的 text、sh01 的 host.expr（curious → happy）并删掉 sh01 句 1 的 expr surprised cue、sh03 和 sh04 的 visual 与 note；讲稿.md 只改 s02、状态行和估时行；分镜.md 只改 sh01、sh03、sh04 三行和总估时；其他段落和镜头逐字未变
 - [x] revision 加 1；回复里说明原确认因改动失效，列出改了什么、没改什么，并请用户确认改动部分
   - 证据：report.json revision 为 2；turn-3.md：“方案版本已更新为 revision 2”“本次改动会让之前的确认失效”，有“改动的内容”“未改动的内容”两节，末尾“请检查上述改动的段落与镜头。如果确认符合预期，请回复确认”
