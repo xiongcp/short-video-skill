@@ -1,0 +1,329 @@
+{
+  "version": 1,
+  "revision": 2,
+  "title": "为什么 HTTP 缓存能让网页变快？",
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 90,
+    "lang": "zh-CN",
+    "host": "hare",
+    "theme": "light"
+  },
+  "brief": {
+    "topic": "为什么 HTTP 缓存能让网页变快？",
+    "audience": "不懂网络的普通人",
+    "promise": "相同的内容第二次不用跨大半个地球重新下载，直接从手机本地调取旧副本，网页自然瞬间打开",
+    "sources": [],
+    "open_questions": [
+      "口播第二段将服务器与缓存比作千里之外的总仓库与家门口的快递驿站，为通俗化比喻，请核实是否符合预期",
+      "口播中提到服务器返回代号三零四（HTTP 304 Not Modified）表示内容未变继续用旧的，请核实通俗解释是否准确易懂"
+    ]
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "为什么二次打开变快了",
+      "text": "你常会发现，经常访问的网页刷新时瞬间就打开了。明明是同一个网页，为什么第二次能快这么多？秘诀就在浏览器的 HTTP 缓存机制。HTTP 是网络传输规则，缓存就是本地小仓库。",
+      "pronunciation": [
+        {
+          "term": "HTTP",
+          "reading": "爱驰梯梯批"
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "title": "本地取货 vs 远道而来",
+      "text": "第一次访问时，手机要向千里之外的总仓库订货。配图顺着长途物流慢慢运送，等待时间自然漫长。但在下载时，服务器会交代把包裹暂存进快递驿站。看右侧图解，再次打开时，浏览器直接在门口的驿站取件。省去了远距离长途传输，网页自然瞬间就能呈现在眼前。"
+    },
+    {
+      "id": "s03",
+      "title": "网页内容变了怎么办",
+      "text": "那如果网站更换了新图片，会不会展示旧内容呢？并不会，保鲜期一过，浏览器就会询问是否有更新。如果内容没变，服务器只回一句代号三零四，不用重新传输。内容更新了，服务器才会传送最新版本来替换。"
+    },
+    {
+      "id": "s04",
+      "title": "随身备忘录的威力",
+      "text": "这就是 HTTP 缓存让网页飞速加载的秘密。它把耗时的远距离搬运，变成了本地快速读取。不仅帮你省下流量，更让平时的浏览丝滑顺畅。下次秒开网页时，别忘了这个默默工作的本地小仓库。",
+      "pronunciation": [
+        {
+          "term": "HTTP",
+          "reading": "爱驰梯梯批"
+        }
+      ]
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "idle"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "第二次打开更快",
+          "sub": "为什么刷新能瞬间打开？"
+        }
+      },
+      "note": "提出疑问：为什么同一个网页第二次打开快很多"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [2, 3],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "idle"
+      },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "HTTP：网络传输规则",
+            "缓存：本地小仓库"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "note": "解释核心概念：HTTP是规则，缓存是本地小仓库"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "手机",
+            "总仓库",
+            "长途物流",
+            "等待时间漫长"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "reveal",
+          "target": 3
+        }
+      ],
+      "note": "第一次访问就像从远方总仓库发货，需要漫长物流"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [2],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": [
+            "在下载时",
+            "暂存进快递驿站"
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "note": "服务器交代把包裹暂存在快递驿站"
+    },
+    {
+      "id": "sh05",
+      "section": "s02",
+      "sentences": [3, 4],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "point_right"
+      },
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "长途传输",
+            "rows": [
+              "远距离长途传输"
+            ]
+          },
+          "right": {
+            "label": "驿站取件",
+            "rows": [
+              "瞬间呈现"
+            ]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 4,
+          "do": "highlight",
+          "target": 1
+        },
+        {
+          "sentence": 4,
+          "do": "expr",
+          "target": "happy"
+        }
+      ],
+      "note": "指出再次打开直接在驿站取件，省去漫长长途传输"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [0],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "idle"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "更换了新图片",
+          "sub": "会不会展示旧内容？"
+        }
+      },
+      "note": "转折提问：如果内容更换了会不会展示旧内容"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [1],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": [
+            "保鲜期一过",
+            "询问服务器",
+            "是否有更新"
+          ]
+        }
+      },
+      "note": "保鲜期过后先向服务器询问"
+    },
+    {
+      "id": "sh08",
+      "section": "s03",
+      "sentences": [2, 3],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "内容没变",
+            "rows": [
+              "代号三零四",
+              "不用重新传输"
+            ]
+          },
+          "right": {
+            "label": "内容更新",
+            "rows": [
+              "传送最新版本",
+              "替换旧内容"
+            ]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "highlight",
+          "target": 1
+        }
+      ],
+      "note": "没变返回三零四不用重传，变了才下载新版本"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "远距离搬运",
+            "rows": [
+              "耗时的搬运"
+            ]
+          },
+          "right": {
+            "label": "本地读取",
+            "rows": [
+              "本地快速读取"
+            ]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "highlight",
+          "target": 1
+        },
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "happy"
+        }
+      ],
+      "note": "总结核心对比：远距离搬运 vs 本地快速读取"
+    },
+    {
+      "id": "sh10",
+      "section": "s04",
+      "sentences": [2, 3],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "wave"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "HTTP 缓存",
+          "sub": "默默工作的本地小仓库"
+        }
+      },
+      "note": "结尾呼应：省流量又顺畅，告别观众"
+    }
+  ],
+  "checkpoints": [
+    {
+      "stage": "plan",
+      "revision": 1,
+      "at": "2026-11-24T18:13:08-08:00",
+      "note": "确认，没问题。"
+    }
+  ],
+  "jobs": []
+}

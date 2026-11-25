@@ -24,6 +24,8 @@ test('check.mjs passes the example project and reports its estimates', () => {
   assert.equal(Math.round(out.estimates.total_seconds), 114);
   assert.deepEqual(out.estimates.sections.map((s) => s.id), ['s01', 's02', 's03', 's04', 's05']);
   assert.equal(out.estimates.shots.length, 14);
+  // sh03 第 0 句"第一趟，假设浏览器手边还没有副本。"有 15 字：15 / 4 + 0.25 = 4 秒后第 1 句开始
+  assert.deepEqual(out.estimates.shots[2], { id: 'sh03', seconds: 6, starts: [0, 4] });
 });
 
 test('check.mjs accepts a project after step 1, before shots and 分镜.md exist', () => {
@@ -61,4 +63,15 @@ test('check.mjs checks 提示词包.md when it exists', () => {
   const { status, out } = run(dir);
   assert.equal(status, 1);
   assert.ok(out.docs.includes('提示词包.md 没有镜头 sh02 的提示词'));
+});
+
+test('check.mjs reports storyboard warnings without failing', () => {
+  const dir = copy();
+  const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
+  project.shots[2].visual.data.nodes = ['甲乙丙', '丁戊己'];
+  project.shots[2].cues = [];
+  writeFileSync(join(dir, 'project.json'), JSON.stringify(project));
+  const { status, out } = run(dir);
+  assert.equal(status, 0);
+  assert.deepEqual(out.warnings.map((w) => `${w.code} ${w.path}`), ['VISUAL_NOT_IN_NARRATION /shots/2/visual']);
 });

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkProject, estimateReport, estimateSeconds, isApproved, lintScript, VISUAL_LIMITS } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { checkProject, estimateReport, estimateSeconds, isApproved, lintScript, SCHEMA_FIELDS, VISUAL_LIMITS } from '../skills/topic-to-video/scripts/lib/project.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const codes = (p) => checkProject(p).map((e) => e.code);
@@ -179,12 +179,35 @@ test('VISUAL_LIMITS matches the length limits in the schema', () => {
   assert.deepEqual(VISUAL_LIMITS, fromSchema);
 });
 
+test('reports fields the schema does not know, and says pronunciation belongs in a section', () => {
+  const p = minimal();
+  p.pronunciation = [{ term: 'HTTP', reading: 'H-T-T-P' }];
+  p.sections[0].pronunciation = [{ term: 'HTTP', reading: 'H-T-T-P' }];
+  p.sections[0].speaker = '晴';
+  p.shots[1].cues[0].when = 'start';
+  assert.deepEqual(placed(p), ['UNKNOWN_FIELD /pronunciation', 'UNKNOWN_FIELD /sections/0/speaker', 'UNKNOWN_FIELD /shots/1/cues/0/when']);
+  assert.match(checkProject(p)[0].message, /pronunciation.*段落/);
+});
+
+test('SCHEMA_FIELDS matches the field names in the schema', () => {
+  const schema = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/schema/project.schema.json'), 'utf8'));
+  const fromSchema = Object.fromEntries(Object.keys(SCHEMA_FIELDS).map((name) => [name, Object.keys((name === 'project' ? schema : schema.$defs[name]).properties)]));
+  assert.deepEqual(SCHEMA_FIELDS, fromSchema);
+});
+
 test('estimateReport gives rounded seconds per section, per shot and in total', () => {
   assert.deepEqual(estimateReport(minimal()), {
     total_seconds: 4.3,
     sections: [{ id: 's01', seconds: 4 }],
-    shots: [{ id: 'sh01', seconds: 2 }, { id: 'sh02', seconds: 2 }],
+    shots: [{ id: 'sh01', seconds: 2, starts: [0] }, { id: 'sh02', seconds: 2, starts: [0] }],
   });
+});
+
+test('estimateReport lists where each sentence of a shot starts', () => {
+  const p = minimal();
+  p.shots = [{ ...p.shots[0], sentences: [0, 1] }];
+  // 天空为什么是蓝的？ is 8 characters: 8 / 4 + 0.25 = 2.25 seconds before the second sentence
+  assert.deepEqual(estimateReport(p).shots, [{ id: 'sh01', seconds: 4, starts: [0, 2.3] }]);
 });
 
 test('a project without shots yet skips the coverage check', () => {

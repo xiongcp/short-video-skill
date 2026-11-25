@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { checkProject, estimateSeconds, lintScript } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { lintStoryboard } from '../skills/topic-to-video/scripts/lib/match.mjs';
 import { checkDerivedDocs } from './helpers/derived-docs.mjs';
 import { validateProject } from './helpers/schema.mjs';
 
@@ -20,6 +21,7 @@ test('example has no cross-reference errors', () => {
 
 test('example script follows the writing rules', () => {
   assert.deepEqual(lintScript(project), []);
+  assert.deepEqual(lintStoryboard(project), []);
   assert.equal(Math.round(estimateSeconds(project)), 114);
 });
 

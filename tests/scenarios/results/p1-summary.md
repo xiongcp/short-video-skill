@@ -85,3 +85,28 @@ da5f59b 加了以下几项：按字节限制大小；`check.mjs` 输出估时；
   - 场景 03 返修那一轮多读了 `docs.mjs`，原因见下一条。
 - **发现并修复的问题**：返修后，`check.mjs` 提示"标题下第一行应写'未经确认的方案'"，但正确做法是加"已过期"那一行，Agent 只好去读源码。现在改成直接提示加"已过期"那一行（见本次提交中的 `docs.mjs` 和测试 `after a revision of a confirmed plan, asks for the stale line instead of a new status`）。
 - **还可以改进**：`estimates` 里加上字数，Agent 就不用再自己数字数了。
+
+## 出片质量设计后的 L0 复测（skill commit 56aca39）
+
+本分支加了 `VISUAL_NOT_IN_NARRATION` 和 `POINT_MISSING` 两项分镜警告、估时的 `starts`、"句意 → 表演"对照表，并把提示词包改成口播、节拍、首帧图、运动四行；终审修复后 skill 停在 56aca39。之后用 agy + gemini-3.8-flash-high 并行重跑场景 02 和 03，证据在 results/2026-11-25-01-52-46-02-skill 和 results/2026-11-25-01-52-46-03-skill。
+
+- **检查**：场景 02 6 / 6 通过，场景 03 4 / 5 通过。
+  - 场景 03 第 5 条未通过：第 1 轮在 project.json 顶层写了 `pronunciation`，schema 只允许它出现在 `sections[]` 里。script.md 只说"写进 `pronunciation`"，没说写在段落里；`check.mjs` 不检查顶层的未知字段，三轮自检都是 0 错误。这个缺口在本分支之前就存在。
+- **节拍**：两个场景的提示词包里，每个节拍秒数都在 `check.mjs` 输出的 `starts` 里（02 共 15 镜，03 共 11 镜），每镜都有四行。场景 02 有 3 镜（sh09、sh10、sh11）节拍里的动作偏离了分镜的 cue，例如 cue 是 `emphasize`，节拍写成"指向右侧"。
+- **主持人锁定**：host-left 镜头的首帧图都逐字重复了 `prompt_lock.zh` 的外观部分。`prompt_lock` 以"表情亲切"结尾，和镜头表情冲突，Agent 把它换成了本镜表情。
+- **新警告**：两个场景都没有触发 `VISUAL_NOT_IN_NARRATION` 或 `POINT_MISSING`，Agent 第一次正确运行 `check.mjs` 时分镜就没有警告，所以这次没有观察到 Agent 按分镜警告修改。
+- **读文件**：两个场景都只读了 L0 的 5 份文件（`SKILL.md`、`script.md`、`storyboard.md`、`prompt-pack.md`、`profile.json`，共 24,030 字节）。场景 02 仍用 `node -e` 数了一次总字数。
+- **新的遗留问题**：
+  1. script.md 写明 `pronunciation` 放在段落里，`check.mjs` 对 schema 不认识的字段报错。
+  2. 节拍里的动作与分镜 cue 是否一致，目前没有自动检查。
+  3. `prompt_lock` 不该带表情，或者 prompt-pack.md 写明末尾表情按镜头替换。
+- **遗留问题 1 已修复**：script.md 写明读音表放在所在段落的 `pronunciation` 里；`check.mjs` 对 schema 不认识的字段报 `UNKNOWN_FIELD`，顶层的 `pronunciation` 会附上"写在所在段落里"的提示。对场景 03 第 3 轮的产物重跑 `check.mjs`，已能报出这个错误；还没有用 Agent 复跑验证。
+
+## 未知字段检查后复测场景 03（skill commit 4887963）
+
+4887963 让 `check.mjs` 对 schema 不认识的字段报 `UNKNOWN_FIELD`，并在 script.md 写明读音表放在所在段落里。之后用 agy + gemini-3.8-flash-high 重跑场景 03，证据在 results/2026-11-25-02-08-53-03-skill。
+
+- **检查**：5 / 5 通过。
+- **读音表**：第 1 轮就把 `pronunciation` 写进了段落 s01、s04，三轮的项目顶层都没有；6 次 `check.mjs` 全部为空，没有触发 `UNKNOWN_FIELD`。这次是 script.md 的新说明起了作用，`UNKNOWN_FIELD` 的提示还没有在真实运行中出现过。
+- **返修范围**：改了 s02 及其三个镜头、sh01 的表情，以及 brief.open_questions 里关于旧比喻的那一条；其他内容逐字未变，提示词包只加了"已过期"一行。
+- **读文件**：共 5 份 L0 文件。

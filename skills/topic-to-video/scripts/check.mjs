@@ -4,6 +4,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { checkDerivedDocs } from './lib/docs.mjs';
+import { lintStoryboard } from './lib/match.mjs';
 import { checkProject, estimateReport, lintScript } from './lib/project.mjs';
 
 const dir = process.argv[2] ?? '.';
@@ -17,7 +18,7 @@ try {
 }
 if (project !== undefined) {
   result.errors = checkProject(project);
-  result.warnings = lintScript(project);
+  result.warnings = [...lintScript(project), ...lintStoryboard(project)];
   if (!result.errors.some((e) => e.code === 'MISSING_FIELD')) {
     const script = read('讲稿.md');
     const board = project.shots.length ? read('分镜.md') : '';
