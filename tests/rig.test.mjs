@@ -335,6 +335,31 @@ test('poses choose fist, open or point hands, respect dark theme, and mirror thu
   }
 });
 
+test('polished poses: smooth spine arc, tucked jump, knee-hugging sit, and lighter emphasize', () => {
+  for (const gesture of POSES) {
+    const { angles } = resolvePose(manifest, gesture);
+    const w = angles.waist ?? 0;
+    const c = angles.chest ?? 0;
+    assert.ok(w * c >= 0 || Math.min(Math.abs(w), Math.abs(c)) <= 3, `${gesture} S-curve spine: waist=${w} chest=${c}`);
+  }
+
+  const jump = resolvePose(manifest, 'jump').angles;
+  assert.ok((jump.l_knee ?? 0) >= 35 && (jump.r_knee ?? 0) >= 35, `jump knees ${jump.l_knee}, ${jump.r_knee}`);
+  assert.ok((jump.l_hip ?? 0) >= 30 && (jump.r_hip ?? 0) >= 30, `jump hips ${jump.l_hip}, ${jump.r_hip}`);
+
+  const sit = resolvePose(manifest, 'sit').angles;
+  assert.ok((sit.l_knee ?? 0) >= 100 && (sit.r_knee ?? 0) >= 100, `sit knees ${sit.l_knee}, ${sit.r_knee}`);
+  const { points: sp } = stand('sit');
+  const handOnKnee = ['l', 'r'].some((h) => {
+    const hand = mid(sp[`${h}_wrist`], sp[`${h}_hand`]);
+    return ['l', 'r'].some((k) => dist(hand, sp[`${k}_knee`]) <= 0.12 * H);
+  });
+  assert.ok(handOnKnee, 'at least one hand rests near a knee when sitting');
+
+  const emphasize = resolvePose(manifest, 'emphasize').angles;
+  assert.ok((emphasize.waist ?? 0) <= 4, `emphasize waist ${emphasize.waist}`);
+});
+
 test('an unknown gesture, expression, prop, view or theme is a clear error', () => {
   assert.throws(() => draw({ gesture: 'dance' }), /unknown gesture dance/);
   assert.throws(() => draw({ expr: 'angry' }), /unknown expression angry/);
