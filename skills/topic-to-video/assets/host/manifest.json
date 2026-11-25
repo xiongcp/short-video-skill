@@ -4,7 +4,7 @@
   "rig_version": 1,
   "height_px": 400,
   "ref": {"file": "host-ref.png", "width": 1600, "height": 900, "sha256": "6472c2195fb51b53767a4e84fb9949803aba34ac342bd88e90599bbc0e60cdfa"},
-  "ink": {"width": [0.022, 0.03], "wobble": 0.004, "body": {"light": "#1f1f1f", "dark": "#f2f2f2"}, "accent": "#20a5a3", "markers": {"yellow": "#f6c945", "red": "#e05a47", "teal": "#7fd1cf"}},
+  "ink": {"width": [0.022, 0.03], "lines": {"face": [0.008, 0.011], "symbol": [0.009, 0.013], "prop": [0.012, 0.016], "fine": [0.0075, 0.01], "scarf": [0.022, 0.03]}, "wobble": 0.004, "body": {"light": "#1f1f1f", "dark": "#f2f2f2"}, "accent": "#20a5a3", "markers": {"yellow": "#f6c945", "red": "#e05a47", "teal": "#7fd1cf"}},
   "joints": {
     "pelvis": {"parent": null, "length": 0, "range": [-20, 20]},
     "waist": {"parent": "pelvis", "length": 0.135, "range": [-30, 45]},

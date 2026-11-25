@@ -194,6 +194,62 @@ test('elbows, the head and the eyes carry their pivot so the site can animate th
   }
 });
 
+test('elbows join at full width so arms never pinch at the bend', () => {
+  const svg = draw({ gesture: 'jump' });
+  const caps = (part) => {
+    const m = svg.match(new RegExp(`data-part="${part}" d="([^"]+)"`));
+    assert.ok(m, part);
+    return [...m[1].matchAll(/A([\d.]+) ([\d.]+)/g)].map((a) => Number(a[1]));
+  };
+  const fullRadius = (manifest.ink.width[1] * H) / 2;
+  assert.equal(caps('l_upper_arm')[0], fullRadius);
+  assert.equal(caps('l_forearm')[1], fullRadius);
+});
+
+test('knees and spine have rounded corners of at most 45 degrees in every pose', () => {
+  const bentManifest = {
+    ...manifest,
+    poses: { ...manifest.poses, _bent: { type: 'hold', view: 'side', support: 'seat', angles: { waist: 35, chest: 25, l_hip: 100, l_knee: 120, r_hip: 90, r_knee: 110 } } },
+  };
+  const check = (m, gesture) => {
+    const svg = drawHost(m, { gesture, expr: 'explaining', x: 400, ground: 930, seed: 'sh01' });
+    for (const part of ['l_leg', 'r_leg', 'spine']) {
+      const match = svg.match(new RegExp(`data-part="${part}" d="([^"]+)"`));
+      assert.ok(match, `${gesture} ${part}`);
+      const leftEdge = match[1].slice(0, match[1].indexOf('A'));
+      const pts = [...leftEdge.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map((p) => [Number(p[1]), Number(p[2])]);
+      assert.ok(pts.length >= 4, `${gesture} ${part}`);
+      for (let i = 1; i < pts.length - 1; i += 1) {
+        const u = [pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]];
+        const v = [pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]];
+        const denom = Math.hypot(...u) * Math.hypot(...v);
+        if (denom < 1e-6) continue;
+        const cos = Math.max(-1, Math.min(1, (u[0] * v[0] + u[1] * v[1]) / denom));
+        assert.ok((Math.acos(cos) * 180) / Math.PI <= 45, `${gesture} ${part} corner ${i}`);
+      }
+    }
+  };
+  for (const gesture of POSES) check(manifest, gesture);
+  check(bentManifest, '_bent');
+});
+
+test('at 540p scale (H = 200), no rendered ink stroke or outline is thinner than 1.5 px', () => {
+  const small = { ...manifest, height_px: 200 };
+  const samples = [
+    ...Object.keys(manifest.expressions).map((expr) => ({ gesture: 'idle', expr })),
+    ...Object.entries(manifest.props).map(([prop, p]) => ({ gesture: p.hand === 'acting' ? 'point' : 'idle', expr: 'explaining', prop })),
+  ];
+  for (const state of samples) {
+    const svg = drawHost(small, { x: 200, ground: 465, seed: 'small', ...state });
+    for (const m of svg.matchAll(/A([\d.]+) ([\d.]+)/g)) {
+      assert.ok(Number(m[1]) * 2 >= 1.5 - 1e-6, `cap width ${Number(m[1]) * 2} in ${JSON.stringify(state)}`);
+    }
+    for (const m of svg.matchAll(/stroke-width="([\d.]+)"/g)) {
+      assert.ok(Number(m[1]) >= 1.5 - 1e-6, `stroke-width ${m[1]} in ${JSON.stringify(state)}`);
+    }
+  }
+});
+
 test('an unknown gesture, expression, prop, view or theme is a clear error', () => {
   assert.throws(() => draw({ gesture: 'dance' }), /unknown gesture dance/);
   assert.throws(() => draw({ expr: 'angry' }), /unknown expression angry/);

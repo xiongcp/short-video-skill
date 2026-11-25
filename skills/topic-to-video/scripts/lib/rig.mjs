@@ -98,8 +98,8 @@ export function propTransform(manifest, fk, prop) {
 const ellipse = (cx, cy, rx, ry, deg, fill, extra = '') =>
   `<ellipse${extra} cx="${num(cx)}" cy="${num(cy)}" rx="${num(rx)}" ry="${num(ry)}" transform="rotate(${num(deg)} ${num(cx)} ${num(cy)})" fill="${fill}"/>`;
 
-function pen(ctx, name, points, width = ctx.width, color = ctx.ink) {
-  return `<path data-part="${name}" d="${inkStroke(points, { seed: `${ctx.seed}:${name}`, width, wobble: ctx.wobble }).d}" fill="${color}"/>`;
+function pen(ctx, name, points, width = ctx.width, color = ctx.ink, opts = {}) {
+  return `<path data-part="${name}" d="${inkStroke(points, { seed: `${ctx.seed}:${name}`, width, wobble: ctx.wobble, ...opts }).d}" fill="${color}"/>`;
 }
 
 // Face features in head units (R = 1), drawn for a host facing right around (0, 0).
@@ -109,7 +109,7 @@ function face(base, expr, view, blink) {
   const v = ctx.manifest.views[view];
   const R = ctx.R;
   const shift = (v.face_shift * ctx.H) / R;
-  const line = [ctx.H * 0.008, ctx.H * 0.011];
+  const line = ctx.lines.face;
   const at = (u, w) => [(shift + u) * R, w * R];
   const parts = [];
   const eyes = v.eyes.map((u, i) => {
@@ -162,7 +162,7 @@ function symbol(base, name, [cx, cy], facing) {
   const R = ctx.R;
   const back = -facing;
   const at = (u, w) => [cx + u * R, cy + w * R];
-  const line = [ctx.H * 0.009, ctx.H * 0.013];
+  const line = ctx.lines.symbol;
   switch (name) {
     case 'question': {
       const [x, y] = at(back * 1.3, -0.95);
@@ -176,7 +176,7 @@ function symbol(base, name, [cx, cy], facing) {
       const [x, y] = at(back * 1.05, -0.45);
       const s = 0.28 * R;
       const drop = `M${num(x)} ${num(y - s)}C${num(x + 0.9 * s)} ${num(y + 0.2 * s)} ${num(x + 0.6 * s)} ${num(y + s)} ${num(x)} ${num(y + s)}C${num(x - 0.6 * s)} ${num(y + s)} ${num(x - 0.9 * s)} ${num(y + 0.2 * s)} ${num(x)} ${num(y - s)}Z`;
-      return `<g data-symbol="sweat"><path d="${drop}" fill="${ctx.accent}" stroke="${ctx.ink}" stroke-width="${num(ctx.H * 0.006)}"/></g>`;
+      return `<g data-symbol="sweat"><path d="${drop}" fill="${ctx.accent}" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[0])}"/></g>`;
     }
     case 'shake':
       return `<g data-symbol="shake">${[-1, 1].flatMap((side) => [1.25, 1.45].map((r, i) => {
@@ -196,20 +196,20 @@ function symbol(base, name, [cx, cy], facing) {
 function propShape(ctx, name) {
   const H = ctx.H;
   const u = (v) => v * H;
-  const line = [H * 0.012, H * 0.016];
+  const line = ctx.lines.prop;
   const rect = (x0, y0, x1, y1) => [[u(x0), u(y0)], [u(x1), u(y0)], [u(x1), u(y1)], [u(x0), u(y1)], [u(x0), u(y0)]];
   const fill = (pts, color, key) => `<path d="${markerFill(pts, { seed: `${ctx.seed}:${key}`, shift: H * 0.004 })}" fill="${color}"/>`;
   const ring = (cx, cy, r, key) => circlePoints(u(cx), u(cy), u(r), { seed: `${ctx.seed}:${key}`, overdraw: 0.3, count: 32 });
   switch (name) {
     case 'pointer':
-      return pen(ctx, 'pointer', [[u(-0.02), 0], [u(0.3), 0]], [H * 0.008, H * 0.012]) + ellipse(u(0.3), 0, u(0.012), u(0.012), 0, ctx.markers.red);
+      return pen(ctx, 'pointer', [[u(-0.02), 0], [u(0.3), 0]], ctx.lines.fine) + ellipse(u(0.3), 0, u(0.012), u(0.012), 0, ctx.markers.red);
     case 'magnifier':
       return fill(ring(0.105, 0, 0.042, 'lens-fill'), ctx.markers.teal, 'lens') + pen(ctx, 'handle', [[u(-0.01), 0], [u(0.062), 0]], line) + pen(ctx, 'lens', ring(0.105, 0, 0.045, 'lens'), line);
     case 'phone':
       return fill(rect(0.012, -0.022, 0.085, 0.022), ctx.markers.teal, 'screen') + pen(ctx, 'phone', rect(0, -0.03, 0.1, 0.03), line);
     case 'doc':
       return pen(ctx, 'doc', [[u(0), u(-0.045)], [u(0.13), u(-0.045)], [u(0.13), u(0.025)], [u(0.11), u(0.045)], [u(0), u(0.045)], [u(0), u(-0.045)]], line)
-        + [-0.02, 0, 0.02].map((y, i) => pen(ctx, `doc-line${i}`, [[u(0.03), u(y)], [u(0.1), u(y)]], [H * 0.006, H * 0.008])).join('');
+        + [-0.02, 0, 0.02].map((y, i) => pen(ctx, `doc-line${i}`, [[u(0.03), u(y)], [u(0.1), u(y)]], ctx.lines.fine)).join('');
     case 'bulb':
       return fill(ring(0.1, 0, 0.045, 'bulb-fill'), ctx.markers.yellow, 'glass') + pen(ctx, 'bulb', ring(0.1, 0, 0.047, 'bulb'), line)
         + pen(ctx, 'bulb-base', rect(0.02, -0.02, 0.055, 0.02), line);
@@ -247,25 +247,27 @@ export function drawHost(manifest, state) {
   const { points: p, dirs, H, R } = fk;
   const ctx = {
     manifest, seed, H, R, ink: manifest.ink.body[theme], accent: manifest.ink.accent, markers: manifest.ink.markers,
-    width: manifest.ink.width.map((w) => w * H), wobble: manifest.ink.wobble * H,
+    width: manifest.ink.width.map((w) => w * H),
+    lines: Object.fromEntries(Object.entries(manifest.ink.lines).map(([k, w]) => [k, w.map((v) => v * H)])),
+    wobble: manifest.ink.wobble * H,
   };
   const [hw, hh] = manifest.figure.hand.map((v) => (v * H) / 2);
   const [fw, fh] = manifest.figure.foot.map((v) => (v * H) / 2);
   const origin = (pt) => `style="transform-origin:${num(pt[0])}px ${num(pt[1])}px"`;
   const arm = (s) => {
     const hand = mid(p[`${s}_wrist`], p[`${s}_hand`]);
-    const finger = pose.finger && s === ACTING ? pen(ctx, `${s}_finger`, [p[`${s}_hand`], step(p[`${s}_hand`], dirs[`${s}_hand`], manifest.figure.finger * H)], [H * 0.01, H * 0.013]) : '';
+    const finger = pose.finger && s === ACTING ? pen(ctx, `${s}_finger`, [p[`${s}_hand`], step(p[`${s}_hand`], dirs[`${s}_hand`], manifest.figure.finger * H)], ctx.lines.prop) : '';
     const holds = prop && propTransform(manifest, fk, prop).side === s ? heldProp(ctx, fk, prop) : '';
-    return `<g data-limb="${s}_arm">${pen(ctx, `${s}_upper_arm`, [p.neck_base, p[`${s}_elbow`]])}<g data-joint="${s}_elbow" ${origin(p[`${s}_elbow`])}>`
-      + `${pen(ctx, `${s}_forearm`, [p[`${s}_elbow`], p[`${s}_wrist`]])}${ellipse(hand[0], hand[1], hw, hh, dirs[`${s}_hand`], ctx.ink)}${finger}${holds}</g></g>`;
+    return `<g data-limb="${s}_arm">${pen(ctx, `${s}_upper_arm`, [p.neck_base, p[`${s}_elbow`]], ctx.width, ctx.ink, { taper: 'start' })}<g data-joint="${s}_elbow" ${origin(p[`${s}_elbow`])}>`
+      + `${pen(ctx, `${s}_forearm`, [p[`${s}_elbow`], p[`${s}_wrist`]], ctx.width, ctx.ink, { taper: 'end' })}${ellipse(hand[0], hand[1], hw, hh, dirs[`${s}_hand`], ctx.ink)}${finger}${holds}</g></g>`;
   };
   const leg = (s) => {
     const foot = mid(p[`${s}_ankle`], p[`${s}_toe`]);
     const scale = manifest.views[view].foot_scale;
-    return `<g data-limb="${s}_leg">${pen(ctx, `${s}_leg`, [p.pelvis, p[`${s}_knee`], p[`${s}_ankle`]])}${ellipse(foot[0], foot[1], fw * scale, fh, dirs[`${s}_foot`], ctx.ink)}</g>`;
+    return `<g data-limb="${s}_leg">${pen(ctx, `${s}_leg`, [p.pelvis, p[`${s}_knee`], p[`${s}_ankle`]], ctx.width, ctx.ink, { smooth: 2 })}${ellipse(foot[0], foot[1], fw * scale, fh, dirs[`${s}_foot`], ctx.ink)}</g>`;
   };
-  const torso = pen(ctx, 'spine', [p.pelvis, p.spine_mid, p.neck_base, p.head_base]);
-  const scarfWidth = [H * 0.018, H * 0.026];
+  const torso = pen(ctx, 'spine', [p.pelvis, p.spine_mid, p.neck_base, p.head_base], ctx.width, ctx.ink, { smooth: 2 });
+  const scarfWidth = ctx.lines.scarf;
   const wide = manifest.views[view].scarf_width;
   const ring = manifest.scarf.ring.map(([u, w]) => [p.neck_base[0] + facing * u * wide * H, p.neck_base[1] + w * H]);
   const knot = ring[manifest.scarf.knot];
