@@ -7,8 +7,9 @@ const DIGITS = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5,
 const UNITS = { 十: 10, 百: 100, 千: 1000 };
 const LARGE = { 万: 1e4, 亿: 1e8 };
 const NUMERAL = /[零〇一二两三四五六七八九十百千万亿]+(?:点[零〇一二三四五六七八九]+)?/g;
+const PERCENT = new RegExp(`百分之(${NUMERAL.source})`, 'g');
 
-// 三零四 → 304, 三百零四 → 304, 一万 → 10000, 三点五 → 3.5
+// 三零四 → 304, 三百零四 → 304, 一万 → 10000, 三点五 → 3.5, 一万五 → 15000, 三百五 → 350
 function readNumeral(run) {
   const [whole, fraction] = run.split('点');
   let value;
@@ -21,7 +22,10 @@ function readNumeral(run) {
       else if (ch in UNITS) { section += (digit || 1) * UNITS[ch]; digit = 0; }
       else { total += (section + digit) * LARGE[ch]; section = 0; digit = 0; }
     }
-    value = String(total + section + digit);
+    // A digit right after a unit is one place lower: 一万五 is 15000, 三百五 is 350; 一千零五 keeps 5.
+    const before = [...whole].at(-2) ?? '';
+    const unit = UNITS[before] ?? LARGE[before] ?? 10;
+    value = String(total + section + digit * (unit / 10));
   } else {
     value = [...whole].map((ch) => DIGITS[ch]).join('');
   }
@@ -30,7 +34,7 @@ function readNumeral(run) {
 
 /** Lowercases letters and turns Chinese number readings into digits, so 三零四 in the script matches 304 on screen. */
 export function normalizeText(text) {
-  return text.toLowerCase().replace(NUMERAL, readNumeral);
+  return text.toLowerCase().replace(PERCENT, (_, n) => `${readNumeral(n)}%`).replace(NUMERAL, readNumeral);
 }
 
 // Two-character Han pieces plus whole numbers and Latin words; a one-character keyword has none and is not judged.
@@ -40,15 +44,17 @@ function fragments(keyword) {
   return [...han, ...(text.match(/[a-z0-9]+(?:\.[0-9]+)?/g) ?? [])];
 }
 
+const list = (value) => (Array.isArray(value) ? value : []);
+
 /** On-screen words of a visual; title cards summarize, so they are left out. */
 export function visualKeywords(visual) {
   const d = visual?.data ?? {};
   const pick = {
-    bullets: () => d.items,
-    flow: () => d.nodes,
-    compare: () => [d.left?.label, ...(d.left?.rows ?? []), d.right?.label, ...(d.right?.rows ?? [])],
+    bullets: () => list(d.items),
+    flow: () => list(d.nodes),
+    compare: () => [d.left?.label, ...list(d.left?.rows), d.right?.label, ...list(d.right?.rows)],
     number: () => [d.value, d.label],
-    bars: () => (d.items ?? []).map((item) => item?.label),
+    bars: () => list(d.items).map((item) => item?.label),
   }[visual?.template];
   return (pick?.() ?? []).filter((t) => typeof t === 'string' || typeof t === 'number').map(String);
 }

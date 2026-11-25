@@ -102,3 +102,32 @@ test('returns no warnings for a project with missing fields', () => {
   delete p.shots;
   assert.deepEqual(lintStoryboard(p), []);
 });
+
+test('reads colloquial numbers with a trailing digit and percentages', () => {
+  assert.equal(normalizeText('一万五'), '15000');
+  assert.equal(normalizeText('三百五'), '350');
+  assert.equal(normalizeText('两千三'), '2300');
+  assert.equal(normalizeText('一千零五'), '1005');
+  assert.equal(normalizeText('百分之三十'), '30%');
+});
+
+test('does not warn when the narration says 一万五 and the screen shows 15000', () => {
+  const p = minimal();
+  p.sections[0].text = '天空为什么是蓝的？大约一万五。';
+  p.shots[1].visual = { template: 'number', data: { value: '15000', label: '次' } };
+  p.shots[1].cues = [];
+  assert.deepEqual(lintStoryboard(p), []);
+});
+
+test('survives visual data whose lists are not arrays', () => {
+  const p = minimal();
+  p.shots[1].cues = [];
+  for (const visual of [
+    { template: 'compare', data: { left: { label: '甲', rows: 5 }, right: { label: '乙', rows: '丙' } } },
+    { template: 'flow', data: { nodes: '阳光' } },
+    { template: 'bars', data: { items: '阳光' } },
+  ]) {
+    p.shots[1].visual = visual;
+    assert.doesNotThrow(() => lintStoryboard(p), visual.template);
+  }
+});

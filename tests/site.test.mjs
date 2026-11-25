@@ -44,3 +44,7 @@ test('Pages workflow publishes the site folder', () => {
   assert.match(yml, /path: site\n/);
   assert.match(yml, /actions\/deploy-pages@v\d+/);
 });
+
+test('site does not describe L1 lip sync as a current capability', () => {
+  assert.ok(!html.includes('口型随音量开合'));
+});
