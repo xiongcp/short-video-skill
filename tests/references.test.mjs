@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CHARS_PER_SECOND, DEFAULT_SENTENCE_GAP_MS, MAX_SENTENCE_CHARS, estimateReport } from '../skills/topic-to-video/scripts/lib/project.mjs';
 import { splitSentences } from '../skills/topic-to-video/scripts/lib/captions.mjs';
+import { MAX_MOVES, STATIC_SECONDS } from '../skills/topic-to-video/scripts/lib/match.mjs';
 
 const SKILL = join(import.meta.dirname, '../skills/topic-to-video');
 const ref = (name) => readFileSync(join(SKILL, 'references', name), 'utf8');
@@ -17,10 +18,11 @@ test('script.md states the same planning constants as project.mjs', () => {
   assert.ok(text.includes('±10%'));
 });
 
-test('storyboard.md documents every template, expression and gesture in the schema', () => {
+test('storyboard.md documents every template, expression, gesture, prop and cue in the schema', () => {
   const text = ref('storyboard.md');
   const templates = schema.$defs.visual.oneOf.map((v) => schema.$defs[v.$ref.split('/').at(-1)].properties.template.const);
-  for (const name of [...templates, ...schema.$defs.expr.enum, ...schema.$defs.gesture.enum]) {
+  const cues = schema.$defs.cue.properties.do.enum;
+  for (const name of [...templates, ...schema.$defs.expr.enum, ...schema.$defs.gesture.enum, ...schema.$defs.prop.enum, ...cues, 'none', 'left', 'center', 'right']) {
     assert.ok(text.includes(`\`${name}\``), name);
   }
 });
@@ -28,12 +30,16 @@ test('storyboard.md documents every template, expression and gesture in the sche
 test('prompt-pack.md uses the host prompt lock and reference image', () => {
   const text = ref('prompt-pack.md');
   assert.ok(text.includes('prompt_lock'));
-  assert.ok(text.includes('body-idle.png'));
+  assert.ok(text.includes('](../assets/host/host-ref.png)'), 'links the reference image');
+  for (const word of ['手绘', '墨线', '围巾', '走位', '道具', '不把英文枚举名写进提示词']) assert.ok(text.includes(word), word);
+  assert.match(text, /^首帧图：[^\n]*站在上方第一张卡片/m);
 });
 
 test('storyboard.md maps sentence intent to host acting and names the storyboard warnings', () => {
   const text = ref('storyboard.md');
-  for (const word of ['句意', 'VISUAL_NOT_IN_NARRATION', 'POINT_MISSING']) assert.ok(text.includes(word), word);
+  for (const word of ['句意', 'VISUAL_NOT_IN_NARRATION', 'POINT_MISSING', 'MOVE_TOO_MANY', 'FOCUS_SPLIT', 'STATIC_STRETCH']) assert.ok(text.includes(word), word);
+  assert.ok(text.includes(`超过 ${STATIC_SECONDS} 秒没有变化`), 'the still-picture limit');
+  assert.ok(text.includes(`最多 ${MAX_MOVES} 次 \`move\``), 'the move limit');
 });
 
 test('prompt-pack.md uses first frames, image-to-video, narration and beats from starts', () => {
@@ -62,4 +68,10 @@ test('the prompt-pack example takes its narration and beat seconds from the exam
 
 test('script.md says pronunciation goes in the section it belongs to', () => {
   assert.match(ref('script.md'), /段落的 `pronunciation`/);
+});
+
+test('SKILL.md names the stick-figure host 小青', () => {
+  const skill = readFileSync(join(SKILL, 'SKILL.md'), 'utf8');
+  assert.match(skill, /手绘火柴人“小青”/);
+  assert.ok(!skill.includes('晴'));
 });

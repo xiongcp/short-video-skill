@@ -1,7 +1,7 @@
 # 轻量化 Skill 计划书
 
 - 日期：2026-11-23
-- 状态：P0、P1 已完成；D3、媒体帧率、渲染预算和 P2/P3 分期已由 [出片质量设计](出片质量设计.md)（2026-11-24）修订，冲突处以该文为准
+- 状态：P0、P1 已完成；D3、媒体帧率、渲染预算和 P2/P3 分期已由 [出片质量设计](出片质量设计.md)（2026-11-24）修订，主持人又由 [火柴人主持人设计](火柴人主持人设计.md)（2026-11-24）改为火柴人，冲突处以较新的文档为准
 - 适用对象：在 Codex、Claude Code 等 Agent 中把主题做成中文知识解说视频的 skill
 - 参考项目：[kaomei/stickman-video-director](https://github.com/kaomei/stickman-video-director)（MIT）
 

@@ -16,7 +16,7 @@
     ],
     "open_questions": ["配音后核对每段实际时长和图解留白"]
   },
-  "settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "hare", "theme": "light", "sentence_gap_ms": 250 },
+  "settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "xiaoqing", "theme": "light", "sentence_gap_ms": 250 },
   "voice": { "provider": "undecided" },
   "sections": [
     {
@@ -51,14 +51,16 @@
   "shots": [
     {
       "id": "sh01", "section": "s01", "sentences": [0], "layout": "host-left",
-      "host": { "expr": "curious", "gesture": "idle" },
+      "host": { "expr": "curious", "gesture": "think" },
       "visual": { "template": "title", "data": { "heading": "同一张图，两次打开", "sub": "还要从头下载吗？" } },
+      "cues": [{ "sentence": 0, "do": "prop", "target": "question" }],
       "note": "抛出问题：第二次打开还要重新下载吗"
     },
     {
       "id": "sh02", "section": "s01", "sentences": [1], "layout": "host-left",
-      "host": { "expr": "explaining", "gesture": "point_right" },
+      "host": { "expr": "explaining", "gesture": "point" },
       "visual": { "template": "compare", "data": { "left": { "label": "第一趟", "rows": ["手边没有副本"] }, "right": { "label": "第二趟", "rows": ["再打开同一页"] } } },
+      "cues": [{ "sentence": 1, "do": "prop", "target": "none" }],
       "note": "预告接下来要对比两趟访问"
     },
     {
@@ -75,7 +77,7 @@
     },
     {
       "id": "sh05", "section": "s02", "sentences": [3, 4], "layout": "host-left",
-      "host": { "expr": "explaining", "gesture": "point_right" },
+      "host": { "expr": "explaining", "gesture": "point" },
       "visual": { "template": "bullets", "data": { "items": ["响应允许缓存", "把内容留下", "之后的请求能用"] } },
       "cues": [{ "sentence": 4, "do": "reveal", "target": 2 }],
       "note": "保存副本是有条件的"
@@ -95,14 +97,14 @@
     {
       "id": "sh08", "section": "s03", "sentences": [4, 5], "layout": "full",
       "visual": { "template": "flow", "data": { "nodes": ["打开页面", "本地副本", "显示图标"] } },
-      "cues": [{ "sentence": 4, "do": "highlight", "target": 1 }],
+      "cues": [{ "sentence": 4, "do": "highlight", "target": 1 }, { "sentence": 5, "do": "highlight", "target": 2 }],
       "note": "第二趟止于浏览器，省掉去服务器的路"
     },
     {
       "id": "sh09", "section": "s03", "sentences": [6, 7], "layout": "host-left",
-      "host": { "expr": "explaining", "gesture": "point_right" },
+      "host": { "expr": "explaining", "gesture": "present" },
       "visual": { "template": "compare", "data": { "left": { "label": "第一趟", "rows": ["去服务器", "等待返回", "传输图片"] }, "right": { "label": "第二趟", "rows": ["本地直接用"] } } },
-      "cues": [{ "sentence": 7, "do": "highlight", "target": 1 }],
+      "cues": [{ "sentence": 7, "do": "move", "target": 1 }, { "sentence": 7, "do": "highlight", "target": 1 }],
       "note": "两趟并排，看出省下了什么"
     },
     {
@@ -121,17 +123,18 @@
     {
       "id": "sh12", "section": "s04", "sentences": [5, 6], "layout": "full",
       "visual": { "template": "compare", "data": { "left": { "label": "没变", "rows": ["返回304", "继续用旧内容"] }, "right": { "label": "已更新", "rows": ["传回新正文", "替换旧内容"] } } },
-      "cues": [{ "sentence": 5, "do": "highlight", "target": 1 }],
+      "cues": [{ "sentence": 5, "do": "highlight", "target": 1 }, { "sentence": 6, "do": "highlight", "target": 0 }],
       "note": "两种结果都联系服务器，传输量不同"
     },
     {
       "id": "sh13", "section": "s05", "sentences": [0, 1], "layout": "full",
       "visual": { "template": "bullets", "data": { "items": ["直接用", "先问一句", "换新内容"] } },
+      "cues": [{ "sentence": 1, "do": "reveal", "target": 0 }, { "sentence": 1, "do": "reveal", "target": 1 }, { "sentence": 1, "do": "reveal", "target": 2 }],
       "note": "总结三种动作"
     },
     {
       "id": "sh14", "section": "s05", "sentences": [2], "layout": "host-left",
-      "host": { "expr": "happy", "gesture": "emphasize" },
+      "host": { "expr": "proud", "gesture": "emphasize" },
       "visual": { "template": "title", "data": { "heading": "省掉了哪段路？" } },
       "note": "回扣开头的图标，留下可复述的结论"
     }

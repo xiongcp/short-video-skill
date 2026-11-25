@@ -29,7 +29,7 @@
 "version": 1,
 "revision": 1,
 "title": "为什么缓存能让网页变快？",
-"settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "hare", "theme": "light" },
+"settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "xiaoqing", "theme": "light" },
 "voice": { "provider": "undecided" },
 "sections": [{ "id": "s01", "title": "同一张图，两次打开", "text": "……还要从头下载吗？我们跟着它走两趟。", "source_ids": ["src01"] }],
 "shots": [],
@@ -37,7 +37,7 @@
 "jobs": []
 ```
 
-- `title` 不超过 40 字；`ratio` 是 `16:9` 或 `9:16`；`theme` 是 `light` 或 `dark`；`host` 固定写 `hare`（主持人"晴"）。
+- `title` 不超过 40 字；`ratio` 是 `16:9` 或 `9:16`；`theme` 是 `light` 或 `dark`；`host` 固定写 `xiaoqing`（主持人"小青"）。
 - `shots` 在第 2 步按 [storyboard.md](storyboard.md) 填写；`source_ids` 只在用到资料的段落写。
 - `promise` 是观众看完能复述的一句话。写不出来，说明选题太散，先收窄。
 - 资料很长：只选一个核心问题，删掉支线（历史、趣闻、与问题无关的数据）。

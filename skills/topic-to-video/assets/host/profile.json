@@ -1,12 +1,12 @@
 {
-  "id": "hare",
-  "name": "晴",
-  "style_lock": ["墨蓝短外套", "藏青短发配一缕青色挑染", "青色眼睛", "青色领结", "头顶一根呆毛"],
-  "expressions": ["explaining", "focused", "happy", "curious"],
-  "gestures": ["idle", "point_right", "wave", "emphasize"],
-  "mouths": ["closed", "half", "open"],
+  "id": "xiaoqing",
+  "name": "小青",
+  "style_lock": ["手绘黑色墨线火柴人", "空心圆头，没有头发和耳朵", "椭圆形黑眼睛", "脖子上系一条青色围巾", "手脚是小椭圆"],
+  "expressions": ["explaining", "focused", "happy", "curious", "surprised", "worried", "frustrated", "proud"],
+  "gestures": ["idle", "point_right", "wave", "emphasize", "point", "think", "shrug", "present", "sit", "jump", "cheer", "tap"],
+  "props": ["pointer", "magnifier", "phone", "doc", "bulb", "question"],
   "prompt_lock": {
-    "zh": "原创日系动漫风格的知识节目主持人：藏青色短发，一缕青色挑染，头顶一根呆毛，青色眼睛，白衬衫配青色领结，墨蓝色短外套；赛璐璐平涂上色，干净的深色细描边，半身正面，表情亲切。",
-    "en": "Original anime-style explainer host: short navy hair with a single teal streak and one ahoge, teal eyes, white shirt with a teal bow tie, navy cropped jacket; flat cel shading with clean thin dark outlines, front-facing half-body shot, friendly expression."
+    "zh": "原创手绘火柴人知识节目主持人：黑色墨线，线条有轻微粗细变化和手抖感；空心圆头，没有头发和耳朵，椭圆形黑眼睛，简笔的眉和嘴；四肢是单根细线，手脚是小椭圆；脖子上系一条青色围巾，两条短飘带垂在身后；约 4 头身，全身入镜。",
+    "en": "Original hand-drawn stick-figure explainer host: black ink lines with slight pressure variation and a hand-drawn wobble; a hollow circle head with no hair or ears, black oval eyes, simple line brows and mouth; single thin lines for limbs, small ovals for hands and feet; a teal scarf around the neck with two short tails hanging behind; about 4 heads tall, full body in frame."
   }
 }

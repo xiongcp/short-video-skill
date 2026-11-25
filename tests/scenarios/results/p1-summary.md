@@ -1,6 +1,6 @@
 # P1 场景评测汇总
 
-> 仓库只保留每个场景最新一次的运行目录：01 是 results/2026-11-24-10-31-20-01-skill，02 是 results/2026-11-25-01-52-46-02-skill，03 是 results/2026-11-25-02-08-53-03-skill，04 是 results/2026-11-24-08-42-49-04-skill。下文提到的其他目录已删除，在提交 84c914c 里可以找到。
+> 仓库只保留每个场景最新一次的运行目录：01 是 results/2026-11-24-10-31-20-01-skill，02 是 results/2026-11-25-07-27-05-02-skill，03 是 results/2026-11-25-07-27-05-03-skill，04 是 results/2026-11-24-08-42-49-04-skill。下文提到的其他目录已删除，在提交 84c914c 里可以找到。
 
 运行日期：2026-11-24 · Agent：Antigravity CLI（agy 1.5.16）· 模型：gemini-3.8-flash-high · 隔离用户级 skills：否
 
@@ -112,3 +112,24 @@ da5f59b 加了以下几项：按字节限制大小；`check.mjs` 输出估时；
 - **读音表**：第 1 轮就把 `pronunciation` 写进了段落 s01、s04，三轮的项目顶层都没有；6 次 `check.mjs` 全部为空，没有触发 `UNKNOWN_FIELD`。这次是 script.md 的新说明起了作用，`UNKNOWN_FIELD` 的提示还没有在真实运行中出现过。
 - **返修范围**：改了 s02 及其三个镜头、sh01 的表情，以及 brief.open_questions 里关于旧比喻的那一条；其他内容逐字未变，提示词包只加了"已过期"一行。
 - **读文件**：共 5 份 L0 文件。
+
+## S1 火柴人主持人后的 L0 复测（skill commit 2d97376）
+
+本分支把主持人从晴换成手绘墨线火柴人小青：提示词包改写成手绘墨线画风，参考图是复制到 `ref/host.png` 的 `host-ref.png`，分镜可以用新的动作、道具和 `move`，并新增 `MOVE_TOO_MANY`、`FOCUS_SPLIT`、`STATIC_STRETCH` 三项警告。之后用 agy 1.5.17 并行重跑场景 02 和 03，证据在 results/2026-11-25-07-27-05-02-skill 和 results/2026-11-25-07-27-05-03-skill。
+
+- **检查**：场景 02 6 / 7 通过，场景 03 5 / 5 通过。
+  - 场景 02 第 7 条未通过：7 个 host-left 镜头的首帧图只写了“站在画面左下方”“站在画面左侧”这类大致位置，没有写站在哪个物件旁边；sh01、sh02、sh05、sh09、sh12、sh13 还把枚举名原样写进括号，如“（explaining）”。
+- **主持人锁定和参考图**：两个场景的 host-left 首帧图都逐字重复 `prompt_lock.zh`（场景 02 共 7 镜，场景 03 共 7 镜），全是手绘墨线画风，提示词包里没有“晴”和动漫字样；两个场景都把 `host-ref.png` 复制成 `ref/host.png`，并在使用说明里让用户生成 host-left 镜头时上传。
+- **新动作和道具**：
+  - 场景 02 用了 `point`、`think`、`shrug`、`present`、`emphasize`、`wave`，`move` 4 次（sh05 两次，sh08、sh12 各一次），没有用 `prop`。
+  - 场景 03 用了 `think`、`shrug`、`present`、`point`、`emphasize`、`wave`，`prop` 一次（sh01 拿起再放下 `question` 问号牌），没有用 `move`。
+- **新警告**：`STATIC_STRETCH` 在场景 02 第 1 轮触发一次（sh02 在 0–9 秒画面没有变化），Agent 加了 5.5 秒的 `shrug` cue 修好，之后 lint 为空；`MOVE_TOO_MANY`、`FOCUS_SPLIT` 在两个场景都没有触发。场景 03 第 1 轮报过一次 `TEXT_TOO_LONG`（flow 节点 7 字），改完后为空。
+- **读文件**：
+  - 场景 03 只读了 L0 的 5 份文件，共 27,926 字节，第 3 轮返修没有再读。
+  - 场景 02 读了 11 份、共 68,467 字节：L0 的 5 份加上 `check.mjs`、`docs.mjs`、`project.mjs`、`match.mjs`、`project.schema.json`、`captions.mjs`（共 40,541 字节），还用 `node -e` 自己数字数和估时，最后才运行 `check.mjs`。上一次复测只读 5 份。
+- **节拍**：两个场景的节拍秒数都对得上 `starts`；场景 02 的动作都出自分镜 cue，上一次的 3 处偏离没有再出现。
+- **遗留问题**：
+  1. prompt-pack.md 要求“站在哪个物件旁边”，两个场景的 Agent 都只写了大致位置（场景 03 的 host-left 首帧图也只写“站在画面左下方”，例如 workspace-turn-2/http-cache/提示词包.md 第 26、32 行，不过场景 03 没有这条检查）；可以在示例里加上“走到第二张卡片下方”这类写法，或者在自查清单里加一条。
+  2. 场景 02 又读了脚本源码和 schema，读文件预算（4 份）再次被超过，上一次复测已经回到 5 份。原因不明，可能是这一轮的 Agent 没有先运行 `check.mjs` 看输出，需要再观察一次。
+  3. 场景 03 返修时 Agent 顺手删掉了 sh01 句 1 的 `surprised` cue，回复里没有说明；它还把 open_questions 说成“已确认适用”，与 project.json 里的原文不符。
+- **遗留问题 1 已修复**：prompt-pack.md 已写明不把英文枚举名写进提示词，示例首帧图改为“站在上方第一张卡片的左下方”，并在自查清单补上对应条目；还没有用 Agent 复跑验证。

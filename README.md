@@ -2,7 +2,7 @@
 
 [English](README.en.md) · [官网](https://xiongcp.github.io/short-video-skill/)
 
-给 Codex、Claude Code 等 Agent 用的轻量 skill。说一个主题，或者给一份资料、一篇讲稿，它会写出中文知识解说视频的讲稿和分镜，请你确认后，再给出交给外部视频模型逐镜生成的提示词包。本地合成成片（原创动漫主持人"晴"、1080p60）正在开发。
+给 Codex、Claude Code 等 Agent 用的轻量 skill。说一个主题，或者给一份资料、一篇讲稿，它会写出中文知识解说视频的讲稿和分镜，请你确认后，再给出交给外部视频模型逐镜生成的提示词包。本地合成成片（原创手绘火柴人主持人"小青"、1080p60）正在开发。
 
 ## 三步出片
 
@@ -19,7 +19,13 @@
 | L0 文本包 | 可用，不需要任何依赖 | `project.json`、`讲稿.md`、`分镜.md`、`提示词包.md` |
 | L1 本地成片 | 开发中 | 在 L0 之外加 `out/final.mp4`（1080p60）、字幕、封面、章节时间戳和 QA 报告 |
 
-L1 的设计见 [出片质量设计](docs/lite/出片质量设计.md)：矢量部件主持人、60fps、同元素补间转场、关键词级音画对齐，以及 QA 中的同步检查。
+L1 的设计见 [出片质量设计](docs/lite/出片质量设计.md) 和 [火柴人主持人设计](docs/lite/火柴人主持人设计.md)：手绘火柴人主持人、60fps、同元素补间转场、关键词级音画对齐，以及 QA 中的同步检查。
+
+## 主持人
+
+主持人是原创手绘火柴人"小青"：黑色墨线，系一条青色围巾，全身 17 个关节由代码画出。分镜按名字选 12 个动作、8 种表情和 6 件道具；在 `host-left` 镜头里，小青能走到某个图解元素旁边指着讲。
+
+![小青速查图：12 个动作、8 种表情和 6 件道具](site/assets/host-cheatsheet.png)
 
 ## 安装
 
@@ -47,7 +53,7 @@ cp -R skills/topic-to-video ~/.claude/skills/
 | P0 | 旧版工作室归档到 tag `studio-v1`，仓库瘦身为单一 skill | 完成 |
 | P1 | L0 文本包与场景评测（[汇总](tests/scenarios/results/p1-summary.md)） | 完成 |
 | 设计 | 出片质量：人物、帧率、匹配度、平滑动画 | 完成 |
-| P2a | 主持人 v2：矢量部件骨架 | 待开始 |
+| S1 | 火柴人主持人"小青"：骨架、表情、道具与速查图（取代 P2a） | 完成 |
 | P2b | 本地渲染器：60fps、关键词对齐、并行渲染 | 待开始 |
 | P3 | 转场、样片、返修与 QA | 待开始 |
 | P4 | 安装实测与发布 | 待开始 |
@@ -65,4 +71,4 @@ npm test
 
 ## 许可
 
-代码以 [Apache License 2.0](LICENSE) 发布。主持人"晴"的使用权由项目 owner 决定，见 [rights.json](skills/topic-to-video/assets/host/rights.json)。
+代码以 [Apache License 2.0](LICENSE) 发布。主持人"小青"的使用权由项目 owner 决定，见 [rights.json](skills/topic-to-video/assets/host/rights.json)。

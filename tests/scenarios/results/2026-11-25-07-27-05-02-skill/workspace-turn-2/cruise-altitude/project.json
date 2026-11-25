@@ -1,0 +1,418 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么飞机要在万米高空巡航？",
+  "brief": {
+    "topic": "为什么飞机要在万米高空巡航？",
+    "audience": "对航空没有了解的上班族",
+    "promise": "万米高空是空气阻力、发动机效率、避开颠簸和机翼升力之间的最佳平衡点",
+    "sources": [
+      {
+        "id": "src01",
+        "title": "long-article.md",
+        "where": "long-article.md",
+        "note": "参考资料《为什么飞机要在万米高空巡航？》"
+      }
+    ],
+    "open_questions": [
+      "资料中提到“高空巡航能比低空省下九成燃油”缺乏可靠出处，已采用稳妥说法“油耗明显更低”；若需具体节油百分比需进一步核查权威数据。"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 120,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "light"
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "巡航高度的疑问",
+      "text": "坐飞机出差时，你可能常听到机长广播：“已到达巡航高度”。这个高度通常在九千到一万二千米之间。很多上班族会好奇：飞机为什么非要飞到万米高空？离地面近一点，不是飞得更安心吗？",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s02",
+      "title": "空气阻力与省油",
+      "text": "首要的原因是空气阻力。海拔越高，空气就越稀薄。在万米高空，空气密度只有地面附近的三分之一左右。飞机向前冲，推开空气要克服巨大的阻力。空气阻力越小，同样的推力就能飞得更快、更省油。",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s03",
+      "title": "发动机与避开颠簸",
+      "text": "第二个原因是发动机的效率。现代客机使用的涡扇发动机，在高空低温环境下效率更高。第三个关键是避开恶劣天气。绝大多数雷雨、强风和对流云层，都发生在低空大气中。飞到万米高空，飞机已经在大部分云层之上。高空气流平稳，颠簸明显变少，乘客也更舒适。",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s04",
+      "title": "为什么不能飞更高",
+      "text": "既然高空好处这么多，为什么不能飞得更高呢？因为飞得太高，空气实在太稀薄了。机翼必须依靠空气流动，才能产生托起飞机的升力。同时，发动机内部燃烧燃油，也必须吸入充足氧气。一旦飞得过高，升力会明显不足，发动机也会吸不到气。",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s05",
+      "title": "四种力量的平衡点",
+      "text": "所以，万米高空并不是一个随意选择的数字。它是在阻力、发动机效率、避开颠簸和升力之间找到的平衡点。每种机型都会结合自身重量和航路天气，微调最合适的高度。下次出差听到广播，你就知道，飞机正在最舒适的位置上巡航。",
+      "source_ids": ["src01"]
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "idle"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "巡航高度的秘密",
+          "sub": "为什么非要飞一万米？"
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "point"
+        }
+      ],
+      "note": "引入日常坐飞机时的广播，指出一万米巡航高度"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [2, 3],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "think"
+      },
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "贴地飞行",
+            "rows": ["看似安心", "阻力巨大"]
+          },
+          "right": {
+            "label": "万米高空",
+            "rows": ["为什么非它不可", "到底好在哪"]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "highlight",
+          "target": 0
+        },
+        {
+          "sentence": 3,
+          "do": "gesture",
+          "target": "shrug"
+        }
+      ],
+      "note": "抛出反直觉疑问：为什么离地面近反而不行"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["海拔升高", "空气稀薄", "阻力骤降"]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "reveal",
+          "target": 1
+        }
+      ],
+      "note": "展示海拔上升与空气变稀薄的关系"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [2],
+      "layout": "full",
+      "visual": {
+        "template": "number",
+        "data": {
+          "value": "1/3",
+          "label": "万米高空空气密度"
+        }
+      },
+      "note": "用三分之一突出万米高空稀薄的空气密度"
+    },
+    {
+      "id": "sh05",
+      "section": "s02",
+      "sentences": [3, 4],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "present"
+      },
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "地面低空",
+            "rows": ["空气稠密", "推开空气阻力大", "油耗剧增"]
+          },
+          "right": {
+            "label": "万米高空",
+            "rows": ["空气稀薄", "推开空气阻力小", "更快更省油"]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "move",
+          "target": "left"
+        },
+        {
+          "sentence": 4,
+          "do": "move",
+          "target": "right"
+        },
+        {
+          "sentence": 4,
+          "do": "gesture",
+          "target": "point"
+        },
+        {
+          "sentence": 4,
+          "do": "expr",
+          "target": "happy"
+        }
+      ],
+      "note": "对比高低空推开空气的阻力差异与节油效果"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["涡扇发动机", "高空低温环境", "燃烧做功更高效"]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "reveal",
+          "target": 1
+        }
+      ],
+      "note": "解释高空低温对客机涡扇发动机效率的提升"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [2, 3],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["低空对流层", "雷雨强风云层", "气流混乱颠簸"]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "reveal",
+          "target": 1
+        }
+      ],
+      "note": "说明低空对流层聚集了大多数恶劣天气"
+    },
+    {
+      "id": "sh08",
+      "section": "s03",
+      "sentences": [4, 5],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "present"
+      },
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "低空对流层",
+            "rows": ["雷雨云层密布", "强风与剧烈颠簸"]
+          },
+          "right": {
+            "label": "万米平流层",
+            "rows": ["在大部分云层之上", "气流平稳乘客舒适"]
+          }
+        }
+      },
+      "cues": [
+        {
+          "sentence": 4,
+          "do": "move",
+          "target": "right"
+        },
+        {
+          "sentence": 4,
+          "do": "gesture",
+          "target": "point"
+        },
+        {
+          "sentence": 5,
+          "do": "expr",
+          "target": "happy"
+        }
+      ],
+      "note": "展示万米高空超越云层后的平稳飞行体验"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "shrug"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "极限高度的限制",
+          "sub": "为什么不能飞得更高？"
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "worried"
+        },
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "think"
+        }
+      ],
+      "note": "探讨飞行高度上限：空气过于稀薄的物理极限"
+    },
+    {
+      "id": "sh10",
+      "section": "s04",
+      "sentences": [2, 3],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["机翼空气流动", "产生托起升力", "吸入充足氧气"]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "reveal",
+          "target": 2
+        }
+      ],
+      "note": "解释升力产生与发动机燃油燃烧对空气的依赖"
+    },
+    {
+      "id": "sh11",
+      "section": "s04",
+      "sentences": [4],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["空气过度稀薄", "升力明显不足", "发动机吸不到气"]
+        }
+      },
+      "note": "点出过高飞行的严重后果：失速与发动机缺氧"
+    },
+    {
+      "id": "sh12",
+      "section": "s05",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "focused",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["减小阻力", "引擎高效", "避开颠簸", "保证升力"]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "move",
+          "target": "center"
+        },
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "present"
+        },
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "happy"
+        }
+      ],
+      "note": "总结万米高空是四大飞行要素博弈的最佳平衡点"
+    },
+    {
+      "id": "sh13",
+      "section": "s05",
+      "sentences": [2, 3],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "idle"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "已到达巡航高度",
+          "sub": "正在最舒适的位置上"
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "do": "gesture",
+          "target": "wave"
+        }
+      ],
+      "note": "回扣开篇机长广播，给出安心舒适的结论并告别"
+    }
+  ],
+  "checkpoints": [
+    {
+      "stage": "plan",
+      "revision": 1,
+      "at": "2026-11-24T23:31:45Z",
+      "note": "可以，按这个出提示词包。"
+    }
+  ],
+  "jobs": []
+}

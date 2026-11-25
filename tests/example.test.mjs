@@ -28,3 +28,15 @@ test('example script follows the writing rules', () => {
 test('example documents mirror project.json', () => {
   assert.deepEqual(checkDerivedDocs(project, read('讲稿.md'), read('分镜.md')), []);
 });
+
+test('example shows the new host acting: a move, a new gesture, a new expression and a prop', () => {
+  const OLD_GESTURES = ['idle', 'point_right', 'wave', 'emphasize'];
+  const OLD_EXPRESSIONS = ['explaining', 'focused', 'happy', 'curious'];
+  const cues = project.shots.flatMap((s) => s.cues ?? []);
+  const hosts = project.shots.filter((s) => s.host).map((s) => s.host);
+  assert.ok(cues.some((c) => c.do === 'move'), 'a move cue');
+  assert.ok(cues.some((c) => c.do === 'prop' && c.target !== 'none'), 'a prop cue');
+  assert.ok(hosts.some((h) => !OLD_GESTURES.includes(h.gesture)), 'a new gesture');
+  assert.ok(hosts.some((h) => !OLD_EXPRESSIONS.includes(h.expr)), 'a new expression');
+  assert.ok(hosts.every((h) => h.gesture !== 'point_right'), 'the example uses point, not the old name');
+});
