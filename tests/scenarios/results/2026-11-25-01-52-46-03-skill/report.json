@@ -1,0 +1,43 @@
+{
+  "scenario": "03",
+  "title": "确认后只改一段讲稿和一个镜头的表情",
+  "mode": "skill",
+  "agent": "agy",
+  "agent_version": "agy 1.5.16",
+  "model": "gemini-3.8-flash-high",
+  "skill": {
+    "commit": "56aca3913e26be34fbbf903260c9d42a4a2dff13",
+    "dirty": false
+  },
+  "isolated_home": false,
+  "at": "2026-11-25T02:01:56.444Z",
+  "projects": [
+    {
+      "file": "http-cache/project.json",
+      "files": [
+        "project.json",
+        "ref",
+        "分镜.md",
+        "提示词包.md",
+        "讲稿.md"
+      ],
+      "schema_errors": [
+        "/ must NOT have additional properties"
+      ],
+      "check_errors": "skipped: schema errors",
+      "lint_warnings": "skipped: schema errors",
+      "storyboard_warnings": "skipped: schema errors",
+      "derived_docs": "skipped: schema errors or missing 讲稿.md/分镜.md",
+      "revision": 2,
+      "target_seconds": 90,
+      "checkpoints": [
+        {
+          "stage": "plan",
+          "revision": 1,
+          "at": "2026-11-24T17:57:00-08:00",
+          "note": "确认，没问题。"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么 HTTP 缓存能让网页变快？",
+  "brief": {
+    "topic": "为什么 HTTP 缓存能让网页变快？",
+    "audience": "对网络没有专业基础的普通观众",
+    "promise": "第二次打开网页更快，是因为浏览器把常用文件存在本地，不用每次都跑远路找服务器重新下载",
+    "sources": [],
+    "open_questions": []
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 90,
+    "lang": "zh-CN",
+    "host": "hare",
+    "theme": "light"
+  },
+  "voice": {
+    "provider": "undecided"
+  },
+  "pronunciation": [
+    {
+      "term": "HTTP",
+      "reading": "H-T-T-P"
+    }
+  ],
+  "sections": [
+    {
+      "id": "s01",
+      "title": "两次打开，速度不同",
+      "text": "你有没有发现，第一次打开某个网页，总要等上两三秒？可是刷新一下，页面瞬间弹出来。同样的内容，第二次打开为什么会快这么多？"
+    },
+    {
+      "id": "s02",
+      "title": "抽屉与遥远的大仓库",
+      "text": "其实背后有个功臣，叫 HTTP 缓存。这里的 HTTP，是浏览器和网站沟通的规则。你可以把网站服务器，当成远方大仓库。而手边的浏览器，就像书桌抽屉。如果每次写字得跑去远方仓库拿笔，肯定很慢。"
+    },
+    {
+      "id": "s03",
+      "title": "顺手存入本地副本",
+      "text": "第一次访问时，抽屉是空的。浏览器只能跨越网络，去大仓库下载图片。但在展示给你时，顺手在抽屉存了副本。再次打开网页时，浏览器先翻翻抽屉。发现图片已经在里面，直接拿来用，自然省下大量时间。"
+    },
+    {
+      "id": "s04",
+      "title": "保质期与暗号核对",
+      "text": "那网页要是更新了，怎么办？别担心，规则里有“保质期”和“对暗号”。没过期的文件，浏览器直接用抽屉存货。拿不准时，浏览器发短消息问仓库：“东西改过吗？”仓库要是回复“没改”，浏览器继续用旧文件。"
+    },
+    {
+      "id": "s05",
+      "title": "就近提货，瞬间打开",
+      "text": "只有内容真变了，浏览器才会重新下载新文件。所以，HTTP 缓存就像在电脑里放了个就近提货点。省去长途跑腿，网页自然就能秒开了！"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "wave"
+      },
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "第一次打开",
+            "rows": ["等上两三秒"]
+          },
+          "right": {
+            "label": "刷新一下",
+            "rows": ["瞬间弹出来"]
+          }
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "expr", "target": "explaining" },
+        { "sentence": 1, "do": "gesture", "target": "point_right" }
+      ],
+      "note": "对比网页首次加载与刷新秒开的速度差异"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "第二次打开",
+          "sub": "为什么会快这么多？"
+        }
+      },
+      "note": "提出核心问题：第二次打开为什么会快这么多"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["浏览器", "沟通规则", "网站"]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "highlight", "target": 1 }
+      ],
+      "note": "解释 HTTP 缓存是浏览器和网站之间的沟通规则"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [2, 3, 4],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "远方大仓库",
+            "rows": ["网站服务器", "跑去拿笔很慢"]
+          },
+          "right": {
+            "label": "书桌抽屉",
+            "rows": ["手边的浏览器"]
+          }
+        }
+      },
+      "cues": [
+        { "sentence": 3, "do": "reveal", "target": 1 }
+      ],
+      "note": "用远方大仓库和手边抽屉比喻服务器与浏览器"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [0, 1, 2],
+      "layout": "host-left",
+      "host": {
+        "expr": "explaining",
+        "gesture": "point_right"
+      },
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["空抽屉", "大仓库下载", "存副本"]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "reveal", "target": 1 },
+        { "sentence": 2, "do": "reveal", "target": 2 }
+      ],
+      "note": "演示第一次访问：去大仓库下载图片并顺手存入副本"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [3, 4],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["翻翻抽屉", "直接拿来用", "省下大量时间"]
+        }
+      },
+      "cues": [
+        { "sentence": 4, "do": "reveal", "target": 1 },
+        { "sentence": 4, "do": "reveal", "target": 2 }
+      ],
+      "note": "演示再次打开网页：直接从抽屉取用省下大量时间"
+    },
+    {
+      "id": "sh07",
+      "section": "s04",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "emphasize"
+      },
+      "cues": [
+        { "sentence": 1, "do": "expr", "target": "explaining" },
+        { "sentence": 1, "do": "gesture", "target": "point_right" }
+      ],
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["保质期", "对暗号"]
+        }
+      },
+      "note": "提出更新疑问，引出保质期和对暗号两个规则"
+    },
+    {
+      "id": "sh08",
+      "section": "s04",
+      "sentences": [2],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["没过期", "抽屉存货", "直接用"]
+        }
+      },
+      "note": "说明保质期机制：未过期文件直接使用抽屉存货"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [3, 4],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "发短消息",
+            "rows": ["东西改过吗？"]
+          },
+          "right": {
+            "label": "仓库回复",
+            "rows": ["回复没改", "继续用旧文件"]
+          }
+        }
+      },
+      "cues": [
+        { "sentence": 4, "do": "reveal", "target": 1 }
+      ],
+      "note": "说明对暗号机制：向仓库确认未修改则继续用旧文件"
+    },
+    {
+      "id": "sh10",
+      "section": "s05",
+      "sentences": [0],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["内容真变了", "重新下载", "新文件"]
+        }
+      },
+      "note": "说明只有内容真发生改变时才会重新下载新文件"
+    },
+    {
+      "id": "sh11",
+      "section": "s05",
+      "sentences": [1, 2],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "就近提货点",
+          "sub": "省去长途跑腿，网页秒开"
+        }
+      },
+      "cues": [
+        { "sentence": 2, "do": "gesture", "target": "wave" }
+      ],
+      "note": "总结 HTTP 缓存核心优势：就近提货省去长途跑腿"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}
