@@ -35,7 +35,7 @@ test('inspectProject runs every check on the example', () => {
   const dir = scratch('example');
   cpSync(join(import.meta.dirname, '../examples/cache-speed'), dir, { recursive: true });
   const r = inspectProject(join(dir, 'project.json'));
-  assert.deepEqual([r.schema_errors, r.check_errors, r.lint_warnings, r.derived_docs], [[], [], [], []]);
+  assert.deepEqual([r.schema_errors, r.check_errors, r.lint_warnings, r.storyboard_warnings, r.derived_docs], [[], [], [], [], []]);
   assert.deepEqual(r.files, ['project.json', '分镜.md', '讲稿.md']);
 });
 

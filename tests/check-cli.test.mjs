@@ -62,3 +62,14 @@ test('check.mjs checks 提示词包.md when it exists', () => {
   assert.equal(status, 1);
   assert.ok(out.docs.includes('提示词包.md 没有镜头 sh02 的提示词'));
 });
+
+test('check.mjs reports storyboard warnings without failing', () => {
+  const dir = copy();
+  const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
+  project.shots[2].visual.data.nodes = ['甲乙丙', '丁戊己'];
+  project.shots[2].cues = [];
+  writeFileSync(join(dir, 'project.json'), JSON.stringify(project));
+  const { status, out } = run(dir);
+  assert.equal(status, 0);
+  assert.deepEqual(out.warnings.map((w) => `${w.code} ${w.path}`), ['VISUAL_NOT_IN_NARRATION /shots/2/visual']);
+});

@@ -6,6 +6,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, 
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { parseArgs } from 'node:util';
+import { lintStoryboard } from '../../skills/topic-to-video/scripts/lib/match.mjs';
 import { checkProject, lintScript } from '../../skills/topic-to-video/scripts/lib/project.mjs';
 import { checkDerivedDocs } from '../helpers/derived-docs.mjs';
 import { validateProject } from '../helpers/schema.mjs';
@@ -42,6 +43,7 @@ export function inspectProject(file) {
     schema_errors: schema.errors,
     check_errors: schema.ok ? checkProject(project) : 'skipped: schema errors',
     lint_warnings: schema.ok ? lintScript(project) : 'skipped: schema errors',
+    storyboard_warnings: schema.ok ? lintStoryboard(project) : 'skipped: schema errors',
     derived_docs: schema.ok && script !== null && board !== null
       ? checkDerivedDocs(project, script, board, read('提示词包.md'))
       : 'skipped: schema errors or missing 讲稿.md/分镜.md',

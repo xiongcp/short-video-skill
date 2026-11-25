@@ -57,7 +57,7 @@ function checkLimits(value, limit, path, add, label, where, field = '') {
 
 // The fields the checks below read. A project missing one gets MISSING_FIELD errors instead of a crash;
 // nested fields are checked only when the top level is complete.
-function checkShape(project) {
+export function checkShape(project) {
   const errors = [];
   const need = (ok, path, what) => { if (!ok) errors.push({ path, code: 'MISSING_FIELD', message: `缺少或格式不对：${what}，字段见 schema/project.schema.json` }); };
   need(isObject(project), '', 'project.json 应是一个对象');
