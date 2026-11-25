@@ -12,8 +12,9 @@
 
 ```json
 { "id": "sh01", "section": "s01", "sentences": [0], "layout": "host-left",
-  "host": { "expr": "curious", "gesture": "idle" },
+  "host": { "expr": "curious", "gesture": "think" },
   "visual": { "template": "title", "data": { "heading": "同一张图，两次打开", "sub": "还要从头下载吗？" } },
+  "cues": [{ "sentence": 0, "do": "prop", "target": "question" }],
   "note": "抛出问题：第二次打开还要重新下载吗" }
 { "id": "sh02", "section": "s02", "sentences": [0, 1], "layout": "full",
   "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器", "图标"] } },

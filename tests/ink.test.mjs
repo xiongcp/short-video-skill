@@ -39,6 +39,7 @@ test('the wobble never moves the line further than the setting', () => {
 test('the outline is one closed path with round ends', () => {
   const { d } = inkStroke(line, opts);
   assert.match(d, /^M[^MZ]*A[^MZ]*A[^MZ]*Z$/);
+  assert.doesNotMatch(d, /A[\d.]+ [\d.]+ 0 0 0 (-?[\d.]+ -?[\d.]+)L\1/, 'no zero-length line right after a round cap');
 });
 
 test('resample spaces points evenly along the line', () => {

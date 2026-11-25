@@ -78,7 +78,7 @@ export function inkStroke(points, { seed, width, wobble = 0 }) {
   const left = side(1);
   const right = side(-1).reverse();
   const cap = (r, [x, y]) => `A${num(r)} ${num(r)} 0 0 0 ${num(x)} ${num(y)}`;
-  const d = `${pathData(left)}${cap(widths.at(-1) / 2, right[0])}${pathData(right).replace(/^M/, 'L')}${cap(widths[0] / 2, left[0])}Z`;
+  const d = `${pathData(left)}${cap(widths.at(-1) / 2, right[0])}${pathData(right.slice(1)).replace(/^M/, 'L')}${cap(widths[0] / 2, left[0])}Z`;
   return { d, base, center, widths };
 }
 

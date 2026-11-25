@@ -31,7 +31,8 @@ test('prompt-pack.md uses the host prompt lock and reference image', () => {
   const text = ref('prompt-pack.md');
   assert.ok(text.includes('prompt_lock'));
   assert.ok(text.includes('](../assets/host/host-ref.png)'), 'links the reference image');
-  for (const word of ['手绘', '墨线', '围巾', '走位', '道具']) assert.ok(text.includes(word), word);
+  for (const word of ['手绘', '墨线', '围巾', '走位', '道具', '不把英文枚举名写进提示词']) assert.ok(text.includes(word), word);
+  assert.match(text, /^首帧图：[^\n]*站在上方第一张卡片/m);
 });
 
 test('storyboard.md maps sentence intent to host acting and names the storyboard warnings', () => {
