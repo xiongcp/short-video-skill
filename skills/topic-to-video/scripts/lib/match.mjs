@@ -59,7 +59,7 @@ export function visualKeywords(visual) {
   return (pick?.() ?? []).filter((t) => typeof t === 'string' || typeof t === 'number').map(String);
 }
 
-export const DEICTIC_WORDS = ['看右边', '右边的', '右侧', '看这张图', '看这里', '看这儿', '看这边', '右图'];
+const DEICTIC_WORDS = ['看右边', '右边的', '右侧', '看这张图', '看这里', '看这儿', '看这边', '右图'];
 
 // The gesture in effect at sentence n: the shot's gesture, changed by gesture cues up to that sentence.
 function gestureAt(shot, n) {
