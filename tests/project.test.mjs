@@ -107,6 +107,31 @@ test('a move to an element is checked like a reveal', () => {
   assert.deepEqual(checkProject(p), []);
   p.shots[0].cues[0].target = 2;
   assert.deepEqual(placed(p), ['CUE_TARGET_RANGE /shots/0/cues/0/target']);
+  p.shots[0].cues[0].target = -1;
+  assert.deepEqual(placed(p), ['CUE_TARGET_RANGE /shots/0/cues/0/target']);
+});
+
+test('reports invalid host acting values and cue targets without needing ajv', () => {
+  const p = minimal();
+  p.shots[0].host = { expr: 'angry', gesture: 'dance' };
+  p.shots[0].cues = [
+    { sentence: 0, do: 'move', target: 'top' },
+    { sentence: 0, do: 'prop', target: 'umbrella' },
+    { sentence: 0, do: 'expr', target: 'sleepy' },
+    { sentence: 0, do: 'gesture', target: 'spin' },
+    { sentence: 0, do: 'zoom', target: 0 },
+  ];
+  p.shots[1].cues = [{ sentence: 1, do: 'reveal', target: -1 }];
+  assert.deepEqual(placed(p), [
+    'INVALID_VALUE /shots/0/host/expr',
+    'INVALID_VALUE /shots/0/host/gesture',
+    'INVALID_VALUE /shots/0/cues/0/target',
+    'INVALID_VALUE /shots/0/cues/1/target',
+    'INVALID_VALUE /shots/0/cues/2/target',
+    'INVALID_VALUE /shots/0/cues/3/target',
+    'INVALID_VALUE /shots/0/cues/4/do',
+    'CUE_TARGET_RANGE /shots/1/cues/0/target',
+  ]);
 });
 
 test('a title shot can move to a preset spot but not to an element', () => {

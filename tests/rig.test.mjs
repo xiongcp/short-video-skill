@@ -194,8 +194,10 @@ test('elbows, the head and the eyes carry their pivot so the site can animate th
   }
 });
 
-test('an unknown gesture, expression or prop is a clear error', () => {
+test('an unknown gesture, expression, prop, view or theme is a clear error', () => {
   assert.throws(() => draw({ gesture: 'dance' }), /unknown gesture dance/);
   assert.throws(() => draw({ expr: 'angry' }), /unknown expression angry/);
   assert.throws(() => draw({ prop: 'umbrella' }), /unknown prop umbrella/);
+  assert.throws(() => draw({ view: 'back' }), /unknown view back/);
+  assert.throws(() => draw({ theme: 'sepia' }), /unknown theme sepia/);
 });

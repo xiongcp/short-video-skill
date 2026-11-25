@@ -176,20 +176,36 @@ function checkCoverage(project, add) {
 }
 
 const HOST_CUES = ['expr', 'gesture', 'move', 'prop'];
+const CUE_ACTIONS = ['reveal', 'highlight', ...HOST_CUES];
+const SPOTS = ['left', 'center', 'right'];
 
 function checkCues(shot, at, add) {
+  if (isObject(shot.host)) {
+    if (!PROFILE.expressions.includes(shot.host.expr)) add(`${at}/host/expr`, 'INVALID_VALUE', `镜头 ${shot.id} 的表情 ${shot.host.expr ?? '空'} 不在可选列表里（见 storyboard.md 的主持人一节）`);
+    if (!PROFILE.gestures.includes(shot.host.gesture)) add(`${at}/host/gesture`, 'INVALID_VALUE', `镜头 ${shot.id} 的动作 ${shot.host.gesture ?? '空'} 不在可选列表里（见 storyboard.md 的主持人一节）`);
+  }
   (shot.cues ?? []).forEach((cue, j) => {
     const path = `${at}/cues/${j}`;
     if (!shot.sentences.includes(cue.sentence)) add(`${path}/sentence`, 'CUE_OUTSIDE_SHOT', `镜头 ${shot.id} 的 cue 指向不属于本镜头的第 ${cue.sentence} 句`);
+    if (!CUE_ACTIONS.includes(cue.do)) return add(`${path}/do`, 'INVALID_VALUE', `镜头 ${shot.id} 的 cue 动作 ${cue.do ?? '空'} 不存在，可选 ${CUE_ACTIONS.join('、')}`);
+    if (HOST_CUES.includes(cue.do) && shot.layout !== 'host-left') {
+      add(`${path}/do`, 'CUE_NEEDS_HOST', `镜头 ${shot.id} 不显示主持人，不能用 ${cue.do} cue`);
+    }
     // move takes an element number or a preset spot (left, center, right); only a number has to exist.
     if (cue.do === 'reveal' || cue.do === 'highlight' || (cue.do === 'move' && Number.isInteger(cue.target))) {
+      if (!Number.isInteger(cue.target)) return add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的 ${cue.do} 目标应是元素序号（从 0 开始）`);
       const count = elementCount(shot.visual);
       const instead = cue.do === 'move' ? '；move 改用 left、center 或 right' : '';
       if (count === 0) add(`${path}/do`, 'CUE_NOT_SUPPORTED', `模板 ${shot.visual.template} 没有可单独指定的元素${instead}`);
-      else if (cue.target >= count) add(`${path}/target`, 'CUE_TARGET_RANGE', `镜头 ${shot.id} 的 cue 目标 ${cue.target} 超出元素个数 ${count}`);
-    }
-    if (HOST_CUES.includes(cue.do) && shot.layout !== 'host-left') {
-      add(`${path}/do`, 'CUE_NEEDS_HOST', `镜头 ${shot.id} 不显示主持人，不能用 ${cue.do} cue`);
+      else if (cue.target < 0 || cue.target >= count) add(`${path}/target`, 'CUE_TARGET_RANGE', `镜头 ${shot.id} 的 cue 目标 ${cue.target} 超出元素个数 ${count}`);
+    } else if (cue.do === 'move' && !SPOTS.includes(cue.target)) {
+      add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的 move 目标 ${cue.target ?? '空'} 不合法，写元素序号或 ${SPOTS.join('、')}`);
+    } else if (cue.do === 'expr' && !PROFILE.expressions.includes(cue.target)) {
+      add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的表情 ${cue.target ?? '空'} 不在可选列表里（见 storyboard.md 的主持人一节）`);
+    } else if (cue.do === 'gesture' && !PROFILE.gestures.includes(cue.target)) {
+      add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的动作 ${cue.target ?? '空'} 不在可选列表里（见 storyboard.md 的主持人一节）`);
+    } else if (cue.do === 'prop' && cue.target !== 'none' && !PROFILE.props.includes(cue.target)) {
+      add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的道具 ${cue.target ?? '空'} 不在可选列表里，放下写 none（见 storyboard.md 的主持人一节）`);
     }
   });
 }

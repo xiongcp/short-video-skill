@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { lintStoryboard, normalizeText, visualKeywords } from '../skills/topic-to-video/scripts/lib/match.mjs';
+import { estimateReport } from '../skills/topic-to-video/scripts/lib/project.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const example = () => JSON.parse(readFileSync(join(import.meta.dirname, '../examples/cache-speed/project.json'), 'utf8'));
@@ -189,11 +190,48 @@ test('a cue splits a long shot into stretches under 8 seconds', () => {
   assert.deepEqual(lintStoryboard(p), []);
 });
 
-test('cues on a sentence outside the shot raise neither STATIC_STRETCH nor FOCUS_SPLIT', () => {
+test('warns when a second move in the same sentence splits focus with reveal', () => {
+  const p = acting();
+  p.shots[0].cues = [
+    { sentence: 1, do: 'move', target: 0 },
+    { sentence: 1, do: 'reveal', target: 0 },
+    { sentence: 1, do: 'move', target: 1 },
+  ];
+  assert.deepEqual(codes(p), ['FOCUS_SPLIT /shots/0/cues']);
+  assert.match(lintStoryboard(p)[0].message, /sh01 第 1 句 move 到元素 1，reveal 的却是元素 0/);
+});
+
+test('does not raise STATIC_STRETCH on an exact 8.0-second stretch despite floating-point drift', () => {
+  const p = minimal();
+  p.settings.sentence_gap_ms = 400;
+  // With 400 ms gaps: 15, 18, 15, 14, 4 chars put sentence starts at [0, 4.2, 9.1, 13.2, 17.1]; 17.1 - 9.1 is 8.000000000000002 in IEEE-754.
+  p.sections[0].text = '阳光穿过大气层时先遇到空气分子。蓝光的波长很短所以更容易向四周散射掉。红光波长长能继续笔直往前穿过去。最后进入眼睛的蓝光就比红光多。天空蓝了。';
+  p.shots = [{
+    ...p.shots[0],
+    sentences: [0, 1, 2, 3, 4],
+    visual: { template: 'bullets', data: { items: ['阳光', '蓝光', '红光'] } },
+    cues: [
+      { sentence: 1, do: 'reveal', target: 0 },
+      { sentence: 2, do: 'reveal', target: 1 },
+      { sentence: 4, do: 'reveal', target: 2 },
+    ],
+  }];
+  assert.deepEqual(estimateReport(p).shots[0].starts, [0, 4.2, 9.1, 13.2, 17.1]);
+  assert.deepEqual(lintStoryboard(p), []);
+});
+
+test('cues on a sentence outside the shot raise neither STATIC_STRETCH, FOCUS_SPLIT nor MOVE_TOO_MANY, and do not satisfy POINT_MISSING', () => {
   const p = minimal();
   p.shots[1].cues = [{ sentence: 0, do: 'reveal', target: 0 }];
   assert.deepEqual(lintStoryboard(p), []);
   const q = acting();
-  q.shots[0].cues = [{ sentence: 5, do: 'move', target: 1 }, { sentence: 5, do: 'reveal', target: 2 }];
-  assert.deepEqual(lintStoryboard(q), []);
+  q.sections[0].text = '先看右边这张图。答案藏在阳光里。';
+  q.shots[0].cues = [
+    { sentence: 5, do: 'move', target: 1 },
+    { sentence: 5, do: 'move', target: 2 },
+    { sentence: 5, do: 'move', target: 'left' },
+    { sentence: 5, do: 'reveal', target: 2 },
+    { sentence: -1, do: 'gesture', target: 'point' },
+  ];
+  assert.deepEqual(codes(q), ['POINT_MISSING /shots/0']);
 });

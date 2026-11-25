@@ -239,8 +239,10 @@ export function drawHost(manifest, state) {
   const prop = state.prop === 'none' ? undefined : state.prop; // the prop cue's none puts the prop down
   if (!manifest.expressions[expr]) throw new Error(`unknown expression ${expr}`);
   if (prop && !manifest.props[prop]) throw new Error(`unknown prop ${prop}`);
+  if (!manifest.ink.body[theme]) throw new Error(`unknown theme ${theme}`);
   const pose = resolvePose(manifest, gesture);
   const view = state.view ?? pose.view;
+  if (!manifest.views[view]) throw new Error(`unknown view ${view}`);
   const fk = forwardKinematics(manifest, poseAngles(manifest, gesture, prop, view), { view, facing, x, ground, lift: pose.lift ?? 0 });
   const { points: p, dirs, H, R } = fk;
   const ctx = {

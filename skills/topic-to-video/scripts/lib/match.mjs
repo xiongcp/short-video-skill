@@ -67,7 +67,7 @@ export const STATIC_SECONDS = 8;
 
 // The gesture in effect at sentence n: the shot's gesture, changed by gesture cues up to that sentence.
 function gestureAt(shot, n) {
-  return (shot.cues ?? []).filter((c) => c.do === 'gesture' && c.sentence <= n)
+  return (shot.cues ?? []).filter((c) => shot.sentences.includes(c.sentence) && c.do === 'gesture' && c.sentence <= n)
     .sort((a, b) => a.sentence - b.sentence)
     .reduce((gesture, c) => c.target, shot.host?.gesture);
 }
@@ -99,15 +99,15 @@ export function lintStoryboard(project) {
 
 // MOVE_TOO_MANY and FOCUS_SPLIT: a host-left shot walks at most twice, and a sentence has one focus element.
 function lintActing(shot, i) {
-  const cues = shot.cues ?? [];
+  const cues = (shot.cues ?? []).filter((c) => shot.sentences.includes(c.sentence));
   const out = [];
   const moves = cues.filter((c) => c.do === 'move').length;
   if (moves > MAX_MOVES) out.push({ path: `/shots/${i}/cues`, code: 'MOVE_TOO_MANY', message: `镜头 ${shot.id} 有 ${moves} 次 move，最多 ${MAX_MOVES} 次；走动跟着正在讲的对象（见 storyboard.md 的主持人一节）` });
   for (const n of shot.sentences) {
     const here = cues.filter((c) => c.sentence === n && Number.isInteger(c.target));
-    const walked = here.find((c) => c.do === 'move');
-    const shown = here.find((c) => (c.do === 'reveal' || c.do === 'highlight') && c.target !== walked?.target);
-    if (walked && shown) out.push({ path: `/shots/${i}/cues`, code: 'FOCUS_SPLIT', message: `镜头 ${shot.id} 第 ${n} 句 move 到元素 ${walked.target}，${shown.do} 的却是元素 ${shown.target}；同一句只留一个焦点（见 storyboard.md 的主持人一节）` });
+    const shownHere = here.filter((c) => c.do === 'reveal' || c.do === 'highlight');
+    const pair = here.filter((c) => c.do === 'move').map((w) => [w, shownHere.find((s) => s.target !== w.target)]).find(([, s]) => s);
+    if (pair) out.push({ path: `/shots/${i}/cues`, code: 'FOCUS_SPLIT', message: `镜头 ${shot.id} 第 ${n} 句 move 到元素 ${pair[0].target}，${pair[1].do} 的却是元素 ${pair[1].target}；同一句只留一个焦点（见 storyboard.md 的主持人一节）` });
   }
   return out;
 }
@@ -122,7 +122,7 @@ function lintStatic(project) {
     if (!estimate) return;
     const cueTimes = (shot.cues ?? []).map((c) => estimate.starts[shot.sentences.indexOf(c.sentence)]).filter((t) => t !== undefined);
     const times = [0, ...cueTimes, estimate.seconds].sort((a, b) => a - b);
-    const k = times.findIndex((t, j) => j > 0 && t - times[j - 1] > STATIC_SECONDS);
+    const k = times.findIndex((t, j) => j > 0 && Math.round((t - times[j - 1]) * 10) > STATIC_SECONDS * 10);
     if (k > 0) out.push({ path: `/shots/${i}`, code: 'STATIC_STRETCH', message: `镜头 ${shot.id} 在 ${times[k - 1]}–${times[k]} 秒之间画面没有变化，超过 ${STATIC_SECONDS} 秒；加一个 cue 或拆成两个镜头（见 storyboard.md）` });
   });
   return out;
