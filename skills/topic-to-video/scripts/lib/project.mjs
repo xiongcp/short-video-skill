@@ -35,6 +35,20 @@ export const VISUAL_LIMITS = {
   number: { value: 8, label: 12 },
   bars: { items: [1, 6, { label: 6 }], unit: 4 },
 };
+// Field names from schema/project.schema.json, kept in sync by tests/project.test.mjs. The schema rejects any
+// other field, and nothing else here reads one, so without this a misplaced field passes the self-check.
+export const SCHEMA_FIELDS = {
+  project: ['version', 'revision', 'title', 'brief', 'settings', 'voice', 'sections', 'shots', 'checkpoints', 'jobs'],
+  brief: ['topic', 'audience', 'promise', 'sources', 'open_questions'],
+  source: ['id', 'title', 'where', 'note'],
+  settings: ['ratio', 'target_seconds', 'lang', 'host', 'theme', 'sentence_gap_ms'],
+  voice: ['provider', 'model', 'voice', 'speed', 'base_url', 'api_key_env', 'command'],
+  section: ['id', 'title', 'text', 'pronunciation', 'source_ids'],
+  shot: ['id', 'section', 'sentences', 'layout', 'host', 'visual', 'cues', 'note'],
+  cue: ['sentence', 'do', 'target'],
+  checkpoint: ['stage', 'revision', 'at', 'note'],
+  job: ['id', 'provider', 'kind', 'status', 'ref', 'cost', 'at'],
+};
 const TITLE_LIMIT = 40;
 const SECTION_TITLE_LIMIT = 20;
 
@@ -86,6 +100,7 @@ export function checkProject(project) {
   if (shape.length) return shape;
   const errors = [];
   const add = (path, code, message) => errors.push({ path, code, message });
+  checkFields(project, add);
   checkLimits(project.title, TITLE_LIMIT, '/title', add, '项目标题', '（见 script.md）');
   project.sections.forEach((s, i) => checkLimits(s.title, SECTION_TITLE_LIMIT, `/sections/${i}/title`, add, `段落 ${s.id} 的标题`, '（见 script.md）'));
   project.shots.forEach((shot, i) => checkLimits(shot.visual.data, VISUAL_LIMITS[shot.visual.template], `/shots/${i}/visual/data`, add,
@@ -102,6 +117,27 @@ export function checkProject(project) {
     if (c.revision > project.revision) add(`/checkpoints/${i}/revision`, 'CHECKPOINT_REVISION', `确认记录的版本 ${c.revision} 比项目当前版本 ${project.revision} 还新`);
   });
   return errors;
+}
+
+// Every object an L0 run writes, paired with the SCHEMA_FIELDS entry that lists its fields.
+function checkFields(project, add) {
+  const objects = [
+    [project, 'project', '', 'project.json'],
+    [project.brief, 'brief', '/brief', 'brief'],
+    [project.settings, 'settings', '/settings', 'settings'],
+    [project.voice, 'voice', '/voice', 'voice'],
+    ...project.brief.sources.map((s, i) => [s, 'source', `/brief/sources/${i}`, `来源 ${s.id ?? i}`]),
+    ...project.sections.map((s, i) => [s, 'section', `/sections/${i}`, `段落 ${s.id}`]),
+    ...project.shots.flatMap((shot, i) => [[shot, 'shot', `/shots/${i}`, `镜头 ${shot.id}`],
+      ...(shot.cues ?? []).map((c, j) => [c, 'cue', `/shots/${i}/cues/${j}`, `镜头 ${shot.id} 的 cue ${j}`])]),
+    ...project.checkpoints.map((c, i) => [c, 'checkpoint', `/checkpoints/${i}`, `确认记录 ${i}`]),
+    ...(Array.isArray(project.jobs) ? project.jobs : []).map((j, i) => [j, 'job', `/jobs/${i}`, `任务 ${j?.id ?? i}`]),
+  ];
+  for (const [value, name, path, owner] of objects) {
+    if (!isObject(value)) continue;
+    Object.keys(value).filter((key) => !SCHEMA_FIELDS[name].includes(key)).forEach((key) => add(`${path}/${key}`, 'UNKNOWN_FIELD',
+      `${owner}：多了 schema 里没有的字段 ${key}${key === 'pronunciation' ? '；读音表写在所在段落的 pronunciation 里（见 script.md）' : '，字段见 schema/project.schema.json'}`));
+  }
 }
 
 // Shots walk the sections in order and cover every sentence exactly once.

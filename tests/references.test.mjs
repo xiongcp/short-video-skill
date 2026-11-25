@@ -59,3 +59,7 @@ test('the prompt-pack example takes its narration and beat seconds from the exam
   for (const t of beats) assert.ok(estimate.starts.includes(t), `${t} 秒不在 starts ${estimate.starts} 里`);
   assert.ok(text.includes('starts[k]'), '说明 starts[k] 对应 sentences[k]');
 });
+
+test('script.md says pronunciation goes in the section it belongs to', () => {
+  assert.match(ref('script.md'), /段落的 `pronunciation`/);
+});

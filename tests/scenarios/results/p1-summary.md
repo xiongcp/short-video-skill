@@ -100,3 +100,4 @@ da5f59b 加了以下几项：按字节限制大小；`check.mjs` 输出估时；
   1. script.md 写明 `pronunciation` 放在段落里，`check.mjs` 对 schema 不认识的字段报错。
   2. 节拍里的动作与分镜 cue 是否一致，目前没有自动检查。
   3. `prompt_lock` 不该带表情，或者 prompt-pack.md 写明末尾表情按镜头替换。
+- **遗留问题 1 已修复**：script.md 写明读音表放在所在段落的 `pronunciation` 里；`check.mjs` 对 schema 不认识的字段报 `UNKNOWN_FIELD`，顶层的 `pronunciation` 会附上"写在所在段落里"的提示。对场景 03 第 3 轮的产物重跑 `check.mjs`，已能报出这个错误；还没有用 Agent 复跑验证。
