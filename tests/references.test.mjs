@@ -29,3 +29,13 @@ test('prompt-pack.md uses the host prompt lock and reference image', () => {
   assert.ok(text.includes('prompt_lock'));
   assert.ok(text.includes('body-idle.png'));
 });
+
+test('storyboard.md maps sentence intent to host acting and names the storyboard warnings', () => {
+  const text = ref('storyboard.md');
+  for (const word of ['句意', 'VISUAL_NOT_IN_NARRATION', 'POINT_MISSING']) assert.ok(text.includes(word), word);
+});
+
+test('prompt-pack.md uses first frames, image-to-video, narration and beats from starts', () => {
+  const text = ref('prompt-pack.md');
+  for (const word of ['首帧图', '图生视频', '首尾帧', '**口播**', '**节拍**', 'starts']) assert.ok(text.includes(word), word);
+});
