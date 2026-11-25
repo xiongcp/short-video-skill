@@ -1,5 +1,7 @@
 # P1 场景评测汇总
 
+> 仓库只保留每个场景最新一次的运行目录：01 是 results/2026-11-24-10-31-20-01-skill，02 是 results/2026-11-25-01-52-46-02-skill，03 是 results/2026-11-25-02-08-53-03-skill，04 是 results/2026-11-24-08-42-49-04-skill。下文提到的其他目录已删除，在提交 84c914c 里可以找到。
+
 运行日期：2026-11-24 · Agent：Antigravity CLI（agy 1.5.16）· 模型：gemini-3.8-flash-high · 隔离用户级 skills：否
 
 Codex 基线无效：codex-cli 与 gpt-5.6-luna 经本机配置的 API 中转后工具调用全部失败，详见 [baseline-summary.md](baseline-summary.md)。owner 决定不重跑基线，改用 agy + Gemini 3.8 Flash 只跑装了 skill 的场景，所以"基线"一列都记为"无效"。

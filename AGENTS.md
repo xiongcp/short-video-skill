@@ -1,6 +1,6 @@
 # Agent Guide
 
-This repository ships one lightweight agent skill, `topic-to-video`. It turns a topic, sources or a draft into a Chinese explainer video plan, script, storyboard and a prompt pack for external video models (L0). A local renderer with the original anime host is planned for later phases (L1). The design and phases are in [docs/lite/轻量化Skill计划书.md](docs/lite/轻量化Skill计划书.md), revised for render quality by [docs/lite/出片质量设计.md](docs/lite/出片质量设计.md); the current task list is [docs/lite/文档与官网实施计划.md](docs/lite/文档与官网实施计划.md).
+This repository ships one lightweight agent skill, `topic-to-video`. It turns a topic, sources or a draft into a Chinese explainer video plan, script, storyboard and a prompt pack for external video models (L0). A local renderer with the original anime host is planned for later phases (L1). The design and phases are in [docs/lite/轻量化Skill计划书.md](docs/lite/轻量化Skill计划书.md), revised for render quality by [docs/lite/出片质量设计.md](docs/lite/出片质量设计.md). Finished implementation plans are removed from `main`; read them from git history.
 
 The previous Studio implementation (13 skills, a TypeScript runtime, a SQLite store and G1–G5 owner gates) is archived at tag `studio-v1` and branch `archive/studio-v1`. Do not restore its files into `main`; read them from the tag when needed.
 

@@ -7,14 +7,14 @@ export const DEFAULT_SENTENCE_GAP_MS = 250;
 export const MAX_SENTENCE_CHARS = 30;
 // Words that make a claim absolute. Without sources, script.md asks for neutral wording or an open question.
 // 都 counts only in a sentence without a hedge such as 大部分 or 通常.
-export const ABSOLUTE_WORDS = ['所有', '全部', '一切', '任何', '总是', '从不', '永远', '一定', '必然', '绝对', '完全', '彻底', '唯一', '都'];
+const ABSOLUTE_WORDS = ['所有', '全部', '一切', '任何', '总是', '从不', '永远', '一定', '必然', '绝对', '完全', '彻底', '唯一', '都'];
 const HEDGES = ['大部分', '大多', '多数', '基本', '通常', '一般', '往往'];
 const absoluteWords = (sentence) => ABSOLUTE_WORDS.filter((w) => sentence.includes(w) && (w !== '都' || !HEDGES.some((h) => sentence.includes(h))));
 
 const LIST_FIELD = { bullets: 'items', flow: 'nodes', bars: 'items' };
 
 /** Elements a reveal or highlight cue can address: list items, flow nodes, bars, or the two compare columns. */
-export function elementCount(visual) {
+function elementCount(visual) {
   if (visual.template === 'compare') return 2;
   const field = LIST_FIELD[visual.template];
   return field ? visual.data[field].length : 0;
@@ -182,7 +182,7 @@ function checkCues(shot, at, add) {
 }
 
 /** Planning estimate for some sentences of one section: characters at 4 per second plus a gap after each sentence. */
-export function estimateSentences(project, section, indexes) {
+function estimateSentences(project, section, indexes) {
   const gap = (project.settings.sentence_gap_ms ?? DEFAULT_SENTENCE_GAP_MS) / 1000;
   const sentences = splitSentences(section.text);
   return indexes.reduce((sum, i) => sum + countChars(sentences[i] ?? '') / CHARS_PER_SECOND + gap, 0);
