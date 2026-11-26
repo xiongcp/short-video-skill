@@ -40,6 +40,25 @@ test('scene chains host continuity across shots, computes morph/layout transitio
   assert.equal(keyA, keyB, 'later shot cache key is invariant to earlier shot duration');
 });
 
+test('host smoothly walks back to left column after a previous shot moved right, and resets to left after a full shot', () => {
+  const p = minimal();
+  p.sections[0].text = '第一句往右走。第二句换镜回来。第三句全屏。第四句再进场。';
+  p.shots = [
+    { id: 'sh01', section: 's01', sentences: [0], layout: 'host-left', host: { expr: 'explaining', gesture: 'point' }, visual: { template: 'title', data: { heading: '一' } }, cues: [{ sentence: 0, do: 'move', target: 'right' }], note: 'move right' },
+    { id: 'sh02', section: 's01', sentences: [1], layout: 'host-left', host: { expr: 'curious', gesture: 'think' }, visual: { template: 'title', data: { heading: '二' } }, note: 'auto return' },
+    { id: 'sh03', section: 's01', sentences: [2], layout: 'full', visual: { template: 'title', data: { heading: '三' } }, note: 'full' },
+    { id: 'sh04', section: 's01', sentences: [3], layout: 'host-left', host: { expr: 'proud', gesture: 'emphasize' }, visual: { template: 'title', data: { heading: '四' } }, note: 'reenter' },
+  ];
+  const timing = Object.fromEntries([0, 1, 2, 3].map((n) => [`s01-${n}`, { file: `audio/s01-${n}.wav`, duration_ms: 4000, speech: [50, 3900], source: 'estimate', words: [], sha256: `h${n}` }]));
+  const tl = buildTimeline(p, timing, 60);
+  const plans = buildShotPlans(p, tl, manifest);
+  assert.ok(plans[0].endHostState.x > 1000, 'sh01 ends on the right');
+  assert.ok(plans[1].cues.some((c) => c.do === 'move' && c.target === 'left' && c.source === 'auto_return'), 'sh02 schedules smooth walk back to left');
+  assert.equal(plans[1].endHostState.x, 320, 'sh02 finishes back at host-left x=320');
+  assert.equal(plans[1].endHostState.facing, 1, 'sh02 turns back to face right toward diagram');
+  assert.equal(plans[3].startState.x, 320, 'sh04 re-entering from full starts cleanly at x=320');
+});
+
 test('subtitles (SRT + ASS with keyword highlight) and chapters are generated accurately', () => {
   const p = minimal();
   p.shots[1].cues[0].at = '阳光';

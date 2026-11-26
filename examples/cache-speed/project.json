@@ -179,7 +179,7 @@
       "host": { "expr": "explaining", "gesture": "present" },
       "visual": { "template": "bullets", "data": { "items": ["直接用", "先问一句", "换新内容"], "icons": ["cache", "server", "doc"] } },
       "cues": [
-        { "sentence": 1, "at": "直接用", "do": "reveal", "target": 0 },
+        { "sentence": 1, "at": "直接用", "do": "highlight", "target": 0 },
         { "sentence": 1, "at": "直接用", "do": "gesture", "target": "point" },
         { "sentence": 1, "at": "先问一句", "do": "reveal", "target": 1 },
         { "sentence": 1, "at": "替换", "do": "reveal", "target": 2 },

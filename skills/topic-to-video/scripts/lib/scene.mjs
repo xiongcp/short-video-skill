@@ -8,7 +8,7 @@ import { drawHost } from './rig.mjs';
 import { DIAGRAM_ZONES, layoutElements, paperBackgroundSvg, renderDiagram, THEME_PALETTE } from './templates.mjs';
 import { resolveCueTiming, splitClauses } from './timing.mjs';
 
-export const SCENE_VERSION = 1;
+export const SCENE_VERSION = 2;
 
 const lerpBox = (a, b, t) => ({
   x: lerp(a.x, b.x, t),
@@ -48,16 +48,28 @@ export function buildShotPlans(project, timeline, manifest) {
     const tl = timeline.shots[i];
     const cues = resolveCueTiming(tl, shot.cues ?? []);
     const elements = layoutElements(shot.visual, shot.layout);
+    const reenteringFromFull = prevPlan?.shot.layout === 'full';
     const startState = shot.layout === 'host-left'
       ? {
-          x: lastHostEnd.x,
-          view: lastHostEnd.view,
-          facing: lastHostEnd.facing,
+          x: reenteringFromFull ? 320 : lastHostEnd.x,
+          view: reenteringFromFull ? 'three_quarter' : lastHostEnd.view,
+          facing: reenteringFromFull ? 1 : lastHostEnd.facing,
           gesture: shot.host?.gesture ?? lastHostEnd.gesture,
           expr: shot.host?.expr ?? lastHostEnd.expr,
           prop: lastHostEnd.prop,
         }
       : null;
+
+    // If the host wandered away from the left column in the previous host-left shot, smoothly walk back
+    // to x=320 at the start of the new shot so she never lingers underneath the right-side diagram/title.
+    if (
+      shot.layout === 'host-left'
+      && prevPlan?.shot.layout === 'host-left'
+      && Math.abs(startState.x - 320) > 80
+      && !cues.some((c) => c.do === 'move' && c.timeMs <= 500)
+    ) {
+      cues.unshift({ sentence: shot.sentences[0], do: 'move', target: 'left', timeMs: 0, source: 'auto_return' });
+    }
 
     let transition = { kind: 'cut', durationSec: 0, layoutSwitch: null, shared: [] };
     if (i > 0 && shot.transition !== 'cut' && prevPlan) {

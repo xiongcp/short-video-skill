@@ -278,7 +278,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
       } else {
         speed = Math.max(baseSpeed * 1.6, distX / avail);
         trot = true;
-        rushedMove = true;
+        if (mc.source !== 'auto_return') rushedMove = true;
       }
     }
     const dur = distX < 1 ? 0 : Math.min(avail, distX / speed);
@@ -306,6 +306,10 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
         focusChangedAt = seg.t0;
         const el = elements[seg.target];
         if (el) facing = (el.bbox.x + el.bbox.w / 2) >= x ? 1 : -1;
+      } else if (seg.target === 'left') {
+        facing = 1;
+      } else if (seg.target === 'right') {
+        facing = -1;
       }
     }
   }

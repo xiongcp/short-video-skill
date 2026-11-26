@@ -104,7 +104,7 @@ function generateTransitionStrip(videoPath, outPng, cutFrames, fps, ffmpeg = 'ff
   spawnSync(ffmpeg, [
     '-y', '-loglevel', 'error', '-i', videoPath,
     '-vf', `select='between(n,${start},${end})',scale=320:180,tile=6x1:padding=4:margin=4:color=0xfbfaf6`,
-    '-vsync', 'vfr', '-frames:v', '1', outPng,
+    '-fps_mode', 'vfr', '-frames:v', '1', outPng,
   ]);
 }
 
