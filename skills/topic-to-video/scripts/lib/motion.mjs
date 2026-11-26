@@ -1103,6 +1103,46 @@ function getCachedHostPlan(manifest, plan) {
  * Evaluates full host state at time `t` inside a `host-left` or `stage` shot.
  * Returns state directly consumable by `drawHost(manifest, state)` plus QA metadata and live stage interaction state.
  */
+/**
+ * Times for the sound layer (音效与配乐设计 §4.2): walks, interactions and one-shot gestures of one host plan,
+ * with the host's x at each moment. Reads the cached plan only; animation is unchanged.
+ */
+export function hostEventTimeline(manifest, plan) {
+  const { walkSegments, interactionEvents, interactionStarts, effectiveCues, afterWalk, start, cues, elements } = getCachedHostPlan(manifest, plan);
+  const walks = [...walkSegments].filter((s) => s.t1 > s.t0).sort((a, b) => a.t0 - b.t0);
+  const xAt = (t) => {
+    let x = start.x;
+    for (const s of walks) {
+      if (t < s.t0) break;
+      if (t >= s.t1) { x = s.toX; continue; }
+      return lerp(s.fromX, s.toX, (t - s.t0) / (s.t1 - s.t0));
+    }
+    return x;
+  };
+  const interactions = interactionEvents
+    .filter((ev) => ev.kind !== 'stand_up')
+    .map((ev) => ({
+      kind: ev.kind,
+      t0: ev.t0,
+      dur: ev.dur,
+      x: ev.standX ?? xAt(ev.t0),
+      targetIdx: ev.targetIdx ?? null,
+      ...(ev.kind === 'react' ? { targetState: objectStateAt(elements, cues, interactionStarts, ev.targetIdx, ev.t0) } : {}),
+    }));
+  const gestures = [];
+  if (resolvePose(manifest, start.gesture).type === 'once') gestures.push({ gesture: start.gesture, t0: 0, x: start.x });
+  for (const c of effectiveCues) {
+    if (c.do !== 'gesture' || resolvePose(manifest, c.target).type !== 'once') continue;
+    const t0 = afterWalk((c.timeMs ?? 0) / 1000);
+    gestures.push({ gesture: c.target, t0, x: xAt(t0) });
+  }
+  return {
+    walks: walks.map((s) => ({ t0: s.t0, t1: s.t1, fromX: s.fromX, toX: s.toX, trot: Boolean(s.trot) })),
+    interactions,
+    gestures: gestures.sort((a, b) => a.t0 - b.t0),
+  };
+}
+
 export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
   const H = manifest.height_px;
   const ground = plan.ground ?? 930;

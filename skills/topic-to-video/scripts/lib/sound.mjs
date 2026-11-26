@@ -1,5 +1,7 @@
 // Procedural paper-craft sound effects (音效与配乐设计 §4): small DSP helpers and 17 synthesized effects
 // plus the conclusion chime. Everything is generated from code and a seed; no audio files ship with the skill.
+import { hostEventTimeline } from './motion.mjs';
+import { hostPlanForShot } from './scene.mjs';
 
 export const SAMPLE_RATE = 48000;
 const SR = SAMPLE_RATE;
@@ -237,4 +239,123 @@ export function synthSfx(kind, { seed = 'sfx', variation = true } = {}) {
   for (let i = 0; i < n; i += 1) out[i] *= g;
   out[n - 1] = 0; // never -0
   return out;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Events (音效与配乐设计 §4.1–4.2): each effect lands on the frame where something touches, settles or lands.
+
+const BAD_STATES = new Set(['expired', 'broken', 'empty', 'off', 'dim']);
+const LATCH_STATES = new Set(['open', 'closed', 'locked', 'unlocked']);
+const REACT_STARTLE = new Set(['expired', 'broken', 'crossed', 'empty']);
+const TIER_RANK = { step: 0, normal: 1, accent: 2 };
+
+function stateSound(value = '') {
+  if (value === 'stamped') return ['thump', 'accent', 0.12];
+  if (value === 'crossed') return ['scratch', 'normal', 0.05];
+  if (value.startsWith('count:')) return ['tick', 'normal', 0.05];
+  if (BAD_STATES.has(value)) return ['drop', 'normal', 0.05];
+  if (LATCH_STATES.has(value)) return ['click', 'normal', 0.05];
+  return ['ding', 'normal', 0.05];
+}
+
+const INTERACTION_SOUNDS = {
+  open: [['click', 'normal', 0.15]],
+  carry: [['whoosh', 'normal', 0.3]],
+  drop: [['tick', 'normal', 0]],
+  push: [['slide', 'normal', 0.15]],
+  pull: [['slide', 'normal', 0.15]],
+  sit_on: [['thump', 'normal', 0.25]],
+  draw: [['scribble', 'normal', 0]],
+  hold_up: [['sparkle', 'accent', 0.5]],
+};
+
+const GESTURE_SOUNDS = {
+  jump: [['rise', 'accent', 0.15], ['thump', 'normal', 0.5]],
+  snap: [['snap', 'accent', 0.35]],
+  startle: [['startle', 'accent', 0.05]],
+  double_take: [['startle', 'accent', 0.35]],
+  cheer: [['sparkle', 'accent', 0.15]],
+  tap: [['tick', 'normal', 0.3]],
+};
+
+const isHostShot = (plan) => plan.shot.layout === 'host-left' || plan.shot.layout === 'stage';
+const centerX = (el) => (el?.bbox ? el.bbox.x + el.bbox.w / 2 : null);
+
+/**
+ * Collects sound events for consecutive shot plans. `tMs` counts from the first plan, with shot starts taken from
+ * frame counts (the same clock the video uses). Events past the end of their shot are dropped.
+ * @returns {{ tMs: number, kind: string, tier: 'step'|'normal'|'accent', x: number|null, source: string }[]}
+ */
+export function collectSoundEvents(shotPlans, manifest, { fps = 60, lastSectionId = null } = {}) {
+  const events = [];
+  let offsetFrames = 0;
+  shotPlans.forEach((plan, i) => {
+    const base = (offsetFrames * 1000) / fps;
+    const dur = plan.durationSec;
+    const push = (tSec, kind, tier, x, source) => {
+      if (tSec < 0 || tSec > dur) return;
+      events.push({ tMs: base + tSec * 1000, kind, tier, x: x ?? null, source: `${plan.id}:${source}` });
+    };
+    const starts = plan.endHostMeta?.interactionStarts;
+    const cueT0 = (c, idx) => (starts instanceof Map && starts.has(idx) ? starts.get(idx) : (c.timeMs ?? 0) / 1000);
+
+    if (i > 0 && plan.transition?.kind && plan.transition.kind !== 'cut') {
+      const sw = plan.transition.layoutSwitch ?? '';
+      push(0, sw.includes('full') ? 'whoosh' : 'page', 'normal', null, 'transition');
+    }
+    if (lastSectionId && plan.shot.section === lastSectionId && plan.prevShot?.shot.section !== lastSectionId) {
+      push(0.2, 'chime', 'accent', null, 'conclusion');
+    }
+
+    plan.cues.forEach((c, idx) => {
+      const t0 = cueT0(c, idx);
+      const el = Number.isInteger(c.target) ? plan.elements[c.target] : null;
+      if (c.do === 'reveal') push(t0 + 0.05, 'pop', 'normal', centerX(el), 'reveal');
+      else if (c.do === 'highlight') push(t0, 'swish', 'normal', centerX(el), 'highlight');
+      else if (c.do === 'state') {
+        const [kind, tier, dt] = stateSound(String(c.value ?? ''));
+        push(t0 + dt, kind, tier, centerX(el), `state:${c.value}`);
+      } else if (c.do === 'send') {
+        const link = plan.stageLayout?.links?.[c.target];
+        const fromEl = link ? plan.elements[link.from] : plan.elements[c.target - 1];
+        const toEl = link ? plan.elements[link.to] : plan.elements[c.target];
+        push(t0, 'whoosh', 'normal', centerX(fromEl), 'send');
+        push(t0 + 0.8, 'pop', 'normal', centerX(toEl), 'send:arrive');
+      }
+    });
+
+    if (isHostShot(plan)) {
+      const host = hostEventTimeline(manifest, hostPlanForShot(plan));
+      for (const w of host.walks) {
+        const step = w.trot ? 0.25 : 0.5;
+        const at = (t) => w.fromX + ((w.toX - w.fromX) * (t - w.t0)) / Math.max(1e-6, w.t1 - w.t0);
+        for (let t = w.t0 + step; t <= w.t1 - 0.05; t += step) push(t, 'step', 'step', at(t), 'walk');
+        push(w.t1, 'step', 'step', w.toX, 'walk');
+      }
+      for (const ev of host.interactions) {
+        let list = INTERACTION_SOUNDS[ev.kind];
+        if (ev.kind === 'react') list = [[REACT_STARTLE.has(ev.targetState) ? 'startle' : 'sparkle', 'accent', 0.1]];
+        for (const [kind, tier, dt] of list ?? []) push(ev.t0 + dt, kind, tier, ev.x, ev.kind);
+      }
+      for (const g of host.gestures) {
+        for (const [kind, tier, dt] of GESTURE_SOUNDS[g.gesture] ?? []) push(g.t0 + dt, kind, tier, g.x, g.gesture);
+      }
+    }
+    offsetFrames += plan.frameCount;
+  });
+  return events.sort((a, b) => a.tMs - b.tMs);
+}
+
+/** At most one non-step effect per 500 ms (higher tier wins, then the earlier one); steps near effects go quiet. */
+export function thinSoundEvents(events, { minGapMs = 500, stepGuardMs = 120 } = {}) {
+  const sorted = [...events].sort((a, b) => a.tMs - b.tMs);
+  const kept = [];
+  for (const ev of sorted) {
+    if (ev.tier === 'step') continue;
+    const last = kept.at(-1);
+    if (!last || ev.tMs - last.tMs >= minGapMs) kept.push(ev);
+    else if (TIER_RANK[ev.tier] > TIER_RANK[last.tier]) kept[kept.length - 1] = ev;
+  }
+  const steps = sorted.filter((ev) => ev.tier === 'step' && !kept.some((k) => Math.abs(k.tMs - ev.tMs) < stepGuardMs));
+  return [...kept, ...steps].sort((a, b) => a.tMs - b.tMs);
 }
