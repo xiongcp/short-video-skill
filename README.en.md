@@ -23,7 +23,7 @@ The L1 design and roadmap are in the [render quality design](docs/lite/出片质
 
 ## The host
 
-The host is 小青 (Xiaoqing), an original hand-drawn stick figure: black ink lines, a teal scarf and a cowlick on top that changes shape with each mood, with 17 joints drawn by code. The storyboard picks from 17 gestures, 9 expressions, 6 props and 4 outfits by name; in `host-left` shots Xiaoqing can walk over to a diagram element and point at it, and a sentence with no gesture gets one picked from its meaning.
+The host is 小青 (Xiaoqing), an original hand-drawn stick figure: black ink lines, a teal scarf and a cowlick on top that changes shape with each mood, with 17 joints drawn by code. The storyboard picks from 17 gestures, 9 expressions, 6 props and 4 outfits by name; each video sets a visual metaphor, one of 5 style packs (`paper`/`chalkboard`/`blueprint`/`kraft`/`night`) and 8 hand-drawn scenes, and in the primary `stage` layout Xiaoqing stands on the same ground line with 60 built-in hand-drawn props (plus custom geometric props), while in `host-left` shots Xiaoqing can walk over to a diagram element and point at it. A sentence with no gesture gets one picked from its meaning.
 
 ![Xiaoqing cheatsheet: 17 gestures, 9 expressions, 6 props and 4 outfits](site/assets/host-cheatsheet.png)
 
@@ -57,7 +57,7 @@ Check your environment with `node ~/.claude/skills/topic-to-video/scripts/doctor
 | P1 | L0 text package and scenario evaluations ([summary](tests/scenarios/results/p1-summary.md), in Chinese) | Done |
 | Design | Render quality: host detail, frame rate, sync, smooth animation | Done |
 | S1 / M1 | Stick-figure host 小青: rig, visual polish, 3 hand shapes, notched scarf and review tool | Done |
-| M2–M4 | Local renderer: 60 fps/4K, 24 hand-drawn icons, 6 templates, full-body motion & 2-bone IK, local TTS (`edge-tts`/`say`) | Done |
+| M2–M4 | Local renderer: 60 fps/4K, 60 hand-drawn props, 5 style packs, 8 hand-drawn scenes, `stage` layout, `timeline`/`cycle` templates, full-body motion & 2-bone IK, local TTS (`edge-tts`/`say`) | Done |
 | M5 | Matched-element transitions, selective motion blur, BT.709/jump/freeze/sync/occlusion QA and deliverables | Done |
 | M6–M7 | Cross-agent (agy/Claude Code/Codex) CLI & end-to-end benchmark acceptance | In progress |
 

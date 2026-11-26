@@ -25,7 +25,7 @@ description: 把主题、资料或已有讲稿做成中文知识解说视频：�
 | 步 | 做什么 | 先读 | 结束时 |
 | --- | --- | --- | --- |
 | 1 | 写 `project.json` 的 `brief`、`settings`、`sections`，再写 `讲稿.md` | [script.md](references/script.md) | 接着做第 2 步 |
-| 2 | 写 `shots`，再写 `分镜.md` | [storyboard.md](references/storyboard.md) | **确认①**：请用户确认讲稿和分镜 |
+| 2 | 定视觉世界、写 `shots`，再写 `分镜.md` | [world.md](references/world.md) 与 [storyboard.md](references/storyboard.md) | **确认①**：请用户确认讲稿和分镜 |
 | 3 | 写 `提示词包.md`（L0 终点） | [prompt-pack.md](references/prompt-pack.md) | 交付 L0，或按需进入 L1 |
 | 4 | 可选 L1：配音、样片确认与本地渲染 | [providers.md](references/providers.md) | 交付 `out/final.mp4` 与 `qa.md` |
 

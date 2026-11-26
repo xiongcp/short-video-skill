@@ -1,0 +1,115 @@
+# 视觉世界与舞台（world + stage）
+
+写分镜前先定全片的 `world`，在**确认①**连同讲稿、分镜一起给用户看。没有 `world` 的旧项目按 `settings.theme`（`light` → `paper`，`dark` → `night`）配色，不能用 `stage` 版式（`check.mjs` 报 `STAGE_NEEDS_WORLD`）。
+
+## 1. 定视觉世界（`world`）
+
+```json
+"world": {
+  "metaphor": "缓存是家门口的冰箱，服务器是远处的超市，304 是打电话问超市东西还新鲜吗",
+  "style": "paper",
+  "scene": "kitchen",
+  "custom_props": []
+}
+```
+
+- `metaphor`（必填，≤ 60 字）：贯穿全片的一句话比喻，决定本期的物件和舞台关系。
+- `style`（必填）：5 套风格包之一；`settings.theme` 仍按必填写，仅用于 L0 提示词包区分浅色/深色。
+- `scene`（必填）：8 个场景之一，用作全片默认背景；单个 `stage` 镜头可用 `shot.scene` 临时切换。
+- 服装和配音不写进 `world`：按场景推荐后写进 `settings.outfit` 和 `voice.preset`。
+- `分镜.md` 开头写一行：`视觉世界：<比喻>；风格 <style>；场景 <scene>`（须与 `world` 一致）。
+
+## 2. 五套风格包（`style`）
+
+同一种手绘墨线画法；深色纸面自动把小青身体换成浅色墨线，青色围巾和呆毛在所有风格里保持不变。
+
+| `style` | 纸面 | 墨线 | 强调色 | 适合主题 |
+| --- | --- | --- | --- | --- |
+| `paper` | 米白手账纸 + 96 px 浅网格 | 深灰 | 青、黄、红 | 通用知识（默认） |
+| `chalkboard` | 墨绿黑板 + 淡擦痕 | 粉笔白 | 粉笔黄、粉笔红、粉笔青 | 科普、历史、课堂 |
+| `blueprint` | 深蓝底 + 48/192 px 双网格 | 浅蓝白 | 黄、橙、白 | 工程、原理、结构 |
+| `kraft` | 暖色牛皮纸 + 淡纤维线 | 深棕 | 砖红、墨绿、芥黄 | 生活、商业、怀旧 |
+| `night` | 深灰蓝 + 浅网格 | 浅灰白 | 青、黄、红 | 安全、宇宙、夜间话题 |
+
+语义色键（11 个，自定义道具 `fill` 也用它或 `none`）：`paper`、`grid`、`ink`、`muted`、`card`、`accent`、`yellow`、`red`、`soft_accent`、`soft_yellow`、`soft_red`。
+
+## 3. 八个场景（`scene`）与推荐搭配
+
+场景画在物件后方（仅 `stage` 镜头），元素只在两侧和上方，避开中央表演区，共同踩在地面线 y = 930 上。
+
+| `scene` | 背景画面 | 推荐服装（`settings.outfit`） | 推荐配音（`voice.preset`） |
+| --- | --- | --- | --- |
+| `blank` | 只有地面线 | 不穿（`none`） | `female-warm` / `male-sunny` |
+| `podium` | 讲台、幕布、聚光灯 | `glasses`（或 `none`） | `male-pro` / `female-warm` |
+| `kitchen` | 墙砖、吊柜、台面、窗户 | `apron` 或 `chef_hat` | `female-lively` / `female-warm` |
+| `street` | 店面雨棚、路灯、咖啡馆 | 不穿（`none`） | `female-warm` / `male-sunny` |
+| `lab` | 实验架、烧瓶、操作台、吊灯 | `glasses` | `male-sunny` / `female-warm` |
+| `office` | 书架、办公桌、百叶窗、挂钟 | `glasses` | `male-pro` / `female-warm` |
+| `outdoor` | 远山、太阳、云朵、树木围栏 | 不穿（`none`） | `male-passion` / `child-cute` |
+| `workshop` | 工具墙、扳手锤子、工作台 | `hardhat` | `male-sunny` / `male-passion` |
+
+## 4. 60 个内置物件与状态
+
+可用于 `stage` 的 `objects[].prop`，也可用于 `bullets.icons`、`flow.icons`、`timeline`/`cycle` 的 `icon`。
+
+| 分组 | 物件名 |
+| --- | --- |
+| 原有 24 个 | `browser`、`server`、`database`、`cache`、`clock`、`doc`、`user`、`phone`、`cloud`、`lock`、`key`、`chart`、`check`、`cross`、`warn`、`bulb`、`gear`、`network`、`folder`、`image`、`search`、`money`、`plane`、`globe` |
+| 家居厨房 8 个 | `fridge`、`cup`、`pot`、`table`、`chair`、`door`、`window`、`trash` |
+| 商店街道 6 个 | `shop`、`cart`、`box`、`wallet`、`piggybank`、`house` |
+| 交通物理 6 个 | `car`、`truck`、`rocket`、`battery`、`magnet`、`scale` |
+| 科学教育 6 个 | `beaker`、`microscope`、`book`、`whiteboard`、`brain`、`heart` |
+| 办公信息 6 个 | `laptop`、`mail`、`megaphone`、`calendar`、`stamp`、`clipboard` |
+| 小件与符号 4 个 | `package`、`ticket`、`shield`、`hourglass` |
+
+- **通用状态**（所有物件支持）：`normal`、`active`、`dim`、`crossed`、`stamped`、`broken`、`count:<值>`（`<>` 内最多 4 个字符）。
+- **专属状态**（仅部分物件支持，错用报 `STATE_UNSUPPORTED`）：
+  - `open` / `closed`：`folder`、`fridge`、`pot`、`door`、`window`、`trash`、`shop`、`box`、`wallet`、`book`、`laptop`、`mail`
+  - `full` / `empty`：`server`、`database`、`fridge`、`cup`、`pot`、`trash`、`cart`、`box`、`wallet`、`piggybank`、`truck`、`battery`、`beaker`、`hourglass`
+  - `locked` / `unlocked`：`lock`、`folder`、`door`、`shield`
+  - `fresh` / `expired`：`doc`、`fridge`、`package`、`ticket`、`hourglass`
+  - `lit` / `off`：`browser`、`server`、`cache`、`phone`、`bulb`、`rocket`、`laptop`
+
+## 5. 自定义道具（`world.custom_props`）
+
+内置不够时用结构化几何图元拼接（不收任意 SVG 路径）：
+
+```json
+{ "id": "c_fishtank", "label": "鱼缸", "height": 0.5, "layer": "ground",
+  "parts": [
+    { "shape": "rect", "x": -0.9, "y": -0.5, "w": 1.8, "h": 1.5, "fill": "soft_accent" },
+    { "shape": "circle", "cx": -0.3, "cy": 0.2, "r": 0.15, "fill": "yellow" },
+    { "shape": "poly", "points": [[0.1, 0.2], [0.4, 0.05], [0.4, 0.35]], "fill": "yellow" },
+    { "shape": "line", "points": [[-0.9, -0.3], [0.9, -0.3]] }
+  ] }
+}
+```
+
+- **上限**：每期最多 **4 件**，每件最多 **12 个图元**；越界、超量或重名报 `CUSTOM_PROP_INVALID`。
+- **规格**：`id` 以 `c_` 开头（小写字母/数字/下划线）；`height` 在 `0.1–1.5`（以小青身高 400 px 为 1 H）；坐标在 `[-1, 1]`，底边 `y = 1`；图元只支持 `rect`（`x, y, w, h`）、`circle`（`cx, cy, r`）、`line`（2–6 点）、`poly`（3–8 点）；`fill` 写语义色键或 `none`。只支持通用状态。
+
+## 6. `stage` 舞台版式写法
+
+`stage` 是主力出镜版式（建议占出镜镜头 60%–80%），小青和物件站在同一条地面线上。`layout: "stage"` 与 `visual.template: "stage"` 必须同时使用，且必须写 `host`（可选 `host.at` 指定站位）。
+
+```json
+{ "id": "sh05", "section": "s02", "sentences": [0, 1], "layout": "stage",
+  "host": { "expr": "curious", "gesture": "idle", "at": "left" },
+  "visual": { "template": "stage", "data": {
+    "heading": "家门口的冰箱",
+    "objects": [
+      { "prop": "fridge", "label": "缓存", "at": "mid-left", "state": "closed" },
+      { "prop": "shop", "label": "服务器", "at": "right", "size": "sm" }
+    ],
+    "links": [{ "from": 0, "to": 1, "style": "dashed", "label": "很远" }]
+  } },
+  "cues": [{ "sentence": 1, "do": "move", "target": 0 }],
+  "note": "缓存就在手边，服务器在远处" }
+```
+
+- `objects`：1–5 个（序号 0..n-1 是 `reveal`、`highlight`、`move` 的 `target`）；`label` ≤ 8 字，参与口播关键词检查。`heading` 可选，≤ 14 字。
+- `at`：5 个语义槽位 `left`、`mid-left`、`center`、`mid-right`、`right`（x 240/600/960/1320/1680），或 `0.08–0.92` 比例。
+- `layer`：`ground`（贴地面）、`mid`（放在同槽位落地物件顶面，没有时在胸口高度 y 762）、`air`（高空 y ≤ 470）。缺省用物件自带默认值。
+- `size`：`sm`（0.75 倍）、`md`（1 倍，默认）、`lg`（1.3 倍）。
+- `links`：0–4 条连接两件物件（`from`、`to` 为序号，`style` 为 `solid` 或 `dashed`，可选 `label`）。
+- 自动排版：渲染器自动防重叠（≥ 40 px 间隔）并给小青留 200 px 站位；最小缩放到 0.6 倍，仍放不下报 `STAGE_CROWDED`（请减少物件或拆镜）。

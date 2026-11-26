@@ -76,3 +76,10 @@ test('the site describes the 呆毛 and shows the taller cheatsheet', () => {
   assert.ok(html.includes('17 个动作、9 种表情、6 件手持道具和 4 套服装'));
   assert.match(html, /host-cheatsheet\.png" alt="[^"]*" width="1800" height="2480"/);
 });
+
+test('the site describes style packs, hand-drawn scenes, 60 built-in props and stage layout', () => {
+  assert.ok(html.includes('风格包'));
+  assert.ok(html.includes('场景'));
+  assert.ok(html.includes('60'));
+  assert.ok(html.includes('stage'));
+});

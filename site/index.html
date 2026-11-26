@@ -172,7 +172,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
   <div class="wrap">
     <h2>主持人"小青"</h2>
     <p class="lead">原创手绘火柴人：黑色墨线，空心圆头，椭圆眼睛，头顶一根会随情绪变形的呆毛，脖子上系一条青色围巾。全身 17 个关节由代码画出，每个镜头都是同一个人。</p>
-    <p>分镜按名字选 17 个动作、9 种表情、6 件手持道具和 4 套服装；表情自带问号、汗滴、闪光这类符号。在 <code>host-left</code> 镜头里，小青能走到某个图解元素旁边，指它、看它、拍它；没写动作的句子，渲染器按句意自动配上凑近看、打响指、吓一跳这类动作。</p>
+    <p>分镜按名字选 17 个动作、9 种表情、6 件手持道具和 4 套服装；表情自带问号、汗滴、闪光这类符号。每期可先定比喻、5 套风格包（<code>paper</code>/<code>chalkboard</code>/<code>blueprint</code>/<code>kraft</code>/<code>night</code>）和 8 个手绘场景：在 <code>stage</code> 舞台版式里，小青与 60 个内置物件站在同一条地面线上；在 <code>host-left</code> 镜头里，小青能走到某个图解元素旁边，指它、看它、拍它；没写动作的句子，渲染器按句意自动配上动作。</p>
     <p><span class="pill ok">L1 已支持</span> 两节逆解、走路、跳跃、错峰补间、逐句自动动作编排、语流微动、围巾弹簧与连续口型均已在本地渲染器实现；L0 提示词包同样附带参考图给外部模型使用。</p>
     <figure class="cheatsheet"><img src="assets/host-cheatsheet.png" alt="小青速查图：17 个动作、9 种表情、6 件道具和 4 套服装，每格写着英文名和中文说明" width="1800" height="2480" loading="lazy"></figure>
   </div>
@@ -187,7 +187,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
       <div class="card"><h3>同元素补间</h3><p>前后镜头里同名的节点、数字和主持人平滑移动到新位置；没有共同元素时做 0.3 秒缓动叠化。</p></div>
       <div class="card"><h3>关键词对齐</h3><p>画面变化卡在句中的关键词上，优先用 TTS 的逐词时间；元素提前 0.15 秒入场，说到时正好落定。</p></div>
       <div class="card"><h3>表演贴合</h3><p>问句歪头挑眉，重读处点头，图解出现时视线跟过去；表情和手势按句意切换。</p></div>
-      <div class="card"><h3>画面不空泛</h3><p>内置约 24 个图标，模板按元素数自动排布；画面关键词和口播对不上时自检会提醒。</p></div>
+      <div class="card"><h3>画面不空泛</h3><p>内置 60 个手绘物件与自定义几何道具，5 套风格包与 8 个手绘场景，支持 <code>stage</code> 舞台、<code>timeline</code> 和 <code>cycle</code> 模板；画面关键词和口播对不上时自检会提醒。</p></div>
       <div class="card"><h3>QA 看得见</h3><p>检查同步误差、跳变、卡顿和 BT.709 色彩；附联系表、转场条和口型抽检片段。</p></div>
     </div>
   </div>
@@ -241,7 +241,7 @@ npm install --prefix ~/.claude/skills/topic-to-video/scripts                  # 
       <li><b>P1</b><span>L0 文本包与场景评测</span><span class="pill ok">完成</span></li>
       <li><b>设计</b><span>出片质量：人物、帧率、匹配度、平滑动画</span><span class="pill ok">完成</span></li>
       <li><b>S1 / M1</b><span>火柴人主持人"小青"：骨架、精修造型、3 种手型、V 形缺口围巾与评审工具</span><span class="pill ok">完成</span></li>
-      <li><b>M2–M4</b><span>本地渲染器：1080p60/4K、24 手绘图标、6 套模板、全身逆解与逐句动作、本地神经配音</span><span class="pill ok">完成</span></li>
+      <li><b>M2–M4</b><span>本地渲染器：1080p60/4K、60 手绘物件、5 套风格包、8 个场景与 <code>stage</code> 舞台、全身逆解与逐句动作、本地神经配音</span><span class="pill ok">完成</span></li>
       <li><b>M5</b><span>同元素补间转场、选择性运动模糊、BT.709/跳变/卡顿/同步/遮挡 QA 与交付物</span><span class="pill ok">完成</span></li>
       <li><b>M6–M7</b><span>跨 Agent（agy/Claude Code/Codex）统一入口与同题对标验收</span><span class="pill dev">进行中</span></li>
     </ul>

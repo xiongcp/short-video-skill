@@ -40,3 +40,10 @@ test('both READMEs give 小青 the 呆毛 and the H counts', () => {
   assert.ok(read('README.en.md').includes('cowlick'));
   assert.ok(read('README.en.md').includes('17 gestures, 9 expressions, 6 props and 4 outfits'));
 });
+
+test('both READMEs describe style packs, hand-drawn scenes, 60 built-in props and stage layout', () => {
+  const zh = read('README.md');
+  const en = read('README.en.md');
+  assert.ok(zh.includes('风格包') && zh.includes('手绘场景') && zh.includes('`stage`') && zh.includes('60'));
+  assert.ok(en.includes('style packs') && en.includes('hand-drawn scenes') && en.includes('`stage`') && en.includes('60'));
+});

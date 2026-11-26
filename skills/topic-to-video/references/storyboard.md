@@ -2,12 +2,12 @@
 
 ## 镜头与句子
 
-- 每段 `text` 按 `。！？` 切成句子（半角 `!?` 也算），从 0 开始编号。句末标点后紧跟的引号、括号和书名号（如 `”`、`）`、`》`）归前一句。
-- 每个镜头只属于一个段落，写法如 `"section": "s02", "sentences": [0, 1]`。
-- 按顺序覆盖：每段的每一句恰好属于一个镜头；镜头顺序与段落顺序一致；不跳句、不重叠、不回头。
-- 一个镜头通常包含 1–3 句（约 4–12 秒）。同一个画面超过 8 秒没有变化时，加 cue 或拆成两个镜头，否则 `check.mjs` 报 `STATIC_STRETCH`。
-- 镜头 ID 依次为 `sh01`、`sh02`……。先写 `note`（这一镜观众要看懂的变化），再选画面。
-- 一个镜头只讲一个意思，画面只表现此刻正在说的东西；口播里的关键数字用 `number` 或 `bars` 表现。
+- 每段 `text` 按 `。！？`（含半角 `!?`）切句，从 0 编号；句末紧跟的 `”`、`）`、`》` 归前句。
+- 每镜只属一段，如 `"section": "s02", "sentences": [0, 1]`。
+- 按顺序覆盖：每段每句恰好属于一镜，顺序与段落一致，不跳句、不重叠、不回头。
+- 每镜通常 1–3 句（4–12 秒）。同一画面超过 8 秒没有变化时加 cue 或拆镜，否则报 `STATIC_STRETCH`。
+- 镜头 ID 依次为 `sh01`、`sh02`……。先写 `note`（这镜观众要看懂的变化），再选画面。
+- 每镜只讲一个意思，只画此刻在说的东西；口播里的关键数字用 `number` 或 `bars` 表现。
 - 镜头估时照抄 `check.mjs` 输出的 `estimates.shots`。
 
 ```json
@@ -26,24 +26,24 @@
 
 | 版式 | 画面 | 适合 |
 | --- | --- | --- |
-| `host-left` | 图解在上部，主持人在下方，能走到元素旁边 | 开场、提问、总结、情绪转折、要指着讲的元素 |
-| `stage` | 主持人和物件落地同台 | 比喻、过程、对比 |
-| `full` | 图解占满画面，不出现主持人 | 机制、流程、对比、数据 |
+| `host-left` | 图解在上部，主持人在下方，能走到元素旁边 | 开场标题、提问、文字总结 |
+| `stage` | 主持人和物件落地同台（见 [world.md](world.md)） | 比喻、过程、对比（主力版式） |
+| `full` | 图解占满画面，不出现主持人 | 纯数据图表、密集流程 |
 
-- `host-left` 镜头必须写 `host`；`full` 镜头不写。
-- 开场和结尾用 `host-left`。连续 3 个以上 `full` 镜头时，中间插一个 `host-left`，让观众喘口气。
+- `host-left` 和 `stage` 必须写 `host`；`full` 不写。用 `stage` 须先在 `project.json` 定 `world`。
+- 开场和结尾用 `host-left` 或 `stage`。连续 3 个以上 `full` 镜头时，中间插一个 `host-left` 或 `stage`，让观众喘口气。
 
 ## 主持人
 
-主持人是火柴人"小青"：手绘墨线，系一条青色围巾，头顶一根呆毛随表情变形，只在 `host-left` 镜头出场。性格是好奇的伙伴：爱凑近看，想通了打响指。
+主持人是火柴人"小青"：手绘墨线，系一条青色围巾，头顶一根呆毛随表情变形，在 `host-left` 和 `stage` 出场。性格是好奇的伙伴：爱凑近看，想通了打响指。
 
-- **表情**（`expr`）：`explaining` 平稳讲解，`focused` 讲难点，`happy` 结论或轻松处，`curious` 提问（头旁出现问号），`surprised` 意外（惊叹线），`worried` 踩坑（汗滴），`frustrated` 着急（抖动线），`proud` 得意（闪光），`amazed` 恍然大悟（星星眼、闪光）。符号自动出现。
-- **动作**（`gesture`）：保持型做完就保持到下一个动作：`idle` 站着，`point` 指向焦点元素，`present` 摊开手掌介绍焦点元素，`emphasize` 握拳下压，`think` 托腮，`shrug` 摊手耸肩，`sit` 坐下，`lean_in` 凑近看焦点元素。一次性的做完回到之前的保持型动作：`wave` 挥手，`jump` 原地跳，`cheer` 举手欢呼，`tap` 拍一下焦点元素，`snap` 打响指，`startle` 吓一跳，`double_take` 再看一眼，`scratch_head` 挠头。句子没写动作时，渲染器按句意自动挑。`point_right` 是旧名字，等同 `point`。
-- **道具**（`prop` cue）：`pointer` 教鞭（指高处），`magnifier` 放大镜（细看），`phone` 手机，`doc` 文件，`bulb` 灯泡（想通了），`question` 问号牌（抛出问题）；`none` 放下。同一时间只拿一件。
-- **走位**（`move` cue）：走到某个元素旁边，或 `left`、`center`、`right` 三个站位。走到后面朝元素，不会自动指；要指再写 `point`。
-- **焦点元素**：本镜最近一次 `reveal`、`highlight` 或 `move` 指定的元素，还没有时是图解区中心。指、拍和视线都对准它。
-- **服装**（`settings.outfit`）：`glasses`、`hardhat`、`chef_hat`、`apron`，全片一套；用户要求时才写，缺省不穿。
-- **接戏**：每个 `host-left` 镜头从上一个 `host-left` 镜头结束时的站位、动作和道具接着演；道具不用了要放下。
+- **表情**（`expr`）：`explaining` 平稳讲解，`focused` 讲难点，`happy` 结论或轻松处，`curious` 提问（问号），`surprised` 意外（惊叹线），`worried` 踩坑（汗滴），`frustrated` 着急（抖动线），`proud` 得意（闪光），`amazed` 恍然大悟（星星眼、闪光）。
+- **动作**（`gesture`）：保持型做到下一个动作：`idle` 站着，`point` 指向焦点元素，`present` 摊手介绍，`emphasize` 握拳下压，`think` 托腮，`shrug` 耸肩，`sit` 坐下，`lean_in` 凑近看。一次性做完回原位：`wave` 挥手，`jump` 原地跳，`cheer` 欢呼，`tap` 拍元素，`snap` 打响指，`startle` 吓一跳，`double_take` 再看一眼，`scratch_head` 挠头。未写动作时按句意自动挑。`point_right` 同 `point`。
+- **道具**（`prop` cue）：`pointer` 教鞭，`magnifier` 放大镜，`phone` 手机，`doc` 文件，`bulb` 灯泡，`question` 问号牌；`none` 放下。同一时间只拿一件。
+- **走位**（`move` cue）：走到元素旁，或 `left`、`center`、`right`。走到后面朝元素，要指再写 `point`。
+- **焦点元素**：本镜最近一次 `reveal`、`highlight` 或 `move` 指定的元素，没有时为图解区中心。
+- **服装**（`settings.outfit`）：`glasses`、`hardhat`、`chef_hat`、`apron`，全片一套；用户要求时才写，缺省不穿（场景推荐见 [world.md](world.md)）。
+- **接戏**：每个出镜镜头从上一个出镜镜头结束时的站位、动作和道具接着演；道具不用了要放下。
 
 按句意选：
 
@@ -70,8 +70,8 @@
 - 删除测试：每个 cue 都要对应口播，去掉它观众也不会少懂的就删掉。
 - 同一句只有一个焦点：`move` 和这句的 `reveal`、`highlight` 指向同一个元素，否则 `check.mjs` 报 `FOCUS_SPLIT`。
 - 每个镜头最多 2 次 `move`，否则报 `MOVE_TOO_MANY`；走动跟着正在讲的对象，不要来回踱步。`tap` 之前先走到该元素。
-- 每个镜头最多换一次道具；`wave` 全片最多 2 次，`jump` 和 `cheer` 全片合计最多 3 次。
-- 口播里有"看右边""右侧""看这张图""看这里"这类指示词时，那一句的动作要是 `point`、`present` 或 `tap`，否则报 `POINT_MISSING`。
+- 每个镜头最多换 1 次道具；`wave` 全片最多 2 次，`jump` 和 `cheer` 全片合计最多 3 次。
+- 口播有"看右边""右侧""看这张图""看这里"等指示词时，该句动作要是 `point`、`present` 或 `tap`，否则报 `POINT_MISSING`。
 
 ## 图解模板
 
@@ -83,17 +83,17 @@
 | `compare` | `left`、`right`：各含 `label` 和 1–3 行 `rows` | 标签 8 字，每行 12 字 | 0 是左栏，1 是右栏 |
 | `number` | `value`、`label` | 8 字 / 12 字 | 无 |
 | `bars` | `items`：1–6 个 `{label, value}`，可选 `unit` | 标签 6 字，单位 4 字 | 每根柱子 |
-| `stage` | `objects` 1–5 个，可选 `heading`/`links` | 14 / 8 字 | 每个物件 |
+| `stage` | `objects` 1–5 个，可选 `heading`/`links`（详见 [world.md](world.md)） | 14 / 8 字 | 每个物件 |
 | `timeline` | `items` 2–5 个 `{time, label, icon?}` | 6 / 8 字 | 每个时间点 |
-| `cycle` | `items` 3–5 个 `{label, icon?}` | 6 字 | 每一步 |
+| `cycle` | `items` 3–5 个 `{label, icon?}` | 6 字 | 每一步（含箭头） |
 
 ```json
 { "template": "flow", "data": { "nodes": ["验证信息", "询问服务器", "返回304"] } }
 { "template": "compare", "data": { "left": { "label": "没变", "rows": ["返回304", "继续用旧内容"] }, "right": { "label": "已更新", "rows": ["传回新正文", "替换旧内容"] } } }
 ```
 
-- 画面上的字是关键词，不是讲稿的复制，要从本镜口播里取；数字可以用阿拉伯数字。一镜的关键词全都不在口播里时，`check.mjs` 报 `VISUAL_NOT_IN_NARRATION`。
-- 超出字数上限时，缩短措辞或拆成两个镜头，不要靠缩小字号。
+- 画面只写从本镜口播取的关键词（可用阿拉伯数字），全部不在口播里时报 `VISUAL_NOT_IN_NARRATION`。
+- 超字数上限时删字或拆镜，不缩字号。
 
 ## cue：说到某句时让画面变化
 
@@ -111,12 +111,12 @@
 | --- | --- | --- |
 | `reveal` | 元素序号（从 0 开始） | 该元素在这句开始时出现；没有 reveal 的元素从镜头开始就显示 |
 | `highlight` | 元素序号 | 该元素在这句开始时变成强调色 |
-| `expr` | 表情名 | 主持人在这句开始时换表情（仅限 `host-left`） |
-| `gesture` | 动作名 | 主持人在这句开始时换动作（仅限 `host-left`） |
-| `move` | 元素序号，或 `left`、`center`、`right` | 主持人在这句开始时走过去（仅限 `host-left`） |
-| `prop` | 道具名，或 `none` | 主持人在这句开始时拿起道具，`none` 是放下（仅限 `host-left`） |
+| `expr` | 表情名 | 主持人在这句开始时换表情（仅限出镜镜头） |
+| `gesture` | 动作名 | 主持人在这句开始时换动作（仅限出镜镜头） |
+| `move` | 元素序号，或 `left`、`center`、`right` | 主持人在这句开始时走过去（仅限出镜镜头） |
+| `prop` | 道具名，或 `none` | 主持人在这句开始时拿起道具，`none` 放下（仅限出镜镜头） |
 
-- `sentence` 必须是本镜头 `sentences` 里的句子。可选：`cue.at` 填本句关键词子串（L1 精准卡点）；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（60 个内置图标）。
+- `sentence` 须在本镜 `sentences` 内；可选：`cue.at` 填本句关键词子串；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（[60 个内置图标](world.md)）。
 - `title` 和 `number` 没有可单独指定的元素，不能用 `reveal`、`highlight` 或写序号的 `move`。
 
 ## 分镜.md 格式
@@ -124,6 +124,7 @@
 ```markdown
 # 分镜：为什么缓存能让网页变快？
 
+视觉世界：缓存是家门口的冰箱，服务器是远处的超市；风格 paper；场景 kitchen
 共 14 个镜头，估算约 114 秒。样片候选：sh08–sh09（约 19 秒，含主持人、最难的图解和一次版式切换）。
 
 | 镜头 | 段·句 | 估时 | 版式 | 主持人 | 图解 | 观众看懂什么 | cue |
@@ -131,12 +132,11 @@
 | sh01 | s01·0 | 6 秒 | host-left | curious / think | title：同一张图，两次打开 / 还要从头下载吗？ | 抛出问题：第二次打开还要重新下载吗 | 句 0 拿起问号牌 |
 ```
 
-样片候选：挑 15–20 秒连续镜头，含主持人、最难图解和一次版式切换。
+样片候选：15–20 秒连续镜头，含主持人、最难图解和一次版式切换。
 
 ## 交付前自查
 
-- [ ] 每句恰好属于一个镜头，顺序正确
-- [ ] 每个 cue 的句子都在本镜头内，序号不超过元素个数
-- [ ] 画面文字都在上限以内，关键词出自本镜口播；表情、动作、道具和走位与句意相符
-- [ ] 开场和结尾是 `host-left`；没有超过 8 秒不变的画面
-- [ ] 分镜.md 列出了每个镜头 ID，没有项目里不存在的 ID；`check.mjs` 的 `docs` 为空
+- [ ] 每句恰好属于一镜，顺序正确；cue 句号和元素序号不越界
+- [ ] 画面文字不超上限，关键词出自口播；表情、动作、道具和走位与句意相符
+- [ ] 开场和结尾是 `host-left` 或 `stage`；没有超过 8 秒不变的画面
+- [ ] 分镜.md 列出每个镜头 ID 及视觉世界一行（有 `world` 时）；`check.mjs` 的 `docs` 为空

@@ -4,7 +4,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CHARS_PER_SECOND, DEFAULT_SENTENCE_GAP_MS, MAX_SENTENCE_CHARS, estimateReport, VOICE_PRESETS } from '../skills/topic-to-video/scripts/lib/project.mjs';
 import { splitSentences } from '../skills/topic-to-video/scripts/lib/captions.mjs';
+import { COMMON_STATES, ICONS, PROP_META } from '../skills/topic-to-video/scripts/lib/icons.mjs';
 import { MAX_MOVES, STATIC_SECONDS } from '../skills/topic-to-video/scripts/lib/match.mjs';
+import { SCENE_NAMES, STYLE_NAMES } from '../skills/topic-to-video/scripts/lib/world.mjs';
+import { STAGE_SLOTS } from '../skills/topic-to-video/scripts/lib/stage.mjs';
 
 const SKILL = join(import.meta.dirname, '../skills/topic-to-video');
 const ref = (name) => readFileSync(join(SKILL, 'references', name), 'utf8');
@@ -18,8 +21,8 @@ test('script.md states the same planning constants as project.mjs', () => {
   assert.ok(text.includes('±10%'));
 });
 
-test('storyboard.md documents every template, expression, gesture, prop and cue in the schema', () => {
-  const text = ref('storyboard.md');
+test('storyboard.md and world.md document every template, expression, gesture, prop and cue in the schema', () => {
+  const text = `${ref('storyboard.md')}\n${ref('world.md')}`;
   const templates = schema.$defs.visual.oneOf.map((v) => schema.$defs[v.$ref.split('/').at(-1)].properties.template.const);
   const cues = schema.$defs.cue.properties.do.enum;
   for (const name of [...templates, ...schema.$defs.expr.enum, ...schema.$defs.gesture.enum, ...schema.$defs.prop.enum, ...cues, 'none', 'left', 'center', 'right']) {
@@ -116,4 +119,43 @@ test('prompt-pack.md allows the 呆毛 and settings.outfit instead of banning th
   assert.ok(text.includes('呆毛'));
   assert.ok(text.includes('settings.outfit'));
   assert.ok(!text.includes('人物不加头发、衣服和身体填色'));
+});
+
+test('world.md documents all 5 styles, 8 scenes, 60 built-in icons, custom prop limits, stage slots and scene recommendations', () => {
+  const text = ref('world.md');
+  assert.equal(ICONS.length, 60);
+  for (const name of STYLE_NAMES) assert.ok(text.includes(`\`${name}\``), `style ${name}`);
+  for (const name of SCENE_NAMES) assert.ok(text.includes(`\`${name}\``), `scene ${name}`);
+  for (const name of ICONS) assert.ok(text.includes(`\`${name}\``), `icon ${name}`);
+  const exclusiveStates = new Set(Object.values(PROP_META).flatMap((m) => m.states));
+  for (const state of [...exclusiveStates, ...COMMON_STATES]) assert.ok(text.includes(`\`${state}\``), `state ${state}`);
+  assert.ok(text.includes('4 件'));
+  assert.match(text, /12\s*(?:个)?图元/);
+  for (const shape of ['rect', 'circle', 'line', 'poly']) assert.ok(text.includes(`\`${shape}\``), shape);
+  for (const slot of Object.keys(STAGE_SLOTS)) assert.ok(text.includes(`\`${slot}\``), `slot ${slot}`);
+  for (const layer of ['ground', 'mid', 'air']) assert.ok(text.includes(`\`${layer}\``), `layer ${layer}`);
+  for (const size of ['sm', 'md', 'lg']) assert.ok(text.includes(`\`${size}\``), `size ${size}`);
+  assert.ok(text.includes('`links`'));
+  for (const rec of ['apron', 'hardhat', 'glasses', 'female-warm', 'male-sunny']) assert.ok(text.includes(rec), rec);
+});
+
+test('SKILL.md includes 定视觉世界 and links references/world.md', () => {
+  const skill = readFileSync(join(SKILL, 'SKILL.md'), 'utf8');
+  assert.ok(skill.includes('定视觉世界'));
+  assert.ok(skill.includes('](references/world.md)'));
+});
+
+test('storyboard.md links world.md and updates opening/full rules for stage', () => {
+  const text = ref('storyboard.md');
+  assert.ok(text.includes('](world.md)'));
+  assert.ok(text.includes('`host-left` 或 `stage`'));
+  assert.ok(text.includes('`timeline`') && text.includes('`cycle`') && text.includes('`stage`'));
+});
+
+test('prompt-pack.md prepends world.style and world.scene descriptions and describes stage ground line', () => {
+  const text = ref('prompt-pack.md');
+  assert.ok(text.includes('world.style'));
+  assert.ok(text.includes('world.scene'));
+  assert.ok(text.includes('`stage`'));
+  assert.ok(text.includes('同一条地面线'));
 });

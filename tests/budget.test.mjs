@@ -74,7 +74,7 @@ test('SKILL.md stays within 8 KB and each reference within 10 KB', () => {
 // 24 KB until S1, 28 KB until V, 30 KB until H. The owner raised it to 100 KB on 2026-11-25 after checking what
 // Hermes, Claude Code, Codex and Antigravity load (小青人设设计 §5.1); the per-file caps above stay.
 test('a full L0 run reads at most 100 KB of skill files', () => {
-  const read = ['SKILL.md', 'references/script.md', 'references/storyboard.md', 'references/prompt-pack.md', 'assets/host/profile.json'];
+  const read = ['SKILL.md', 'references/script.md', 'references/world.md', 'references/storyboard.md', 'references/prompt-pack.md', 'assets/host/profile.json'];
   const total = read.reduce((sum, f) => sum + bytes(join(SKILL, f)), 0);
   assert.ok(total <= 100 * KB, `${total} bytes`);
 });
