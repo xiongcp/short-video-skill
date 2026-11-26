@@ -13,6 +13,7 @@ test('minimal project is valid', () => {
 
 const valid = {
   'a 9:16 plan for the L0 prompt pack': (p) => { p.settings.ratio = '9:16'; },
+  'a host in an outfit': (p) => { p.settings.outfit = 'hardhat'; },
   'a voice preset with a pitch tweak': (p) => { p.voice = { provider: 'undecided', preset: 'male-sunny', pitch: -3 }; },
   'an openai-compatible voice with a key variable': (p) => { p.voice = { ...KEY_VOICE, api_key_env: 'SVS_TTS_API_KEY' }; },
   'an expression cue on a host shot': (p) => { p.shots[0].cues = [{ sentence: 0, do: 'expr', target: 'happy' }]; },
@@ -68,6 +69,7 @@ const invalid = {
   'an unknown voice preset': (p) => { p.voice = { provider: 'undecided', preset: 'male-deep' }; },
   'a pitch past 20 Hz': (p) => { p.voice = { provider: 'undecided', pitch: 25 }; },
   'a fractional pitch': (p) => { p.voice = { provider: 'undecided', pitch: 1.5 }; },
+  'an unknown outfit': (p) => { p.settings.outfit = 'cape'; },
 };
 for (const [name, mutate] of Object.entries(invalid)) {
   test(`rejects ${name}`, () => {

@@ -66,7 +66,8 @@
         "theme": { "enum": ["light", "dark"] },
         "sentence_gap_ms": { "type": "integer", "minimum": 0, "maximum": 2000 },
         "fps": { "enum": [30, 60] },
-        "resolution": { "enum": ["1080p", "1440p", "2160p"] }
+        "resolution": { "enum": ["1080p", "1440p", "2160p"] },
+        "outfit": { "enum": ["none", "glasses", "hardhat", "chef_hat", "apron"] }
       }
     },
     "voice": {

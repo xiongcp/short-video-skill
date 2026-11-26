@@ -357,3 +357,15 @@ test('warns when the voice settings would ignore the preset', () => {
     { provider: 'command', preset: 'male-sunny', command: 'python3 my_tts.py --text {text} --out {out}' },
   ]) assert.deepEqual(warned(voice), ['PRESET_UNUSED /voice/preset'], JSON.stringify(voice));
 });
+
+test('settings.outfit is optional, none means no outfit, and an unknown one names the choices', () => {
+  const p = minimal();
+  p.settings.outfit = 'none';
+  assert.deepEqual(checkProject(p), []);
+  p.settings.outfit = 'apron';
+  assert.deepEqual(checkProject(p), []);
+  p.settings.outfit = 'cape';
+  const [error] = checkProject(p);
+  assert.equal(`${error.code} ${error.path}`, 'INVALID_VALUE /settings/outfit');
+  assert.match(error.message, /cape.*glasses、hardhat、chef_hat、apron/);
+});

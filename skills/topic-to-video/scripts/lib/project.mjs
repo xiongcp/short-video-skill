@@ -51,7 +51,7 @@ export const SCHEMA_FIELDS = {
   project: ['version', 'revision', 'title', 'brief', 'settings', 'voice', 'sections', 'shots', 'checkpoints', 'jobs'],
   brief: ['topic', 'audience', 'promise', 'sources', 'open_questions'],
   source: ['id', 'title', 'where', 'note'],
-  settings: ['ratio', 'target_seconds', 'lang', 'host', 'theme', 'sentence_gap_ms', 'fps', 'resolution'],
+  settings: ['ratio', 'target_seconds', 'lang', 'host', 'theme', 'sentence_gap_ms', 'fps', 'resolution', 'outfit'],
   voice: ['provider', 'model', 'voice', 'speed', 'base_url', 'api_key_env', 'command', 'preset', 'pitch'],
   section: ['id', 'title', 'text', 'pronunciation', 'source_ids'],
   shot: ['id', 'section', 'sentences', 'layout', 'host', 'visual', 'cues', 'transition', 'note'],
@@ -132,6 +132,10 @@ export function checkProject(project) {
   const preset = project.voice?.preset;
   if (preset !== undefined && !Object.hasOwn(VOICE_PRESETS, preset)) {
     add('/voice/preset', 'INVALID_VALUE', `配音人设 ${preset} 不存在，可选 ${Object.keys(VOICE_PRESETS).join('、')}（见 script.md 的配音人设一节）`);
+  }
+  const outfit = project.settings.outfit;
+  if (outfit !== undefined && !PROFILE.outfits.includes(outfit)) {
+    add('/settings/outfit', 'INVALID_VALUE', `服装 ${outfit} 不存在，可选 ${PROFILE.outfits.join('、')}（见 storyboard.md 的主持人一节）`);
   }
   if (project.settings.host !== HOST_ID) {
     add('/settings/host', 'UNKNOWN_HOST', `settings.host 是 ${project.settings.host ?? '空'}，主持人只有 ${HOST_ID}（${PROFILE.name}）；旧项目的 hare 直接改成 ${HOST_ID}（见 script.md）`);
