@@ -292,9 +292,13 @@ export function collectSoundEvents(shotPlans, manifest, { fps = 60, lastSectionI
   shotPlans.forEach((plan, i) => {
     const base = (offsetFrames * 1000) / fps;
     const dur = plan.durationSec;
+    const seen = new Map();
     const push = (tSec, kind, tier, x, source) => {
+      const key = `${plan.id}:${source}`;
+      const seq = seen.get(key) ?? 0;
+      seen.set(key, seq + 1);
       if (tSec < 0 || tSec > dur) return;
-      events.push({ tMs: base + tSec * 1000, kind, tier, x: x ?? null, source: `${plan.id}:${source}` });
+      events.push({ tMs: base + tSec * 1000, kind, tier, x: x ?? null, source: key, seq });
     };
     const starts = plan.endHostMeta?.interactionStarts;
     const cueT0 = (c, idx) => (starts instanceof Map && starts.has(idx) ? starts.get(idx) : (c.timeMs ?? 0) / 1000);
@@ -403,6 +407,18 @@ export function isInIntervals(intervals, sample) {
   return false;
 }
 
+/** Does [a, b) overlap one of the sorted, non-overlapping intervals? */
+function overlapsIntervals(intervals, a, b) {
+  let lo = 0;
+  let hi = intervals.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (intervals[mid].end <= a) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo < intervals.length && intervals[lo].start < b;
+}
+
 /** Mixes thinned events into a stereo effects stem of `totalSamples`, each scaled so its loudest 100 ms sits at V + tier offset. */
 export function renderSfxStem(events, totalSamples, { voiceRefDb, intervals = [], seed = 'sfx' } = {}) {
   const left = new Float32Array(totalSamples);
@@ -411,9 +427,9 @@ export function renderSfxStem(events, totalSamples, { voiceRefDb, intervals = []
   events.forEach((ev, i) => {
     const start = Math.round((ev.tMs * SR) / 1000);
     if (start >= totalSamples || start < 0) return;
-    const buf = synthSfx(ev.kind, { seed: `${seed}:${i}` });
+    const buf = synthSfx(ev.kind, { seed: `${seed}:${ev.source}:${ev.seq ?? i}` });
     const levels = TIER_LEVELS_DB[ev.tier] ?? TIER_LEVELS_DB.normal;
-    const offsetDb = isInIntervals(intervals, start) ? levels.speech : levels.gap;
+    const offsetDb = overlapsIntervals(intervals, start, start + buf.length) ? levels.speech : levels.gap;
     const ref = loudestWindowRms(buf);
     if (ref <= 0) return;
     const g = 10 ** ((voiceRefDb + offsetDb) / 20) / ref;

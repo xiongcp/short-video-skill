@@ -161,3 +161,36 @@ test('speechIntervals turns every sentence speech span into samples on the video
   assert.equal(iv[1].start, start1);
   assert.ok(iv.every((r, i) => r.end > r.start && (i === 0 || r.start >= iv[i - 1].end)));
 });
+
+test('an effect whose tail runs into speech takes the speech level', () => {
+  const V = -20;
+  const start = 48000;
+  const intervals = [{ start: start + 2400, end: start + 96000 }];
+  const into = renderSfxStem(one('sparkle', 'accent', 1000), 192000, { voiceRefDb: V, intervals });
+  const gap = renderSfxStem(one('sparkle', 'accent', 1000), 192000, { voiceRefDb: V, intervals: [] });
+  const mid = (st) => st.left.map((v, i) => (v + st.right[i]) / 2);
+  const ratio = loudestWindowRms(mid(into)) / loudestWindowRms(mid(gap));
+  assert.ok(Math.abs(20 * Math.log10(ratio) - (-12 - -8)) < 0.2, String(20 * Math.log10(ratio)));
+});
+
+test('effect seeds come from the shot and the event, so a --sample plays the same effect as the full render', () => {
+  const { plans } = soundFixture();
+  const all = thinSoundEvents(collectSoundEvents(plans, manifest, { fps: FPS, lastSectionId: 's02' }));
+  const part = thinSoundEvents(collectSoundEvents(plans.slice(1), manifest, { fps: FPS, lastSectionId: 's02' }));
+  const offsetMs = (plans[0].frameCount * 1000) / FPS;
+  const rise = (list) => list.find((e) => e.kind === 'rise');
+  const a = rise(all);
+  const b = rise(part);
+  assert.ok(a && b && Math.abs(a.tMs - offsetMs - b.tMs) < 1e-6);
+  const lenMs = 120;
+  for (const list of [all, part]) {
+    const r = rise(list);
+    assert.ok(!list.some((e) => e !== r && e.tMs < r.tMs + lenMs && e.tMs + SFX_DURATION_MS[e.kind] > r.tMs), 'nothing else sounds over the rise');
+  }
+  const total = (list) => Math.round(((list.at(-1).tMs + 2000) * 48000) / 1000);
+  const sa = renderSfxStem(all, total(all), { voiceRefDb: -20 });
+  const sb = renderSfxStem(part, total(part), { voiceRefDb: -20 });
+  const ia = Math.round((a.tMs * 48000) / 1000);
+  const ib = Math.round((b.tMs * 48000) / 1000);
+  for (let k = 0; k < 5760; k += 1) assert.ok(Math.abs(sa.left[ia + k] - sb.left[ib + k]) < 1e-6, `sample ${k}`);
+});

@@ -159,7 +159,7 @@ const MUSIC_TEXT_LIMIT = 200;
 const SOUND_WHERE = '（见 providers.md 的声音一节）';
 
 /** True when `file` is a relative audio path that stays inside the project folder. */
-function isLocalMusicPath(file) {
+export function isLocalMusicPath(file) {
   if (typeof file !== 'string' || !file || file.startsWith('/') || file.startsWith('\\') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(file)) return false;
   if (file.split(/[\\/]/).includes('..')) return false;
   const ext = file.split('.').at(-1).toLowerCase();

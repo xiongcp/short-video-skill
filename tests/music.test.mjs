@@ -293,3 +293,39 @@ test('auditionSound writes a 15 s stereo clip per mood and one effects reel with
   assert.equal(reel.channels, 2);
   assert.ok(Math.abs(reel.durationMs / 1000 - (0.8 * (SFX_KINDS.length - 1) + 1.6)) < 0.1, String(reel.durationMs));
 });
+
+test('buildSoundtrack refuses user music outside the project folder or without a license', () => {
+  const { project, plans } = soundFixture();
+  const voice = syntheticVoice(plans);
+  project.sound = { music: { file: '../outside.mp3', source: '用户', license: 'CC0' } };
+  assert.throws(() => buildFor(project, plans, plans, voice), /\.\.|项目文件夹/);
+  project.sound = { music: { file: 'music/bed.mp3', source: '用户' } };
+  assert.throws(() => buildFor(project, plans, plans, voice), /许可/);
+});
+
+test('a project with a single section gets no conclusion chime', () => {
+  const { project, plans } = soundFixture();
+  const one = { ...project, sections: [project.sections[0]] };
+  const track = buildFor(one, plans, plans, syntheticVoice(plans));
+  assert.equal(track.report.sfxCounts.chime, undefined);
+});
+
+test('a music file with only a -85 dBFS noise floor counts as silent', (t) => {
+  if (!hasFfmpeg()) return t.skip('ffmpeg unavailable');
+  const dir = mkdtempSync(join(tmpdir(), 'music-'));
+  const file = join(dir, 'hiss.wav');
+  const made = spawnSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'anoisesrc=a=0.0001:c=white:r=48000:d=2', '-ac', '2', file]);
+  assert.equal(made.status, 0, String(made.stderr));
+  assert.equal(loadUserMusic(file, 2 * SR).silent, true);
+});
+
+test('audition clips never reach full scale', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'audition-peak-'));
+  auditionSound(dir, { moods: ['upbeat', 'playful'] });
+  for (const name of ['music-upbeat.wav', 'music-playful.wav', 'sfx.wav']) {
+    const buf = readFileSync(join(dir, 'out/audition', name));
+    let peak = 0;
+    for (let i = 44; i + 1 < buf.length; i += 2) peak = Math.max(peak, Math.abs(buf.readInt16LE(i)));
+    assert.ok(peak <= Math.round(0.99 * 32767), `${name} peak ${peak}`);
+  }
+});

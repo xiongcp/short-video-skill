@@ -3,7 +3,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { MUSIC_MOODS, resolveSound } from './project.mjs';
+import { isLocalMusicPath, MUSIC_MOODS, resolveSound } from './project.mjs';
 import {
   collectSoundEvents,
   loudestWindowRms,
@@ -286,7 +286,7 @@ export function fitMusicToLength(left, right, totalSamples, { crossfadeSec = 1, 
   return { left: L, right: R };
 }
 
-/** Decodes a user music file to stereo 48 kHz with FFmpeg and fits it to `totalSamples`. */
+/** Decodes a user music file to stereo 48 kHz with FFmpeg and fits it to `totalSamples`; under -60 dBFS counts as silent. */
 export function loadUserMusic(absPath, totalSamples, { ffmpeg = 'ffmpeg' } = {}) {
   if (!existsSync(absPath)) throw new Error(`音乐文件不存在：${absPath}`);
   const run = spawnSync(ffmpeg, ['-v', 'error', '-i', absPath, '-f', 'f32le', '-ac', '2', '-ar', String(SR), 'pipe:1'], { maxBuffer: 1 << 30 });
@@ -301,7 +301,7 @@ export function loadUserMusic(absPath, totalSamples, { ffmpeg = 'ffmpeg' } = {})
     right[i] = pcm[2 * i + 1];
   }
   const fitted = fitMusicToLength(left, right, totalSamples);
-  return { ...fitted, silent: stereoRms(fitted.left, fitted.right) < 1e-5 };
+  return { ...fitted, silent: stereoRms(fitted.left, fitted.right) < 1e-3 };
 }
 
 /** Mean RMS of the voice over the speech spans in dBFS, or null when there is no speech to measure. */
@@ -384,7 +384,7 @@ export function buildSoundtrack({ project, projectDir, allPlans, selectedPlans, 
 
   let sfxStem = { left: new Float32Array(totalSamples), right: new Float32Array(totalSamples) };
   if (sfx) {
-    const events = thinSoundEvents(collectSoundEvents(selectedPlans, manifest, { fps, lastSectionId: project.sections.at(-1)?.id ?? null }));
+    const events = thinSoundEvents(collectSoundEvents(selectedPlans, manifest, { fps, lastSectionId: project.sections.length > 1 ? project.sections.at(-1).id : null }));
     const stem = renderSfxStem(events, totalSamples, { voiceRefDb, intervals, seed: project.title });
     sfxStem = { left: stem.left, right: stem.right };
     report.sfxCounts = stem.counts;
@@ -406,6 +406,9 @@ export function buildSoundtrack({ project, projectDir, allPlans, selectedPlans, 
       bed = synthMusicBed(music.mood, { durationSec: fullSamples / SR, breathAtSec, seed: project.title });
       report.musicSource = `synth:${music.mood}`;
     } else {
+      if (!isLocalMusicPath(music.file)) throw new Error(`音乐文件 ${music.file} 要写成项目文件夹内的相对路径，不能是网址、绝对路径或带 ..`);
+      const blank = (v) => typeof v !== 'string' || !v.trim();
+      if (blank(music.source) || blank(music.license)) throw new Error(`音乐文件 ${music.file} 缺少来源或许可（sound.music.source、sound.music.license）`);
       const loaded = loadUserMusic(join(projectDir, music.file), fullSamples, { ffmpeg });
       if (loaded.silent) report.musicWarning = 'MUSIC_SILENT';
       else bed = loaded;
@@ -439,6 +442,13 @@ export function buildSoundtrack({ project, projectDir, allPlans, selectedPlans, 
   };
 }
 
+/** Lowers gain `k` so that no sample of `left` or `right` passes 0.99 after scaling. */
+function capPeak(k, left, right) {
+  let peak = 0;
+  for (let i = 0; i < left.length; i += 1) peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
+  return peak * k > 0.99 ? 0.99 / peak : k;
+}
+
 /**
  * --audition-sound: writes a 15 s clip per music mood at -20 dBFS and one reel of every effect, 0.8 s apart and
  * centred, each with its loudest 100 ms at -20 dBFS, into out/audition/. Reads no project.json and needs no FFmpeg.
@@ -451,7 +461,7 @@ export function auditionSound(projectDir, { moods = MUSIC_MOODS, seed = 'auditio
   for (const mood of moods) {
     const bed = synthMusicBed(mood, { durationSec: 15, breathAtSec: [8], seed });
     const rms = stereoRms(bed.left, bed.right);
-    const k = rms > 0 ? target / rms : 0;
+    const k = capPeak(rms > 0 ? target / rms : 0, bed.left, bed.right);
     const file = join(dir, `music-${mood}.wav`);
     writeFileSync(file, makeStereoWavBuffer(bed.left.map((v) => v * k), bed.right.map((v) => v * k)));
     files.push({ file, kind: 'music', mood, seconds: 15 });
@@ -466,8 +476,9 @@ export function auditionSound(projectDir, { moods = MUSIC_MOODS, seed = 'auditio
     const start = i * gapSamples;
     for (let j = 0; j < buf.length && start + j < total; j += 1) reel[start + j] += buf[j] * g;
   });
+  const kr = capPeak(1, reel, reel);
   const file = join(dir, 'sfx.wav');
-  writeFileSync(file, makeStereoWavBuffer(reel, reel));
+  writeFileSync(file, makeStereoWavBuffer(reel.map((v) => v * kr), reel.map((v) => v * kr)));
   files.push({ file, kind: 'sfx', seconds: Number((total / SR).toFixed(2)) });
   return { ok: true, files };
 }
