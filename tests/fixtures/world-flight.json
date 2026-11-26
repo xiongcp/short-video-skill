@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么飞机能飞",
+  "brief": {
+    "topic": "为什么这么重的飞机能稳稳飞在天上？",
+    "audience": "对日常科学现象好奇的普通观众",
+    "promise": "机翼把迎面气流往下推，空气反过来产生向上的托力，跟重力在天平上打平",
+    "sources": [],
+    "open_questions": ["配音后核对每段实际时长和黑板布局留白"]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 40,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "dark",
+    "sentence_gap_ms": 250,
+    "outfit": "hardhat"
+  },
+  "voice": {
+    "provider": "undecided",
+    "preset": "male-sunny"
+  },
+  "world": {
+    "metaphor": "机翼把迎面气流往下推，天平一端托起飞机，和重力刚好打平",
+    "style": "chalkboard",
+    "scene": "outdoor",
+    "custom_props": [
+      {
+        "id": "c_airfoil",
+        "label": "机翼剖面",
+        "height": 0.45,
+        "layer": "mid",
+        "parts": [
+          {
+            "shape": "poly",
+            "points": [[-0.9, 0.2], [-0.7, -0.25], [-0.1, -0.45], [0.55, -0.2], [0.92, 0.15], [0.25, 0.25], [-0.55, 0.28]],
+            "fill": "soft_accent"
+          },
+          { "shape": "line", "points": [[-0.95, -0.58], [-0.2, -0.75], [0.5, -0.52], [0.95, -0.1]] },
+          { "shape": "line", "points": [[-0.95, 0.42], [0.0, 0.42], [0.95, 0.54]] },
+          { "shape": "line", "points": [[0.0, 0.96], [0.0, 0.52]] },
+          { "shape": "poly", "points": [[0.0, 0.44], [-0.14, 0.64], [0.14, 0.64]], "fill": "yellow" }
+        ]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "铁疙瘩怎么上天",
+      "text": "这么重的飞机，怎么能稳稳飘在蓝天上？其实天空中有一架无形的天平在托着它。"
+    },
+    {
+      "id": "s02",
+      "title": "风洞里看机翼",
+      "text": "进实验室看黑板，奥秘就在机翼剖面里。飞机往前冲，弯曲机翼把迎面风往下推。"
+    },
+    {
+      "id": "s03",
+      "title": "推风换升力",
+      "text": "往前飞切开气流，向下推风就换来向上托力。从助跑、抬头到升空，升力一步步托起机身。"
+    },
+    {
+      "id": "s04",
+      "title": "和重力打平",
+      "text": "当机翼升力跟重力在天平上打平，飞机就能平稳飞翔！下次抬头看飞机穿过云层，想想机翼正把空气往下推。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "stage",
+      "host": { "expr": "curious", "gesture": "think", "at": "mid-left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "蓝天上的大天平",
+          "objects": [
+            { "prop": "cloud", "label": "蓝天云朵", "at": "left", "layer": "air" },
+            { "prop": "plane", "label": "飞机", "at": "mid-right", "layer": "air", "state": "active" },
+            { "prop": "scale", "label": "升力天平", "at": "center" }
+          ],
+          "links": [
+            { "from": 1, "to": 2, "style": "dashed", "label": "谁托着" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "at": "飞机", "do": "highlight", "target": 1 },
+        { "sentence": 1, "at": "天平", "do": "move", "target": 2 },
+        { "sentence": 1, "at": "天平", "do": "highlight", "target": 2 },
+        { "sentence": 1, "at": "天平", "do": "gesture", "target": "point" }
+      ],
+      "note": "户外蓝天下引出飞机与天平比喻"
+    },
+    {
+      "id": "sh02",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "stage",
+      "scene": "lab",
+      "host": { "expr": "focused", "gesture": "present", "at": "mid-right" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "实验室看机翼",
+          "objects": [
+            { "prop": "whiteboard", "label": "黑板图解", "at": "mid-left", "size": "sm" },
+            { "prop": "c_airfoil", "label": "机翼剖面", "at": "center", "layer": "mid", "state": "active" },
+            { "prop": "plane", "label": "迎面气流", "at": "right", "layer": "air" }
+          ],
+          "links": [
+            { "from": 1, "to": 2, "style": "solid", "label": "往下推" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "at": "机翼剖面", "do": "highlight", "target": 1 },
+        { "sentence": 1, "at": "往下推", "do": "gesture", "target": "emphasize" }
+      ],
+      "note": "切到实验室观察机翼剖面如何向下推风"
+    },
+    {
+      "id": "sh03",
+      "section": "s03",
+      "sentences": [0],
+      "layout": "full",
+      "visual": {
+        "template": "cycle",
+        "data": {
+          "items": [
+            { "label": "往前飞", "icon": "plane" },
+            { "label": "切开风", "icon": "cloud" },
+            { "label": "向下推", "icon": "gear" },
+            { "label": "向上托", "icon": "scale" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "at": "切开", "do": "reveal", "target": 1 },
+        { "sentence": 0, "at": "向下", "do": "reveal", "target": 2 },
+        { "sentence": 0, "at": "向上", "do": "reveal", "target": 3 }
+      ],
+      "note": "用循环图解展示推风换升力的闭环"
+    },
+    {
+      "id": "sh04",
+      "section": "s03",
+      "sentences": [1],
+      "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "point" },
+      "visual": {
+        "template": "timeline",
+        "data": {
+          "items": [
+            { "time": "助跑", "label": "迎风加速", "icon": "car" },
+            { "time": "抬头", "label": "压下气流", "icon": "cloud" },
+            { "time": "升空", "label": "托起机身", "icon": "plane" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "at": "抬头", "do": "reveal", "target": 1 },
+        { "sentence": 1, "at": "升空", "do": "reveal", "target": 2 }
+      ],
+      "note": "用时间线拆解助跑、抬头到升空的过程"
+    },
+    {
+      "id": "sh05",
+      "section": "s04",
+      "sentences": [0],
+      "layout": "stage",
+      "host": { "expr": "amazed", "gesture": "snap", "at": "right" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "升力和重力打平",
+          "objects": [
+            { "prop": "c_airfoil", "label": "机翼升力", "at": "mid-left", "layer": "mid", "state": "active" },
+            { "prop": "scale", "label": "天平打平", "at": "center", "size": "lg" },
+            { "prop": "cloud", "label": "平稳飞翔", "at": "mid-right", "layer": "air" }
+          ],
+          "links": [
+            { "from": 0, "to": 1, "style": "solid", "label": "打平" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "at": "打平", "do": "move", "target": 1 },
+        { "sentence": 0, "at": "打平", "do": "highlight", "target": 1 }
+      ],
+      "note": "回到户外舞台走到天平旁，演示升力与重力平衡"
+    },
+    {
+      "id": "sh06",
+      "section": "s04",
+      "sentences": [1],
+      "layout": "stage",
+      "host": { "expr": "proud", "gesture": "present", "at": "mid-right" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "机翼把风往下推",
+          "objects": [
+            { "prop": "c_airfoil", "label": "机翼往下推", "at": "mid-left", "layer": "mid", "state": "active" },
+            { "prop": "plane", "label": "抬头看飞机", "at": "center", "layer": "air" },
+            { "prop": "cloud", "label": "穿过云层", "at": "right", "layer": "air" }
+          ],
+          "links": [
+            { "from": 0, "to": 1, "style": "solid", "label": "托举" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "at": "云层", "do": "highlight", "target": 2 },
+        { "sentence": 1, "at": "往下推", "do": "gesture", "target": "cheer" }
+      ],
+      "note": "飞机穿过云层收尾，点出机翼把空气往下推"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}

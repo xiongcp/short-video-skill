@@ -1,0 +1,226 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "浏览器缓存和 304",
+  "brief": {
+    "topic": "浏览器缓存和 304 怎么工作？",
+    "audience": "经常用浏览器、没有网络基础的观众",
+    "promise": "浏览器就像先查门口冰箱，过期就去街上问超市，拿到 304 凭证就能继续用旧箱",
+    "sources": [],
+    "open_questions": ["配音后核对每段实际时长和舞台留白"]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 37,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "light",
+    "sentence_gap_ms": 250,
+    "outfit": "apron"
+  },
+  "voice": {
+    "provider": "undecided",
+    "preset": "female-warm"
+  },
+  "world": {
+    "metaphor": "缓存是家门口的冰箱，服务器是远处的超市，304是先问超市货变没变",
+    "style": "paper",
+    "scene": "kitchen",
+    "custom_props": [
+      {
+        "id": "c_cache_tag",
+        "label": "保鲜标签",
+        "height": 0.32,
+        "layer": "mid",
+        "parts": [
+          {
+            "shape": "poly",
+            "points": [[-0.85, -0.45], [0.45, -0.45], [0.88, 0.0], [0.45, 0.45], [-0.85, 0.45]],
+            "fill": "soft_yellow"
+          },
+          { "shape": "circle", "cx": 0.42, "cy": 0.0, "r": 0.14, "fill": "paper" },
+          { "shape": "line", "points": [[-0.6, -0.15], [0.1, -0.15]] },
+          { "shape": "line", "points": [[-0.6, 0.15], [-0.05, 0.15]] },
+          { "shape": "line", "points": [[0.56, 0.0], [0.95, -0.35]] }
+        ]
+      }
+    ]
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "冰箱还是超市",
+      "text": "每次打开网页，还得跑一趟超市吗？其实家门口的冰箱就是缓存。"
+    },
+    {
+      "id": "s02",
+      "title": "看标签还是问超市",
+      "text": "打开冰箱看看保鲜标签，新鲜就直接拿。标签过期就先去街上问超市变没变。没变就给三零四凭证，旧箱继续用。"
+    },
+    {
+      "id": "s03",
+      "title": "三步省时又省流",
+      "text": "按时间走一遍，查冰箱、问超市、给凭证。只有货架真的换新，才重新搬一箱回来。直接用省时间，三零四省流量。"
+    },
+    {
+      "id": "s04",
+      "title": "一句话记住",
+      "text": "下次网页秒开，想想厨房冰箱和三零四就行啦！"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "stage",
+      "host": { "expr": "curious", "gesture": "think", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "冰箱还是超市",
+          "objects": [
+            { "prop": "fridge", "label": "冰箱缓存", "at": "center", "state": "closed" },
+            { "prop": "shop", "label": "远处超市", "at": "right", "size": "sm", "state": "open" }
+          ],
+          "links": [
+            { "from": 0, "to": 1, "style": "dashed", "label": "太远" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "at": "超市", "do": "highlight", "target": 1 },
+        { "sentence": 1, "at": "冰箱", "do": "move", "target": 0 },
+        { "sentence": 1, "at": "冰箱", "do": "expr", "target": "happy" },
+        { "sentence": 1, "at": "冰箱", "do": "gesture", "target": "point" }
+      ],
+      "note": "先用冰箱和超市比喻缓存与服务器"
+    },
+    {
+      "id": "sh02",
+      "section": "s02",
+      "sentences": [0],
+      "layout": "stage",
+      "host": { "expr": "explaining", "gesture": "present", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "保鲜期直接拿",
+          "objects": [
+            { "prop": "fridge", "label": "冰箱", "at": "mid-left", "state": "open" },
+            { "prop": "c_cache_tag", "label": "保鲜标签", "at": "center", "layer": "mid", "state": "active" },
+            { "prop": "box", "label": "本地货箱", "at": "mid-right", "state": "full" }
+          ],
+          "links": [
+            { "from": 0, "to": 1, "style": "solid", "label": "新鲜" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "at": "保鲜标签", "do": "highlight", "target": 1 },
+        { "sentence": 0, "at": "直接", "do": "gesture", "target": "snap" }
+      ],
+      "note": "保鲜期内不联系超市，直接从本地冰箱取货"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [1, 2],
+      "layout": "stage",
+      "scene": "street",
+      "host": { "expr": "curious", "gesture": "idle", "at": "mid-left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "先去街上问超市",
+          "objects": [
+            { "prop": "c_cache_tag", "label": "过期标签", "at": "left", "layer": "mid", "state": "broken" },
+            { "prop": "ticket", "label": "304凭证", "at": "center", "layer": "mid", "state": "fresh" },
+            { "prop": "shop", "label": "街边超市", "at": "right", "size": "sm", "state": "open" }
+          ],
+          "links": [
+            { "from": 0, "to": 1, "style": "dashed", "label": "去问" },
+            { "from": 2, "to": 1, "style": "solid", "label": "给304" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "at": "超市", "do": "highlight", "target": 2 },
+        { "sentence": 2, "at": "凭证", "do": "move", "target": 1 },
+        { "sentence": 2, "at": "凭证", "do": "highlight", "target": 1 },
+        { "sentence": 2, "at": "凭证", "do": "expr", "target": "happy" },
+        { "sentence": 2, "at": "凭证", "do": "gesture", "target": "tap" }
+      ],
+      "note": "切到街头超市验证过期标签，拿到304凭证"
+    },
+    {
+      "id": "sh04",
+      "section": "s03",
+      "sentences": [0],
+      "layout": "full",
+      "visual": {
+        "template": "timeline",
+        "data": {
+          "items": [
+            { "time": "第1步", "label": "查冰箱", "icon": "fridge" },
+            { "time": "第2步", "label": "问超市", "icon": "shop" },
+            { "time": "第3步", "label": "给304凭证", "icon": "ticket" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "at": "问超市", "do": "reveal", "target": 1 },
+        { "sentence": 0, "at": "给凭证", "do": "reveal", "target": 2 }
+      ],
+      "note": "用时间线串起查冰箱、问超市、给凭证三步"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [1, 2],
+      "layout": "host-left",
+      "host": { "expr": "focused", "gesture": "present" },
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": { "label": "304省流量", "rows": ["货架没换新", "旧箱继续用"] },
+          "right": { "label": "换新搬一箱", "rows": ["货架真换新", "搬回新货箱"] }
+        }
+      },
+      "cues": [
+        { "sentence": 1, "at": "换新", "do": "highlight", "target": 1 },
+        { "sentence": 2, "at": "三零四", "do": "highlight", "target": 0 },
+        { "sentence": 2, "at": "三零四", "do": "gesture", "target": "point" }
+      ],
+      "note": "对比304复用和货架更新重搬的区别"
+    },
+    {
+      "id": "sh06",
+      "section": "s04",
+      "sentences": [0],
+      "layout": "stage",
+      "host": { "expr": "proud", "gesture": "present", "at": "mid-right" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "厨房冰箱与304",
+          "objects": [
+            { "prop": "fridge", "label": "厨房冰箱", "at": "left", "state": "fresh" },
+            { "prop": "ticket", "label": "三零四", "at": "mid-left", "layer": "mid", "state": "fresh" },
+            { "prop": "c_cache_tag", "label": "保鲜标签", "at": "center", "layer": "mid", "state": "active" }
+          ],
+          "links": [
+            { "from": 1, "to": 0, "style": "solid", "label": "继续用" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "at": "冰箱", "do": "highlight", "target": 0 },
+        { "sentence": 0, "at": "就行", "do": "gesture", "target": "cheer" }
+      ],
+      "note": "回到厨房冰箱收尾，留下清晰比喻"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}

@@ -13,6 +13,12 @@ import { GROUND_Y, STYLE_PALETTES } from '../skills/topic-to-video/scripts/lib/w
 import { PROP_META } from '../skills/topic-to-video/scripts/lib/icons.mjs';
 import { drawHost, forwardKinematics } from '../skills/topic-to-video/scripts/lib/rig.mjs';
 import { evaluateHostAt, resolveStandX } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { splitSentences } from '../skills/topic-to-video/scripts/lib/captions.mjs';
+import { checkProject, lintScript, lintVoice } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { lintStoryboard } from '../skills/topic-to-video/scripts/lib/match.mjs';
+import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
+import { buildShotPlans, evaluateFrame } from '../skills/topic-to-video/scripts/lib/scene.mjs';
+import { validateProject } from './helpers/schema.mjs';
 
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
 
@@ -445,4 +451,114 @@ test('stage move uses standSpots empty side, tap reaches anchors.front with tapI
   assert.ok(!hostSvg.includes(manifest.ink.body.light), 'chalkboard does not use #1f1f1f');
   assert.ok(hostSvg.includes(manifest.ink.accent), 'teal scarf #20a5a3 stays constant');
   assert.throws(() => drawHost(manifest, { gesture: 'idle', expr: 'explaining', style: 'invalid_style' }), /unknown style/);
+});
+
+function buildSyntheticTiming(project) {
+  const timing = {};
+  for (const sec of project.sections) {
+    const sents = splitSentences(sec.text);
+    sents.forEach((text, idx) => {
+      const durationMs = Math.max(1200, [...text].length * 250);
+      timing[`${sec.id}-${idx}`] = {
+        file: `audio/${sec.id}-${idx}.wav`,
+        duration_ms: durationMs,
+        speech: [50, durationMs - 50],
+        source: 'estimate',
+        words: [],
+        sha256: `${sec.id}-${idx}`,
+      };
+    });
+  }
+  return timing;
+}
+
+test('dual-theme world fixtures (cache paper+kitchen/street & flight chalkboard+outdoor/lab) pass schema, checkProject, coverage, and midpoint pure-vector rendering', () => {
+  const cache = JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/world-cache.json'), 'utf8'));
+  const flight = JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/world-flight.json'), 'utf8'));
+
+  assert.equal(cache.world.style, 'paper');
+  assert.equal(cache.world.scene, 'kitchen');
+  assert.equal(cache.settings.outfit, 'apron');
+  assert.equal(cache.voice.provider, 'undecided');
+  assert.equal(cache.voice.preset, 'female-warm');
+  assert.equal(cache.world.custom_props.length, 1);
+  assert.equal(cache.world.custom_props[0].id, 'c_cache_tag');
+  assert.ok(cache.shots.some((s) => s.scene === 'street'), 'cache fixture overrides scene to street');
+  assert.ok(cache.shots.some((s) => s.visual.template === 'timeline'), 'cache fixture covers timeline');
+
+  assert.equal(flight.world.style, 'chalkboard');
+  assert.equal(flight.world.scene, 'outdoor');
+  assert.equal(flight.settings.outfit, 'hardhat');
+  assert.equal(flight.voice.provider, 'undecided');
+  assert.equal(flight.voice.preset, 'male-sunny');
+  assert.equal(flight.world.custom_props.length, 1);
+  assert.equal(flight.world.custom_props[0].id, 'c_airfoil');
+  assert.ok(flight.shots.some((s) => s.scene === 'lab'), 'flight fixture overrides scene to lab');
+  assert.ok(flight.shots.some((s) => s.visual.template === 'timeline'), 'flight fixture covers timeline');
+  assert.ok(flight.shots.some((s) => s.visual.template === 'cycle'), 'flight fixture covers cycle');
+
+  const renderedByTheme = {};
+  for (const [name, project] of [['cache', cache], ['flight', flight]]) {
+    assert.deepEqual(validateProject(project).errors, [], `${name} schema errors`);
+    assert.deepEqual(checkProject(project), [], `${name} checkProject errors`);
+    assert.deepEqual(lintScript(project), [], `${name} lintScript warnings`);
+    assert.deepEqual(lintStoryboard(project), [], `${name} lintStoryboard warnings`);
+    assert.deepEqual(lintVoice(project), [], `${name} lintVoice warnings`);
+
+    const hostShots = project.shots.filter((s) => s.layout === 'host-left' || s.layout === 'stage');
+    const stageShots = hostShots.filter((s) => s.layout === 'stage');
+    assert.ok(stageShots.length / hostShots.length >= 0.6, `${name} stage ratio ${stageShots.length}/${hostShots.length} must be >= 60%`);
+
+    const tl = buildTimeline(project, buildSyntheticTiming(project), 60);
+    const plans = buildShotPlans(project, tl, manifest);
+    const hostPlans = plans.filter((p) => p.shot.layout === 'host-left' || p.shot.layout === 'stage');
+    let offBottomLeftCount = 0;
+
+    const frames = plans.map((plan) => {
+      const midT = plan.durationSec / 2;
+      const frameA = evaluateFrame(manifest, plan, midT);
+      const frameB = evaluateFrame(manifest, plan, midT);
+      assert.equal(frameA.vectorSvg, frameB.vectorSvg, `${name} ${plan.id} vectorSvg must be deterministic`);
+      assert.deepEqual(frameA.textItems, frameB.textItems, `${name} ${plan.id} textItems must be deterministic`);
+      assert.ok(!frameA.vectorSvg.includes('<text'), `${name} ${plan.id} vectorSvg must contain zero <text>`);
+
+      if (plan.shot.layout === 'stage') {
+        const expectedScene = plan.shot.scene ?? project.world.scene;
+        assert.ok(frameA.vectorSvg.includes(`data-scene="${expectedScene}"`), `${name} ${plan.id} missing data-scene="${expectedScene}"`);
+      }
+      if (plan.shot.layout === 'host-left' || plan.shot.layout === 'stage') {
+        assert.ok(frameA.vectorSvg.includes('data-host="xiaoqing"'), `${name} ${plan.id} must draw host`);
+        assert.ok(frameA.vectorSvg.includes(manifest.ink.accent), `${name} ${plan.id} must keep teal scarf ${manifest.ink.accent}`);
+        const movedOrStandingAway = Math.abs(frameA.hostMeta.x - 320) > 10 || Math.abs(plan.endHostState.x - 320) > 10;
+        if (movedOrStandingAway) offBottomLeftCount += 1;
+      }
+      return { plan, frame: frameA };
+    });
+
+    assert.ok(
+      offBottomLeftCount / hostPlans.length >= 0.5,
+      `${name} non-bottom-left host presence ${offBottomLeftCount}/${hostPlans.length} must be >= 50%`,
+    );
+    renderedByTheme[name] = frames;
+  }
+
+  // Two themes have distinct paper colors, host body ink colors, and scene markers while sharing #20a5a3 scarf
+  const cacheStage = renderedByTheme.cache.find((r) => r.plan.shot.layout === 'stage').frame.vectorSvg;
+  const cacheStreet = renderedByTheme.cache.find((r) => r.plan.shot.scene === 'street').frame.vectorSvg;
+  const flightStage = renderedByTheme.flight.find((r) => r.plan.shot.layout === 'stage').frame.vectorSvg;
+  const flightLab = renderedByTheme.flight.find((r) => r.plan.shot.scene === 'lab').frame.vectorSvg;
+
+  assert.ok(cacheStage.includes(STYLE_PALETTES.paper.paper));
+  assert.ok(!cacheStage.includes(STYLE_PALETTES.chalkboard.paper));
+  assert.ok(cacheStage.includes(manifest.ink.body.light));
+  assert.ok(cacheStage.includes('data-outfit="apron"'));
+  assert.ok(cacheStage.includes('data-icon="c_cache_tag"') || renderedByTheme.cache.some((r) => r.frame.vectorSvg.includes('data-icon="c_cache_tag"')));
+  assert.ok(cacheStreet.includes('data-scene="street"'));
+
+  assert.ok(flightStage.includes(STYLE_PALETTES.chalkboard.paper));
+  assert.ok(!flightStage.includes(STYLE_PALETTES.paper.paper));
+  assert.ok(flightStage.includes(manifest.ink.body.dark));
+  assert.ok(flightStage.includes('data-outfit="hardhat"'));
+  assert.ok(renderedByTheme.flight.some((r) => r.frame.vectorSvg.includes('data-icon="c_airfoil"')));
+  assert.ok(flightLab.includes('data-scene="lab"'));
 });
