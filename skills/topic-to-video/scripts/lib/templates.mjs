@@ -3,6 +3,7 @@
 import { clamp01, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
 import { drawIcon } from './icons.mjs';
 import { circlePoints, inkStroke, markerFill, num, resample } from './ink.mjs';
+import { STYLE_PALETTES, styleBackgroundSvg } from './world.mjs';
 
 export const DIAGRAM_ZONES = {
   'host-left': { x: 640, y: 48, w: 1200, h: 400 },
@@ -10,49 +11,14 @@ export const DIAGRAM_ZONES = {
 };
 
 export const THEME_PALETTE = {
-  light: {
-    paper: '#fbfaf6',
-    grid: '#eeeae0',
-    ink: '#1f1f1f',
-    muted: '#575757',
-    card: '#ffffff',
-    teal: '#20a5a3',
-    yellow: '#f6c945',
-    red: '#e05a47',
-    softTeal: '#d7f0ef',
-    softYellow: '#fdf1c8',
-    softRed: '#fadcd7',
-    textStroke: '#1f1f1f',
-  },
-  dark: {
-    paper: '#181b22',
-    grid: '#232833',
-    ink: '#f2f2f2',
-    muted: '#adb5c2',
-    card: '#222630',
-    teal: '#2ec4c1',
-    yellow: '#f6c945',
-    red: '#eb6f5c',
-    softTeal: '#1e3c3c',
-    softYellow: '#3b341c',
-    softRed: '#3d2421',
-    textStroke: '#111318',
-  },
+  light: STYLE_PALETTES.paper,
+  dark: STYLE_PALETTES.night,
 };
 
 /** Paper background with subtle wide grid (no fine grain texture, avoiding H.264 mosquito noise). */
 export function paperBackgroundSvg(theme = 'light', width = 1920, height = 1080, parallax = [0, 0]) {
-  const pal = THEME_PALETTE[theme] ?? THEME_PALETTE.light;
-  const [px, py] = parallax;
-  const step = 96;
-  const lines = [];
-  for (let x = ((px % step) + step) % step; x < width; x += step) {
-    lines.push(`<line x1="${num(x)}" y1="0" x2="${num(x)}" y2="${height}" stroke="${pal.grid}" stroke-width="2"/>`);
-  }
-  for (let y = ((py % step) + step) % step; y < height; y += step) {
-    lines.push(`<line x1="0" y1="${num(y)}" x2="${width}" y2="${num(y)}" stroke="${pal.grid}" stroke-width="2"/>`);
-  }
-  return `<rect width="${width}" height="${height}" fill="${pal.paper}"/><g opacity="0.7">${lines.join('')}</g>`;
+  const style = theme === 'dark' ? 'night' : STYLE_PALETTES[theme] ? theme : 'paper';
+  return styleBackgroundSvg(style, width, height, parallax);
 }
 
 function handCard({ x, y, w, h }, { seed, fill, ink, strokeWidth = [4, 5.5], overshoot = 6 }) {
