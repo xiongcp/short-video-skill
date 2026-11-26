@@ -11,6 +11,8 @@ import {
 import { layoutElements, renderDiagram } from '../skills/topic-to-video/scripts/lib/templates.mjs';
 import { drawHost, forwardKinematics } from '../skills/topic-to-video/scripts/lib/rig.mjs';
 import { evaluateHostAt, inferSentenceBeat } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { buildShotPlans, evaluateFrame, SCENE_VERSION } from '../skills/topic-to-video/scripts/lib/scene.mjs';
+import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
 import { GROUND_Y } from '../skills/topic-to-video/scripts/lib/world.mjs';
 
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
@@ -1027,4 +1029,145 @@ test('11. react after auto_approach + open waits for both walk and full 0.6s ope
   assert.ok(r0 >= o0 + 0.6 - 1e-6, `mid-open react (${r0}) waits for open end (${o0 + 0.6})`);
   assert.equal(evaluateHostAt(manifest, midOpenPlan, o0 + 0.45).interaction?.kind, 'open');
   assert.equal(evaluateHostAt(manifest, midOpenPlan, r0 + 0.4).interaction?.kind, 'react');
+});
+
+test('12. evaluateFrame wires SCENE_VERSION=5, stage back/host/front layering with carry+send, camScale hand alignment, and flow/bullets state+send cues', () => {
+  assert.equal(SCENE_VERSION, 5);
+
+  const project = {
+    version: 1,
+    revision: 1,
+    title: '同台互动管线测试',
+    brief: { topic: '测试', audience: '通用', promise: '验证分层与状态', sources: [], open_questions: [] },
+    settings: { ratio: '16:9', target_seconds: 12, lang: 'zh-CN', host: 'xiaoqing', theme: 'light', fps: 60 },
+    voice: { provider: 'undecided' },
+    world: { metaphor: '快递驿站', style: 'paper', scene: 'street' },
+    sections: [{ id: 's01', title: '测试', text: '小青抱起包裹，随后发出去。输入变成处理再输出。旧方案直接被划掉，新方案亮出来。' }],
+    shots: [
+      {
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'happy', gesture: 'idle' },
+        visual: {
+          template: 'stage',
+          data: {
+            heading: '驿站快递',
+            objects: [
+              { prop: 'package', label: '包裹', at: 'mid-left' },
+              { prop: 'fridge', label: '驿站', at: 'mid-right' },
+              { prop: 'shop', label: '终点', at: 'right' },
+            ],
+            links: [{ from: 1, to: 2, style: 'solid', label: '配送' }],
+          },
+        },
+        cues: [
+          { sentence: 0, at: '抱起', do: 'carry', target: 0 },
+          { sentence: 0, at: '发出去', do: 'send', target: 0, value: 'package' },
+        ],
+        note: 'carry + send stage layering',
+      },
+      {
+        id: 'sh02',
+        section: 's01',
+        sentences: [1],
+        layout: 'full',
+        visual: {
+          template: 'flow',
+          data: { nodes: ['输入', '处理', '输出'], icons: ['doc', 'gear', 'check'] },
+        },
+        cues: [{ sentence: 1, do: 'send', target: 1, value: 'package' }],
+        note: 'flow send packet',
+      },
+      {
+        id: 'sh03',
+        section: 's01',
+        sentences: [2],
+        layout: 'host-left',
+        host: { expr: 'explaining', gesture: 'idle' },
+        visual: {
+          template: 'bullets',
+          data: { items: ['旧方案', '新方案'] },
+        },
+        cues: [
+          { sentence: 2, at: '划掉', do: 'state', target: 0, value: 'crossed' },
+          { sentence: 2, at: '新方案', do: 'reveal', target: 1 },
+        ],
+        note: 'bullets state + reveal dy',
+      },
+    ],
+    checkpoints: [],
+    jobs: [],
+  };
+
+  const timing = {
+    's01-0': { file: 'audio/s01-0.wav', duration_ms: 4000, speech: [0, 4000], source: 'estimate', words: [], sha256: 't0' },
+    's01-1': { file: 'audio/s01-1.wav', duration_ms: 2000, speech: [0, 2000], source: 'estimate', words: [], sha256: 't1' },
+    's01-2': { file: 'audio/s01-2.wav', duration_ms: 3500, speech: [0, 3500], source: 'estimate', words: [], sha256: 't2' },
+  };
+  const plans = buildShotPlans(project, buildTimeline(project, timing, 60), manifest);
+
+  // 1. stage shot with active carry + active send at sendStart + 0.4s (camScale > 1)
+  const sendCueSec = plans[0].cues.find((c) => c.do === 'send').timeMs / 1000;
+  const stageFrame = evaluateFrame(manifest, plans[0], sendCueSec + 0.4);
+  const svg = stageFrame.vectorSvg;
+  assert.ok(!svg.includes('<text'), 'stage vectorSvg stays text-free');
+  assert.equal(stageFrame.isFastMotion, true);
+  assert.equal(stageFrame.hostMeta.interacting, true);
+  assert.equal(stageFrame.hostMeta.interaction?.carriedIdx, 0);
+
+  const idxScene = svg.indexOf('data-scene="street"');
+  const idxFridge = svg.indexOf('data-icon="fridge"');
+  const idxShop = svg.indexOf('data-icon="shop"');
+  const idxHost = svg.indexOf('data-host="xiaoqing"');
+  const idxPkg = svg.indexOf('data-icon="package"');
+  const idxPkt = svg.indexOf('data-send-packet="package"');
+  assert.ok(idxScene >= 0, 'scene background present');
+  assert.ok(idxFridge > idxScene && idxShop > idxScene, 'back objects come after scene');
+  assert.ok(idxHost > idxFridge && idxHost > idxShop, 'host comes after back objects');
+  assert.ok(idxPkg > idxHost, 'carried package comes after host');
+  assert.ok(idxPkt > idxHost, 'send packet comes after host');
+  assert.equal(svg.slice(0, idxHost).includes('data-icon="package"'), false, 'carried package is NOT duplicated in back layer');
+
+  // Carried object handle in final SVG screen space matches hostMeta.interaction.carriedPos within <= 1px even with camScale > 1
+  const frontStart = svg.indexOf('</g>', idxHost) + 4;
+  const frontChunk = svg.slice(frontStart);
+  const camMatch = frontChunk.match(/<g transform="translate\(960 540\) scale\(([\d.]+)\) translate\(-960 -540\)">/);
+  assert.ok(camMatch, 'front layer uses camera transform');
+  const camZoom = Number(camMatch[1]);
+  assert.ok(camZoom > 1.005, `expected camZoom > 1.005, got ${camZoom}`);
+  const pkgTransformSlice = svg.slice(Math.max(0, idxPkg - 180), idxPkg);
+  const objTransMatch = pkgTransformSlice.match(/transform="translate\(([-\d.]+) ([-\d.]+)\) rotate\([-\d.]+\) scale\(([-\d.]+)\) translate\(([-\d.]+) ([-\d.]+)\)"/);
+  assert.ok(objTransMatch, 'carried object wrapper transform present');
+  const [, tx, ty, sc, negCx, negCy] = objTransMatch.map(Number);
+  const pkgEl = plans[0].elements[0];
+  const [hx, hy] = pkgEl.anchors.handle;
+  const preCamX = tx + (hx + negCx) * sc;
+  const preCamY = ty + (hy + negCy) * sc;
+  const screenX = 960 + (preCamX - 960) * camZoom;
+  const screenY = 540 + (preCamY - 540) * camZoom;
+  const [handX, handY] = stageFrame.hostMeta.interaction.carriedPos;
+  assert.ok(Math.hypot(screenX - handX, screenY - handY) <= 1,
+    `carried handle screen (${screenX.toFixed(2)}, ${screenY.toFixed(2)}) vs host hand (${handX.toFixed(2)}, ${handY.toFixed(2)})`);
+
+  // 2. flow shot with send cue: packet visible at 0.4s, absent outside (0, 0.8)
+  const flowMid = evaluateFrame(manifest, plans[1], 0.4);
+  assert.ok(flowMid.vectorSvg.includes('data-send-packet="package"'), 'flow frame at 0.4s renders data-send-packet');
+  assert.equal(flowMid.isFastMotion, true);
+  const flowAfter = evaluateFrame(manifest, plans[1], 1.2);
+  assert.ok(!flowAfter.vectorSvg.includes('data-send-packet'), 'flow frame outside (0, 0.8) has no send packet');
+
+  // 3. bullets shot with reveal + state: "crossed" preserves reveal dy and renders crossed state
+  const revCueSec = plans[2].cues.find((c) => c.do === 'reveal').timeMs / 1000;
+  const stateCueSec = plans[2].cues.find((c) => c.do === 'state').timeMs / 1000;
+  const bulletRevealMid = evaluateFrame(manifest, plans[2], revCueSec + 0.15);
+  const bulletRevealEnd = evaluateFrame(manifest, plans[2], Math.max(revCueSec, stateCueSec) + 0.5);
+  const item1Mid = bulletRevealMid.textItems.find((ti) => ti.key === 'bullet-1');
+  const item1End = bulletRevealEnd.textItems.find((ti) => ti.key === 'bullet-1');
+  assert.ok(item1Mid && item1End);
+  assert.ok(item1Mid.opacity < 0.9, 'reveal fade-in preserves partial opacity at dt=0.15s');
+  assert.ok(item1Mid.y > item1End.y + 3, `reveal dy not clobbered (${item1Mid.y} > ${item1End.y})`);
+  assert.ok(bulletRevealEnd.vectorSvg.includes('data-state="crossed"'), 'bullets state cue emits data-state="crossed"');
+  assert.ok(bulletRevealEnd.vectorSvg.includes('data-overlay="crossed"'), 'bullets state cue emits crossed overlay');
 });

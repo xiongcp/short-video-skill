@@ -8,6 +8,7 @@ import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs
 import { makeWavBuffer } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
 import { buildShotPlans, evaluateFrame, SCENE_VERSION, shotCacheKey } from '../skills/topic-to-video/scripts/lib/scene.mjs';
 import { buildChapters, buildSubtitlesAss, buildSubtitlesSrt, renderProject } from '../skills/topic-to-video/scripts/lib/encode.mjs';
+import { runQa } from '../skills/topic-to-video/scripts/lib/qa.mjs';
 
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
@@ -240,7 +241,7 @@ test('stage shot renders style background, scene layer, props, host in exact lay
   };
   const timing = { 's01-0': { file: 'audio/s01-0.wav', duration_ms: 2000, speech: [50, 1900], source: 'estimate', words: [], sha256: 'st1' } };
   const [plan] = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
-  assert.equal(SCENE_VERSION, 4);
+  assert.equal(SCENE_VERSION, 5);
   assert.equal(plan.style, 'chalkboard');
   assert.equal(plan.scene, 'kitchen');
   assert.equal(plan.customProps.length, 1);
@@ -360,4 +361,179 @@ test('shotCacheKey invalidates on world.style, shot.scene, or world.custom_props
   assert.notEqual(baseKey, styleKey, 'changing world.style must change shotCacheKey');
   assert.notEqual(baseKey, sceneKey, 'changing shot.scene must change shotCacheKey');
   assert.notEqual(baseKey, propKey, 'changing world.custom_props must change shotCacheKey');
+});
+
+test('stage->stage transition fades both old and new stage-heading and stage-hl underline smoothly without ghost overlap', () => {
+  const p = {
+    ...minimal(),
+    world: { metaphor: '阶段转换', style: 'paper', scene: 'kitchen' },
+    sections: [{ id: 's01', title: '转场', text: '先看第一幕。再看第二幕。' }],
+    shots: [
+      {
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'explaining', gesture: 'idle' },
+        visual: { template: 'stage', data: { heading: '第一幕', objects: [{ prop: 'fridge', label: '冰箱', at: 'center' }] } },
+        note: 'stage 1',
+      },
+      {
+        id: 'sh02',
+        section: 's01',
+        sentences: [1],
+        layout: 'stage',
+        host: { expr: 'happy', gesture: 'idle' },
+        visual: { template: 'stage', data: { heading: '第二幕', objects: [{ prop: 'box', label: '箱子', at: 'center' }] } },
+        note: 'stage 2',
+      },
+    ],
+  };
+  const timing = {
+    's01-0': { file: 'audio/s01-0.wav', duration_ms: 2000, speech: [50, 1900], source: 'estimate', words: [], sha256: 'st0' },
+    's01-1': { file: 'audio/s01-1.wav', duration_ms: 2000, speech: [50, 1900], source: 'estimate', words: [], sha256: 'st1' },
+  };
+  const plans = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+  assert.equal(plans[1].transition.kind, 'morph');
+  assert.equal(plans[1].transition.durationSec, 0.4);
+
+  const mid = evaluateFrame(manifest, plans[1], 0.15);
+  const oldHeading = mid.textItems.find((ti) => ti.key === 'stage-heading' && ti.text === '第一幕');
+  const newHeading = mid.textItems.find((ti) => ti.key === 'stage-heading' && ti.text === '第二幕');
+  assert.ok(oldHeading && newHeading, 'both headings present mid-crossfade');
+  assert.ok(oldHeading.opacity > 0.1 && oldHeading.opacity < 0.9, `old heading opacity=${oldHeading.opacity}`);
+  assert.ok(newHeading.opacity > 0.1 && newHeading.opacity < 0.9, `new heading opacity=${newHeading.opacity}`);
+  assert.ok(oldHeading.opacity + newHeading.opacity <= 1.05, `no double full-opacity overlap (${oldHeading.opacity} + ${newHeading.opacity})`);
+
+  // Both stage-hl underline paths in vectorSvg carry explicit fading opacity attributes (not full opacity 1)
+  const pathOps = [...mid.vectorSvg.matchAll(/<path[^>]*opacity="([\d.]+)"[^>]*fill="#20a5a3"/g)].map((m) => Number(m[1]));
+  assert.ok(pathOps.length >= 2, `expected both stage-hl paths to carry opacity attrs during transition, got ${JSON.stringify(pathOps)}`);
+  for (const op of pathOps) {
+    assert.ok(op > 0.05 && op < 0.95, `expected fading stage-hl opacity, got ${op}`);
+  }
+
+  const after = evaluateFrame(manifest, plans[1], 0.5);
+  const afterOld = after.textItems.find((ti) => ti.key === 'stage-heading' && ti.text === '第一幕');
+  const afterNew = after.textItems.find((ti) => ti.key === 'stage-heading' && ti.text === '第二幕');
+  assert.equal(afterOld, undefined, 'old heading clears after transition');
+  assert.equal(afterNew?.opacity, 1, 'new heading settles to opacity 1');
+});
+
+test('renderProject exempts HOST_OBJECT_OVERLAP during sit_on/open/carry while catching non-interacting stage overlaps', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const makeToneWav = (sec, freq = 330) => {
+    const sr = 48000;
+    const samples = new Int16Array(Math.round(sr * sec));
+    for (let i = 1500; i < samples.length - 1500; i += 1) {
+      samples[i] = Math.round(8000 * Math.sin((2 * Math.PI * freq * i) / sr));
+    }
+    return makeWavBuffer(samples, sr);
+  };
+
+  const dir = mkdtempSync(join(tmpdir(), 'svs-inter-qa-'));
+  try {
+    // 1. Clean interacting project: sit_on + open + carry -> 0 objectOverlapFrames & QA passes
+    const cleanDir = join(dir, 'interacting');
+    mkdirSync(join(cleanDir, 'audio'), { recursive: true });
+    writeFileSync(join(cleanDir, 'audio/s01-0.wav'), makeToneWav(2.8, 320));
+    writeFileSync(join(cleanDir, 'audio/s01-1.wav'), makeToneWav(2.6, 400));
+    const cleanProj = {
+      ...minimal(),
+      world: { metaphor: '厨房与客厅', style: 'paper', scene: 'kitchen' },
+      voice: { provider: 'import' },
+      sections: [{ id: 's01', title: '互动', text: '小青走过去坐下。小青打开冰箱拿起包裹。' }],
+      shots: [
+        {
+          id: 'sh01',
+          section: 's01',
+          sentences: [0],
+          layout: 'stage',
+          host: { expr: 'explaining', gesture: 'idle' },
+          visual: { template: 'stage', data: { objects: [{ prop: 'chair', label: '椅子', at: 'center' }] } },
+          cues: [{ sentence: 0, do: 'sit_on', target: 0, timeMs: 100 }],
+          note: 'sit_on interaction',
+        },
+        {
+          id: 'sh02',
+          section: 's01',
+          sentences: [1],
+          layout: 'stage',
+          host: { expr: 'happy', gesture: 'idle' },
+          visual: {
+            template: 'stage',
+            data: {
+              objects: [
+                { prop: 'fridge', label: '冰箱', at: 'mid-left', state: 'closed' },
+                { prop: 'package', label: '包裹', at: 'mid-right' },
+              ],
+            },
+          },
+          cues: [
+            { sentence: 1, do: 'open', target: 0, timeMs: 100 },
+            { sentence: 1, do: 'carry', target: 1, timeMs: 1100 },
+          ],
+          note: 'open + carry interaction',
+        },
+      ],
+    };
+    writeFileSync(join(cleanDir, 'project.json'), JSON.stringify(cleanProj, null, 2));
+
+    const cleanRes = await renderProject(cleanDir, { preview: true, workers: 1 });
+    assert.equal(cleanRes.qaByShot.sh01.objectOverlapFrames, 0, 'sit_on must not trigger objectOverlapFrames');
+    assert.equal(cleanRes.qaByShot.sh02.objectOverlapFrames, 0, 'open+carry must not trigger objectOverlapFrames');
+    // Confirm sit_on and carry actually entered interacting state during those shots
+    const sh01EndMeta = evaluateFrame(manifest, cleanRes.shotPlans[0], cleanRes.shotPlans[0].durationSec - 0.1).hostMeta;
+    const sh02EndMeta = evaluateFrame(manifest, cleanRes.shotPlans[1], cleanRes.shotPlans[1].durationSec - 0.1).hostMeta;
+    assert.equal(sh01EndMeta.interacting, true, 'sh01 actually sits on chair');
+    assert.equal(sh02EndMeta.interacting, true, 'sh02 actually carries package');
+
+    const cleanQa = await runQa(cleanDir, {
+      videoPath: cleanRes.videoPath,
+      expectedFps: cleanRes.fps,
+      timeline: cleanRes.timeline,
+      shotPlans: cleanRes.shotPlans,
+      qaByShot: cleanRes.qaByShot,
+    });
+    assert.equal(cleanQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'), false,
+      `unexpected HOST_OBJECT_OVERLAP: ${JSON.stringify(cleanQa.issues)}`);
+
+    // 2. Non-interacting overlap: host moves straight onto center box -> HOST_OBJECT_OVERLAP reported
+    const badDir = join(dir, 'non-interacting');
+    mkdirSync(join(badDir, 'audio'), { recursive: true });
+    writeFileSync(join(badDir, 'audio/s01-0.wav'), makeToneWav(2.4, 350));
+    const badProj = {
+      ...minimal(),
+      world: { metaphor: '穿过箱子', style: 'paper', scene: 'street' },
+      voice: { provider: 'import' },
+      sections: [{ id: 's01', title: '重叠', text: '小青直接走到屏幕正中间。' }],
+      shots: [{
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'explaining', gesture: 'idle' },
+        visual: { template: 'stage', data: { objects: [{ prop: 'box', label: '箱子', at: 'center' }] } },
+        cues: [{ sentence: 0, do: 'move', target: 'center', timeMs: 0 }],
+        note: 'walk straight onto object without interacting',
+      }],
+    };
+    writeFileSync(join(badDir, 'project.json'), JSON.stringify(badProj, null, 2));
+
+    const badRes = await renderProject(badDir, { preview: true, workers: 1 });
+    assert.ok(badRes.qaByShot.sh01.objectOverlapFrames > 0,
+      `expected non-interacting overlap frames > 0, got ${badRes.qaByShot.sh01.objectOverlapFrames}`);
+    const badQa = await runQa(badDir, {
+      videoPath: badRes.videoPath,
+      expectedFps: badRes.fps,
+      timeline: badRes.timeline,
+      shotPlans: badRes.shotPlans,
+      qaByShot: badRes.qaByShot,
+    });
+    assert.ok(badQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'), 'non-interacting overlap reports HOST_OBJECT_OVERLAP');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

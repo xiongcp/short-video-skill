@@ -5,12 +5,12 @@ import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
 import { evaluateHostAt, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
-import { layoutStage, renderStage } from './stage.mjs';
+import { evaluateStageObjects, layoutStage, renderStage } from './stage.mjs';
 import { DIAGRAM_ZONES, layoutElements, renderDiagram } from './templates.mjs';
 import { resolveCueTiming, splitClauses } from './timing.mjs';
 import { GROUND_Y, resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
 
-export const SCENE_VERSION = 4;
+export const SCENE_VERSION = 5;
 
 const isHostLayout = (layout) => layout === 'host-left' || layout === 'stage';
 
@@ -147,6 +147,7 @@ export function buildShotPlans(project, timeline, manifest) {
         stageLayout: prevPlan.stageLayout,
         elements: prevPlan.elements,
         endHostState: prevPlan.endHostState,
+        endHostMeta: prevPlan.endHostMeta ?? null,
         durationSec: prevPlan.durationSec,
         cues: prevPlan.cues,
       } : null,
@@ -166,9 +167,11 @@ export function buildShotPlans(project, timeline, manifest) {
         sentences: relSentences,
       }, tl.durationSec);
       plan.endHostState = endEval.endState;
+      plan.endHostMeta = endEval;
       lastHostEnd = endEval.endState;
     } else {
       plan.endHostState = lastHostEnd;
+      plan.endHostMeta = null;
     }
 
     plans.push(plan);
@@ -302,13 +305,19 @@ function subtitleAt(shotPlan, t, pal) {
 
 function renderPrevLayer(shotPlan, prevStates, fadeOut) {
   const prev = shotPlan.prevShot;
+  const { objectStates: prevObjStates } = evaluateStageObjects(prev, prev.durationSec, prev.endHostMeta ?? null);
+  const mergedPrevStates = prevStates.map((st, pi) => {
+    const obj = prevObjStates[pi];
+    return obj ? { ...obj, ...st, inFront: false } : st;
+  });
   const res = prev.shot.layout === 'stage'
     ? renderStage(prev.shot.visual, {
         style: shotPlan.style ?? 'paper',
         seed: prev.id,
         t: prev.durationSec,
         duration: prev.durationSec,
-        elementStates: prevStates,
+        elementStates: mergedPrevStates,
+        headingOpacity: fadeOut,
         customProps: prev.customProps ?? shotPlan.customProps ?? [],
         layoutResult: prev.stageLayout,
       })
@@ -319,13 +328,12 @@ function renderPrevLayer(shotPlan, prevStates, fadeOut) {
         seed: prev.id,
         t: prev.durationSec,
         duration: prev.durationSec,
-        elementStates: prevStates,
+        elementStates: mergedPrevStates,
+        customProps: prev.customProps ?? shotPlan.customProps ?? [],
       });
   return {
     vectorSvg: res.vectorSvg,
-    textItems: res.textItems
-      .map((ti) => (ti.key === 'stage-heading' ? { ...ti, opacity: (ti.opacity ?? 1) * fadeOut } : ti))
-      .filter((ti) => ti.opacity > 0.02),
+    textItems: res.textItems.filter((ti) => (ti.opacity ?? 1) > 0.02),
   };
 }
 
@@ -417,17 +425,46 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     isFastMotion = true;
   }
 
-  // Element states with reveal / highlight / tap shake + morph overrides
-  const { states, fastMotion: revealFast } = buildElementStates(shotPlan, t, hostMeta?.focusIdx ?? null, hostMeta?.tapImpact ?? 0);
+  // Element states with reveal / highlight / tap shake + stage/diagram interactions & morph overrides
+  const camScaleStr = camScale.toFixed(4);
+  const camZoom = Number(camScaleStr);
+  const unscalePt = (pt) => (Array.isArray(pt) ? [960 + (pt[0] - 960) / camZoom, 540 + (pt[1] - 540) / camZoom] : pt);
+  // Inverse-scale live hand coords so frontVectorSvg inside camOpen tracks unscaled hostSvg l_hand pixel-tight
+  const objHostMeta = hostMeta?.interaction
+    ? {
+        ...hostMeta,
+        interaction: {
+          ...hostMeta.interaction,
+          handPos: unscalePt(hostMeta.interaction.handPos),
+          carriedPos: unscalePt(hostMeta.interaction.carriedPos),
+        },
+      }
+    : hostMeta;
+  const { objectStates, sends, fastMotion: objFast } = evaluateStageObjects(shotPlan, t, objHostMeta);
+  if (objFast) isFastMotion = true;
+
+  const { states: revealStates, fastMotion: revealFast } = buildElementStates(shotPlan, t, hostMeta?.focusIdx ?? null, hostMeta?.tapImpact ?? 0);
   if (revealFast) isFastMotion = true;
+
+  const states = revealStates.map((st, i) => {
+    const obj = objectStates[i];
+    if (!obj) return st;
+    return {
+      ...st,
+      ...obj,
+      dy: (st.dy ?? 0) + (obj.dy ?? 0),
+    };
+  });
 
   let prevDiagSvg = '';
   const prevTextItems = [];
+  let headingOpacity = 1;
 
   if (inTr && tr.kind === 'morph') {
     const sharedByNext = new Map(tr.shared.map((s) => [s.nextIndex, s.prevIndex]));
     const sharedPrevSet = new Set(tr.shared.map((s) => s.prevIndex));
     const u = easeInOutCubic(trU);
+    headingOpacity = u;
     const hasShared = tr.shared.length > 0;
     states.forEach((st, ni) => {
       if (sharedByNext.has(ni)) {
@@ -455,6 +492,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     isFastMotion = true;
   } else if (inTr && tr.kind === 'crossfade') {
     const u = easeInOutCubic(trU);
+    headingOpacity = u;
     states.forEach((st) => { st.opacity *= u; });
     const prevStates = shotPlan.prevShot.elements.map(() => ({ opacity: 1 - u }));
     const prevRes = renderPrevLayer(shotPlan, prevStates, 1 - u);
@@ -474,6 +512,8 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
         t,
         duration,
         elementStates: states,
+        sends,
+        headingOpacity,
         customProps: shotPlan.customProps ?? [],
         layoutResult: shotPlan.stageLayout,
       })
@@ -485,11 +525,13 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
         t,
         duration,
         elementStates: states,
+        sends,
+        customProps: shotPlan.customProps ?? [],
         zoneOverride,
       });
 
   // Camera transform around center (960, 540) for scene and diagram/stage layers
-  const camOpen = `<g transform="translate(960 540) scale(${camScale.toFixed(4)}) translate(-960 -540)">`;
+  const camOpen = `<g transform="translate(960 540) scale(${camScaleStr}) translate(-960 -540)">`;
   const backLayer = isStage ? diag.backVectorSvg : diag.vectorSvg;
   const frontLayer = isStage && diag.frontVectorSvg ? `${camOpen}${diag.frontVectorSvg}</g>` : '';
   const vectorSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">`
@@ -508,5 +550,14 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   const sub = subtitleAt(shotPlan, t, pal);
   if (sub) scaledText.push(sub);
 
-  return { vectorSvg, textItems: scaledText, isFastMotion, hostMeta };
+  const objectBoxes = isStage
+    ? shotPlan.elements.map((el, i) => {
+        const st = states[i];
+        if (!st || (st.opacity ?? 1) <= 0.005 || st.inFront) return null;
+        const b = st.overrideBbox ?? el.bbox;
+        return { x: b.x + (st.dx ?? 0), y: b.y + (st.dy ?? 0), w: b.w, h: b.h };
+      })
+    : null;
+
+  return { vectorSvg, textItems: scaledText, isFastMotion, hostMeta, objectBoxes };
 }

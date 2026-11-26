@@ -124,7 +124,29 @@ function renderSingleRgba(Resvg, rasterText, manifest, shotPlan, t, audioFrame, 
     const bmp = rasterText(item);
     alphaBlit(out, width, height, bmp.pixels, bmp.width, bmp.height, item.x * scale - bmp.anchorX, item.y * scale - bmp.anchorY, item.opacity ?? 1);
   }
-  return { rgba: out, isFastMotion: frame.isFastMotion, hostMeta: frame.hostMeta };
+  return { rgba: out, isFastMotion: frame.isFastMotion, hostMeta: frame.hostMeta, objectBoxes: frame.objectBoxes };
+}
+
+const MOVING_CUE_DO = new Set(['move', 'open', 'carry', 'push', 'pull', 'hold_up', 'draw', 'sit_on']);
+
+/** Exempts walking onto or stepping off a seat object when executing a `sit_on` cue targeting `idx`. */
+function isSitApproachOrExit(shotPlan, hostMeta, idx, t, box, hb) {
+  if (hostMeta.view !== 'side') return false;
+  const cues = shotPlan.cues ?? [];
+  const winSec = Math.max(0.8, ((box.w * 0.5 + hb.w * 0.5) / 360) * 3.0 + 0.2);
+  const cueStart = (c, ci) => hostMeta.interactionStarts?.get(ci) ?? (c.timeMs ?? 0) / 1000;
+  for (let ci = 0; ci < cues.length; ci += 1) {
+    const c = cues[ci];
+    if (c.do !== 'sit_on' || c.target !== idx) continue;
+    const sitStart = cueStart(c, ci);
+    if (hostMeta.focusIdx === idx && t >= sitStart - winSec && t <= sitStart) return true;
+    const nextMoves = cues
+      .map((nc, nci) => ({ nc, t0: cueStart(nc, nci) }))
+      .filter(({ nc, t0 }) => t0 > sitStart && MOVING_CUE_DO.has(nc.do) && !(nc.do === 'carry' && nc.target === 'none'))
+      .sort((a, b) => a.t0 - b.t0);
+    if (nextMoves.length > 0 && t >= nextMoves[0].t0 && t <= nextMoves[0].t0 + winSec) return true;
+  }
+  return false;
 }
 
 function loadShotAudioFrames(projectDir, shotPlan, fps) {
@@ -189,9 +211,13 @@ async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width,
       const hb = main.hostMeta.bodyBbox;
       if (shotPlan.shot.layout === 'stage') {
         if (!main.hostMeta.interacting) {
-          const overlapsObj = shotPlan.elements.some((el, idx) => t >= firstRevealSec[idx]
-            && hb.x < el.bbox.x + el.bbox.w && hb.x + hb.w > el.bbox.x
-            && hb.y < el.bbox.y + el.bbox.h && hb.y + hb.h > el.bbox.y);
+          const boxes = main.objectBoxes ?? shotPlan.elements.map((el, idx) => (t >= firstRevealSec[idx] ? el.bbox : null));
+          const overlapsObj = boxes.some((box, idx) => (
+            box
+            && !isSitApproachOrExit(shotPlan, main.hostMeta, idx, t, box, hb)
+            && hb.x < box.x + box.w && hb.x + hb.w > box.x
+            && hb.y < box.y + box.h && hb.y + hb.h > box.y
+          ));
           if (overlapsObj) qaEvents.objectOverlapFrames += 1;
         }
       } else {
