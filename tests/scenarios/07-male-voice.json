@@ -1,0 +1,17 @@
+{
+  "id": "07",
+  "title": "用户要男声配音",
+  "level": "L0",
+  "fixtures": [],
+  "turns": [
+    "帮我做一个 1 分钟的视频，讲讲“为什么冬天静电多”，用男声配音。",
+    "方案可以，出提示词包。"
+  ],
+  "checks": [
+    "第 1 轮没有追问配音，直接按男声出方案：project.json 的 voice 是 {\"provider\": \"undecided\", \"preset\": \"male-sunny\"}，没有写 voice.voice 和 speed",
+    "讲稿.md 开头有一行“配音：男声·云希（male-sunny）”",
+    "讲稿口吻像对朋友讲：用“你”“我们”，有设问；“其实”“你看”“那么”这类连接词每段不超过两个",
+    "自动检查摘要中 schema_errors、check_errors、derived_docs 都为空，lint_warnings 没有 ESTIMATE_OFF_TARGET",
+    "第 2 轮在 checkpoints 中记录了 stage 为 plan 的确认并产出提示词包.md；全程没有安装工具，也没有调用付费服务或 TTS"
+  ]
+}
