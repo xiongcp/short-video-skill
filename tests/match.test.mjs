@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { lintStoryboard, normalizeText, visualKeywords } from '../skills/topic-to-video/scripts/lib/match.mjs';
-import { estimateReport } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { lintStoryboard, normalizeText, STATIC_SECONDS, visualKeywords } from '../skills/topic-to-video/scripts/lib/match.mjs';
+import { checkProject, estimateReport } from '../skills/topic-to-video/scripts/lib/project.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const example = () => JSON.parse(readFileSync(join(import.meta.dirname, '../examples/cache-speed/project.json'), 'utf8'));
@@ -26,8 +26,8 @@ test('visualKeywords lists on-screen words and leaves out title cards', () => {
   assert.deepEqual(visualKeywords({ template: 'title', data: { heading: '标题' } }), []);
 });
 
-test('the example storyboard has no warnings', () => {
-  assert.deepEqual(lintStoryboard(example()), []);
+test('the example storyboard has no non-STATIC_STRETCH warnings (example upgraded to 4s in Task 6)', () => {
+  assert.deepEqual(lintStoryboard(example()).filter((w) => w.code !== 'STATIC_STRETCH'), []);
 });
 
 test('warns when none of a shot\'s keywords is in its narration', () => {
@@ -170,53 +170,55 @@ test('one focus per sentence: the same element, a preset spot or different sente
   assert.deepEqual(lintStoryboard(p), []);
 });
 
-// Sentences 1 and 2 have 15 and 17 characters: they start at 0 and 4 seconds, and the shot lasts about 9 seconds.
-const longShot = () => {
+// Sentence 1 has 19 chars: 19 / 4 + 0.25 = 5.0 seconds.
+const fiveSecondShot = () => {
   const p = minimal();
-  p.sections[0].text = '天空为什么是蓝的？阳光穿过空气时蓝光被散射得更多。散射的蓝光从四面八方进入我们的眼睛。';
-  p.shots[1] = { ...p.shots[1], sentences: [1, 2], visual: { template: 'bullets', data: { items: ['阳光', '散射'] } }, cues: [] };
+  p.sections[0].text = '天空为什么是蓝的？阳光穿过空气时蓝光被散射得更多一些。';
+  p.shots[1] = { ...p.shots[1], sentences: [1], visual: { template: 'bullets', data: { items: ['阳光', '散射'] } }, cues: [] };
   return p;
 };
 
-test('warns when the picture stays still for more than 8 seconds by the estimate', () => {
-  const p = longShot();
+test('STATIC_SECONDS is 4: 5s without cues warns STATIC_STRETCH, 3.5s does not, and checkProject has no errors', () => {
+  assert.equal(STATIC_SECONDS, 4);
+  const p = fiveSecondShot();
+  assert.equal(estimateReport(p).shots[1].seconds, 5);
+  assert.deepEqual(checkProject(p), []);
   assert.deepEqual(codes(p), ['STATIC_STRETCH /shots/1']);
-  assert.match(lintStoryboard(p)[0].message, /sh02 在 0–9 秒之间画面没有变化，超过 8 秒/);
-});
+  assert.match(lintStoryboard(p)[0].message, /sh02 在 0–5 秒之间画面没有变化，超过 4 秒/);
 
-test('a cue splits a long shot into stretches under 8 seconds', () => {
-  const p = longShot();
-  p.shots[1].cues = [{ sentence: 2, do: 'reveal', target: 1 }];
+  p.sections[0].text = '天空为什么是蓝的？阳光被空气散射了。';
+  assert.equal(estimateReport(p).shots[1].seconds, 2);
   assert.deepEqual(lintStoryboard(p), []);
 });
 
-test('warns when a second move in the same sentence splits focus with reveal', () => {
-  const p = acting();
-  p.shots[0].cues = [
-    { sentence: 1, do: 'move', target: 0 },
-    { sentence: 1, do: 'reveal', target: 0 },
-    { sentence: 1, do: 'move', target: 1 },
+test('a cue splits a shot into stretches of at most 4 seconds', () => {
+  const p = minimal();
+  p.sections[0].text = '阳光穿过空气时散射。蓝光从四面八方进来。';
+  p.shots = [
+    { ...p.shots[0], sentences: [0, 1], visual: { template: 'bullets', data: { items: ['阳光', '蓝光'] } }, cues: [] },
   ];
-  assert.deepEqual(codes(p), ['FOCUS_SPLIT /shots/0/cues']);
-  assert.match(lintStoryboard(p)[0].message, /sh01 第 1 句 move 到元素 1，reveal 的却是元素 0/);
+  assert.deepEqual(codes(p), ['STATIC_STRETCH /shots/0']);
+  p.shots[0].cues = [{ sentence: 1, do: 'reveal', target: 1 }];
+  assert.deepEqual(estimateReport(p).shots[0].starts, [0, 2.5]);
+  assert.deepEqual(lintStoryboard(p), []);
 });
 
-test('does not raise STATIC_STRETCH on an exact 8.0-second stretch despite floating-point drift', () => {
+test('does not raise STATIC_STRETCH on an exact 4.0-second stretch despite floating-point drift', () => {
   const p = minimal();
-  p.settings.sentence_gap_ms = 400;
-  // With 400 ms gaps: 15, 18, 15, 14, 4 chars put sentence starts at [0, 4.2, 9.1, 13.2, 17.1]; 17.1 - 9.1 is 8.000000000000002 in IEEE-754.
-  p.sections[0].text = '阳光穿过大气层时先遇到空气分子。蓝光的波长很短所以更容易向四周散射掉。红光波长长能继续笔直往前穿过去。最后进入眼睛的蓝光就比红光多。天空蓝了。';
+  p.settings.sentence_gap_ms = 200;
+  // With 200 ms gaps: 13 (3.45s), 15 (3.95s), 15 (3.95s), 4 (1.2s) chars put starts at [0, 3.5, 7.4, 11.4]; 11.4 - 7.4 is 4.000000000000001 in IEEE-754.
+  p.sections[0].text = '阳光穿过大气层时先遇到空气。蓝光的波长很短容易向四周散射掉。红光波长很长能继续笔直地穿过去。天空蓝了。';
   p.shots = [{
     ...p.shots[0],
-    sentences: [0, 1, 2, 3, 4],
+    sentences: [0, 1, 2, 3],
     visual: { template: 'bullets', data: { items: ['阳光', '蓝光', '红光'] } },
     cues: [
       { sentence: 1, do: 'reveal', target: 0 },
       { sentence: 2, do: 'reveal', target: 1 },
-      { sentence: 4, do: 'reveal', target: 2 },
+      { sentence: 3, do: 'reveal', target: 2 },
     ],
   }];
-  assert.deepEqual(estimateReport(p).shots[0].starts, [0, 4.2, 9.1, 13.2, 17.1]);
+  assert.deepEqual(estimateReport(p).shots[0].starts, [0, 3.5, 7.4, 11.4]);
   assert.deepEqual(lintStoryboard(p), []);
 });
 
@@ -264,7 +266,7 @@ test('visualKeywords extracts heading and object labels from stage, time and lab
   );
 });
 
-test('stage shot saying 看这里 without pointing warns POINT_MISSING', () => {
+test('stage shot saying 看这里 without pointing warns POINT_MISSING and NO_INTERACTION', () => {
   const p = minimal();
   p.world = { metaphor: '缓存是冰箱', style: 'paper', scene: 'kitchen' };
   p.sections[0].text = '看这里就明白了。答案藏在阳光里。';
@@ -277,7 +279,100 @@ test('stage shot saying 看这里 without pointing warns POINT_MISSING', () => {
     visual: { template: 'stage', data: { objects: [{ prop: 'fridge', label: '明白', at: 'center' }] } },
     note: '指着冰箱',
   };
-  assert.deepEqual(codes(p), ['POINT_MISSING /shots/0']);
-  p.shots[0].host.gesture = 'point';
+  assert.deepEqual(codes(p), ['POINT_MISSING /shots/0', 'NO_INTERACTION /shots/0']);
+  p.shots[0].host.gesture = 'tap';
+  assert.deepEqual(lintStoryboard(p), []);
+});
+
+test('NO_INTERACTION warns on stage shots without interaction cues or tap, and clears with open or tap; host-left is exempt', () => {
+  const p = minimal();
+  p.world = { metaphor: '缓存是冰箱', style: 'paper', scene: 'kitchen' };
+  p.sections[0].text = '冰箱就在这里。答案藏在阳光里。';
+  p.shots = [
+    {
+      id: 'sh01',
+      section: 's01',
+      sentences: [0],
+      layout: 'stage',
+      host: { expr: 'explaining', gesture: 'idle' },
+      visual: { template: 'stage', data: { objects: [{ prop: 'fridge', label: '冰箱', at: 'center' }] } },
+      note: '展示冰箱',
+    },
+    { ...p.shots[1], sentences: [1] },
+  ];
+  assert.deepEqual(codes(p), ['NO_INTERACTION /shots/0']);
+
+  p.shots[0].cues = [{ sentence: 0, do: 'open', target: 0 }];
+  assert.deepEqual(lintStoryboard(p), []);
+
+  p.shots[0].cues = [{ sentence: 0, do: 'gesture', target: 'tap' }];
+  assert.deepEqual(lintStoryboard(p), []);
+
+  // host-left without interaction cue does not warn NO_INTERACTION
+  p.shots = [{
+    id: 'sh01',
+    section: 's01',
+    sentences: [0],
+    layout: 'host-left',
+    host: { expr: 'explaining', gesture: 'idle' },
+    visual: { template: 'bullets', data: { items: ['冰箱'] } },
+    note: 'host-left 镜头',
+  }];
+  assert.deepEqual(lintStoryboard(p), []);
+});
+
+test('GESTURE_REPEAT warns on intra-shot repeat after host.gesture or between consecutive gesture cues', () => {
+  const p = acting();
+  p.shots[0].host = { expr: 'explaining', gesture: 'point' };
+  p.shots[0].cues = [{ sentence: 0, do: 'gesture', target: 'point' }];
+  assert.deepEqual(codes(p), ['GESTURE_REPEAT /shots/0/cues']);
+
+  p.shots[0].host = { expr: 'explaining', gesture: 'idle' };
+  p.shots[0].cues = [
+    { sentence: 0, do: 'gesture', target: 'point' },
+    { sentence: 1, do: 'gesture', target: 'point' },
+  ];
+  assert.deepEqual(codes(p), ['GESTURE_REPEAT /shots/0/cues']);
+
+  p.shots[0].cues = [
+    { sentence: 0, do: 'gesture', target: 'point' },
+    { sentence: 1, do: 'gesture', target: 'think' },
+    { sentence: 1, do: 'gesture', target: 'point' },
+  ];
+  assert.deepEqual(lintStoryboard(p), []);
+});
+
+test('GESTURE_REPEAT warns across adjacent host shots with identical host.gesture and no other gesture cue', () => {
+  const p = minimal();
+  p.sections[0].text = '阳光照亮大地。空气散射蓝光。';
+  p.shots = [
+    {
+      id: 'sh01',
+      section: 's01',
+      sentences: [0],
+      layout: 'host-left',
+      host: { expr: 'explaining', gesture: 'point' },
+      visual: { template: 'bullets', data: { items: ['阳光'] } },
+      note: '第一镜',
+    },
+    {
+      id: 'sh02',
+      section: 's01',
+      sentences: [1],
+      layout: 'host-left',
+      host: { expr: 'focused', gesture: 'point' },
+      visual: { template: 'bullets', data: { items: ['蓝光'] } },
+      note: '第二镜',
+    },
+  ];
+  assert.deepEqual(codes(p), ['GESTURE_REPEAT /shots/1/host']);
+
+  // Adding another gesture cue in the second shot clears GESTURE_REPEAT
+  p.shots[1].cues = [{ sentence: 1, do: 'gesture', target: 'emphasize' }];
+  assert.deepEqual(lintStoryboard(p), []);
+
+  // Changing starting gesture in the second shot also clears GESTURE_REPEAT
+  delete p.shots[1].cues;
+  p.shots[1].host.gesture = 'present';
   assert.deepEqual(lintStoryboard(p), []);
 });

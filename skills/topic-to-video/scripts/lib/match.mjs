@@ -1,7 +1,7 @@
 // Storyboard advice from references/storyboard.md: what is on screen against what is said, and how the host acts.
-// Warnings only: VISUAL_NOT_IN_NARRATION, POINT_MISSING, MOVE_TOO_MANY, FOCUS_SPLIT and STATIC_STRETCH.
+// Warnings only: VISUAL_NOT_IN_NARRATION, POINT_MISSING, MOVE_TOO_MANY, FOCUS_SPLIT, STATIC_STRETCH, NO_INTERACTION and GESTURE_REPEAT.
 import { splitSentences } from './captions.mjs';
-import { checkShape, estimateReport, HOST_LAYOUTS } from './project.mjs';
+import { checkShape, estimateReport, HOST_LAYOUTS, INTERACTION_CUES } from './project.mjs';
 
 const DIGITS = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
 const UNITS = { 十: 10, 百: 100, 千: 1000 };
@@ -66,7 +66,7 @@ const DEICTIC_WORDS = ['看右边', '右边的', '右侧', '看这张图', '看�
 // Gestures that aim at the focus element; point_right is the old name of point.
 const POINTING = ['point', 'point_right', 'present', 'tap'];
 export const MAX_MOVES = 2;
-export const STATIC_SECONDS = 8;
+export const STATIC_SECONDS = 4;
 
 // The gesture in effect at sentence n: the shot's gesture, changed by gesture cues up to that sentence.
 function gestureAt(shot, n) {
@@ -95,7 +95,9 @@ export function lintStoryboard(project) {
       }
     });
     warnings.push(...lintActing(shot, i));
+    warnings.push(...lintStageInteraction(shot, i));
   });
+  warnings.push(...lintGestureRepeat(project));
   warnings.push(...lintStatic(project));
   return warnings;
 }
@@ -112,6 +114,58 @@ function lintActing(shot, i) {
     const pair = here.filter((c) => c.do === 'move').map((w) => [w, shownHere.find((s) => s.target !== w.target)]).find(([, s]) => s);
     if (pair) out.push({ path: `/shots/${i}/cues`, code: 'FOCUS_SPLIT', message: `镜头 ${shot.id} 第 ${n} 句 move 到元素 ${pair[0].target}，${pair[1].do} 的却是元素 ${pair[1].target}；同一句只留一个焦点（见 storyboard.md 的主持人一节）` });
   }
+  return out;
+}
+
+// NO_INTERACTION: a stage shot should include at least one interaction cue or tap so the host engages with the scene.
+function lintStageInteraction(shot, i) {
+  if (shot.layout !== 'stage') return [];
+  const cues = (shot.cues ?? []).filter((c) => shot.sentences.includes(c.sentence));
+  const hasInteraction = shot.host?.gesture === 'tap'
+    || cues.some((c) => INTERACTION_CUES.includes(c.do) || (c.do === 'gesture' && c.target === 'tap'));
+  return hasInteraction ? [] : [{
+    path: `/shots/${i}`,
+    code: 'NO_INTERACTION',
+    message: `镜头 ${shot.id} 是 stage 舞台镜头，但没有任何互动 cue 或 tap；加一个同台互动动作让小青参与进来（见 storyboard.md）`,
+  }];
+}
+
+const normGesture = (g) => (g === 'point_right' ? 'point' : g);
+
+// GESTURE_REPEAT: consecutive explicit gestures inside a shot (starting from host.gesture) must differ,
+// and adjacent host shots cannot share host.gesture unless the latter introduces another gesture cue.
+function lintGestureRepeat(project) {
+  const out = [];
+  let prevHostGesture;
+  project.shots.forEach((shot, i) => {
+    if (!HOST_LAYOUTS.includes(shot.layout)) return;
+    const cues = (shot.cues ?? [])
+      .filter((c) => shot.sentences.includes(c.sentence) && c.do === 'gesture')
+      .sort((a, b) => a.sentence - b.sentence);
+    let prev = normGesture(shot.host?.gesture);
+    let intraWarned = false;
+    for (const c of cues) {
+      const next = normGesture(c.target);
+      if (prev !== undefined && next === prev && !intraWarned) {
+        out.push({
+          path: `/shots/${i}/cues`,
+          code: 'GESTURE_REPEAT',
+          message: `镜头 ${shot.id} 第 ${c.sentence} 句连续重复动作 ${c.target}；换一个动作或去掉重复的 gesture cue（见 storyboard.md）`,
+        });
+        intraWarned = true;
+      }
+      prev = next;
+    }
+    const startGesture = normGesture(shot.host?.gesture);
+    if (!intraWarned && cues.length === 0 && prevHostGesture !== undefined && startGesture === prevHostGesture) {
+      out.push({
+        path: `/shots/${i}/host`,
+        code: 'GESTURE_REPEAT',
+        message: `镜头 ${shot.id} 的起始动作 ${shot.host.gesture} 与上一个出镜镜头相同，且本镜没有别的动作 cue；换一个起始动作或加 gesture cue（见 storyboard.md）`,
+      });
+    }
+    prevHostGesture = startGesture;
+  });
   return out;
 }
 
