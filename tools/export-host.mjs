@@ -1,7 +1,7 @@
 // Draws the host's images from rig.mjs (火柴人主持人设计 §8.2, §9.3). A development tool, not part of the skill.
 // npm run export-host writes:
 //   skills/topic-to-video/assets/host/host-ref.png  reference image for external models (no text); size and sha256 go into manifest.json
-//   site/assets/host-cheatsheet.png                 every gesture, expression and prop with its name
+//   site/assets/host-cheatsheet.png                 every gesture, expression (with its 呆毛 shape), prop and outfit with its name
 //   site/index.html                                 the inline SVG between <!-- host:hero --> and <!-- /host:hero -->
 //   out/host/pose-sheet-1080.png, -540.png          contact sheets for the owner's review, not committed
 // Each PNG carries the sha256 of the SVG it was drawn from in a tEXt chunk (svg-sha256), so tests can tell when
@@ -27,6 +27,9 @@ export const LABELS = {
   pointer: '教鞭', magnifier: '放大镜', phone: '手机', doc: '文件', bulb: '灯泡', question: '问号牌',
 };
 
+/** The 呆毛 shapes; kept apart from LABELS because question is also a prop. */
+export const AHOGE_LABELS = { curl: '小卷', question: '问号', straight: '竖直', droop: '耷拉', spring: '弹簧' };
+
 export const svgHash = (svg) => createHash('sha256').update(svg).digest('hex');
 const svgDoc = (width, height, body) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${PAPER}"/>${body}</svg>`;
@@ -41,7 +44,7 @@ function headCrop(manifest, expr, x, y, size, seed) {
   const { points } = forwardKinematics(manifest, poseAngles(manifest, 'idle', undefined, pose.view), { view: pose.view, x: 200, ground: 930 });
   const [cx, cy] = points.head_center;
   const half = 0.24 * manifest.height_px;
-  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="${cx - half} ${cy - half} ${2 * half} ${2 * half}">${drawHost(manifest, { gesture: 'idle', expr, x: 200, ground: 930, seed })}</svg>`;
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="${cx - half} ${cy - half - 0.06 * manifest.height_px} ${2 * half} ${2 * half}">${drawHost(manifest, { gesture: 'idle', expr, x: 200, ground: 930, seed })}</svg>`;
 }
 
 /** host-ref.png: front view standing, four faces, and point, think, walk and cheer. No text. */
@@ -64,7 +67,11 @@ export function cheatsheetSvg(manifest) {
       : scaled(0.7, drawHost(manifest, { gesture, expr: 'explaining', x: x / 0.7, ground: (top + 320) / 0.7, seed: `sheet-${gesture}` }));
     return figure + label(x, top + 352, gesture);
   }).join('');
-  const faces = Object.keys(manifest.expressions).map((expr, i) => headCrop(manifest, expr, 18 + i * 196, 1310, 180, `sheet-${expr}`) + label(108 + i * 196, 1520, expr)).join('');
+  const faces = Object.keys(manifest.expressions).map((expr, i) => {
+    const shape = manifest.ahoge.by_expr[expr];
+    return headCrop(manifest, expr, 18 + i * 196, 1310, 180, `sheet-${expr}`) + label(108 + i * 196, 1520, expr)
+      + `<text x="${108 + i * 196}" y="1578" font-family="${FONT}" font-size="18" fill="#6b6b6b" text-anchor="middle">呆毛 ${shape} ${AHOGE_LABELS[shape]}</text>`;
+  }).join('');
   const props = Object.entries(manifest.props).map(([prop, p], i) => {
     const x = 150 + i * 300;
     const gesture = p.hand === 'acting' ? 'point' : 'idle';

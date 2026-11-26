@@ -1,9 +1,9 @@
 {
   "host": "xiaoqing",
   "name": "小青",
-  "rig_version": 2,
+  "rig_version": 3,
   "height_px": 400,
-  "ref": {"file": "host-ref.png", "width": 1600, "height": 900, "sha256": "e7ae0117404b9ab672cbf8f70cbfea9dbac5cd14295f04c4f01f98bf94eec5b9"},
+  "ref": {"file": "host-ref.png", "width": 1600, "height": 900, "sha256": "4c6e545224064afa27429a9353b7b632962fb7c8f58964cc0927eda2c726df14"},
   "ink": {"width": [0.022, 0.03], "lines": {"face": [0.008, 0.011], "symbol": [0.009, 0.013], "prop": [0.012, 0.016], "fine": [0.0075, 0.01], "scarf": [0.022, 0.03]}, "wobble": 0.004, "body": {"light": "#1f1f1f", "dark": "#f2f2f2"}, "accent": "#20a5a3", "markers": {"yellow": "#f6c945", "red": "#e05a47", "teal": "#7fd1cf"}},
   "joints": {
     "pelvis": {"parent": null, "length": 0, "range": [-20, 20]},
@@ -72,5 +72,18 @@
     "question": {"hand": "other", "grip": [0, 0], "arm": {"shoulder": 120, "elbow": 30, "wrist": 0}}
   },
   "scarf": {"ring": [[-0.055, -0.022], [-0.036, -0.005], [0, 0.004], [0.036, -0.005], [0.055, -0.022]], "knot": 1, "tails": [{"angle": 18, "length": 0.13}, {"angle": 32, "length": 0.105}], "notch": 0.02, "stiffness": 120, "damping": 14},
-  "lipsync": {"open_max": 0.16, "width": [0.12, 0.22]}
+  "lipsync": {"open_max": 0.16, "width": [0.12, 0.22]},
+  "ahoge": {
+    "count": 8,
+    "morph_seconds": 0.2,
+    "spring": {"stiffness": 140, "damping": 8, "kick": 30},
+    "by_expr": {"explaining": "curl", "focused": "curl", "curious": "question", "surprised": "straight", "worried": "droop", "frustrated": "droop", "happy": "spring", "proud": "spring", "amazed": "spring"},
+    "shapes": {
+      "curl": [[0, -0.98], [0.06, -1.46], [0.28, -1.83], [0.59, -1.83], [0.67, -1.58], [0.48, -1.46]],
+      "question": [[0, -0.98], [0.03, -1.53], [-0.07, -1.94], [0.21, -2.24], [0.53, -2.09], [0.5, -1.79], [0.25, -1.68]],
+      "straight": [[0, -0.98], [-0.06, -1.46], [0.07, -1.83], [-0.04, -2.21], [0.08, -2.51]],
+      "droop": [[0, -0.98], [0.17, -1.34], [0.49, -1.46], [0.77, -1.31], [0.87, -1.04]],
+      "spring": [[0, -0.98], [0.08, -1.43], [0.34, -1.76], [0.64, -1.73], [0.7, -1.46], [0.5, -1.34], [0.42, -1.55]]
+    }
+  }
 }

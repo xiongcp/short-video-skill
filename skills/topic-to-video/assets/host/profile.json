@@ -1,13 +1,13 @@
 {
   "id": "xiaoqing",
   "name": "小青",
-  "style_lock": ["手绘黑色墨线火柴人", "空心圆头，没有头发和耳朵", "椭圆形黑眼睛", "脖子上系一条青色围巾", "手脚是小椭圆"],
+  "style_lock": ["手绘黑色墨线火柴人", "空心圆头，没有耳朵，头顶一根会随情绪变形的呆毛", "椭圆形黑眼睛", "脖子上系一条青色围巾", "手脚是小椭圆"],
   "expressions": ["explaining", "focused", "happy", "curious", "surprised", "worried", "frustrated", "proud", "amazed"],
   "gestures": ["idle", "point_right", "wave", "emphasize", "point", "think", "shrug", "present", "sit", "jump", "cheer", "tap", "snap", "lean_in", "startle", "double_take", "scratch_head"],
   "props": ["pointer", "magnifier", "phone", "doc", "bulb", "question"],
   "outfits": ["none", "glasses", "hardhat", "chef_hat", "apron"],
   "prompt_lock": {
-    "zh": "原创手绘火柴人知识节目主持人：黑色墨线，线条有轻微粗细变化和手抖感；空心圆头，没有头发和耳朵，椭圆形黑眼睛，简笔的眉和嘴；四肢是单根细线，手脚是小椭圆；脖子上系一条青色围巾，两条短飘带垂在身后；约 4 头身，全身入镜。",
-    "en": "Original hand-drawn stick-figure explainer host: black ink lines with slight pressure variation and a hand-drawn wobble; a hollow circle head with no hair or ears, black oval eyes, simple line brows and mouth; single thin lines for limbs, small ovals for hands and feet; a teal scarf around the neck with two short tails hanging behind; about 4 heads tall, full body in frame."
+    "zh": "原创手绘火柴人知识节目主持人：黑色墨线，线条有轻微粗细变化和手抖感；空心圆头，没有耳朵，头顶正中一根呆毛（平时是向前弯的小卷，好奇时卷成问号，吃惊时竖直），椭圆形黑眼睛，简笔的眉和嘴；四肢是单根细线，手脚是小椭圆；脖子上系一条青色围巾，两条短飘带垂在身后；约 4 头身，全身入镜。",
+    "en": "Original hand-drawn stick-figure explainer host: black ink lines with slight pressure variation and a hand-drawn wobble; a hollow circle head with no ears and a single cowlick on top (a small forward curl that turns into a question mark when curious and stands straight up when surprised), black oval eyes, simple line brows and mouth; single thin lines for limbs, small ovals for hands and feet; a teal scarf around the neck with two short tails hanging behind; about 4 heads tall, full body in frame."
   }
 }

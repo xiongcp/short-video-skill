@@ -1,6 +1,7 @@
 // Review helper for the host (超越路线图 §4 M0, §7). A development tool, not part of the skill.
 // npm run review-host writes out/review/:
 //   frame-1080.png, frame-540.png             host-left frames at 1080p and 540p
+//   silhouette-540.png                        six moods at 540p with the scarf and markers inked black (小青人设设计 §7)
 //   frame-1080-h264.png, frame-540-h264.png   same frames after a 60fps H.264 yuv420p BT.709 round trip (skipped if ffmpeg is absent)
 //   before-after-540.png                      side-by-side pose sheet when out/review/before/pose-sheet-540.png exists
 //   vs-<name>.png                             side-by-side comparison for every PNG placed in out/ref/
@@ -39,6 +40,14 @@ export function frameSvg(manifest, { scale = 1 } = {}) {
   const host = drawHost(manifest, { gesture: 'idle', expr: 'explaining', x: 320, ground: 930, seed: 'review' });
   const caption = `<text x="960" y="1010" font-family="${FONT}" font-size="40" fill="${INK}" text-anchor="middle">字幕示例：第二次打开为什么更快</text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 1920 1080"><rect width="1920" height="1080" fill="${PAPER}"/>${diagram}${host}${caption}</svg>`;
+}
+
+/** Six moods drawn at 1080p and shown at 540p, the scarf and every marker inked black: is it still 小青? */
+export function silhouetteSvg(manifest) {
+  const dark = { ...manifest, ink: { ...manifest.ink, accent: INK, markers: { yellow: INK, red: INK, teal: INK } } };
+  const moods = [['idle', 'explaining'], ['lean_in', 'curious'], ['startle', 'surprised'], ['shrug', 'worried'], ['snap', 'amazed'], ['cheer', 'happy']];
+  const body = moods.map(([gesture, expr], i) => drawHost(dark, { gesture, expr, x: 210 + i * 300, ground: 500, seed: `silhouette-${gesture}` })).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="270" viewBox="0 0 1920 540"><rect width="1920" height="540" fill="${PAPER}"/>${body}</svg>`;
 }
 
 /** Places two PNG buffers side by side, both scaled proportionally to `height`, with labels underneath. */
@@ -99,6 +108,7 @@ async function main() {
   const f540 = join(OUT_REVIEW, 'frame-540.png');
   writeFileSync(f1080, raster(frameSvg(manifest, { scale: 1 })));
   writeFileSync(f540, raster(frameSvg(manifest, { scale: 0.5 })));
+  writeFileSync(join(OUT_REVIEW, 'silhouette-540.png'), raster(silhouetteSvg(manifest)));
 
   const ok1080 = h264RoundTrip(f1080, join(OUT_REVIEW, 'frame-1080-h264.png'));
   const ok540 = ok1080 && h264RoundTrip(f540, join(OUT_REVIEW, 'frame-540-h264.png'));

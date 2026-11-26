@@ -42,6 +42,9 @@ test('profile names the host and locks its look for external models', () => {
   assert.deepEqual([profile.id, profile.name, manifest.host, manifest.name], ['xiaoqing', '小青', 'xiaoqing', '小青']);
   assert.match(profile.prompt_lock.zh, /火柴人.*青色围巾/);
   assert.match(profile.prompt_lock.en, /stick-figure.*teal scarf/);
+  assert.ok(profile.style_lock.some((s) => s.includes('呆毛')) && !profile.style_lock.some((s) => s.includes('没有头发')));
+  assert.match(profile.prompt_lock.zh, /呆毛/);
+  assert.match(profile.prompt_lock.en, /cowlick/);
 });
 
 test('host folder stays within 1.2 MB and declares a usage state', () => {

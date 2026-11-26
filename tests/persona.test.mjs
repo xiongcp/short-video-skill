@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { drawHost, resolvePose } from '../skills/topic-to-video/scripts/lib/rig.mjs';
+import { ahogePoints, drawHost, resolvePose } from '../skills/topic-to-video/scripts/lib/rig.mjs';
 import { evaluateHostAt } from '../skills/topic-to-video/scripts/lib/motion.mjs';
 
 // 小青人设设计 (H): the 呆毛, bigger faces, amazed, five persona gestures, outfits, auto beats and fidgets.
@@ -67,4 +67,51 @@ test('emotion symbols are drawn 1.3 times larger around their anchor', () => {
   for (const expr of ['curious', 'surprised', 'worried', 'frustrated', 'proud', 'amazed']) {
     assert.match(draw({ expr }), /scale\(1\.3\) translate\([^)]*\)"><g data-symbol="/, expr);
   }
+});
+
+test('every expression draws the 呆毛 in the shape manifest.ahoge.by_expr gives it', () => {
+  assert.deepEqual(Object.keys(manifest.ahoge.by_expr).sort(), Object.keys(manifest.expressions).sort());
+  assert.deepEqual(manifest.ahoge.by_expr, {
+    explaining: 'curl', focused: 'curl', curious: 'question', surprised: 'straight', worried: 'droop',
+    frustrated: 'droop', happy: 'spring', proud: 'spring', amazed: 'spring',
+  });
+  for (const [expr, shape] of Object.entries(manifest.ahoge.by_expr)) {
+    assert.match(draw({ expr }), new RegExp(`<g data-ahoge="${shape}" transform="[^"]+"><path data-part="ahoge"`), expr);
+  }
+});
+
+test('the 呆毛 grows from the top of the head, turns with the head and mirrors with it', () => {
+  const pts = ahogePoints(manifest, { expr: 'explaining' });
+  assert.equal(pts.length, manifest.ahoge.count);
+  assert.deepEqual(pts[0], [0, -0.98]);
+  assert.ok(pts.every(([, v]) => v <= -0.98 + 1e-9), 'every point is above the root');
+  const idle = resolvePose(manifest, 'idle').angles;
+  const rotation = (svg) => Number(svg.match(/<g data-ahoge="curl" transform="translate\([^)]*\) rotate\((-?[\d.]+)\)/)[1]);
+  assert.ok(Math.abs(rotation(draw({ angles: { ...idle, head: 30 } })) - rotation(draw({ angles: { ...idle, head: 0 } })) - 30) < 0.01);
+  assert.match(draw({ facing: -1 }), /<g data-ahoge="curl" transform="[^"]*scale\(-1 1\)">/);
+});
+
+test('mix morphs between two shapes and bend swings the tip about the root', () => {
+  const curl = ahogePoints(manifest, { expr: 'explaining' });
+  const straight = ahogePoints(manifest, { expr: 'surprised' });
+  const half = ahogePoints(manifest, { expr: 'surprised', fromExpr: 'explaining', mix: 0.5 });
+  half.forEach(([u, v], i) => {
+    assert.ok(Math.abs(u - (curl[i][0] + straight[i][0]) / 2) < 1e-9 && Math.abs(v - (curl[i][1] + straight[i][1]) / 2) < 1e-9, `point ${i}`);
+  });
+  const bent = ahogePoints(manifest, { expr: 'surprised', bend: 20 });
+  assert.deepEqual(bent[0], straight[0]);
+  assert.ok(bent.at(-1)[0] > straight.at(-1)[0] + 0.3, 'a positive bend leans the tip forward');
+});
+
+test('a head stretch draws the head taller than wide; a squash draws it wider', () => {
+  const box = (svg) => {
+    const d = svg.match(/data-part="head" d="([^"]+)"/)[1];
+    const pts = [...d.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map((m) => [Number(m[1]), Number(m[2])]);
+    const span = (k) => Math.max(...pts.map((p) => p[k])) - Math.min(...pts.map((p) => p[k]));
+    return [span(0), span(1)];
+  };
+  const [w, h] = box(draw({ headStretch: 0.06 }));
+  assert.ok(h > w * 1.08, `${w} x ${h}`);
+  const [w2, h2] = box(draw({ headStretch: -0.06 }));
+  assert.ok(w2 > h2 * 1.08, `${w2} x ${h2}`);
 });

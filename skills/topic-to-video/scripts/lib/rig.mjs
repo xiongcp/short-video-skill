@@ -2,7 +2,7 @@
 // (火柴人主持人设计 §3–§6). Pure functions without dependencies; every shape comes from manifest.json and a seed,
 // so the same input draws the same SVG. Motion, inverse kinematics and tweening come in S2.
 
-import { circlePoints, inkStroke, markerFill, num, pathData } from './ink.mjs';
+import { circlePoints, inkStroke, markerFill, num, pathData, resample } from './ink.mjs';
 
 export const JOINTS = ['pelvis', 'waist', 'chest', 'neck', 'head', 'l_shoulder', 'l_elbow', 'l_wrist', 'r_shoulder', 'r_elbow', 'r_wrist',
   'l_hip', 'l_knee', 'l_ankle', 'r_hip', 'r_knee', 'r_ankle'];
@@ -119,6 +119,26 @@ export function scarfShape(manifest, fk, tailAngles = null) {
     return { outline, tip };
   });
   return { ring, tails };
+}
+
+/**
+ * The 呆毛 as points in head units (R = 1, facing right, −y up): the shape manifest.ahoge.by_expr gives `expr`,
+ * morphed from the shape of `fromExpr` by `mix` (0–1), bent `bend` degrees about its root (positive leans
+ * forward), and lifted onto the hat when the outfit has a `crown` (小青人设设计 §3.1).
+ */
+export function ahogePoints(manifest, { expr, fromExpr = expr, mix = 1, bend = 0, outfit = 'none' }) {
+  const a = manifest.ahoge;
+  const shape = (e) => resample(a.shapes[a.by_expr[e]], a.count);
+  const [from, to] = [shape(fromExpr), shape(expr)];
+  const k = Math.max(0, Math.min(1, mix));
+  const pts = to.map(([u, v], i) => [from[i][0] + (u - from[i][0]) * k, from[i][1] + (v - from[i][1]) * k]);
+  const [ru, rv] = pts[0];
+  const lift = (manifest.outfits?.[outfit]?.crown ?? rv) - rv;
+  return pts.map(([u, v], i) => {
+    const deg = (bend * i) / (pts.length - 1);
+    const [c, sn] = [Math.cos(deg * RAD), Math.sin(deg * RAD)];
+    return [ru + (u - ru) * c - (v - rv) * sn, rv + (u - ru) * sn + (v - rv) * c + lift];
+  });
 }
 
 // ---- drawing ----
@@ -265,6 +285,17 @@ function propShape(ctx, name) {
   }
 }
 
+// Stretch (k > 1) or squash (k < 1) points along the head's axis, keeping its area.
+function squash(points, [cx, cy], headDir, k) {
+  if (k === 1) return points;
+  const a = (headDir + 90) * RAD;
+  const [c, s] = [Math.cos(a), Math.sin(a)];
+  return points.map(([x, y]) => {
+    const [u, w] = [((x - cx) * c + (y - cy) * s) / k, (-(x - cx) * s + (y - cy) * c) * k];
+    return [cx + u * c - w * s, cy + u * s + w * c];
+  });
+}
+
 function heldProp(ctx, fk, prop) {
   const t = propTransform(ctx.manifest, fk, prop);
   return `<g data-prop="${prop}" transform="translate(${num(t.x)} ${num(t.y)}) rotate(${num(t.angle)}) translate(${num(-t.grip[0])} ${num(-t.grip[1])})">${propShape(ctx, prop)}</g>`;
@@ -272,13 +303,15 @@ function heldProp(ctx, fk, prop) {
 
 /**
  * SVG for the host at one moment, as a <g> to place in a 1920×1080 frame (or any frame in px).
- * state: { gesture, expr, view?, facing = 1, x, ground, prop?, blink = 0, theme = 'light', seed }
+ * state: { gesture, expr, view?, facing = 1, x, ground, prop?, blink = 0, theme = 'light', seed,
+ *   ahoge?: { fromExpr, mix, bend }, headStretch = 0 }
  * view defaults to the pose's own view; seed keeps the ink lines fixed within a shot (use the shot ID).
  */
 export function drawHost(manifest, state) {
   const {
     gesture, expr, facing = 1, x = 0, ground = 0, blink = 0, theme = 'light', seed = 'host',
     angles = null, lift = null, mouthOpen = 0, mouthWidth = 0.5, gaze = null, scarfAngles = null, hands = null, symbolOpacity = 1,
+    ahoge = null, headStretch = 0,
   } = state;
   const prop = state.prop === 'none' ? undefined : state.prop; // the prop cue's none puts the prop down
   if (!manifest.expressions[expr]) throw new Error(`unknown expression ${expr}`);
@@ -333,8 +366,14 @@ export function drawHost(manifest, state) {
   const tails = scarfGeom.tails.map((t, i) => `<path data-part="scarf_tail${i}" d="${markerFill(t.outline, { seed: `${ctx.seed}:scarf_tail${i}_fill`, shift: H * 0.0015 })}" fill="${ctx.accent}"/>`
     + `<path data-part="scarf_tail${i}_edge" d="${pathData(t.outline, true)}" fill="none" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[0])}" stroke-linejoin="round"/>`).join('');
   const scarf = `<g data-part="scarf">${pen(ctx, 'scarf_ring', scarfGeom.ring, ctx.lines.scarf, ctx.accent)}</g>`;
-  const head = `<g data-joint="head" ${origin(p.head_base)}>${pen(ctx, 'head', circlePoints(p.head_center[0], p.head_center[1], R, { seed: `${seed}:head-circle` }))}`
-    + `<g data-face="${expr}" transform="translate(${num(p.head_center[0])} ${num(p.head_center[1])}) rotate(${num(dirs.head + 90)}) scale(${facing} 1)">${face(ctx, expr, view, blink, { mouthOpen, mouthWidth, gaze })}</g></g>`;
+  const k = 1 + headStretch;
+  const headFrame = `translate(${num(p.head_center[0])} ${num(p.head_center[1])}) rotate(${num(dirs.head + 90)}) scale(${facing} 1)`;
+  const hair = manifest.ahoge
+    ? `<g data-ahoge="${manifest.ahoge.by_expr[expr]}" transform="${headFrame}">${pen(ctx, 'ahoge',
+      ahogePoints(manifest, { expr, ...(ahoge ?? {}) }).map(([u, v]) => [u * R, (v - (k - 1)) * R]), ctx.width, ctx.ink, { smooth: 2, taper: 'end' })}</g>`
+    : '';
+  const head = `<g data-joint="head" ${origin(p.head_base)}>${pen(ctx, 'head', squash(circlePoints(p.head_center[0], p.head_center[1], R, { seed: `${seed}:head-circle` }), p.head_center, dirs.head, k))}`
+    + `<g data-face="${expr}" transform="${headFrame}">${face(ctx, expr, view, blink, { mouthOpen, mouthWidth, gaze })}</g>${hair}</g>`;
   const rawSym = manifest.expressions[expr].symbol ? symbol(ctx, manifest.expressions[expr].symbol, p.head_center, facing) : '';
   const sym = rawSym && symbolOpacity < 0.999 ? `<g opacity="${num(Math.max(0, symbolOpacity))}">${rawSym}</g>` : rawSym;
   // Far limbs behind the torso, near limbs in front; in the front view every limb is in front.

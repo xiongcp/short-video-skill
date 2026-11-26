@@ -5,7 +5,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
-import { frameSvg, h264RoundTrip, pairSvg } from '../tools/review-host.mjs';
+import { frameSvg, h264RoundTrip, pairSvg, silhouetteSvg } from '../tools/review-host.mjs';
 import { pngSize } from './helpers/png.mjs';
 
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
@@ -62,4 +62,12 @@ test('h264RoundTrip produces a 1920x1080 PNG when ffmpeg is available', (t) => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('silhouetteSvg shows six moods at 540p with the scarf and markers inked black', () => {
+  const svg = silhouetteSvg(manifest);
+  assert.ok(svg.includes('width="960" height="270" viewBox="0 0 1920 540"'));
+  assert.equal((svg.match(/data-host="xiaoqing"/g) ?? []).length, 6);
+  assert.equal((svg.match(/data-part="ahoge"/g) ?? []).length, 6);
+  for (const color of [manifest.ink.accent, ...Object.values(manifest.ink.markers)]) assert.ok(!svg.includes(color), color);
 });
