@@ -122,8 +122,6 @@ function gridLines(step, stroke, strokeWidth, parallax, width, height) {
 }
 
 function chalkboardWipes(pal, width, height, [px, py]) {
-  const ox = ((px % 160) + 160) % 160 - 80;
-  const oy = ((py % 120) + 120) % 120 - 60;
   const wipes = [
     [[140, 180], [520, 140], [880, 195]],
     [[1060, 220], [1480, 175], [1790, 215]],
@@ -133,7 +131,7 @@ function chalkboardWipes(pal, width, height, [px, py]) {
     [[1490, 430], [1760, 385]],
   ];
   const paths = wipes.map((pts, i) => {
-    const shifted = pts.map(([x, y]) => [(x * width) / 1920 + ox, (y * height) / 1080 + oy]);
+    const shifted = pts.map(([x, y]) => [(x * width) / 1920 + px, (y * height) / 1080 + py]);
     const w = i < 4 ? [36, 54] : [22, 34];
     const d = inkStroke(shifted, { seed: `chalk-wipe:${i}`, width: w, wobble: 6, smooth: 1 }).d;
     return `<path d="${d}" fill="${pal.ink}" opacity="${i < 4 ? '0.035' : '0.045'}"/>`;
@@ -142,14 +140,12 @@ function chalkboardWipes(pal, width, height, [px, py]) {
 }
 
 function kraftFibers(pal, width, height, [px, py]) {
-  const ox = ((px % 120) + 120) % 120 - 60;
-  const oy = ((py % 120) + 120) % 120 - 60;
   const fibers = [];
   for (let i = 0; i < 28; i += 1) {
     const col = i % 7;
     const row = Math.floor(i / 7);
-    const x1 = ((col * 280 + row * 95 + 60) * width) / 1920 + ox;
-    const y1 = ((row * 260 + (col % 3) * 70 + 75) * height) / 1080 + oy;
+    const x1 = ((col * 280 + row * 95 + 60) * width) / 1920 + px;
+    const y1 = ((row * 260 + (col % 3) * 70 + 75) * height) / 1080 + py;
     const dx = ((i % 2 === 0 ? 1 : -1) * (95 + (i % 4) * 28) * width) / 1920;
     const dy = (((i % 3) - 1) * 42 + 24) * (height / 1080);
     const mx = x1 + dx * 0.5 + ((i % 2) ? 10 : -10);

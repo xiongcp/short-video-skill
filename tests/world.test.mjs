@@ -57,11 +57,11 @@ const SEMANTIC_COLOR_KEYS = [
 
 function extractPathPoints(d) {
   const pts = [];
-  const tokens = d.match(/[MLA]|-?\d+(?:\.\d+)?/g) ?? [];
+  const tokens = d.match(/[MLQA]|-?\d+(?:\.\d+)?/g) ?? [];
   let cmd = '';
   let i = 0;
   while (i < tokens.length) {
-    if (/^[MLA]$/.test(tokens[i])) {
+    if (/^[MLQA]$/.test(tokens[i])) {
       cmd = tokens[i];
       i += 1;
       continue;
@@ -69,6 +69,10 @@ function extractPathPoints(d) {
     if (cmd === 'M' || cmd === 'L') {
       pts.push([Number(tokens[i]), Number(tokens[i + 1])]);
       i += 2;
+    } else if (cmd === 'Q') {
+      pts.push([Number(tokens[i]), Number(tokens[i + 1])]);
+      pts.push([Number(tokens[i + 2]), Number(tokens[i + 3])]);
+      i += 4;
     } else if (cmd === 'A') {
       // A rx ry x-axis-rotation large-arc-flag sweep-flag x y
       pts.push([Number(tokens[i + 5]), Number(tokens[i + 6])]);
@@ -143,6 +147,25 @@ test('styleBackgroundSvg renders deterministic pure vector SVG with parallax for
   assert.equal(paperBackgroundSvg('light', 1920, 1080, [5, 7]), styleBackgroundSvg('paper', 1920, 1080, [5, 7]));
   assert.equal(paperBackgroundSvg('dark', 1920, 1080, [5, 7]), styleBackgroundSvg('night', 1920, 1080, [5, 7]));
   assert.throws(() => styleBackgroundSvg('unknown-style'), /unknown style/i);
+});
+
+test('chalkboard and kraft parallax moves smoothly across zero without modulo jumps', () => {
+  for (const name of ['chalkboard', 'kraft']) {
+    const atZero = styleBackgroundSvg(name, 1920, 1080, [0, 0]);
+    const atNeg = styleBackgroundSvg(name, 1920, 1080, [-1, -1]);
+    const zeroPaths = [...atZero.matchAll(/<path[^>]*\bd="([^"]+)"/g)].map((m) => extractPathPoints(m[1]));
+    const negPaths = [...atNeg.matchAll(/<path[^>]*\bd="([^"]+)"/g)].map((m) => extractPathPoints(m[1]));
+    assert.equal(zeroPaths.length, negPaths.length, `${name} path count stays equal`);
+    assert.ok(zeroPaths.length > 0, `${name} emits paths`);
+    for (let i = 0; i < zeroPaths.length; i += 1) {
+      assert.equal(zeroPaths[i].length, negPaths[i].length, `${name} path ${i} point count`);
+      for (let j = 0; j < zeroPaths[i].length; j += 1) {
+        const dx = negPaths[i][j][0] - zeroPaths[i][j][0];
+        const dy = negPaths[i][j][1] - zeroPaths[i][j][1];
+        assert.ok(Math.abs(dx) <= 2 && Math.abs(dy) <= 2, `${name} path ${i} pt ${j} jumped by (${dx}, ${dy})`);
+      }
+    }
+  }
 });
 
 test('SCENE_NAMES has 8 scenes with ground line at y=930 and clear central stage', () => {
