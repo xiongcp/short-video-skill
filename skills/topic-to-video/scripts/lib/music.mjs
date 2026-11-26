@@ -1,5 +1,7 @@
 // Synthesized music beds in four moods with section breaths and a soft Schroeder reverb (音效与配乐设计 §5).
 // Only this module imports sound.mjs; sound.mjs never imports it back.
+import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { makeRng, onePoleHighpass, onePoleLowpass, SAMPLE_RATE } from './sound.mjs';
 
 const SR = SAMPLE_RATE;
@@ -208,4 +210,81 @@ export function synthMusicBed(mood, { durationSec, breathAtSec = [], seed = 'mus
   L[n - 1] = 0;
   R[n - 1] = 0;
   return { left: L, right: R };
+}
+
+/**
+ * Linear gain that ducks the music under speech: 1 in pauses, 10^(duckDb/20) while speaking. Each interval starts
+ * ducking `leadMs` before it begins (reaching the floor after `attackMs`) and releases `holdMs` after it ends over
+ * `releaseMs`. Where one interval's release meets the next one's attack the lower gain wins. Ramps are linear in dB.
+ */
+export function duckingGains(intervals, totalSamples, { duckDb = -6, leadMs = 120, attackMs = 150, holdMs = 300, releaseMs = 500, sampleRate = SAMPLE_RATE } = {}) {
+  const g = new Float32Array(totalSamples).fill(1);
+  const ms = (v) => Math.round((v * sampleRate) / 1000);
+  const lead = ms(leadMs);
+  const attack = Math.max(1, ms(attackMs));
+  const hold = ms(holdMs);
+  const release = Math.max(1, ms(releaseMs));
+  const gainAt = (fraction) => 10 ** ((duckDb * fraction) / 20);
+  for (const { start, end } of intervals) {
+    const a0 = start - lead;
+    const r0 = end + hold;
+    const from = Math.max(0, a0);
+    const to = Math.min(totalSamples, r0 + release);
+    for (let i = from; i < to; i += 1) {
+      const depth = i < a0 + attack ? (i - a0) / attack : i < r0 ? 1 : 1 - (i - r0) / release;
+      const v = gainAt(Math.min(1, Math.max(0, depth)));
+      if (v < g[i]) g[i] = v;
+    }
+  }
+  return g;
+}
+
+/**
+ * Loops a short file with crossfaded seams (half the file when it is shorter than two crossfades) or trims a long one,
+ * then fades the last `fadeOutSec` linearly to exactly 0.
+ */
+export function fitMusicToLength(left, right, totalSamples, { crossfadeSec = 1, fadeOutSec = 3, sampleRate = SAMPLE_RATE } = {}) {
+  const L = new Float32Array(totalSamples);
+  const R = new Float32Array(totalSamples);
+  const len = Math.min(left.length, right.length);
+  if (len > 0) {
+    let cf = Math.round(crossfadeSec * sampleRate);
+    if (len < 2 * cf) cf = Math.floor(len / 2);
+    const stride = len - cf;
+    for (let pos = 0; pos < totalSamples; pos += stride) {
+      const more = pos + len < totalSamples;
+      for (let k = 0; k < len && pos + k < totalSamples; k += 1) {
+        let w = 1;
+        if (pos > 0 && k < cf) w *= k / cf;
+        if (more && k >= stride) w *= (len - k) / cf;
+        L[pos + k] += left[k] * w;
+        R[pos + k] += right[k] * w;
+      }
+    }
+  }
+  const fade = Math.min(totalSamples, Math.max(1, Math.round(fadeOutSec * sampleRate)));
+  for (let k = 0; k < fade; k += 1) {
+    const i = totalSamples - 1 - k;
+    L[i] = k === 0 ? 0 : L[i] * (k / fade);
+    R[i] = k === 0 ? 0 : R[i] * (k / fade);
+  }
+  return { left: L, right: R };
+}
+
+/** Decodes a user music file to stereo 48 kHz with FFmpeg and fits it to `totalSamples`. */
+export function loadUserMusic(absPath, totalSamples, { ffmpeg = 'ffmpeg' } = {}) {
+  if (!existsSync(absPath)) throw new Error(`音乐文件不存在：${absPath}`);
+  const run = spawnSync(ffmpeg, ['-v', 'error', '-i', absPath, '-f', 'f32le', '-ac', '2', '-ar', String(SR), 'pipe:1'], { maxBuffer: 1 << 30 });
+  if (run.error || run.status !== 0) throw new Error(`无法读取音乐文件：${absPath}：${run.error?.message ?? String(run.stderr).trim()}`);
+  const buf = run.stdout;
+  const frames = Math.floor(buf.length / 8);
+  const pcm = new Float32Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + frames * 8));
+  const left = new Float32Array(frames);
+  const right = new Float32Array(frames);
+  for (let i = 0; i < frames; i += 1) {
+    left[i] = pcm[2 * i];
+    right[i] = pcm[2 * i + 1];
+  }
+  const fitted = fitMusicToLength(left, right, totalSamples);
+  return { ...fitted, silent: stereoRms(fitted.left, fitted.right) < 1e-5 };
 }
