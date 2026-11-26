@@ -71,10 +71,18 @@ test('SKILL.md stays within 8 KB and each reference within 10 KB', () => {
   }
 });
 
-// 24 KB until S1; the stick-figure host added 8 expressions, 12 gestures, 6 props and walking (火柴人主持人设计 §10).
-// 28 KB until V; the voice presets and tone rules added 2 KB (声音人设设计 §6, owner approved 2026-11-25).
-test('a full L0 run reads at most 30 KB of skill files', () => {
+// 24 KB until S1, 28 KB until V, 30 KB until H. The owner raised it to 100 KB on 2026-11-25 after checking what
+// Hermes, Claude Code, Codex and Antigravity load (小青人设设计 §5.1); the per-file caps above stay.
+test('a full L0 run reads at most 100 KB of skill files', () => {
   const read = ['SKILL.md', 'references/script.md', 'references/storyboard.md', 'references/prompt-pack.md', 'assets/host/profile.json'];
   const total = read.reduce((sum, f) => sum + bytes(join(SKILL, f)), 0);
-  assert.ok(total <= 30 * KB, `${total} bytes`);
+  assert.ok(total <= 100 * KB, `${total} bytes`);
+});
+
+// Hermes lists a skill by the first 60 characters of its description (skills.index_desc_limit, 小青人设设计 §5.1).
+test('the first 60 characters of the description say what the skill makes', () => {
+  const description = readFileSync(join(SKILL, 'SKILL.md'), 'utf8').match(/^description: (.+)$/m)[1];
+  const head = [...description].slice(0, 60).join('');
+  assert.match(head, /中文知识解说视频/);
+  assert.match(head, /分镜/);
 });
