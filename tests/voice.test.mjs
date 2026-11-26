@@ -170,6 +170,13 @@ test('render.mjs reads the word after --audition as a preset list only when it l
   assert.deepEqual(parseArgs(['proj', '--preset', 'slow']), { projectDir: 'proj', preset: 'slow' });
 });
 
+test('render.mjs reads the word after --audition-sound as a mood list only when every item is a mood', () => {
+  assert.deepEqual(parseArgs(['proj', '--audition-sound']), { projectDir: 'proj', auditionSound: true });
+  assert.deepEqual(parseArgs(['--audition-sound', 'calm,upbeat', 'proj']), { projectDir: 'proj', auditionSound: true, auditionSoundList: 'calm,upbeat' });
+  assert.deepEqual(parseArgs(['--audition-sound', 'proj']), { projectDir: 'proj', auditionSound: true });
+  assert.deepEqual(parseArgs(['--audition-sound', 'calm,proj']), { projectDir: 'calm,proj', auditionSound: true });
+});
+
 test('--audition needs FFmpeg and an edge-tts command but not resvg, and reports a bad list instead of throwing', () => {
   const { dir, command } = scratch();
   writeFileSync(join(dir, 'project.json'), JSON.stringify(minimal()));

@@ -1,12 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { FPS, manifest, soundFixture } from './helpers/sound-fixture.mjs';
-import { speechIntervals } from '../skills/topic-to-video/scripts/lib/sound.mjs';
+import { readWavPcm } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
+import { SFX_KINDS, speechIntervals } from '../skills/topic-to-video/scripts/lib/sound.mjs';
 import {
+  auditionSound,
   buildSoundtrack,
   duckingGains,
   fitMusicToLength,
@@ -274,4 +276,20 @@ test('sound off leaves only the voice in the mix', () => {
   assert.equal(track.report.musicSource, null);
   assert.deepEqual(track.report.sfxCounts, {});
   assert.ok(track.stems.musicMid.every((v) => v === 0) && track.stems.sfxMid.every((v) => v === 0));
+});
+
+test('auditionSound writes a 15 s stereo clip per mood and one effects reel without project.json', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'audition-sound-'));
+  const res = auditionSound(dir, { moods: ['calm'] });
+  assert.equal(res.ok, true);
+  assert.equal(res.files.length, 2);
+  assert.deepEqual(res.files.map((f) => f.kind), ['music', 'sfx']);
+  assert.equal(res.files[0].mood, 'calm');
+  const music = readWavPcm(readFileSync(join(dir, 'out/audition/music-calm.wav')));
+  assert.equal(music.channels, 2);
+  assert.equal(music.durationMs, 15000);
+  assert.ok(existsSync(join(dir, 'out/audition/sfx.wav')));
+  const reel = readWavPcm(readFileSync(join(dir, 'out/audition/sfx.wav')));
+  assert.equal(reel.channels, 2);
+  assert.ok(Math.abs(reel.durationMs / 1000 - (0.8 * (SFX_KINDS.length - 1) + 1.6)) < 0.1, String(reel.durationMs));
 });

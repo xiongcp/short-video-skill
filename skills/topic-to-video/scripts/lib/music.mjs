@@ -1,17 +1,21 @@
 // Synthesized music beds in four moods with section breaths and a soft Schroeder reverb (音效与配乐设计 §5).
 // Only this module imports sound.mjs; sound.mjs never imports it back.
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { resolveSound } from './project.mjs';
+import { MUSIC_MOODS, resolveSound } from './project.mjs';
 import {
   collectSoundEvents,
+  loudestWindowRms,
   makeRng,
   onePoleHighpass,
   onePoleLowpass,
   renderSfxStem,
   SAMPLE_RATE,
+  SFX_DURATION_MS,
+  SFX_KINDS,
   speechIntervals,
+  synthSfx,
   thinSoundEvents,
 } from './sound.mjs';
 
@@ -433,4 +437,37 @@ export function buildSoundtrack({ project, projectDir, allPlans, selectedPlans, 
     scale: mix.scale,
     report,
   };
+}
+
+/**
+ * --audition-sound: writes a 15 s clip per music mood at -20 dBFS and one reel of every effect, 0.8 s apart and
+ * centred, each with its loudest 100 ms at -20 dBFS, into out/audition/. Reads no project.json and needs no FFmpeg.
+ */
+export function auditionSound(projectDir, { moods = MUSIC_MOODS, seed = 'audition' } = {}) {
+  const dir = join(projectDir, 'out/audition');
+  mkdirSync(dir, { recursive: true });
+  const target = 10 ** (-20 / 20);
+  const files = [];
+  for (const mood of moods) {
+    const bed = synthMusicBed(mood, { durationSec: 15, breathAtSec: [8], seed });
+    const rms = stereoRms(bed.left, bed.right);
+    const k = rms > 0 ? target / rms : 0;
+    const file = join(dir, `music-${mood}.wav`);
+    writeFileSync(file, makeStereoWavBuffer(bed.left.map((v) => v * k), bed.right.map((v) => v * k)));
+    files.push({ file, kind: 'music', mood, seconds: 15 });
+  }
+  const gapSamples = Math.round(0.8 * SR);
+  const total = gapSamples * (SFX_KINDS.length - 1) + Math.round((SFX_DURATION_MS[SFX_KINDS.at(-1)] * SR) / 1000);
+  const reel = new Float32Array(total);
+  SFX_KINDS.forEach((kind, i) => {
+    const buf = synthSfx(kind, { seed });
+    const ref = loudestWindowRms(buf);
+    const g = ref > 0 ? target / ref : 0;
+    const start = i * gapSamples;
+    for (let j = 0; j < buf.length && start + j < total; j += 1) reel[start + j] += buf[j] * g;
+  });
+  const file = join(dir, 'sfx.wav');
+  writeFileSync(file, makeStereoWavBuffer(reel, reel));
+  files.push({ file, kind: 'sfx', seconds: Number((total / SR).toFixed(2)) });
+  return { ok: true, files };
 }
