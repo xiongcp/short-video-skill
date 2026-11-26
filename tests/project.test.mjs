@@ -327,7 +327,7 @@ test('VOICE_PRESETS matches the preset enum in the schema, with 晓晓 and 云�
   const schema = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/schema/project.schema.json'), 'utf8'));
   assert.deepEqual(Object.keys(VOICE_PRESETS), schema.$defs.voice.properties.preset.enum);
   assert.deepEqual(VOICE_PRESETS['female-warm'], { voice: 'zh-CN-XiaoxiaoNeural', speed: 0.96, name: '女声·晓晓' });
-  assert.deepEqual(VOICE_PRESETS['male-sunny'], { voice: 'zh-CN-YunxiNeural', speed: 0.92, name: '男声·云希' });
+  assert.deepEqual(VOICE_PRESETS['male-sunny'], { voice: 'zh-CN-YunxiNeural', speed: 0.9, name: '男声·云希' });
 });
 
 test('reports an unknown voice preset', () => {

@@ -44,7 +44,7 @@ function scratch() {
 }
 
 test('resolveVoice: a preset supplies voice and speed, explicit fields win, and no preset keeps the old defaults', () => {
-  assert.deepEqual(resolveVoice({ provider: 'command', preset: 'male-sunny' }), { voice: 'zh-CN-YunxiNeural', speed: 0.92, rate: '-8%', pitch: '+0Hz' });
+  assert.deepEqual(resolveVoice({ provider: 'command', preset: 'male-sunny' }), { voice: 'zh-CN-YunxiNeural', speed: 0.9, rate: '-10%', pitch: '+0Hz' });
   assert.deepEqual(resolveVoice({ provider: 'command', preset: 'male-sunny', voice: 'zh-CN-YunjianNeural', speed: 1.1, pitch: -3 }),
     { voice: 'zh-CN-YunjianNeural', speed: 1.1, rate: '+10%', pitch: '-3Hz' });
   assert.deepEqual(resolveVoice({ provider: 'command' }), { voice: 'zh-CN-XiaoxiaoNeural', speed: 1, rate: '-4%', pitch: '+0Hz' });
@@ -58,14 +58,14 @@ test('the command gets the preset voice, rate and pitch; a new preset re-synthes
   p.voice = { provider: 'command', preset: 'male-sunny', command };
   await synthesizeProject(p, dir);
   assert.deepEqual(calls(), [
-    { voice: 'zh-CN-YunxiNeural', rate: '-8%', pitch: '+0Hz', text: '天空为什么是蓝的？' },
-    { voice: 'zh-CN-YunxiNeural', rate: '-8%', pitch: '+0Hz', text: '答案藏在阳光里。' },
+    { voice: 'zh-CN-YunxiNeural', rate: '-10%', pitch: '+0Hz', text: '天空为什么是蓝的？' },
+    { voice: 'zh-CN-YunxiNeural', rate: '-10%', pitch: '+0Hz', text: '答案藏在阳光里。' },
   ]);
   p.voice.preset = 'female-warm';
   await synthesizeProject(p, dir);
   await synthesizeProject(p, dir);
   assert.deepEqual(calls().map((c) => `${c.voice} ${c.rate}`), [
-    'zh-CN-YunxiNeural -8%', 'zh-CN-YunxiNeural -8%', 'zh-CN-XiaoxiaoNeural -4%', 'zh-CN-XiaoxiaoNeural -4%',
+    'zh-CN-YunxiNeural -10%', 'zh-CN-YunxiNeural -10%', 'zh-CN-XiaoxiaoNeural -4%', 'zh-CN-XiaoxiaoNeural -4%',
   ]);
 });
 
@@ -119,11 +119,11 @@ test('auditionVoices writes one trimmed clip per preset and all.wav, and leaves 
   const r = auditionVoices(p, dir, { presets: selectPresets('male'), command });
   assert.equal(r.text, '天空为什么是蓝的？答案藏在太阳光里。');
   assert.deepEqual(r.presets.map((x) => [x.preset, x.name, x.voice, x.speed, x.file]), [
-    ['male-sunny', '男声·云希', 'zh-CN-YunxiNeural', 0.92, 'out/audition/01-male-sunny.wav'],
+    ['male-sunny', '男声·云希', 'zh-CN-YunxiNeural', 0.9, 'out/audition/01-male-sunny.wav'],
     ['male-passion', '男声·云健', 'zh-CN-YunjianNeural', 0.98, 'out/audition/02-male-passion.wav'],
     ['male-pro', '男声·云扬', 'zh-CN-YunyangNeural', 0.92, 'out/audition/03-male-pro.wav'],
   ]);
-  assert.deepEqual(calls().map((c) => `${c.voice} ${c.rate} ${c.pitch}`), ['zh-CN-YunxiNeural -8% +0Hz', 'zh-CN-YunjianNeural -2% +0Hz', 'zh-CN-YunyangNeural -8% +0Hz']);
+  assert.deepEqual(calls().map((c) => `${c.voice} ${c.rate} ${c.pitch}`), ['zh-CN-YunxiNeural -10% +0Hz', 'zh-CN-YunjianNeural -2% +0Hz', 'zh-CN-YunyangNeural -8% +0Hz']);
   for (const x of r.presets) assert.ok(x.duration_ms >= 440 && x.duration_ms <= 510, `trimmed like the real voice-over: ${x.duration_ms}`);
   assert.deepEqual(readdirSync(join(dir, 'out/audition')).sort(), ['01-male-sunny.wav', '02-male-passion.wav', '03-male-pro.wav', 'all.wav']);
   const all = readWavPcm(readFileSync(join(dir, r.all)));
@@ -148,7 +148,7 @@ test('doctor recommends edge-tts, then uvx, then say, then import, and leaves vo
   assert.deepEqual(recommendVoice({ say: true }), { provider: 'command', voice: 'Tingting', command: 'say -v Tingting -o {out} {text}' });
   assert.deepEqual(recommendVoice({}), { provider: 'import' });
   const copied = { ...recommendVoice({ edgeTts: true }), preset: 'male-sunny' };
-  assert.deepEqual(resolveVoice(copied), { voice: 'zh-CN-YunxiNeural', speed: 0.92, rate: '-8%', pitch: '+0Hz' });
+  assert.deepEqual(resolveVoice(copied), { voice: 'zh-CN-YunxiNeural', speed: 0.9, rate: '-10%', pitch: '+0Hz' });
 });
 
 test('render.mjs reads the word after --audition as a preset list only when it looks like one', () => {

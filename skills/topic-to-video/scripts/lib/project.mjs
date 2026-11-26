@@ -65,7 +65,7 @@ export const SCHEMA_FIELDS = {
 export const VOICE_PRESETS = {
   'female-warm': { voice: 'zh-CN-XiaoxiaoNeural', speed: 0.96, name: '女声·晓晓' },
   'female-lively': { voice: 'zh-CN-XiaoyiNeural', speed: 0.96, name: '女声·晓伊' },
-  'male-sunny': { voice: 'zh-CN-YunxiNeural', speed: 0.92, name: '男声·云希' },
+  'male-sunny': { voice: 'zh-CN-YunxiNeural', speed: 0.9, name: '男声·云希' },
   'male-passion': { voice: 'zh-CN-YunjianNeural', speed: 0.98, name: '男声·云健' },
   'male-pro': { voice: 'zh-CN-YunyangNeural', speed: 0.92, name: '男声·云扬' },
   'child-cute': { voice: 'zh-CN-YunxiaNeural', speed: 0.98, name: '童声·云夏' },
