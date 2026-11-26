@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ahogePoints, drawHost, resolvePose } from '../skills/topic-to-video/scripts/lib/rig.mjs';
-import { evaluateHostAt, simulateAhogeSpring } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { evaluateHostAt, fidgetSchedule, simulateAhogeSpring } from '../skills/topic-to-video/scripts/lib/motion.mjs';
 
 // 小青人设设计 (H): the 呆毛, bigger faces, amazed, five persona gestures, outfits, auto beats and fidgets.
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
@@ -247,4 +247,33 @@ test('at 540p the snap sparkle outline stays at least 1.5 px wide', () => {
   const svg = drawHost(small, { gesture: 'snap', expr: 'amazed', spark: 1, x: 200, ground: 465, seed: 'small-spark' });
   assert.match(svg, /data-spark="1"/);
   for (const m of svg.matchAll(/stroke-width="([\d.]+)"/g)) assert.ok(Number(m[1]) >= 1.5 - 1e-6, `stroke ${m[1]}`);
+});
+
+const longTake = (extra = {}) => plan([], { durationSec: 12, sentences: [{ index: 0, startMs: 0, endMs: 11800, text: '讲一句很长的话。' }], ...extra });
+const fidgetsBetween = (p, from, to) => { const out = []; for (let t = from; t < to; t += 0.05) out.push(evaluateHostAt(manifest, p, t).fidget); return out; };
+
+test('fidgets come only after 3 quiet seconds and the same way every render', () => {
+  assert.ok(fidgetsBetween(longTake(), 0, 3).every((k) => k === null));
+  assert.ok(fidgetsBetween(longTake(), 3, 7.5).some((k) => k !== null));
+  assert.deepEqual(fidgetsBetween(longTake(), 3, 12), fidgetsBetween(longTake(), 3, 12));
+  assert.deepEqual(fidgetSchedule([[0, 12]], 'sh01'), fidgetSchedule([[0, 12]], 'sh01'));
+  assert.notDeepEqual(fidgetSchedule([[0, 30]], 'sh01'), fidgetSchedule([[0, 30]], 'sh02'));
+  const gaps = fidgetSchedule([[0, 30]], 'sh01').map((f) => f.t0);
+  assert.equal(gaps[0], 3);
+  gaps.slice(1).forEach((t0, i) => assert.ok(t0 - gaps[i] >= 3 && t0 - gaps[i] <= 4, `gap ${t0 - gaps[i]}`));
+});
+
+test('no fidget while walking or during a once gesture', () => {
+  const walk = longTake({ durationSec: 6, cues: [{ sentence: 0, do: 'move', target: 'right', timeMs: 0 }] });
+  for (let t = 0; t < 6; t += 0.05) {
+    const s = evaluateHostAt(manifest, walk, t);
+    if (s.view === 'side') assert.equal(s.fidget, null, `walking at ${t}`);
+  }
+  const jump = longTake({ cues: [{ sentence: 0, do: 'gesture', target: 'jump', timeMs: 5000 }] });
+  assert.ok(fidgetsBetween(jump, 5, 6.3).every((k) => k === null));
+});
+
+test('a seated host never floats: tiptoe is skipped while sitting', () => {
+  const seated = plan([], { durationSec: 30, startState: { ...START, gesture: 'sit' }, sentences: [{ index: 0, startMs: 0, endMs: 29800, text: '讲。' }] });
+  for (let t = 0; t < 30; t += 0.05) assert.equal(evaluateHostAt(manifest, seated, t).lift, 0, `t=${t}`);
 });

@@ -191,6 +191,21 @@ export function simulateAhogeSpring(manifest, targetFn, t) {
   return bend;
 }
 
+/**
+ * Idle fidgets (小青人设设计 §4.3): in every stretch without a gesture or move cue (`quiet`, start and end in
+ * seconds), one 0.8 s fidget 3 s in and then every 3–4 s, chosen and timed by the shot seed.
+ * @returns {{ t0: number, kind: 'look' | 'tiptoe' | 'flick' }[]}
+ */
+export function fidgetSchedule(quiet, seed) {
+  const out = [];
+  for (const [from, to] of quiet) {
+    const rnd = random(`${seed}:fidget:${from.toFixed(3)}`);
+    for (let t0 = from + 3; t0 + 0.8 <= to; t0 += 3 + rnd()) out.push({ t0, kind: FIDGETS[Math.floor(rnd() * FIDGETS.length)] });
+  }
+  return out;
+}
+const FIDGETS = ['look', 'tiptoe', 'flick'];
+
 const BEAT_CYCLE = ['present', 'point', 'emphasize', 'shrug'];
 
 /**
@@ -398,6 +413,14 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     ? [focusEl.bbox.x + focusEl.bbox.w / 2, focusEl.bbox.y + focusEl.bbox.h + 20]
     : [1240, 320];
 
+  // Quiet stretches between gesture and move cues, and the fidgets in them (§4.3)
+  const cueTimes = [0, ...effectiveCues.filter((c) => c.do === 'gesture' || c.do === 'move').map((c) => c.timeMs / 1000), plan.durationSec ?? Infinity];
+  const quiet = cueTimes.slice(1).map((end, i) => [cueTimes[i], end]).filter(([a, b]) => b > a);
+  const fidgets = fidgetSchedule(quiet, plan.seed ?? 'sh01')
+    .filter((f) => !walkSegments.some((seg) => f.t0 < seg.t1 && f.t0 + 0.8 > seg.t0));
+  const fidget = fidgets.find((f) => t >= f.t0 && t < f.t0 + 0.8) ?? null;
+  const fidgetEnv = fidget ? Math.sin(((t - fidget.t0) / 0.8) * Math.PI) : 0;
+
   // Build angles + lift + view
   let gesture = holdGesture;
   let spark = 0;
@@ -552,14 +575,23 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   // Surprise recoil (§4.4): surprised or amazed leans the body back for 0.3 s; the gesture stays.
   const surpriseAt = ['surprised', 'amazed'].includes(expr) && exprChangedAt >= 0 ? exprChangedAt : null;
   const recoil = surpriseAt !== null && t - surpriseAt < 0.3 ? Math.sin(((t - surpriseAt) / 0.3) * Math.PI) : 0;
-  angles = clampAngles(manifest, { ...angles, waist: angles.waist - 5 * recoil, chest: angles.chest - 4 * recoil });
+  const fidgetOn = fidget && !walking && !inOnce ? fidgetEnv : 0;
+  angles = clampAngles(manifest, {
+    ...angles,
+    waist: angles.waist - 5 * recoil,
+    chest: angles.chest - 4 * recoil,
+    head: angles.head - (fidget?.kind === 'look' ? 6 * fidgetOn : 0),
+  });
+  if (fidget?.kind === 'tiptoe' && holdGesture !== 'sit') lift += 0.02 * fidgetOn;
+  if (fidget?.kind === 'look' && fidgetOn > 0) gazeOverride = [-0.08 * fidgetOn, 0];
   shiftX += -facing * 0.015 * H * recoil;
   const finalX = x + micro.weightShift + shiftX;
 
-  // 呆毛: morph to the new expression's shape, spring on walks and kicks (§3.1, §4.4)
+  // 呆毛: morph to the new expression's shape, spring on walks, kicks and flicks (§3.1, §4.3, §4.4)
   const kicks = [
     ...effectiveCues.filter((c) => c.do === 'gesture' && ['jump', 'startle', 'double_take'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: c.target === 'startle' ? -1 : 1 })),
     ...effectiveCues.filter((c) => c.do === 'expr' && ['surprised', 'amazed'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: -0.7 })),
+    ...fidgets.filter((f) => f.kind === 'flick').map((f) => ({ t0: f.t0, amp: 0.6 })),
   ];
   const kick = manifest.ahoge.spring.kick;
   const bend = simulateAhogeSpring(manifest, (ts) => {
@@ -605,6 +637,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     ahoge,
     headStretch,
     spark,
+    fidget: fidgetOn > 0 ? fidget.kind : null,
     symbolOpacity,
     // Metadata for scene & QA:
     tapImpact,
