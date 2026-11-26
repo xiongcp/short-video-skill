@@ -304,3 +304,51 @@ test('a snap the agent writes always plays and does not count toward the cap', (
   assert.equal(evaluateHostAt(manifest, p, 0.2).gesture, 'snap');
   assert.equal(evaluateHostAt(manifest, p, 1).endState.autoSnaps, 2);
 });
+
+test('lean_in and double_take face the focus element and lean_in holds focus gaze', () => {
+  const leftEl = [{ index: 0, label: '目标', bbox: { x: 600, y: 120, w: 200, h: 100 } }];
+  const lean = plan(
+    [{ sentence: 0, do: 'highlight', target: 0, timeMs: 0 }, { sentence: 0, do: 'gesture', target: 'lean_in', timeMs: 0 }],
+    { startState: { ...START, x: 1400, facing: 1 }, elements: leftEl },
+  );
+  const sLean = evaluateHostAt(manifest, lean, 1.5);
+  assert.equal(sLean.facing, -1, 'lean_in turns to face a focus element on the left');
+  assert.ok(sLean.gaze[0] > 0, `lean_in holds gaze toward the focus past 0.6s, got ${sLean.gaze}`);
+  const dt = plan(
+    [{ sentence: 0, do: 'highlight', target: 0, timeMs: 0 }, { sentence: 0, do: 'gesture', target: 'double_take', timeMs: 1000 }],
+    { startState: { ...START, x: 1400, facing: 1 }, elements: leftEl },
+  );
+  assert.equal(evaluateHostAt(manifest, dt, 1.55).facing, -1, 'double_take faces a focus element on the left');
+});
+
+test('glasses rims never overlap in three_quarter view and the bridge runs left to right', () => {
+  const svg = draw({ outfit: 'glasses', view: 'three_quarter' });
+  const rimX = (i) => {
+    const d = svg.match(new RegExp(`data-part="glasses${i}" d="([^"]+)"`))[1];
+    const xs = [...d.matchAll(/[ML](-?[\d.]+) -?[\d.]+/g)].map((m) => Number(m[1]));
+    return [Math.min(...xs), Math.max(...xs)];
+  };
+  const [, rightEdge0] = rimX(0);
+  const [leftEdge1] = rimX(1);
+  assert.ok(rightEdge0 < leftEdge1, `glasses rims overlap: right0=${rightEdge0}, left1=${leftEdge1}`);
+  const bridge = svg.match(/data-part="glasses_bridge" d="([^"]+)"/)[1];
+  const pts = [...bridge.matchAll(/[ML](-?[\d.]+) -?[\d.]+/g)].map((m) => Number(m[1]));
+  assert.ok(pts[0] < pts[Math.floor(pts.length / 2) - 1], `bridge runs backwards: ${pts[0]} -> ${pts[Math.floor(pts.length / 2) - 1]}`);
+});
+
+test('hats shift with headStretch so the 呆毛 stays attached to the crown', () => {
+  for (const outfit of ['hardhat', 'chef_hat']) {
+    const svg = draw({ outfit, expr: 'surprised', headStretch: 0.06 });
+    const shift = (-(0.06 * R)).toFixed(2).replace(/\.?0+$/, '');
+    assert.ok(svg.includes(`transform="translate(0 ${shift})"><g data-outfit="${outfit}"`), `${outfit} shifts with headStretch`);
+  }
+});
+
+test('starting a shot with startle, jump or double_take kicks the 呆毛 spring', () => {
+  for (const g of ['startle', 'jump', 'double_take']) {
+    const p = plan([], { startState: { ...START, gesture: g } });
+    let maxBend = 0;
+    for (let t = 0.05; t <= 0.8; t += 0.05) maxBend = Math.max(maxBend, Math.abs(evaluateHostAt(manifest, p, t).ahoge.bend));
+    assert.ok(maxBend > 2, `${g} at shot start had maxBend=${maxBend}`);
+  }
+});

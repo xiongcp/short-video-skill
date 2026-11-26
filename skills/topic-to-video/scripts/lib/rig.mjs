@@ -183,8 +183,8 @@ function face(base, expr, view, blink, { mouthOpen = 0, mouthWidth = 0.5, gaze =
   const eyeCenter = at(v.eyes.reduce((s, u) => s + u, 0) / v.eyes.length, -0.02);
   parts.push(`<g data-face-part="eyes" style="transform-origin:${num(eyeCenter[0])}px ${num(eyeCenter[1])}px">${eyes.join('')}</g>`);
   if (outfit === 'glasses') {
-    const rr = ctx.manifest.outfits.glasses.rim * R;
     const xs = v.eyes.map((u) => at(u, 0)[0]);
+    const rr = Math.min(ctx.manifest.outfits.glasses.rim * R, xs.length > 1 ? (xs[1] - xs[0]) / 2 - ctx.lines.fine[1] * 0.6 : Infinity);
     const rims = xs.map((gx0, i) => pen(ctx, `glasses${i}`, circlePoints(gx0, -0.02 * R, rr, { seed: `${ctx.seed}:glasses${i}`, overdraw: 0.2, count: 32 }), ctx.lines.fine));
     const bridge = xs.length > 1 ? pen(ctx, 'glasses_bridge', [[xs[0] + rr, -0.06 * R], [(xs[0] + xs[1]) / 2, -0.12 * R], [xs[1] - rr, -0.06 * R]], ctx.lines.fine) : '';
     const arm = view === 'front' ? '' : pen(ctx, 'glasses_arm', [[xs[0] - rr, -0.05 * R], [-0.92 * R, -0.12 * R]], ctx.lines.fine);
@@ -414,8 +414,10 @@ export function drawHost(manifest, state) {
   const scarf = `<g data-part="scarf">${pen(ctx, 'scarf_ring', scarfGeom.ring, ctx.lines.scarf, ctx.accent)}</g>`;
   const k = 1 + headStretch;
   const headFrame = `translate(${num(p.head_center[0])} ${num(p.head_center[1])}) rotate(${num(dirs.head + 90)}) scale(${facing} 1)`;
+  const hat = hatShape(ctx, outfit);
+  const hatSvg = hat && k !== 1 ? `<g transform="translate(0 ${num(-(k - 1) * R)})">${hat}</g>` : hat;
   const hair = manifest.ahoge
-    ? `<g data-ahoge="${manifest.ahoge.by_expr[expr]}" transform="${headFrame}">${hatShape(ctx, outfit)}${pen(ctx, 'ahoge',
+    ? `<g data-ahoge="${manifest.ahoge.by_expr[expr]}" transform="${headFrame}">${hatSvg}${pen(ctx, 'ahoge',
       ahogePoints(manifest, { expr, ...(ahoge ?? {}), outfit }).map(([u, v]) => [u * R, (v - (k - 1)) * R]), ctx.width, ctx.ink, { smooth: 2, taper: 'end' })}</g>`
     : '';
   const head = `<g data-joint="head" ${origin(p.head_base)}>${pen(ctx, 'head', squash(circlePoints(p.head_center[0], p.head_center[1], R, { seed: `${seed}:head-circle` }), p.head_center, dirs.head, k))}`

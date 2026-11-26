@@ -460,10 +460,13 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
       angles = clampAngles(manifest, toA);
     }
 
-    // Apply IK aiming for point/present
+    // Apply IK aiming for point/present, and orient lean_in toward the focus element (小青人设设计 §4.1)
     if (isPoint && focusEl) {
       facing = focusPt[0] >= x ? 1 : -1;
       angles = aimArmAt(manifest, angles, { view, facing, x, ground, target: focusPt, prop: heldProp });
+    } else if (holdGesture === 'lean_in') {
+      if (focusEl) facing = focusPt[0] >= x ? 1 : -1;
+      gazeOverride = [0.06, -0.04];
     }
 
     // Check one-shot gesture override
@@ -523,6 +526,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
               lift = u < 0.4 ? Math.sin((u / 0.4) * Math.PI) * 0.03 : 0;
               shiftX = -facing * 0.03 * H * Math.sin(Math.min(1, u / 0.3) * (Math.PI / 2)) * (1 - u);
             } else if (activeOnce.gesture === 'double_take') {
+              if (focusEl) facing = focusPt[0] >= x ? 1 : -1;
               const away = u < 0.35 ? Math.sin((u / 0.35) * (Math.PI / 2)) : u < 0.5 ? 1 - easeOutCubic((u - 0.35) / 0.15) : 0;
               const back = u >= 0.35 && u < 0.75 ? Math.sin(((u - 0.35) / 0.4) * Math.PI) : 0;
               isFastMotion = u >= 0.35 && u < 0.5;
@@ -597,8 +601,10 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   const finalX = x + micro.weightShift + shiftX;
 
   // 呆毛: morph to the new expression's shape, spring on walks, kicks and flicks (§3.1, §4.3, §4.4)
+  const kickOf = (g, t0) => ({ t0: g === 'double_take' ? t0 + 0.35 * (resolvePose(manifest, g).seconds ?? 1) : t0, amp: g === 'startle' ? -1 : 1 });
   const kicks = [
-    ...effectiveCues.filter((c) => c.do === 'gesture' && ['jump', 'startle', 'double_take'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: c.target === 'startle' ? -1 : 1 })),
+    ...(['jump', 'startle', 'double_take'].includes(start.gesture) ? [kickOf(start.gesture, 0)] : []),
+    ...effectiveCues.filter((c) => c.do === 'gesture' && ['jump', 'startle', 'double_take'].includes(c.target)).map((c) => kickOf(c.target, c.timeMs / 1000)),
     ...effectiveCues.filter((c) => c.do === 'expr' && ['surprised', 'amazed'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: -0.7 })),
     ...fidgets.filter((f) => f.kind === 'flick').map((f) => ({ t0: f.t0, amp: 0.6 })),
   ];
