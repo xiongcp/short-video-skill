@@ -52,13 +52,31 @@ export const SCHEMA_FIELDS = {
   brief: ['topic', 'audience', 'promise', 'sources', 'open_questions'],
   source: ['id', 'title', 'where', 'note'],
   settings: ['ratio', 'target_seconds', 'lang', 'host', 'theme', 'sentence_gap_ms', 'fps', 'resolution'],
-  voice: ['provider', 'model', 'voice', 'speed', 'base_url', 'api_key_env', 'command'],
+  voice: ['provider', 'model', 'voice', 'speed', 'base_url', 'api_key_env', 'command', 'preset', 'pitch'],
   section: ['id', 'title', 'text', 'pronunciation', 'source_ids'],
   shot: ['id', 'section', 'sentences', 'layout', 'host', 'visual', 'cues', 'transition', 'note'],
   cue: ['sentence', 'at', 'do', 'target'],
   checkpoint: ['stage', 'revision', 'at', 'note'],
   job: ['id', 'provider', 'kind', 'status', 'ref', 'cost', 'at'],
 };
+// Voice presets from docs/lite/声音人设设计.md §3, in its table order, kept in sync with the schema enum by
+// tests/project.test.mjs. `name` is how 讲稿.md and script.md call the preset; the speeds keep every preset
+// within ±5% of 晓晓's pace.
+export const VOICE_PRESETS = {
+  'female-warm': { voice: 'zh-CN-XiaoxiaoNeural', speed: 0.96, name: '女声·晓晓' },
+  'female-lively': { voice: 'zh-CN-XiaoyiNeural', speed: 0.96, name: '女声·晓伊' },
+  'male-sunny': { voice: 'zh-CN-YunxiNeural', speed: 0.92, name: '男声·云希' },
+  'male-passion': { voice: 'zh-CN-YunjianNeural', speed: 0.98, name: '男声·云健' },
+  'male-pro': { voice: 'zh-CN-YunyangNeural', speed: 0.92, name: '男声·云扬' },
+  'child-cute': { voice: 'zh-CN-YunxiaNeural', speed: 0.98, name: '童声·云夏' },
+  'female-dongbei': { voice: 'zh-CN-liaoning-XiaobeiNeural', speed: 1.02, name: '东北话·晓北' },
+  'female-shaanxi': { voice: 'zh-CN-shaanxi-XiaoniNeural', speed: 0.96, name: '陕西话·晓妮' },
+};
+
+/** True for an edge-tts command template that takes its voice from {voice}: the only kind of command a preset steers. */
+export function isEdgeVoiceCommand(command) {
+  return typeof command === 'string' && /edge[-_]?tts/i.test(command) && command.includes('{voice}');
+}
 const TITLE_LIMIT = 40;
 const SECTION_TITLE_LIMIT = 20;
 
@@ -111,6 +129,10 @@ export function checkProject(project) {
   const errors = [];
   const add = (path, code, message) => errors.push({ path, code, message });
   checkFields(project, add);
+  const preset = project.voice?.preset;
+  if (preset !== undefined && !Object.hasOwn(VOICE_PRESETS, preset)) {
+    add('/voice/preset', 'INVALID_VALUE', `配音人设 ${preset} 不存在，可选 ${Object.keys(VOICE_PRESETS).join('、')}（见 script.md 的配音人设一节）`);
+  }
   if (project.settings.host !== HOST_ID) {
     add('/settings/host', 'UNKNOWN_HOST', `settings.host 是 ${project.settings.host ?? '空'}，主持人只有 ${HOST_ID}（${PROFILE.name}）；旧项目的 hare 直接改成 ${HOST_ID}（见 script.md）`);
   }
@@ -274,6 +296,17 @@ export function lintScript(project) {
   const target = project.settings.target_seconds;
   if (Math.abs(estimate - target) > target * 0.1) warnings.push({ path: '/settings/target_seconds', code: 'ESTIMATE_OFF_TARGET', message: `估算 ${estimate.toFixed(1)} 秒，目标 ${target} 秒，偏差超过 10%` });
   return warnings;
+}
+
+/** Advisory check from docs/lite/声音人设设计.md §7: a valid preset that the rest of the voice settings would ignore. */
+export function lintVoice(project) {
+  const v = project?.voice;
+  if (!isObject(v) || !Object.hasOwn(VOICE_PRESETS, v.preset ?? '')) return [];
+  const why = v.voice !== undefined ? `同时写了 voice.voice（${v.voice}），合成时用它，不用人设的音色`
+    : v.provider === 'import' || v.provider === 'openai-compatible' ? `provider 是 ${v.provider}，人设只对 edge-tts 起作用`
+      : v.provider === 'command' && !isEdgeVoiceCommand(v.command) ? 'command 不是带 {voice} 的 edge-tts 命令，人设的音色传不进去'
+        : null;
+  return why ? [{ path: '/voice/preset', code: 'PRESET_UNUSED', message: `配音人设 ${v.preset} 不起作用：${why}（见 providers.md 的配音来源）` }] : [];
 }
 
 /** True when the latest checkpoint for `stage` confirms the current revision. */

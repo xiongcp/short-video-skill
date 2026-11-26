@@ -75,3 +75,17 @@ test('check.mjs reports storyboard warnings without failing', () => {
   assert.equal(status, 0);
   assert.deepEqual(out.warnings.map((w) => `${w.code} ${w.path}`), ['VISUAL_NOT_IN_NARRATION /shots/2/visual']);
 });
+
+test('check.mjs warns about a preset the voice command ignores and fails on an unknown preset', () => {
+  const dir = copy();
+  const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
+  const write = (voice) => writeFileSync(join(dir, 'project.json'), JSON.stringify({ ...project, voice }));
+  write({ provider: 'command', preset: 'male-sunny', command: 'say -v Tingting -o {out} {text}' });
+  const warned = run(dir);
+  assert.equal(warned.status, 0);
+  assert.deepEqual(warned.out.warnings.map((w) => `${w.code} ${w.path}`), ['PRESET_UNUSED /voice/preset']);
+  write({ provider: 'undecided', preset: 'male-deep' });
+  const failed = run(dir);
+  assert.equal(failed.status, 1);
+  assert.deepEqual(failed.out.errors.map((e) => `${e.code} ${e.path}`), ['INVALID_VALUE /voice/preset']);
+});

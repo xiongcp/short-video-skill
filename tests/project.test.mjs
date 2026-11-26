@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkProject, estimateReport, estimateSeconds, HOST_ID, isApproved, lintScript, SCHEMA_FIELDS, VISUAL_LIMITS } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { checkProject, estimateReport, estimateSeconds, HOST_ID, isApproved, lintScript, lintVoice, SCHEMA_FIELDS, VISUAL_LIMITS, VOICE_PRESETS } from '../skills/topic-to-video/scripts/lib/project.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const codes = (p) => checkProject(p).map((e) => e.code);
@@ -321,4 +321,39 @@ test('checks cue.at anchor substring and visual.data.icons names and length', ()
 
   p.shots[1].visual.data.icons = ['bulb', 'clock'];
   assert.deepEqual(placed(p), ['UNKNOWN_ICON /shots/1/visual/data/icons']);
+});
+
+test('VOICE_PRESETS matches the preset enum in the schema, with 晓晓 and 云希 as the female and male defaults', () => {
+  const schema = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/schema/project.schema.json'), 'utf8'));
+  assert.deepEqual(Object.keys(VOICE_PRESETS), schema.$defs.voice.properties.preset.enum);
+  assert.deepEqual(VOICE_PRESETS['female-warm'], { voice: 'zh-CN-XiaoxiaoNeural', speed: 0.96, name: '女声·晓晓' });
+  assert.deepEqual(VOICE_PRESETS['male-sunny'], { voice: 'zh-CN-YunxiNeural', speed: 0.92, name: '男声·云希' });
+});
+
+test('reports an unknown voice preset', () => {
+  const p = minimal();
+  p.voice = { provider: 'undecided', preset: 'male-deep' };
+  assert.deepEqual(placed(p), ['INVALID_VALUE /voice/preset']);
+  assert.match(checkProject(p)[0].message, /male-deep.*female-warm/);
+  p.voice = { provider: 'undecided', preset: 'male-sunny', pitch: -3 };
+  assert.deepEqual(placed(p), []);
+});
+
+test('warns when the voice settings would ignore the preset', () => {
+  const edge = 'edge-tts --voice {voice} --rate={rate} --pitch={pitch} --text {text} --write-media {out} --write-subtitles {sub}';
+  const warned = (voice) => lintVoice({ ...minimal(), voice }).map((w) => `${w.code} ${w.path}`);
+  for (const voice of [
+    { provider: 'undecided' },
+    { provider: 'undecided', preset: 'male-sunny' },
+    { provider: 'command', preset: 'male-sunny', command: edge },
+    { provider: 'command', preset: 'male-sunny', command: `uvx --from edge-tts ${edge}` },
+    { provider: 'undecided', preset: 'male-deep' }, // already an INVALID_VALUE error, not also a warning
+  ]) assert.deepEqual(warned(voice), [], JSON.stringify(voice));
+  for (const voice of [
+    { provider: 'command', preset: 'male-sunny', voice: 'zh-CN-YunjianNeural', command: edge },
+    { provider: 'import', preset: 'male-sunny' },
+    { provider: 'openai-compatible', preset: 'male-sunny', base_url: 'https://api.example.com/v1', model: 'm', voice: 'v', api_key_env: 'SVS_TTS_API_KEY' },
+    { provider: 'command', preset: 'male-sunny', command: 'say -v Tingting -o {out} {text}' },
+    { provider: 'command', preset: 'male-sunny', command: 'python3 my_tts.py --text {text} --out {out}' },
+  ]) assert.deepEqual(warned(voice), ['PRESET_UNUSED /voice/preset'], JSON.stringify(voice));
 });
