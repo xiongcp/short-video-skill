@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { pitchToEdge, resolveVoice, sentenceHash, synthesizeProject } from '../skills/topic-to-video/scripts/lib/tts.mjs';
+import { readWavPcm } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
+import { auditionCommand, auditionVoices, pitchToEdge, resolveVoice, selectPresets, sentenceHash, synthesizeProject } from '../skills/topic-to-video/scripts/lib/tts.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const EDGE = 'edge-tts --voice {voice} --rate={rate} --pitch={pitch} --text {text} --write-media {out} --write-subtitles {sub}';
@@ -88,4 +89,53 @@ test('without a preset or pitch the cache key is the one older projects stored, 
   ]) assert.equal(sentenceHash('天空为什么是蓝的？', voice), legacy('天空为什么是蓝的？', voice), JSON.stringify(voice));
   const sunny = { provider: 'command', preset: 'male-sunny', command: EDGE };
   assert.notEqual(sentenceHash('天空为什么是蓝的？', sunny), sentenceHash('天空为什么是蓝的？', { ...sunny, pitch: -3 }));
+});
+
+test('selectPresets takes preset IDs and the prefixes female, male and child, in table order', () => {
+  assert.equal(selectPresets().length, 8);
+  assert.deepEqual(selectPresets('male'), ['male-sunny', 'male-passion', 'male-pro']);
+  assert.deepEqual(selectPresets('female'), ['female-warm', 'female-lively', 'female-dongbei', 'female-shaanxi']);
+  assert.deepEqual(selectPresets('child,female-warm'), ['female-warm', 'child-cute']);
+  assert.throws(() => selectPresets('male-deep'), /male-deep/);
+});
+
+test('auditionCommand uses the project edge-tts command, else the recommended one, and never macOS say', () => {
+  const say = 'say -v Tingting -o {out} {text}';
+  const uvx = `uvx --from edge-tts ${EDGE}`;
+  assert.equal(auditionCommand({ provider: 'command', command: EDGE }, uvx), EDGE);
+  assert.equal(auditionCommand({ provider: 'command', command: say }, uvx), uvx);
+  assert.equal(auditionCommand({ provider: 'undecided' }, say), null);
+  assert.equal(auditionCommand(undefined, undefined), null);
+});
+
+test('auditionVoices writes one trimmed clip per preset and all.wav, and leaves project.json and audio/ alone', () => {
+  const { dir, command, calls } = scratch();
+  const p = minimal();
+  p.sections[0].pronunciation = [{ term: '阳光', reading: '太阳光' }];
+  writeFileSync(join(dir, 'project.json'), JSON.stringify(p));
+  const before = readFileSync(join(dir, 'project.json'), 'utf8');
+  const r = auditionVoices(p, dir, { presets: selectPresets('male'), command });
+  assert.equal(r.text, '天空为什么是蓝的？答案藏在太阳光里。');
+  assert.deepEqual(r.presets.map((x) => [x.preset, x.name, x.voice, x.speed, x.file]), [
+    ['male-sunny', '男声·云希', 'zh-CN-YunxiNeural', 0.92, 'out/audition/01-male-sunny.wav'],
+    ['male-passion', '男声·云健', 'zh-CN-YunjianNeural', 0.98, 'out/audition/02-male-passion.wav'],
+    ['male-pro', '男声·云扬', 'zh-CN-YunyangNeural', 0.92, 'out/audition/03-male-pro.wav'],
+  ]);
+  assert.deepEqual(calls().map((c) => `${c.voice} ${c.rate} ${c.pitch}`), ['zh-CN-YunxiNeural -8% +0Hz', 'zh-CN-YunjianNeural -2% +0Hz', 'zh-CN-YunyangNeural -8% +0Hz']);
+  for (const x of r.presets) assert.ok(x.duration_ms >= 440 && x.duration_ms <= 510, `trimmed like the real voice-over: ${x.duration_ms}`);
+  assert.deepEqual(readdirSync(join(dir, 'out/audition')).sort(), ['01-male-sunny.wav', '02-male-passion.wav', '03-male-pro.wav', 'all.wav']);
+  const all = readWavPcm(readFileSync(join(dir, r.all)));
+  const expected = r.presets.reduce((sum, x) => sum + x.duration_ms, 0) + 2 * 800;
+  assert.ok(Math.abs(all.durationMs - expected) <= 3, `all.wav ${all.durationMs} ms, expected ${expected} ms`);
+  assert.equal(readFileSync(join(dir, 'project.json'), 'utf8'), before);
+  assert.equal(existsSync(join(dir, 'audio')), false);
+});
+
+test('a second, shorter audition leaves no clips from the first one and keeps other files', () => {
+  const { dir, command } = scratch();
+  const p = minimal();
+  auditionVoices(p, dir, { presets: selectPresets('male'), command });
+  writeFileSync(join(dir, 'out/audition/备注.txt'), '留着');
+  auditionVoices(p, dir, { presets: ['child-cute'], command });
+  assert.deepEqual(readdirSync(join(dir, 'out/audition')).sort(), ['01-child-cute.wav', 'all.wav', '备注.txt']);
 });

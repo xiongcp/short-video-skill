@@ -2,11 +2,11 @@
 // Supports local command templates (edge-tts with word/phrase subtitles, macOS say, Kokoro), import, and openai-compatible APIs.
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { splitSentences } from './captions.mjs';
 import { makeWavBuffer, readWavPcm, trimSilenceWithFade } from './mouth.mjs';
-import { VOICE_PRESETS } from './project.mjs';
+import { isEdgeVoiceCommand, VOICE_PRESETS } from './project.mjs';
 import { detectSpeechBounds, estimateWords, parseSubtitles, splitRecordingBySilence } from './timing.mjs';
 
 /** Converts numeric speed (e.g. 0.96 -> "-4%", 1.08 -> "+8%") to edge-tts --rate format. */
@@ -164,6 +164,25 @@ export function sentenceHash(spokenText, voice) {
   return createHash('sha256').update(JSON.stringify(key)).digest('hex');
 }
 
+/** Float samples in [-1, 1] to 16-bit PCM. */
+function toInt16(samples) {
+  const out = new Int16Array(samples.length);
+  for (let k = 0; k < samples.length; k += 1) out[k] = Math.max(-32768, Math.min(32767, Math.round(samples[k] * 32767)));
+  return out;
+}
+
+/** Trims dead leading/trailing silence of a synthesized clip in place, with a short fade so it does not click. */
+function trimSynthesized(wavPath) {
+  const rawBuf = readFileSync(wavPath);
+  const raw = readWavPcm(rawBuf);
+  const [rawStart] = detectSpeechBounds(raw.samples, raw.sampleRate, -42);
+  const trimmed = trimSilenceWithFade(raw.samples, raw.sampleRate, { thresholdDb: -42, padMs: 35, fadeMs: 20 });
+  if (trimmed.length >= raw.samples.length - 480) return { wavBuf: rawBuf, decoded: raw, trimOffsetMs: 0 };
+  const wavBuf = makeWavBuffer(toInt16(trimmed), raw.sampleRate);
+  writeFileSync(wavPath, wavBuf);
+  return { wavBuf, decoded: readWavPcm(wavBuf), trimOffsetMs: Math.max(0, rawStart - 35) };
+}
+
 /**
  * Synthesizes or imports per-sentence 48kHz WAV files and writes `audio/timing.json`.
  * Skips already-synthesized sentences whose cache hash matches.
@@ -237,23 +256,15 @@ export async function synthesizeProject(project, projectDir, { ffmpeg = 'ffmpeg'
       continue;
     }
 
-    const rawBuf = readFileSync(wavPath);
-    const rawDecoded = readWavPcm(rawBuf);
-    let wavBuf = rawBuf;
-    let decoded = rawDecoded;
     // Trim dead leading/trailing silence on synthesized clips so punctuation-driven pauses stay crisp and natural
+    let wavBuf;
+    let decoded;
     let trimOffsetMs = 0;
-    if (voice.provider !== 'import') {
-      const [rawStart] = detectSpeechBounds(rawDecoded.samples, rawDecoded.sampleRate, -42);
-      const trimmed = trimSilenceWithFade(rawDecoded.samples, rawDecoded.sampleRate, { thresholdDb: -42, padMs: 35, fadeMs: 20 });
-      if (trimmed.length < rawDecoded.samples.length - 480) {
-        trimOffsetMs = Math.max(0, rawStart - 35);
-        const i16 = new Int16Array(trimmed.length);
-        for (let k = 0; k < trimmed.length; k += 1) i16[k] = Math.max(-32768, Math.min(32767, Math.round(trimmed[k] * 32767)));
-        wavBuf = makeWavBuffer(i16, rawDecoded.sampleRate);
-        writeFileSync(wavPath, wavBuf);
-        decoded = readWavPcm(wavBuf);
-      }
+    if (voice.provider === 'import') {
+      wavBuf = readFileSync(wavPath);
+      decoded = readWavPcm(wavBuf);
+    } else {
+      ({ wavBuf, decoded, trimOffsetMs } = trimSynthesized(wavPath));
     }
     const speech = detectSpeechBounds(decoded.samples, decoded.sampleRate);
     let words = [];
@@ -291,6 +302,63 @@ export async function synthesizeProject(project, projectDir, { ffmpeg = 'ffmpeg'
 
   writeFileSync(timingFile, `${JSON.stringify(timing, null, 2)}\n`);
   return timing;
+}
+
+const AUDITION_PREFIXES = ['female', 'male', 'child'];
+const AUDITION_GAP_MS = 800;
+
+/** Preset IDs for an audition list such as "male,female-warm", in table order; female, male and child pick every preset they start. */
+export function selectPresets(list) {
+  const ids = Object.keys(VOICE_PRESETS);
+  if (!list) return ids;
+  const picked = new Set();
+  for (const item of list.split(',').map((s) => s.trim()).filter(Boolean)) {
+    const match = AUDITION_PREFIXES.includes(item) ? ids.filter((id) => id.startsWith(`${item}-`)) : ids.filter((id) => id === item);
+    if (!match.length) throw new Error(`试听列表里的 ${item} 不是人设，可写 ${ids.join('、')}，或 ${AUDITION_PREFIXES.join('、')}`);
+    match.forEach((id) => picked.add(id));
+  }
+  return ids.filter((id) => picked.has(id));
+}
+
+/** The template an audition runs: the project's own edge-tts command, else the recommended one; null when neither is edge-tts. */
+export function auditionCommand(voice, recommended) {
+  if (isEdgeVoiceCommand(voice?.command)) return voice.command;
+  return isEdgeVoiceCommand(recommended) ? recommended : null;
+}
+
+/**
+ * Reads the first two script sentences with each preset into out/audition/ (声音人设设计 §5): NN-<preset>.wav, trimmed
+ * like the real voice-over, and all.wav with every clip in order, 0.8 s apart. Writes nothing else: not project.json, not audio/.
+ */
+export function auditionVoices(project, projectDir, { presets = Object.keys(VOICE_PRESETS), command, ffmpeg = 'ffmpeg' } = {}) {
+  const text = project.sections
+    .flatMap((sec) => splitSentences(sec.text).map((t) => applyPronunciation(t, sec.pronunciation)))
+    .slice(0, 2)
+    .join('');
+  const dir = join(projectDir, 'out', 'audition');
+  mkdirSync(dir, { recursive: true });
+  readdirSync(dir).filter((f) => /^(\d{2}-.+|all)\.wav$/.test(f)).forEach((f) => unlinkSync(join(dir, f)));
+  const clips = presets.map((preset, i) => {
+    const file = `out/audition/${String(i + 1).padStart(2, '0')}-${preset}.wav`;
+    const wavPath = join(projectDir, file);
+    const subPath = wavPath.replace(/\.wav$/, '.vtt');
+    runCommandTts({ provider: 'command', preset, command }, text, wavPath, subPath, { ffmpeg });
+    if (existsSync(subPath)) unlinkSync(subPath);
+    const { decoded } = trimSynthesized(wavPath);
+    const { name, voice, speed } = VOICE_PRESETS[preset];
+    return { summary: { preset, name, voice, speed, file, duration_ms: decoded.durationMs }, decoded };
+  });
+  const sampleRate = clips[0]?.decoded.sampleRate ?? 48000;
+  const gap = new Float32Array(Math.round((AUDITION_GAP_MS / 1000) * sampleRate));
+  const parts = clips.flatMap((c, i) => (i ? [gap, c.decoded.samples] : [c.decoded.samples]));
+  const joined = new Float32Array(parts.reduce((n, s) => n + s.length, 0));
+  let at = 0;
+  for (const s of parts) {
+    joined.set(s, at);
+    at += s.length;
+  }
+  writeFileSync(join(dir, 'all.wav'), makeWavBuffer(toInt16(joined), sampleRate));
+  return { ok: true, text, presets: clips.map((c) => c.summary), all: 'out/audition/all.wav' };
 }
 
 /** Convenience preset command templates for local TTS tools. */
