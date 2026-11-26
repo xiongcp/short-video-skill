@@ -159,3 +159,27 @@ test('prompt-pack.md prepends world.style and world.scene descriptions and descr
   assert.ok(text.includes('`stage`'));
   assert.ok(text.includes('同一条地面线'));
 });
+
+test('world.md documents the action card, all 10 stage/state/send cues, deletion test and warnings within budgets', () => {
+  const text = ref('world.md');
+  const bytes = Buffer.byteLength(text, 'utf8');
+  const lines = text.replace(/\n$/, '').split('\n').length;
+  assert.ok(bytes <= 10 * 1024, `world.md is ${bytes} bytes (> 10240)`);
+  assert.ok(lines <= 250, `world.md is ${lines} lines (> 250)`);
+  for (const term of [
+    '动作卡', '删除测试', 'NO_INTERACTION', 'GESTURE_REPEAT',
+    '`open`', '`carry`', '`push`', '`pull`', '`hold_up`', '`draw`', '`sit_on`', '`react`', '`state`', '`send`',
+  ]) {
+    assert.ok(text.includes(term), `world.md missing ${term}`);
+  }
+});
+
+test('storyboard.md links to world.md action card within budgets', () => {
+  const text = ref('storyboard.md');
+  const bytes = Buffer.byteLength(text, 'utf8');
+  const lines = text.replace(/\n$/, '').split('\n').length;
+  assert.ok(bytes <= 10 * 1024, `storyboard.md is ${bytes} bytes (> 10240)`);
+  assert.ok(lines <= 250, `storyboard.md is ${lines} lines (> 250)`);
+  assert.ok(text.includes('动作卡'), 'storyboard.md mentions 动作卡');
+  assert.ok(text.includes('](world.md)'), 'storyboard.md links world.md');
+});

@@ -83,3 +83,9 @@ test('the site describes style packs, hand-drawn scenes, 60 built-in props and s
   assert.ok(html.includes('60'));
   assert.ok(html.includes('stage'));
 });
+
+test('the site describes stage interactions, state/send and the upgraded fridge-supermarket example', () => {
+  assert.ok(html.includes('同台互动'));
+  assert.ok(html.includes('state') && html.includes('send'));
+  assert.ok(html.includes('冰箱') && html.includes('超市'));
+});

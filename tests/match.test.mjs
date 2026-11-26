@@ -26,8 +26,8 @@ test('visualKeywords lists on-screen words and leaves out title cards', () => {
   assert.deepEqual(visualKeywords({ template: 'title', data: { heading: '标题' } }), []);
 });
 
-test('the example storyboard has no non-STATIC_STRETCH warnings (example upgraded to 4s in Task 6)', () => {
-  assert.deepEqual(lintStoryboard(example()).filter((w) => w.code !== 'STATIC_STRETCH'), []);
+test('the example storyboard has no warnings', () => {
+  assert.deepEqual(lintStoryboard(example()), []);
 });
 
 test('warns when none of a shot\'s keywords is in its narration', () => {

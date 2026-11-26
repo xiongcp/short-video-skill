@@ -5,7 +5,7 @@
   "brief": {
     "topic": "为什么缓存能让网页变快？",
     "audience": "经常用浏览器、没有网络基础的观众",
-    "promise": "同一张图第二次出现得快，是因为浏览器可能直接用副本、先问一句，或者换成新内容",
+    "promise": "缓存就像家门口的冰箱，新鲜时直接拿，过期再向远处超市确认三零四",
     "sources": [
       {
         "id": "src01",
@@ -14,187 +14,363 @@
         "note": "§4 复用条件，§4.2 新鲜度，§4.3 验证"
       }
     ],
-    "open_questions": ["配音后核对每段实际时长和图解留白"]
+    "open_questions": ["配音后核对每段实际时长和同台舞台留白"]
   },
-  "settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "xiaoqing", "theme": "light", "sentence_gap_ms": 250 },
-  "voice": { "provider": "undecided" },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 70,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "light",
+    "sentence_gap_ms": 250,
+    "outfit": "apron"
+  },
+  "voice": {
+    "provider": "undecided",
+    "preset": "female-warm"
+  },
+  "world": {
+    "metaphor": "缓存是家门口的冰箱，服务器是远处的超市，304 是打电话问超市东西还新鲜吗",
+    "style": "paper",
+    "scene": "kitchen"
+  },
   "sections": [
     {
       "id": "s01",
-      "title": "同一张图，两次打开",
-      "text": "你昨天见过的这张图标，今天再打开，还要从头下载吗？我们跟着它走两趟。"
+      "title": "冰箱还是超市",
+      "text": "昨天看过的图标，今天怎么秒开？秘密就像家里冰箱和远处超市。冰箱在手边，超市要跑一大圈。"
     },
     {
       "id": "s02",
-      "title": "第一次走多远",
-      "text": "第一趟，假设浏览器手边还没有副本。它向服务器要图标。箭头走过去，再带着图片走回来，屏幕上才有了这张图。如果响应允许缓存，浏览器可以把这次拿到的内容留下。之后的请求就能用上它。",
+      "title": "第一趟先填满冰箱",
+      "text": "第一趟打开网页，冰箱还是空的。浏览器向超市发请求，搬回新包裹。先把货装进冰箱，下次才省事。如果响应允许缓存，内容就会留下。之后的请求就能用上它。",
       "source_ids": ["src01"]
     },
     {
       "id": "s03",
-      "title": "第二次发生了什么",
-      "text": "第二趟，我们仍然打开同一页。先把目光留在浏览器这边，看它能不能找到匹配的副本。找到之后还要看条件。假设这份响应允许复用，也还在有效的新鲜期内。在这个例子里，浏览器直接拿本地保存的图标来用。刚才那条通往服务器的长箭头，这一次可以省掉。把两趟路并排看。你省下的是一次来回等待，以及再次传输图片的时间。",
+      "title": "第二趟冰箱直接拿",
+      "text": "第二趟再打开，先翻家门口冰箱。还在新鲜期，旧箱子就先推开吧。直接拿新包裹，不用去跑超市。第一趟跑超市，第二趟直接拿冰箱。",
       "source_ids": ["src01"]
     },
     {
       "id": "s04",
-      "title": "过期之后",
-      "text": "再把时钟拨快。现在副本已经过期，浏览器手里的内容还能用吗？先看它有没有可用的验证信息。有了验证信息，浏览器可以先询问服务器。资源没变时，服务器可以返回三零四，让浏览器继续用原来的内容。如果内容已经更新，就可能需要传回新的正文。两种情况都联系了服务器，真正传输的数据量却可能很不一样。",
+      "title": "过期后打电话问304",
+      "text": "几天后打开冰箱，包裹已经过期。小青吓一跳，这还能吃吗？先留着别扔，给超市打个电话。货没变，超市回张三零四凭证。盖上章，旧货继续放心用！要是货换新，才重搬一箱回来。",
       "source_ids": ["src01"]
     },
     {
       "id": "s05",
-      "title": "用一句话带走",
-      "text": "记住三种动作。条件合适时直接用，需要确认时先问一句，拿到新内容时再替换。下次看见同一张图瞬间出现，你就能说清，它可能省掉了哪一段路。"
+      "title": "坐下来记住三招",
+      "text": "其实缓存就三招，坐下来记一记。新鲜直接拿，过期先打个电话。拿到三零四，省下跑超市的路！"
     }
   ],
   "shots": [
     {
-      "id": "sh01", "section": "s01", "sentences": [0], "layout": "host-left",
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0],
+      "layout": "host-left",
       "host": { "expr": "curious", "gesture": "think" },
-      "visual": { "template": "title", "data": { "heading": "同一张图，两次打开", "sub": "还要从头下载吗？" } },
+      "visual": {
+        "template": "title",
+        "data": { "heading": "同张图，为何秒开？", "sub": "冰箱还是超市" }
+      },
       "cues": [{ "sentence": 0, "do": "prop", "target": "question" }],
-      "note": "抛出问题：第二次打开还要重新下载吗"
+      "note": "抛出开场疑问：昨天看过的图标今天为什么秒开"
     },
     {
-      "id": "sh02", "section": "s01", "sentences": [1], "layout": "host-left",
-      "host": { "expr": "explaining", "gesture": "point" },
-      "visual": { "template": "compare", "data": { "left": { "label": "第一趟", "rows": ["手边没有副本"] }, "right": { "label": "第二趟", "rows": ["再打开同一页"] } } },
-      "cues": [{ "sentence": 1, "do": "prop", "target": "none" }],
-      "note": "预告接下来要对比两趟访问"
-    },
-    {
-      "id": "sh03", "section": "s02", "sentences": [0, 1], "layout": "host-left",
-      "host": { "expr": "explaining", "gesture": "present" },
-      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器"], "icons": ["browser", "server"] } },
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [1, 2],
+      "layout": "stage",
+      "host": { "expr": "explaining", "gesture": "present", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "冰箱缓存与超市",
+          "objects": [
+            { "prop": "fridge", "label": "冰箱缓存", "at": "mid-left", "state": "closed" },
+            { "prop": "shop", "label": "超市服务器", "at": "right", "size": "sm", "state": "open" }
+          ],
+          "links": [{ "from": 0, "to": 1, "style": "dashed", "label": "很远" }]
+        }
+      },
       "cues": [
-        { "sentence": 0, "do": "gesture", "target": "point" },
-        { "sentence": 1, "do": "reveal", "target": 1 },
-        { "sentence": 1, "do": "gesture", "target": "present" }
+        { "sentence": 1, "at": "冰箱", "do": "prop", "target": "none" },
+        { "sentence": 1, "at": "冰箱", "do": "move", "target": 0 },
+        { "sentence": 1, "at": "冰箱", "do": "gesture", "target": "tap" },
+        { "sentence": 2, "at": "超市", "do": "highlight", "target": 1 }
       ],
-      "note": "认识两个端点：浏览器和服务器"
+      "note": "用厨房冰箱与远处超市比喻缓存和服务器"
     },
     {
-      "id": "sh04", "section": "s02", "sentences": [2], "layout": "host-left",
-      "host": { "expr": "focused", "gesture": "point" },
-      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器", "屏幕"], "icons": ["browser", "server", "image"] } },
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0],
+      "layout": "stage",
+      "host": { "expr": "worried", "gesture": "shrug", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "第一趟空冰箱",
+          "objects": [{ "prop": "fridge", "label": "空冰箱", "at": "center", "state": "closed" }],
+          "links": []
+        }
+      },
       "cues": [
-        { "sentence": 2, "at": "屏幕", "do": "highlight", "target": 2 },
-        { "sentence": 2, "at": "屏幕", "do": "gesture", "target": "emphasize" },
-        { "sentence": 2, "at": "屏幕", "do": "expr", "target": "happy" }
+        { "sentence": 0, "at": "冰箱", "do": "open", "target": 0 },
+        { "sentence": 0, "at": "空", "do": "state", "target": 0, "value": "empty" }
       ],
-      "note": "请求去、图片回，屏幕上才出现图标"
+      "note": "第一趟打开冰箱，发现里面是空的"
     },
     {
-      "id": "sh05", "section": "s02", "sentences": [3, 4], "layout": "host-left",
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [1, 2],
+      "layout": "stage",
+      "scene": "street",
+      "host": { "expr": "explaining", "gesture": "idle", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "去超市搬回包裹",
+          "objects": [
+            { "prop": "fridge", "label": "缓存冰箱", "at": "mid-left", "state": "open" },
+            { "prop": "package", "label": "新包裹", "at": "center", "layer": "mid", "state": "fresh" },
+            { "prop": "shop", "label": "远处超市", "at": "right", "size": "sm", "state": "open" }
+          ],
+          "links": [
+            { "from": 0, "to": 2, "style": "dashed", "label": "请求" },
+            { "from": 2, "to": 0, "style": "solid", "label": "送回" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "at": "请求", "do": "send", "target": 0, "value": "mail" },
+        { "sentence": 1, "at": "新包裹", "do": "send", "target": 1, "value": "package" },
+        { "sentence": 2, "at": "装进", "do": "carry", "target": 1 },
+        { "sentence": 2, "at": "冰箱", "do": "move", "target": 0 },
+        { "sentence": 2, "at": "省事", "do": "carry", "target": "none" }
+      ],
+      "note": "向街上超市发请求，把送回的新包裹搬到冰箱旁放下"
+    },
+    {
+      "id": "sh05",
+      "section": "s02",
+      "sentences": [3, 4],
+      "layout": "host-left",
       "host": { "expr": "explaining", "gesture": "point" },
-      "visual": { "template": "bullets", "data": { "items": ["响应允许缓存", "把内容留下", "之后的请求能用"], "icons": ["check", "cache", "globe"] } },
+      "visual": {
+        "template": "bullets",
+        "data": {
+          "items": ["响应允许缓存", "把内容留下", "之后的请求能用"],
+          "icons": ["check", "fridge", "package"]
+        }
+      },
       "cues": [
         { "sentence": 4, "do": "reveal", "target": 2 },
         { "sentence": 4, "do": "gesture", "target": "emphasize" },
         { "sentence": 4, "do": "prop", "target": "bulb" }
       ],
-      "note": "保存副本是有条件的"
+      "note": "保存副本是有条件的：响应允许缓存"
     },
     {
-      "id": "sh06", "section": "s03", "sentences": [0, 1], "layout": "host-left",
-      "host": { "expr": "curious", "gesture": "present" },
-      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "本地副本"], "icons": ["browser", "cache"] } },
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [0],
+      "layout": "stage",
+      "host": { "expr": "curious", "gesture": "lean_in", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "第二趟先翻冰箱",
+          "objects": [
+            { "prop": "fridge", "label": "家门口冰箱", "at": "center", "state": "closed" },
+            { "prop": "package", "label": "新鲜包裹", "at": "mid-right", "layer": "mid", "state": "fresh" }
+          ],
+          "links": []
+        }
+      },
       "cues": [
-        { "sentence": 0, "do": "prop", "target": "magnifier" },
-        { "sentence": 1, "at": "副本", "do": "reveal", "target": 1 },
-        { "sentence": 1, "at": "副本", "do": "gesture", "target": "point" }
+        { "sentence": 0, "at": "翻", "do": "prop", "target": "none" },
+        { "sentence": 0, "at": "翻", "do": "open", "target": 0 },
+        { "sentence": 0, "at": "冰箱", "do": "state", "target": 0, "value": "fresh" }
       ],
-      "note": "第二趟先在浏览器这边找副本"
+      "note": "第二趟先打开家门口冰箱查看新鲜度"
     },
     {
-      "id": "sh07", "section": "s03", "sentences": [2, 3], "layout": "host-left",
-      "host": { "expr": "focused", "gesture": "think" },
-      "visual": { "template": "bullets", "data": { "items": ["找到匹配副本", "允许复用", "仍在新鲜期"], "icons": ["search", "check", "clock"] } },
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [1, 2],
+      "layout": "stage",
+      "host": { "expr": "happy", "gesture": "present", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "推开旧箱直接拿",
+          "objects": [
+            { "prop": "box", "label": "旧箱子", "at": "mid-left", "state": "crossed" },
+            { "prop": "package", "label": "新包裹", "at": "center", "layer": "mid", "state": "fresh" },
+            { "prop": "shop", "label": "远处超市", "at": "right", "size": "sm", "state": "closed" }
+          ],
+          "links": []
+        }
+      },
       "cues": [
-        { "sentence": 2, "do": "prop", "target": "none" },
-        { "sentence": 3, "do": "reveal", "target": 1 },
-        { "sentence": 3, "at": "新鲜期", "do": "reveal", "target": 2 },
-        { "sentence": 3, "at": "新鲜期", "do": "gesture", "target": "emphasize" }
+        { "sentence": 1, "at": "推开", "do": "push", "target": 0 },
+        { "sentence": 2, "at": "直接拿", "do": "carry", "target": 1 },
+        { "sentence": 2, "at": "超市", "do": "expr", "target": "proud" },
+        { "sentence": 2, "at": "超市", "do": "gesture", "target": "snap" }
       ],
-      "note": "找到副本之后还要满足条件"
+      "note": "推开旧箱子，直接拿起新鲜包裹不用跑超市"
     },
     {
-      "id": "sh08", "section": "s03", "sentences": [4, 5], "layout": "full",
-      "visual": { "template": "flow", "data": { "nodes": ["打开页面", "本地副本", "显示图标"], "icons": ["browser", "cache", "image"] } },
+      "id": "sh08",
+      "section": "s03",
+      "sentences": [3],
+      "layout": "full",
+      "visual": {
+        "template": "bars",
+        "data": {
+          "items": [
+            { "label": "跑超市", "value": 800 },
+            { "label": "问超市", "value": 120 },
+            { "label": "拿冰箱", "value": 5 }
+          ],
+          "unit": "毫秒"
+        }
+      },
+      "cues": [{ "sentence": 3, "at": "冰箱", "do": "state", "target": 2, "value": "active" }],
+      "note": "柱状图对比耗时：直接拿冰箱最快"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [0, 1],
+      "layout": "stage",
+      "host": { "expr": "focused", "gesture": "idle", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "冰箱包裹过期了",
+          "objects": [
+            { "prop": "fridge", "label": "冰箱", "at": "mid-left", "state": "open" },
+            { "prop": "package", "label": "过期包裹", "at": "center", "layer": "mid", "state": "fresh" }
+          ],
+          "links": []
+        }
+      },
       "cues": [
-        { "sentence": 4, "at": "本地", "do": "highlight", "target": 1 },
-        { "sentence": 5, "at": "省掉", "do": "highlight", "target": 2 }
+        { "sentence": 0, "at": "过期", "do": "state", "target": 1, "value": "expired" },
+        { "sentence": 1, "at": "吓一跳", "do": "react", "target": 1 },
+        { "sentence": 1, "at": "还能", "do": "expr", "target": "surprised" },
+        { "sentence": 1, "at": "还能", "do": "gesture", "target": "shrug" }
       ],
-      "note": "第二趟止于浏览器，省掉去服务器的路"
+      "note": "包裹变成过期状态，小青吓一跳并怀疑还能不能用"
     },
     {
-      "id": "sh09", "section": "s03", "sentences": [6, 7], "layout": "host-left",
-      "host": { "expr": "explaining", "gesture": "present" },
-      "visual": { "template": "compare", "data": { "left": { "label": "第一趟", "rows": ["去服务器", "等待返回", "传输图片"] }, "right": { "label": "第二趟", "rows": ["本地直接用"] } } },
+      "id": "sh10",
+      "section": "s04",
+      "sentences": [2, 3, 4],
+      "layout": "stage",
+      "scene": "street",
+      "host": { "expr": "curious", "gesture": "present", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "问超市拿304凭证",
+          "objects": [
+            { "prop": "phone", "label": "问超市", "at": "mid-left", "state": "lit" },
+            { "prop": "ticket", "label": "304凭证", "at": "center", "layer": "mid", "state": "fresh" },
+            { "prop": "shop", "label": "街上超市", "at": "right", "size": "sm", "state": "open" }
+          ],
+          "links": [
+            { "from": 0, "to": 2, "style": "dashed", "label": "核对" },
+            { "from": 2, "to": 1, "style": "solid", "label": "304" }
+          ]
+        }
+      },
       "cues": [
-        { "sentence": 7, "do": "move", "target": 1 },
-        { "sentence": 7, "do": "highlight", "target": 1 },
-        { "sentence": 7, "do": "expr", "target": "happy" },
-        { "sentence": 7, "do": "gesture", "target": "tap" }
+        { "sentence": 2, "at": "电话", "do": "send", "target": 0, "value": "key" },
+        { "sentence": 3, "at": "三零四", "do": "send", "target": 1, "value": "ticket" },
+        { "sentence": 3, "at": "凭证", "do": "state", "target": 1, "value": "count:304" },
+        { "sentence": 4, "at": "盖上章", "do": "state", "target": 1, "value": "stamped" },
+        { "sentence": 4, "at": "盖上章", "do": "hold_up", "target": 1 },
+        { "sentence": 4, "at": "放心", "do": "expr", "target": "happy" }
       ],
-      "note": "两趟并排，看出省下了什么"
+      "note": "发验证信息问超市，拿到304凭证盖章并高举展示"
     },
     {
-      "id": "sh10", "section": "s04", "sentences": [0, 1], "layout": "host-left",
-      "host": { "expr": "focused", "gesture": "think" },
-      "visual": { "template": "title", "data": { "heading": "副本过期了", "sub": "还能用吗？" } },
+      "id": "sh11",
+      "section": "s04",
+      "sentences": [5],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": {
+          "nodes": ["过期核对", "没变304", "换新重搬"],
+          "icons": ["clock", "ticket", "package"]
+        }
+      },
+      "cues": [{ "sentence": 5, "at": "重搬", "do": "send", "target": 2, "value": "package" }],
+      "note": "流程图补充：只有货真换新才重搬一箱回来"
+    },
+    {
+      "id": "sh12",
+      "section": "s05",
+      "sentences": [0, 1],
+      "layout": "stage",
+      "host": { "expr": "happy", "gesture": "idle", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "冰箱缓存三招",
+          "objects": [
+            { "prop": "box", "label": "货箱", "at": "mid-left", "state": "closed" },
+            { "prop": "fridge", "label": "冰箱直接拿", "at": "center", "state": "open" },
+            { "prop": "ticket", "label": "先问304", "at": "right", "layer": "mid", "state": "stamped" }
+          ],
+          "links": []
+        }
+      },
       "cues": [
-        { "sentence": 1, "do": "expr", "target": "curious" },
-        { "sentence": 1, "do": "gesture", "target": "shrug" },
-        { "sentence": 1, "do": "prop", "target": "question" }
+        { "sentence": 0, "at": "坐下来", "do": "sit_on", "target": 0 },
+        { "sentence": 1, "at": "直接拿", "do": "highlight", "target": 1 },
+        { "sentence": 1, "at": "电话", "do": "react", "target": 2 }
       ],
-      "note": "时间推进，副本过期带来新问题"
+      "note": "坐到货箱上轻松回顾：新鲜直接拿，过期先问304"
     },
     {
-      "id": "sh11", "section": "s04", "sentences": [2, 3, 4], "layout": "host-left",
-      "host": { "expr": "explaining", "gesture": "point" },
-      "visual": { "template": "flow", "data": { "nodes": ["验证信息", "询问服务器", "返回304"], "icons": ["key", "server", "check"] } },
+      "id": "sh13",
+      "section": "s05",
+      "sentences": [2],
+      "layout": "stage",
+      "host": { "expr": "proud", "gesture": "cheer", "at": "left" },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "省下跑超市的路",
+          "objects": [
+            { "prop": "fridge", "label": "冰箱缓存", "at": "center", "state": "fresh" },
+            { "prop": "ticket", "label": "304凭证", "at": "right", "layer": "mid", "state": "count:304" }
+          ],
+          "links": []
+        }
+      },
       "cues": [
-        { "sentence": 2, "do": "prop", "target": "none" },
-        { "sentence": 3, "at": "询问", "do": "reveal", "target": 1 },
-        { "sentence": 3, "at": "询问", "do": "gesture", "target": "present" },
-        { "sentence": 4, "at": "三零四", "do": "reveal", "target": 2 },
-        { "sentence": 4, "at": "三零四", "do": "gesture", "target": "emphasize" },
-        { "sentence": 4, "at": "三零四", "do": "expr", "target": "happy" }
+        { "sentence": 2, "at": "三零四", "do": "hold_up", "target": 1 },
+        { "sentence": 2, "at": "省下", "do": "state", "target": 0, "value": "active" }
       ],
-      "note": "过期后可以先问一句，没变就继续用"
-    },
-    {
-      "id": "sh12", "section": "s04", "sentences": [5, 6], "layout": "full",
-      "visual": { "template": "compare", "data": { "left": { "label": "没变", "rows": ["返回304", "继续用旧内容"] }, "right": { "label": "已更新", "rows": ["传回新正文", "替换旧内容"] } } },
-      "cues": [
-        { "sentence": 5, "at": "更新", "do": "highlight", "target": 1 },
-        { "sentence": 6, "do": "highlight", "target": 0 }
-      ],
-      "note": "两种结果都联系服务器，传输量不同"
-    },
-    {
-      "id": "sh13", "section": "s05", "sentences": [0, 1], "layout": "host-left",
-      "host": { "expr": "explaining", "gesture": "present" },
-      "visual": { "template": "bullets", "data": { "items": ["直接用", "先问一句", "换新内容"], "icons": ["cache", "server", "doc"] } },
-      "cues": [
-        { "sentence": 1, "at": "直接用", "do": "highlight", "target": 0 },
-        { "sentence": 1, "at": "直接用", "do": "gesture", "target": "point" },
-        { "sentence": 1, "at": "先问一句", "do": "reveal", "target": 1 },
-        { "sentence": 1, "at": "替换", "do": "reveal", "target": 2 },
-        { "sentence": 1, "at": "替换", "do": "gesture", "target": "emphasize" }
-      ],
-      "note": "总结三种动作"
-    },
-    {
-      "id": "sh14", "section": "s05", "sentences": [2], "layout": "host-left",
-      "host": { "expr": "proud", "gesture": "emphasize" },
-      "visual": { "template": "title", "data": { "heading": "省掉了哪段路？" } },
-      "cues": [{ "sentence": 2, "at": "说清", "do": "gesture", "target": "cheer" }],
-      "note": "回扣开头的图标，留下可复述的结论"
+      "note": "高举304凭证回扣开头，留下冰箱缓存印象"
     }
   ],
-  "checkpoints": [],
+  "checkpoints": [
+    {
+      "stage": "plan",
+      "revision": 1,
+      "at": "2026-11-26T00:00:00Z",
+      "note": "确认冰箱与超市同台示范方案"
+    }
+  ],
   "jobs": []
 }

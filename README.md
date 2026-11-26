@@ -23,7 +23,7 @@ L1 的设计与路线图见 [出片质量设计](docs/lite/出片质量设计.md
 
 ## 主持人
 
-主持人是原创手绘火柴人"小青"：黑色墨线，系一条青色围巾，头顶一根会随情绪变形的呆毛，全身 17 个关节由代码画出。分镜按名字选 17 个动作、9 种表情、6 件道具和 4 套服装；每期先定比喻、5 套风格包（`paper`/`chalkboard`/`blueprint`/`kraft`/`night`）和 8 个手绘场景，在主力 `stage` 舞台版式里，小青能与 60 个内置手绘物件（及自定义几何道具）站在同一条地面线上，在 `host-left` 镜头里也能走到图解元素旁边指着讲，没写动作的句子会按句意自动配上动作。
+主持人是原创手绘火柴人"小青"：黑色墨线，系一条青色围巾，头顶一根会随情绪变形的呆毛，全身 17 个关节由代码画出。分镜按名字选 17 个动作、9 种表情、6 件道具和 4 套服装；每期先定比喻、5 套风格包（`paper`/`chalkboard`/`blueprint`/`kraft`/`night`）和 8 个手绘场景，在主力 `stage` 舞台版式里，小青能与 60 个内置手绘物件（及自定义几何道具）站在同一条地面线上做 8 种同台互动（打开、拿放、推拉、高举、板书、坐上、按状态反应），还能用 `state` 切换状态、用 `send` 沿连线或 `flow` 箭头传物件；在 `host-left` 镜头里也能走到图解元素旁边指着讲，没写动作的句子会按句意自动配上动作。
 
 ![小青速查图：17 个动作、9 种表情、6 件道具和 4 套服装](site/assets/host-cheatsheet.png)
 
@@ -47,7 +47,7 @@ npm install --prefix ~/.claude/skills/topic-to-video/scripts
 
 ## 示例
 
-[examples/cache-speed](examples/cache-speed/) 是一个 120 秒的完整 L0 示例，包括 [讲稿](examples/cache-speed/讲稿.md)、[分镜](examples/cache-speed/分镜.md) 和 [project.json](examples/cache-speed/project.json)。
+[examples/cache-speed](examples/cache-speed/) 是一个 70 秒的冰箱与超市同台互动 L0 示例，包括 [讲稿](examples/cache-speed/讲稿.md)、[分镜](examples/cache-speed/分镜.md)、[提示词包](examples/cache-speed/提示词包.md) 和 [project.json](examples/cache-speed/project.json)。
 
 ## 路线图
 
@@ -57,7 +57,7 @@ npm install --prefix ~/.claude/skills/topic-to-video/scripts
 | P1 | L0 文本包与场景评测（[汇总](tests/scenarios/results/p1-summary.md)） | 完成 |
 | 设计 | 出片质量：人物、帧率、匹配度、平滑动画 | 完成 |
 | S1 / M1 | 火柴人主持人"小青"：骨架、精修造型、3 种手型、V 形缺口围巾与评审工具 | 完成 |
-| M2–M4 | 本地渲染器：60fps/4K、60 个手绘物件、5 套风格包、8 个手绘场景、`stage` 同台舞台与 `timeline`/`cycle` 模板、全身运动与两节逆解、本地配音（`edge-tts`/`say`） | 完成 |
+| M2–M4 | 本地渲染器：60fps/4K、60 个手绘物件、5 套风格包、8 个手绘场景、`stage` 同台舞台、8 种同台互动与 `state`/`send`、`timeline`/`cycle` 模板、全身运动与两节逆解、本地配音（`edge-tts`/`say`） | 完成 |
 | M5 | 同元素补间转场、选择性运动模糊、BT.709/跳变/卡顿/同步/遮挡 QA 与交付物 | 完成 |
 | M6–M7 | 跨 Agent（agy/Claude Code/Codex）统一入口与端到端对标验收 | 进行中 |
 

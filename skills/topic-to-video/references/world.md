@@ -114,6 +114,34 @@
 - `links`：0–4 条连接两件物件（`from`、`to` 为序号，`style` 为 `solid` 或 `dashed`，可选 `label`）。
 - 自动排版：渲染器自动防重叠（≥ 40 px 间隔）并给小青留 200 px 站位；最小缩放到 0.6 倍，仍放不下报 `STAGE_CROWDED`（请减少物件或拆镜）。
 
-## 7. 同台互动与状态变化 cue
+## 7. 同台互动、状态与动作卡
 
-`stage` 舞台支持 8 个互动 cue（`open`、`carry`、`push`、`pull`、`hold_up`、`draw`、`sit_on`、`react`），以及 `state`（改变元素状态，`value` 填状态名）和 `send`（沿连线或 `flow` 箭头运送小物件，`value` 填物件名）。
+### 互动与状态 cue
+
+- **8 个互动 cue**（限 `stage`，`target` 填物件序号，自动走近后再动作；写 `value` 报 `INVALID_VALUE`，不支持报 `INTERACTION_INVALID`）：
+  - `open`：打开支持 `open` 的物件（`fridge`/`box`/`door`/`shop` 等）。
+  - `carry`：拿起可携物件（或 `height ≤ 0.45` 自定义道具）随 `move` 移动；写 `"none"` 放下，拿第二件自动放下第一件。
+  - `push` / `pull`：把落地物件推远或拉近 160 px。
+  - `hold_up`：双手高举展示可携物件 1.5 秒。
+  - `draw`：在 `whiteboard`/`clipboard`/`doc`/`book` 上比划并逐字写出 `label`。
+  - `sit_on`：走去坐上 `chair`/`table`/`box`（或 `height ≤ 0.6` 自定义道具），下次 `move` 自动起身。
+  - `react`：面向物件按其状态反应（`expired`/`broken`/`crossed`/`empty` 惊退，其余欢呼）。
+- `state`：`target` 填元素序号，`value` 填状态名；`stage` 可用专属/通用/`count:<值>`，图解模板仅用通用与 `count:<值>`。
+- `send`：`value` 为 `package`/`doc`/`mail`/`ticket`/`money`/`key` 或可携自定义道具；`stage` 填 `links` 序号，`flow` 填目标节点序号（≥ 1），沿线飞抵终点。
+
+### 动作卡（句意 → 动作 → 对象 → 前后状态）
+
+| 句意 | 动作 | 对象 | 前后状态 |
+| --- | --- | --- | --- |
+| 打开看内部 | `open` | `fridge`/`box`/`door` | `closed` → `open` |
+| 取走或搬运 | `carry` + `move` | 可携物件 / `none` | 原位 → 随身 → 脚边 |
+| 移开旧物 | `push` / `pull` | 落地物件 | 推远 / 拉近 160 px |
+| 亮出凭证 | `hold_up` | `ticket`/`doc`/`key` | 原位 → 头顶举起 |
+| 现场板书 | `draw` | `whiteboard`/`book` | 空白 → 逐字显现 |
+| 坐下总结 | `sit_on` | `chair`/`box`/`table` | 站立 → 坐上 |
+| 对结果反应 | `react` | 任意物件 | 异常惊退 / 正常欢呼 |
+| 标出状态 | `state` | 物件或元素 | `fresh`→`expired`/`count:304` |
+| 传递小件 | `send` | `links` 或 `flow` | 沿线飞抵终点 |
+
+- **删除测试**：每条互动、`state` 或 `send` 都要推动本句句意；删掉它观众仍懂因果或位置变化的就删，不摆拍。
+- **自检**：`stage` 镜头至少 1 个互动 cue 或 `tap`（否则 `NO_INTERACTION`）；连续重复 `gesture` 报 `GESTURE_REPEAT`。

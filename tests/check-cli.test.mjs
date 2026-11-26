@@ -20,13 +20,12 @@ const copy = () => {
 test('check.mjs passes the example project and reports its estimates', () => {
   const { status, out } = run(EXAMPLE);
   assert.equal(status, 0);
-  // Pre-Task-6 example was authored under the 8s STATIC_STRETCH threshold; Task 6 restores strict 0-warning check.
-  assert.deepEqual([out.errors, out.warnings.filter((w) => w.code !== 'STATIC_STRETCH'), out.docs], [[], [], []]);
-  assert.equal(Math.round(out.estimates.total_seconds), 114);
+  assert.deepEqual([out.errors, out.warnings, out.docs], [[], [], []]);
+  assert.equal(Math.round(out.estimates.total_seconds), 70);
   assert.deepEqual(out.estimates.sections.map((s) => s.id), ['s01', 's02', 's03', 's04', 's05']);
-  assert.equal(out.estimates.shots.length, 14);
-  // sh03 第 0 句"第一趟，假设浏览器手边还没有副本。"有 15 字：15 / 4 + 0.25 = 4 秒后第 1 句开始
-  assert.deepEqual(out.estimates.shots[2], { id: 'sh03', seconds: 6, starts: [0, 4] });
+  assert.equal(out.estimates.shots.length, 13);
+  // sh05 第 0 句(s02·3)"如果响应允许缓存，内容就会留下。"有 14 字：14 / 4 + 0.25 = 3.75 → 3.8 秒后第 1 句开始
+  assert.deepEqual(out.estimates.shots[4], { id: 'sh05', seconds: 7, starts: [0, 3.8] });
 });
 
 test('check.mjs accepts a project after step 1, before shots and 分镜.md exist', () => {
@@ -35,6 +34,7 @@ test('check.mjs accepts a project after step 1, before shots and 分镜.md exist
   project.shots = [];
   writeFileSync(join(dir, 'project.json'), JSON.stringify(project));
   rmSync(join(dir, '分镜.md'));
+  rmSync(join(dir, '提示词包.md'), { force: true });
   const { status, out } = run(dir);
   assert.deepEqual([status, out.errors, out.docs], [0, [], []]);
 });
@@ -46,6 +46,7 @@ test('check.mjs accepts a project with world after step 1, before shots and 分�
   project.shots = [];
   writeFileSync(join(dir, 'project.json'), JSON.stringify(project));
   rmSync(join(dir, '分镜.md'));
+  rmSync(join(dir, '提示词包.md'), { force: true });
   const { status, out } = run(dir);
   assert.deepEqual([status, out.errors, out.docs], [0, [], []]);
 });
@@ -80,12 +81,13 @@ test('check.mjs checks 提示词包.md when it exists', () => {
 test('check.mjs reports storyboard warnings without failing', () => {
   const dir = copy();
   const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
-  project.shots[2].visual.data.nodes = ['甲乙丙', '丁戊己'];
-  project.shots[2].cues = [];
+  const idx = project.shots.findIndex((s) => s.visual.template === 'flow');
+  project.shots[idx].visual.data.nodes = ['甲乙丙', '丁戊己', '庚辛壬'];
+  project.shots[idx].cues = [];
   writeFileSync(join(dir, 'project.json'), JSON.stringify(project));
   const { status, out } = run(dir);
   assert.equal(status, 0);
-  assert.deepEqual(out.warnings.filter((w) => w.code !== 'STATIC_STRETCH').map((w) => `${w.code} ${w.path}`), ['VISUAL_NOT_IN_NARRATION /shots/2/visual']);
+  assert.deepEqual(out.warnings.map((w) => `${w.code} ${w.path}`), [`VISUAL_NOT_IN_NARRATION /shots/${idx}/visual`]);
 });
 
 test('check.mjs warns about a preset the voice command ignores and fails on an unknown preset', () => {
@@ -95,7 +97,7 @@ test('check.mjs warns about a preset the voice command ignores and fails on an u
   write({ provider: 'command', preset: 'male-sunny', command: 'say -v Tingting -o {out} {text}' });
   const warned = run(dir);
   assert.equal(warned.status, 0);
-  assert.deepEqual(warned.out.warnings.filter((w) => w.code !== 'STATIC_STRETCH').map((w) => `${w.code} ${w.path}`), ['PRESET_UNUSED /voice/preset']);
+  assert.deepEqual(warned.out.warnings.map((w) => `${w.code} ${w.path}`), ['PRESET_UNUSED /voice/preset']);
   write({ provider: 'undecided', preset: 'male-deep' });
   const failed = run(dir);
   assert.equal(failed.status, 1);

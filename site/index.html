@@ -172,8 +172,8 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
   <div class="wrap">
     <h2>主持人"小青"</h2>
     <p class="lead">原创手绘火柴人：黑色墨线，空心圆头，椭圆眼睛，头顶一根会随情绪变形的呆毛，脖子上系一条青色围巾。全身 17 个关节由代码画出，每个镜头都是同一个人。</p>
-    <p>分镜按名字选 17 个动作、9 种表情、6 件手持道具和 4 套服装；表情自带问号、汗滴、闪光这类符号。每期可先定比喻、5 套风格包（<code>paper</code>/<code>chalkboard</code>/<code>blueprint</code>/<code>kraft</code>/<code>night</code>）和 8 个手绘场景：在 <code>stage</code> 舞台版式里，小青与 60 个内置物件站在同一条地面线上；在 <code>host-left</code> 镜头里，小青能走到某个图解元素旁边，指它、看它、拍它；没写动作的句子，渲染器按句意自动配上动作。</p>
-    <p><span class="pill ok">L1 已支持</span> 两节逆解、走路、跳跃、错峰补间、逐句自动动作编排、语流微动、围巾弹簧与连续口型均已在本地渲染器实现；L0 提示词包同样附带参考图给外部模型使用。</p>
+    <p>分镜按名字选 17 个动作、9 种表情、6 件手持道具和 4 套服装；表情自带问号、汗滴、闪光这类符号。每期可先定比喻、5 套风格包（<code>paper</code>/<code>chalkboard</code>/<code>blueprint</code>/<code>kraft</code>/<code>night</code>）和 8 个手绘场景：在 <code>stage</code> 舞台版式里，小青与 60 个内置物件站在同一条地面线上做 8 种同台互动（打开、拿放、推拉、高举、板书、坐上、按状态反应），并支持 <code>state</code> 切状态与 <code>send</code> 沿线传递；在 <code>host-left</code> 镜头里，小青能走到某个图解元素旁边，指它、看它、拍它；没写动作的句子，渲染器按句意自动配上动作。</p>
+    <p><span class="pill ok">L1 已支持</span> 两节逆解、走路、跳跃、同台互动抓握/坐姿、错峰补间、逐句自动动作编排、语流微动、围巾弹簧与连续口型均已在本地渲染器实现；L0 提示词包同样附带参考图给外部模型使用。</p>
     <figure class="cheatsheet"><img src="assets/host-cheatsheet.png" alt="小青速查图：17 个动作、9 种表情、6 件道具和 4 套服装，每格写着英文名和中文说明" width="1800" height="2480" loading="lazy"></figure>
   </div>
 </section>
@@ -186,8 +186,8 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
       <div class="card"><h3>60fps</h3><p>默认 1080p60，可选 30fps。动画按连续时间计算，与帧率无关。</p></div>
       <div class="card"><h3>同元素补间</h3><p>前后镜头里同名的节点、数字和主持人平滑移动到新位置；没有共同元素时做 0.3 秒缓动叠化。</p></div>
       <div class="card"><h3>关键词对齐</h3><p>画面变化卡在句中的关键词上，优先用 TTS 的逐词时间；元素提前 0.15 秒入场，说到时正好落定。</p></div>
-      <div class="card"><h3>表演贴合</h3><p>问句歪头挑眉，重读处点头，图解出现时视线跟过去；表情和手势按句意切换。</p></div>
-      <div class="card"><h3>画面不空泛</h3><p>内置 60 个手绘物件与自定义几何道具，5 套风格包与 8 个手绘场景，支持 <code>stage</code> 舞台、<code>timeline</code> 和 <code>cycle</code> 模板；画面关键词和口播对不上时自检会提醒。</p></div>
+      <div class="card"><h3>表演贴合</h3><p>问句歪头挑眉，重读处点头，图解出现时视线跟过去；表情和手势按句意切换，同台互动手脚精准落点。</p></div>
+      <div class="card"><h3>画面不空泛</h3><p>内置 60 个手绘物件与自定义几何道具，5 套风格包与 8 个手绘场景，支持 <code>stage</code> 同台互动、<code>state</code>/<code>send</code> 与 <code>timeline</code>/<code>cycle</code> 模板；画面关键词和口播对不上时自检会提醒。</p></div>
       <div class="card"><h3>QA 看得见</h3><p>检查同步误差、跳变、卡顿和 BT.709 色彩；附联系表、转场条和口型抽检片段。</p></div>
     </div>
   </div>
@@ -196,13 +196,13 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
 <section id="example">
   <div class="wrap">
     <h2>示例：为什么缓存能让网页变快？</h2>
-    <p class="lead">一个 120 秒、14 个镜头的完整 L0 示例，节选 3 个镜头。全文见 <a href="https://github.com/xiongcp/short-video-skill/tree/main/examples/cache-speed">examples/cache-speed</a>。</p>
+    <p class="lead">一个 70 秒、13 个镜头的冰箱与超市同台示范 L0 示例（含讲稿、分镜、提示词包与 <code>project.json</code>），节选 3 个镜头。全文见 <a href="https://github.com/xiongcp/short-video-skill/tree/main/examples/cache-speed">examples/cache-speed</a>。</p>
     <div class="table-wrap"><table>
       <thead><tr><th>镜头</th><th>口播</th><th>画面</th><th>主持人</th></tr></thead>
       <tbody>
-        <tr><td>sh01</td><td>你昨天见过的这张图标，今天再打开，还要从头下载吗？</td><td>标题卡：同一张图，两次打开 / 还要从头下载吗？</td><td>好奇 · 思考 · 问号牌</td></tr>
-        <tr><td>sh11</td><td>先看它有没有可用的验证信息。有了验证信息，浏览器可以先询问服务器。资源没变时，服务器可以返回三零四，让浏览器继续用原来的内容。</td><td>流程：验证信息 → 询问服务器 → 返回304，节点随口播依次出现</td><td>全屏图解</td></tr>
-        <tr><td>sh14</td><td>下次看见同一张图瞬间出现，你就能说清，它可能省掉了哪一段路。</td><td>标题卡：省掉了哪段路？</td><td>得意 · 强调</td></tr>
+        <tr><td>sh04</td><td>浏览器向超市发请求，搬回新包裹。先把货装进冰箱，下次才省事。</td><td>街景同台：冰箱 ↔ 新包裹 ↔ 超市，信封与包裹沿线往返传递</td><td>抱起包裹走到冰箱旁放下</td></tr>
+        <tr><td>sh10</td><td>先留着别扔，给超市打个电话。货没变，超市回张三零四凭证。盖上章，旧货继续放心用！</td><td>街景同台：电话 ↔ 304 凭证 ↔ 超市，回传票据并标 count:304 与盖章</td><td>好奇 · 接住凭证双手高举</td></tr>
+        <tr><td>sh12</td><td>其实缓存就三招，坐下来记一记。新鲜直接拿，过期先打个电话。</td><td>厨房同台：货箱、冰箱直接拿、先问 304 凭证</td><td>坐上货箱 · 高亮冰箱并欢呼反应</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -241,7 +241,7 @@ npm install --prefix ~/.claude/skills/topic-to-video/scripts                  # 
       <li><b>P1</b><span>L0 文本包与场景评测</span><span class="pill ok">完成</span></li>
       <li><b>设计</b><span>出片质量：人物、帧率、匹配度、平滑动画</span><span class="pill ok">完成</span></li>
       <li><b>S1 / M1</b><span>火柴人主持人"小青"：骨架、精修造型、3 种手型、V 形缺口围巾与评审工具</span><span class="pill ok">完成</span></li>
-      <li><b>M2–M4</b><span>本地渲染器：1080p60/4K、60 手绘物件、5 套风格包、8 个场景与 <code>stage</code> 舞台、全身逆解与逐句动作、本地神经配音</span><span class="pill ok">完成</span></li>
+      <li><b>M2–M4</b><span>本地渲染器：1080p60/4K、60 手绘物件、5 套风格包、8 个场景与 <code>stage</code> 舞台、8 种同台互动与 <code>state</code>/<code>send</code>、全身逆解与逐句动作、本地神经配音</span><span class="pill ok">完成</span></li>
       <li><b>M5</b><span>同元素补间转场、选择性运动模糊、BT.709/跳变/卡顿/同步/遮挡 QA 与交付物</span><span class="pill ok">完成</span></li>
       <li><b>M6–M7</b><span>跨 Agent（agy/Claude Code/Codex）统一入口与同题对标验收</span><span class="pill dev">进行中</span></li>
     </ul>

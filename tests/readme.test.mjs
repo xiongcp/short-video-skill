@@ -47,3 +47,10 @@ test('both READMEs describe style packs, hand-drawn scenes, 60 built-in props an
   assert.ok(zh.includes('风格包') && zh.includes('手绘场景') && zh.includes('`stage`') && zh.includes('60'));
   assert.ok(en.includes('style packs') && en.includes('hand-drawn scenes') && en.includes('`stage`') && en.includes('60'));
 });
+
+test('both READMEs describe stage interactions, state/send and link the upgraded example prompt pack', () => {
+  const zh = read('README.md');
+  const en = read('README.en.md');
+  assert.ok(zh.includes('提示词包.md') && zh.includes('同台互动') && zh.includes('`state`') && zh.includes('`send`'));
+  assert.ok(en.includes('提示词包.md') && en.includes('stage interactions') && en.includes('`state`') && en.includes('`send`'));
+});

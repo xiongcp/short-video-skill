@@ -72,7 +72,7 @@
 - 每个镜头最多 2 次 `move`，否则报 `MOVE_TOO_MANY`；走动跟着正在讲的对象，不要来回踱步。`tap` 之前先走到该元素。
 - 每个镜头最多换 1 次道具；`wave` 全片最多 2 次，`jump` 和 `cheer` 全片合计最多 3 次。
 - 口播有"看右边""右侧""看这张图""看这里"等指示词时，该句动作要是 `point`、`present` 或 `tap`，否则报 `POINT_MISSING`。
-- `stage` 镜头需有互动 cue 或 `tap`，否则报 `NO_INTERACTION`；连续重复同一动作报 `GESTURE_REPEAT`。
+- `stage` 镜头需有互动 cue 或 `tap`，否则报 `NO_INTERACTION`；连续重复同一动作报 `GESTURE_REPEAT`；同台互动、`state`/`send` 与动作卡见 [world.md](world.md)。
 
 ## 图解模板
 
