@@ -34,6 +34,12 @@ const HOST_MAX_X = 1720;
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const boxesOverlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+const boxesOverlapStrict = (a, b) => (
+  a.x < b.x + b.w - 1e-6
+  && a.x + a.w - 1e-6 > b.x
+  && a.y < b.y + b.h - 1e-6
+  && a.y + a.h - 1e-6 > b.y
+);
 
 function unwrapVisualData(visualData) {
   if (visualData && !Array.isArray(visualData.objects) && visualData.data) {
@@ -171,6 +177,28 @@ function rayBoxExit(b, dx, dy, pad = 12) {
   return [cx + dx * k, cy + dy * k];
 }
 
+function sameLayerGapOk(items, boxes, gap) {
+  for (const layer of ['ground', 'mid', 'air']) {
+    const rects = items
+      .map((it, i) => ({ layer: it.layer, b: boxes[i] }))
+      .filter((r) => r.layer === layer)
+      .sort((a, b) => a.b.x - b.b.x);
+    for (let k = 1; k < rects.length; k += 1) {
+      if (rects[k].b.x - (rects[k - 1].b.x + rects[k - 1].b.w) < gap - 1e-6) return false;
+    }
+  }
+  return true;
+}
+
+function no2DOverlap(boxes) {
+  for (let i = 0; i < boxes.length; i += 1) {
+    for (let j = i + 1; j < boxes.length; j += 1) {
+      if (boxesOverlapStrict(boxes[i], boxes[j])) return false;
+    }
+  }
+  return true;
+}
+
 function buildAttempt(specs, scale, preferredHostX, hostHeight) {
   const scaled = specs.map((sp) => {
     const h = hostHeight * sp.meta.height * sp.sizeMult * scale;
@@ -181,16 +209,46 @@ function buildAttempt(specs, scale, preferredHostX, hostHeight) {
   const byLayer = { ground: [], mid: [], air: [] };
   for (const item of scaled) byLayer[item.layer].push(item);
 
-  const groundSpread = spreadLayer(byLayer.ground, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
-  const midSpread = spreadLayer(byLayer.mid, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
+  const initGroundSpread = spreadLayer(byLayer.ground, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
+  const initGroundRects = byLayer.ground.map((g) => {
+    const x = initGroundSpread.positions.get(g.index);
+    return { index: g.index, x, y: GROUND_Y - g.h, w: g.w, h: g.h };
+  });
+
+  const stackedBySupporter = new Map();
+  const freestandingMid = [];
+  for (const m of byLayer.mid) {
+    const sup = initGroundRects.find((g) => m.targetX >= g.x - 1e-6 && m.targetX <= g.x + g.w + 1e-6);
+    if (sup) {
+      const list = stackedBySupporter.get(sup.index) ?? [];
+      list.push({ ...m, offsetFromSupporter: m.targetX - (sup.x + sup.w / 2) });
+      stackedBySupporter.set(sup.index, list);
+    } else {
+      freestandingMid.push(m);
+    }
+  }
+
+  // Freestanding mid shares the lower stage height band with ground objects
+  const lowerItems = [...byLayer.ground, ...freestandingMid];
+  const lowerSpread = spreadLayer(lowerItems, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
   const airSpread = spreadLayer(byLayer.air, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
 
-  const xMap = new Map([...groundSpread.positions, ...midSpread.positions, ...airSpread.positions]);
+  const xMap = new Map([...lowerSpread.positions, ...airSpread.positions]);
   const groundRects = byLayer.ground.map((g) => {
     const x = xMap.get(g.index);
-    const y = GROUND_Y - g.h;
-    return { index: g.index, x, y, w: g.w, h: g.h };
+    return { index: g.index, x, y: GROUND_Y - g.h, w: g.w, h: g.h };
   });
+  const groundByIndex = new Map(groundRects.map((g) => [g.index, g]));
+
+  let stackedOk = true;
+  for (const [supIdx, group] of stackedBySupporter.entries()) {
+    const sup = groundByIndex.get(supIdx);
+    const supCx = sup.x + sup.w / 2;
+    const shiftedGroup = group.map((m) => ({ ...m, targetX: supCx + m.offsetFromSupporter }));
+    const groupSpread = spreadLayer(shiftedGroup, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
+    if (!groupSpread.ok) stackedOk = false;
+    for (const [idx, x] of groupSpread.positions.entries()) xMap.set(idx, x);
+  }
 
   const airMidY = (STAGE_BOUNDS.airTopMin + STAGE_BOUNDS.airBottomMax) / 2;
   const boxes = scaled.map((item) => {
@@ -208,8 +266,12 @@ function buildAttempt(specs, scale, preferredHostX, hostHeight) {
     return { x, y, w: item.w, h: item.h };
   });
 
-  const hostX = findHostX(groundRects, preferredHostX);
-  const layersFit = groundSpread.ok && midSpread.ok && airSpread.ok;
+  // Host 200px corridor avoids all objects vertically intersecting [GROUND_Y - hostHeight, GROUND_Y]
+  const hostTop = GROUND_Y - hostHeight;
+  const hostBlockingRects = boxes.filter((b) => b.y < GROUND_Y - 1e-6 && b.y + b.h > hostTop + 1e-6);
+  const hostX = findHostX(hostBlockingRects, preferredHostX);
+
+  const layersFit = initGroundSpread.ok && lowerSpread.ok && airSpread.ok && stackedOk;
   const boundsOk = scaled.every((item, i) => {
     const b = boxes[i];
     if (b.x < STAGE_BOUNDS.minX - 1e-6 || b.x + b.w > STAGE_BOUNDS.maxX + 1e-6) return false;
@@ -217,9 +279,10 @@ function buildAttempt(specs, scale, preferredHostX, hostHeight) {
     if (item.layer === 'air' && b.y + b.h > STAGE_BOUNDS.airBottomMax + 1e-6) return false;
     return true;
   });
+  const spacingOk = sameLayerGapOk(scaled, boxes, STAGE_BOUNDS.gap) && no2DOverlap(boxes);
 
   return {
-    ok: layersFit && boundsOk && hostX !== null,
+    ok: layersFit && boundsOk && spacingOk && hostX !== null,
     scale,
     hostX: hostX ?? clamp(preferredHostX, HOST_MIN_X, HOST_MAX_X),
     boxes,

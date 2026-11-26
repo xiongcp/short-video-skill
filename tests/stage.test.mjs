@@ -182,6 +182,55 @@ test('same-layer overlap pushes objects apart >= 40px within stage bounds and re
   assert.equal(explicitHost.hostX, 1680);
 });
 
+test('cross-layer 2D overlap and host avoidance for freestanding mid objects', () => {
+  // 1. Freestanding mid (browser at mid-left) + tall ground (shop at center) do not overlap in 2D
+  const freestandingPlusGround = layoutStage({
+    objects: [
+      { prop: 'browser', label: '浏览器', at: 'mid-left' },
+      { prop: 'shop', label: '超市', at: 'center' },
+    ],
+  });
+  assert.equal(freestandingPlusGround.ok, true);
+  const [browserEl, shopEl] = freestandingPlusGround.elements;
+  assert.equal(boxesOverlap(browserEl.bbox, shopEl.bbox), false, 'freestanding mid must not overlap tall ground in 2D');
+  assert.ok(shopEl.bbox.x - (browserEl.bbox.x + browserEl.bbox.w) >= 40 - 1e-6);
+
+  // 2. Stacked mid on tall ground + air in the same column do not overlap in 2D (scales down cleanly, or crowded if impossible)
+  const stackedPlusAir = layoutStage({
+    objects: [
+      { prop: 'shop', label: '超市', at: 'center' },
+      { prop: 'browser', label: '招牌屏', at: 'center' },
+      { prop: 'cloud', label: '云端', at: 'center' },
+    ],
+  });
+  assert.equal(stackedPlusAir.ok, true);
+  assert.ok(stackedPlusAir.scale < 1 && stackedPlusAir.scale >= 0.6);
+  const [sShop, sBrowser, sCloud] = stackedPlusAir.elements;
+  assert.ok(Math.abs((sBrowser.bbox.y + sBrowser.bbox.h) - sShop.bbox.y) < 1e-6);
+  assert.equal(boxesOverlap(sBrowser.bbox, sCloud.bbox), false, 'stacked mid must not overlap air in 2D');
+
+  const impossibleStackAir = layoutStage({
+    objects: [
+      { prop: 'shop', at: 'center', size: 'lg' },
+      { prop: 'browser', at: 'center', size: 'lg' },
+      { prop: 'window', at: 'center', size: 'lg' },
+    ],
+  });
+  assert.equal(impossibleStackAir.ok, false);
+  assert.equal(impossibleStackAir.crowded, true);
+
+  // 3. Stage with only freestanding mid (browser at left) avoids host corridor around prevHostX=320
+  const midOnlyHost = layoutStage(
+    { objects: [{ prop: 'browser', label: '浏览器', at: 'left' }] },
+    { prevHostX: 320 },
+  );
+  assert.equal(midOnlyHost.ok, true);
+  const [midBrowser] = midOnlyHost.elements;
+  const hostZone = { x: midOnlyHost.hostX - 100, y: 530, w: 200, h: 400 };
+  assert.equal(boxesOverlap(hostZone, midBrowser.bbox), false, 'host 200px corridor must avoid freestanding mid intersecting host height');
+  assert.notEqual(midOnlyHost.hostX, 320);
+});
+
 test('crowded stage scales down >= 0.6 first and reports ok=false crowded=true when 0.6 still cannot fit', () => {
   // 5 lg boxes across all 5 slots have no 200px host gap at scale=1.0, so auto-scale shrinks to fit (>= 0.6)
   const scaledBoxes = layoutStage({
