@@ -476,12 +476,15 @@ function simResolveStandX(target, currentX, elements) {
       });
       const leftOk = Number.isFinite(left) && isClear(left);
       const rightOk = Number.isFinite(right) && isClear(right);
-      if (leftOk && !rightOk) return left;
-      if (rightOk && !leftOk) return right;
-      return Math.abs(currentX - left) <= Math.abs(currentX - right) ? left : right;
+      let chosen;
+      if (leftOk && !rightOk) chosen = left;
+      else if (rightOk && !leftOk) chosen = right;
+      else chosen = Math.abs(currentX - left) <= Math.abs(currentX - right) ? left : right;
+      return clamp(Math.round(chosen), STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX);
     }
     const cx = el.bbox.x + el.bbox.w / 2;
-    return currentX <= cx ? el.bbox.x - 60 : el.bbox.x + el.bbox.w + 60;
+    const chosen = currentX <= cx ? el.bbox.x - 60 : el.bbox.x + el.bbox.w + 60;
+    return clamp(Math.round(chosen), STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX);
   }
   return currentX;
 }
@@ -567,14 +570,14 @@ export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
     }))
     .sort((a, b) => a.t0 - b.t0 || a.cueIdx - b.cueIdx);
 
-  // Track simulated host X before each cue so push/pull directions remain consistent across later moves
+  // Track simulated host X at each cue (after auto-approach) so push/pull directions remain consistent across later walks
   let simHostX = shotPlan?.startState?.x ?? shotPlan?.stageLayout?.hostX ?? 320;
-  const hostXBeforeCue = new Map();
+  const hostXAtCue = new Map();
   for (const entry of resolvedCues) {
-    hostXBeforeCue.set(entry.cueIdx, simHostX);
     if (HOST_MOVING_DO.has(entry.cue.do) && !(entry.cue.do === 'carry' && entry.cue.target === 'none')) {
       simHostX = simResolveStandX(entry.cue.target, simHostX, elements);
     }
+    hostXAtCue.set(entry.cueIdx, simHostX);
   }
 
   let fastMotion = false;
@@ -629,25 +632,33 @@ export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
     const minDx = STAGE_BOUNDS.minX - bbox.x;
     const maxDx = STAGE_BOUNDS.maxX - (bbox.x + bbox.w);
     const computePushPullDx = (sinceTime) => {
+      const walkStartOf = (c) => (c.cue?.timeMs != null ? Math.min(c.t0, c.cue.timeMs / 1000) : c.t0);
       let curDx = 0;
       for (const entry of resolvedCues) {
         if (entry.t0 > t || entry.t0 < sinceTime) continue;
         if (entry.cue.target !== i || (entry.cue.do !== 'push' && entry.cue.do !== 'pull')) continue;
+        const dt = t - entry.t0;
         const laterHostMove = resolvedCues.some((other) => (
           other.cueIdx !== entry.cueIdx
           && other.t0 > entry.t0
-          && other.t0 <= t
+          && walkStartOf(other) <= t
           && HOST_MOVING_DO.has(other.cue.do)
           && !(other.cue.do === 'carry' && other.cue.target === 'none')
         ));
-        const hostX = !laterHostMove && Number.isFinite(hostMeta?.x)
-          ? hostMeta.x
-          : (hostXBeforeCue.get(entry.cueIdx) ?? 320);
+        const activeThisCue = inter
+          && (inter.kind === 'push' || inter.kind === 'pull')
+          && inter.targetIdx === i
+          && dt >= 0
+          && dt <= 0.7;
+        const hostX = activeThisCue && Number.isFinite(inter.standX)
+          ? inter.standX
+          : (!laterHostMove && Number.isFinite(hostMeta?.x)
+            ? hostMeta.x
+            : (hostXAtCue.get(entry.cueIdx) ?? 320));
         const preObjCx = bbox.x + bbox.w / 2 + curDx;
         const awayDir = preObjCx >= hostX ? 1 : -1;
         const dir = entry.cue.do === 'push' ? awayDir : -awayDir;
         const targetDx = clamp(curDx + dir * 160, minDx, maxDx);
-        const dt = t - entry.t0;
         if (dt < 0.7) {
           const u = clamp01(dt / 0.7);
           curDx = clamp(lerp(curDx, targetDx, easeOutBack(u)), minDx, maxDx);
@@ -1043,14 +1054,14 @@ export function renderStage(visualData, {
       const byLocal = b.y + rad * 0.25;
       const pulse = st.highlight > 0 && st.highlight < 1 ? 1 + 0.06 * Math.sin(Math.PI * clamp01(st.highlight)) : 1;
       const bumpScale = st.bump ? 1 + 0.08 * st.bump : 1;
+      const baseSc = (st.scale ?? 1) * pulse * bumpScale;
       const flipScale = isCountState(prevState) && prevState !== effState && sp < 1 ? 1 + 0.12 * Math.sin(Math.PI * sp) : 1;
-      const sc = (st.scale ?? 1) * pulse * bumpScale * flipScale;
-      const bx = cx + (bxLocal - cx) * sc + (st.dx ?? 0);
-      const by = cy + (byLocal - cy) * sc + (st.dy ?? 0);
+      const bx = cx + (bxLocal - cx) * baseSc + (st.dx ?? 0);
+      const by = cy + (byLocal - cy) * baseSc + (st.dy ?? 0);
       const showPrevDigits = isCountState(prevState) && prevState !== effState && sp < 0.5;
       const shownDigits = showPrevDigits ? prevState.slice(6) : digits;
       const len = [...shownDigits].length;
-      const fontSize = Math.max(16, Math.round(rad * (len >= 3 ? 0.85 : len === 2 ? 1.05 : 1.2) * sc));
+      const fontSize = Math.max(16, Math.round(rad * (len >= 3 ? 0.85 : len === 2 ? 1.05 : 1.2) * baseSc * flipScale));
       const countOp = prevState !== effState && sp < 1 && !isCountState(prevState) ? op * sp : op;
       textItems.push({
         key: `stage-count-${i}`,

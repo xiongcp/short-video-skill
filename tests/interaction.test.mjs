@@ -138,7 +138,7 @@ test('1. state cues transition over 0.3s, open interaction transitions to open, 
   assert.ok(svgCross.vectorSvg.includes('data-state="crossed"'));
   assert.ok(svgCross.vectorSvg.includes('data-overlay="crossed"'));
 
-  // count:* settled after 0.35s
+  // count:* settled after 0.35s, and midpoint (sp=0.5) on a tall fridge keeps digit aligned inside badge circle (<= 1px)
   const afterCount = evaluateStageObjects(plan, 4.35, null);
   assert.equal(afterCount.objectStates[2].state, 'count:2');
   const svgCount = renderStage(visualData, {
@@ -148,6 +148,29 @@ test('1. state cues transition over 0.3s, open interaction transitions to open, 
     layoutResult: plan.stageLayout,
   });
   assert.ok(svgCount.textItems.some((ti) => ti.key === 'stage-count-2' && ti.text === '2'));
+
+  const fridgeCountVisual = {
+    objects: [{ prop: 'fridge', label: '冰箱', at: 'center', state: 'count:1' }],
+  };
+  const fridgePlan = makeStagePlan(fridgeCountVisual, [
+    { sentence: 0, do: 'state', target: 0, value: 'count:2', timeMs: 1000 },
+  ]);
+  const fridgeMid = evaluateStageObjects(fridgePlan, 1.15, null);
+  assert.ok(Math.abs(fridgeMid.objectStates[0].stateProgress - 0.5) < 1e-6);
+  const fridgeMidRender = renderStage(fridgeCountVisual, {
+    style: 'paper',
+    seed: 'cnt-mid',
+    elementStates: fridgeMid.objectStates,
+    layoutResult: fridgePlan.stageLayout,
+  });
+  const fridgeBox = fridgePlan.elements[0].bbox;
+  const fridgeRad = Math.max(16, Math.min(28, Math.min(fridgeBox.w, fridgeBox.h) * 0.24));
+  const expectedBadgeX = fridgeBox.x + fridgeBox.w - fridgeRad * 0.25;
+  const expectedBadgeY = fridgeBox.y + fridgeRad * 0.25;
+  const badgeText = fridgeMidRender.textItems.find((ti) => ti.key === 'stage-count-0');
+  assert.ok(badgeText);
+  assert.ok(Math.hypot(badgeText.x - expectedBadgeX, badgeText.y - expectedBadgeY) <= 1, `badge text (${badgeText.x}, ${badgeText.y}) drifted from circle (${expectedBadgeX}, ${expectedBadgeY})`);
+  assert.ok(badgeText.fontSize > Math.round(fridgeRad * 1.2), 'flipScale enlarges count fontSize in place');
 
   // interactionStarts from hostMeta overrides cue.timeMs / 1000
   const delayed = evaluateStageObjects(plan, 1.35, {
@@ -229,6 +252,46 @@ test('2. push and pull shift dx by ~+-160px away/toward host, clamp to [120, 180
     assert.ok(edgeBox.x + st.dx + edgeBox.w <= 1800 + 1e-6);
   }
   assert.ok(Math.abs(edgeBox.x + edgeDone.objectStates[1].dx + edgeBox.w - 1800) < 1e-6, 'clamped flush to 1800');
+
+  // Walking past pushed object toward an opposite-side interaction cue (auto_approach) must not flip dx
+  const walkPlan = makeStagePlan(
+    {
+      objects: [
+        { prop: 'box', label: '中箱', at: 'center' },
+        { prop: 'fridge', label: '右冰箱', at: 'right', state: 'closed' },
+      ],
+    },
+    [
+      { sentence: 0, do: 'push', target: 0, timeMs: 1000 },
+      { sentence: 0, do: 'open', target: 1, timeMs: 2000 },
+    ],
+    { hostX: 320 },
+  );
+  const walkStarts = new Map([[0, 1.0], [1, 4.0]]);
+  const duringWalkA = evaluateStageObjects(walkPlan, 2.5, { x: 1000, interactionStarts: walkStarts });
+  const duringWalkB = evaluateStageObjects(walkPlan, 3.2, { x: 1350, interactionStarts: walkStarts });
+  assert.ok(Math.abs(duringWalkA.objectStates[0].dx - 160) < 1e-6, `expected stable +160 during walk past center, got ${duringWalkA.objectStates[0].dx}`);
+  assert.ok(Math.abs(duringWalkB.objectStates[0].dx - 160) < 1e-6, `expected stable +160 after crossing center, got ${duringWalkB.objectStates[0].dx}`);
+
+  // Blocked-side placement: fridge blocks box's left standSpot so host stands on right despite startState.x=320; later move keeps -160
+  const blockedPlan = makeStagePlan(
+    {
+      objects: [
+        { prop: 'fridge', label: '左冰箱', at: 0.43 },
+        { prop: 'box', label: '右箱', at: 'center' },
+      ],
+    },
+    [
+      { sentence: 0, do: 'push', target: 1, timeMs: 1000 },
+      { sentence: 0, do: 'move', target: 'left', timeMs: 2500 },
+    ],
+    { hostX: 320 },
+  );
+  const boxRightSpot = blockedPlan.elements[1].standSpots.right;
+  const blockedDuringPush = evaluateStageObjects(blockedPlan, 1.7, { x: boxRightSpot });
+  const blockedAfterMove = evaluateStageObjects(blockedPlan, 3.0, { x: 320 });
+  assert.ok(Math.abs(blockedDuringPush.objectStates[1].dx + 160) < 1e-6, `expected -160 when pushed from right standSpot, got ${blockedDuringPush.objectStates[1].dx}`);
+  assert.ok(Math.abs(blockedAfterMove.objectStates[1].dx + 160) < 1e-6, `expected -160 to stay stable after later move, got ${blockedAfterMove.objectStates[1].dx}`);
 });
 
 test('3. carry and hold_up follow handPos/carriedPos into frontVectorSvg and return to backVectorSvg when dropped', () => {
