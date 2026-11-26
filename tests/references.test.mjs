@@ -101,3 +101,19 @@ test('providers.md documents {pitch}, the preset form of the edge-tts voice and 
   assert.ok(text.includes('--audition'));
   assert.ok(!text.includes('中文常用神经音色'));
 });
+
+test('storyboard.md introduces the 呆毛, the outfits and when to leave settings.outfit out', () => {
+  const text = ref('storyboard.md');
+  assert.ok(text.includes('呆毛'));
+  assert.ok(text.includes('settings.outfit'));
+  for (const outfit of ['glasses', 'hardhat', 'chef_hat', 'apron']) assert.ok(text.includes(`\`${outfit}\``), outfit);
+  assert.match(text, /用户要求时才写/);
+  assert.match(text, /\| 想通了、揭晓答案 \| `amazed` \| `snap` \|/);
+});
+
+test('prompt-pack.md allows the 呆毛 and settings.outfit instead of banning them', () => {
+  const text = ref('prompt-pack.md');
+  assert.ok(text.includes('呆毛'));
+  assert.ok(text.includes('settings.outfit'));
+  assert.ok(!text.includes('人物不加头发、衣服和身体填色'));
+});

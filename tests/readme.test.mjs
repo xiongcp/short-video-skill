@@ -33,3 +33,10 @@ test('both READMEs say the voice has 8 male and female presets to audition', () 
   assert.ok(read('README.md').includes('男女声 8 个人设，可以先试听'));
   assert.ok(read('README.en.md').includes('8 male and female voice presets you can audition first'));
 });
+
+test('both READMEs give 小青 the 呆毛 and the H counts', () => {
+  assert.ok(read('README.md').includes('呆毛'));
+  assert.ok(read('README.md').includes('17 个动作、9 种表情、6 件道具和 4 套服装'));
+  assert.ok(read('README.en.md').includes('cowlick'));
+  assert.ok(read('README.en.md').includes('17 gestures, 9 expressions, 6 props and 4 outfits'));
+});

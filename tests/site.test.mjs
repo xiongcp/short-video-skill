@@ -70,3 +70,9 @@ test('site documents cross-agent install paths for agy, Claude Code and Codex', 
 test('site says the voice has 8 male and female presets to audition', () => {
   assert.ok(html.includes('男女声 8 个人设，可以先试听'));
 });
+
+test('the site describes the 呆毛 and shows the taller cheatsheet', () => {
+  assert.ok(html.includes('呆毛'));
+  assert.ok(html.includes('17 个动作、9 种表情、6 件手持道具和 4 套服装'));
+  assert.match(html, /host-cheatsheet\.png" alt="[^"]*" width="1800" height="2480"/);
+});

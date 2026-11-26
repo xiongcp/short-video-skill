@@ -34,13 +34,14 @@
 
 ## 主持人
 
-主持人是火柴人"小青"：手绘墨线，系一条青色围巾，只在 `host-left` 镜头出场。
+主持人是火柴人"小青"：手绘墨线，系一条青色围巾，头顶一根呆毛随表情变形，只在 `host-left` 镜头出场。性格是好奇的伙伴：爱凑近看，想通了打响指。
 
 - **表情**（`expr`）：`explaining` 平稳讲解，`focused` 讲难点，`happy` 结论或轻松处，`curious` 提问（头旁出现问号），`surprised` 意外（惊叹线），`worried` 踩坑（汗滴），`frustrated` 着急（抖动线），`proud` 得意（闪光），`amazed` 恍然大悟（星星眼、闪光）。符号自动出现。
-- **动作**（`gesture`）：保持型做完就保持到下一个动作：`idle` 站着，`point` 指向焦点元素，`present` 摊开手掌介绍焦点元素，`emphasize` 握拳下压，`think` 托腮，`shrug` 摊手耸肩，`sit` 坐下，`lean_in` 凑近看焦点元素。一次性的做完回到之前的保持型动作：`wave` 挥手，`jump` 原地跳，`cheer` 举手欢呼，`tap` 拍一下焦点元素，`snap` 打响指，`startle` 吓一跳，`double_take` 再看一眼，`scratch_head` 挠头。`point_right` 是旧名字，等同 `point`。
+- **动作**（`gesture`）：保持型做完就保持到下一个动作：`idle` 站着，`point` 指向焦点元素，`present` 摊开手掌介绍焦点元素，`emphasize` 握拳下压，`think` 托腮，`shrug` 摊手耸肩，`sit` 坐下，`lean_in` 凑近看焦点元素。一次性的做完回到之前的保持型动作：`wave` 挥手，`jump` 原地跳，`cheer` 举手欢呼，`tap` 拍一下焦点元素，`snap` 打响指，`startle` 吓一跳，`double_take` 再看一眼，`scratch_head` 挠头。句子没写动作时，渲染器按句意自动挑。`point_right` 是旧名字，等同 `point`。
 - **道具**（`prop` cue）：`pointer` 教鞭（指高处），`magnifier` 放大镜（细看），`phone` 手机，`doc` 文件，`bulb` 灯泡（想通了），`question` 问号牌（抛出问题）；`none` 放下。同一时间只拿一件。
 - **走位**（`move` cue）：走到某个元素旁边，或 `left`、`center`、`right` 三个站位。走到后面朝元素，不会自动指；要指再写 `point`。
 - **焦点元素**：本镜最近一次 `reveal`、`highlight` 或 `move` 指定的元素，还没有时是图解区中心。指、拍和视线都对准它。
+- **服装**（`settings.outfit`）：`glasses`、`hardhat`、`chef_hat`、`apron`，全片一套；用户要求时才写，缺省不穿。
 - **接戏**：每个 `host-left` 镜头从上一个 `host-left` 镜头结束时的站位、动作和道具接着演；道具不用了要放下。
 
 按句意选：
@@ -48,17 +49,19 @@
 | 句意 | 表情 | 动作 | 道具 | 走位 |
 | --- | --- | --- | --- | --- |
 | 开场打招呼、结尾告别 | `happy` | `wave` | — | — |
-| 提问、制造悬念 | `curious` | `think` | `question` | — |
+| 提问、制造悬念 | `curious` | `lean_in` 或 `think` | `question` | — |
 | 反问、"其实没那么简单" | `curious` | `shrug` | — | — |
 | 踩坑、出问题 | `worried` | `idle` | — | — |
 | 着急、"等了半天" | `frustrated` | `emphasize` | — | — |
-| 意外的事实、反转 | `surprised` | `jump` | — | — |
+| 意外的事实、反转 | `surprised` | `startle` 或 `jump` | — | — |
+| "等一下，再看一眼" | `surprised` | `double_take` | — | — |
+| 困惑、"这就怪了" | `curious` | `scratch_head` | — | — |
 | 讲难点、提醒注意 | `focused` | `emphasize` 或 `idle` | — | — |
 | 让观众看某个元素 | `explaining` | `point` 或 `present` | 元素在高处时 `pointer` | 走到该元素 |
 | 细看某个细节 | `focused` | `point` | `magnifier` | 走到该元素 |
 | 敲定某个元素是关键 | `focused` | `tap` | — | 先走到该元素 |
 | 讲手机、文档 | `explaining` | `present` | `phone` 或 `doc` | — |
-| 想通了 | `surprised` 再接 `happy` | `idle` | `bulb` | — |
+| 想通了、揭晓答案 | `amazed` | `snap` | `bulb` | — |
 | 关键结论 | `happy` 或 `proud` | `cheer` 或 `emphasize` | — | — |
 | 轻松过渡 | `happy` | `sit` 或 `idle` | — | — |
 

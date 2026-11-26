@@ -23,9 +23,9 @@ The L1 design and roadmap are in the [render quality design](docs/lite/出片质
 
 ## The host
 
-The host is 小青 (Xiaoqing), an original hand-drawn stick figure: black ink lines and a teal scarf, with 17 joints drawn by code. The storyboard picks from 12 gestures, 8 expressions and 6 props by name, and in `host-left` shots Xiaoqing can walk over to a diagram element and point at it.
+The host is 小青 (Xiaoqing), an original hand-drawn stick figure: black ink lines, a teal scarf and a cowlick on top that changes shape with each mood, with 17 joints drawn by code. The storyboard picks from 17 gestures, 9 expressions, 6 props and 4 outfits by name; in `host-left` shots Xiaoqing can walk over to a diagram element and point at it, and a sentence with no gesture gets one picked from its meaning.
 
-![Xiaoqing cheatsheet: 12 gestures, 8 expressions and 6 props](site/assets/host-cheatsheet.png)
+![Xiaoqing cheatsheet: 17 gestures, 9 expressions, 6 props and 4 outfits](site/assets/host-cheatsheet.png)
 
 ## Install
 
