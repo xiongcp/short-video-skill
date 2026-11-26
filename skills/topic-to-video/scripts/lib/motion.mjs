@@ -241,6 +241,21 @@ export function resolveStandX(target, currentX = 320, elements = []) {
   if (Number.isInteger(target)) {
     const el = elements[target];
     if (!el) return currentX;
+    if (el.standSpots) {
+      const { left, right } = el.standSpots;
+      const isClear = (sx) => !elements.some((other) => {
+        const b = other?.bbox;
+        if (!b || b.y >= 930 - 1e-6 || b.y + b.h <= 530 + 1e-6) return false;
+        return sx - 47 < b.x + b.w && sx + 47 > b.x;
+      });
+      const leftOk = Number.isFinite(left) && isClear(left);
+      const rightOk = Number.isFinite(right) && isClear(right);
+      let chosen;
+      if (leftOk && !rightOk) chosen = left;
+      else if (rightOk && !leftOk) chosen = right;
+      else chosen = Math.abs(currentX - left) <= Math.abs(currentX - right) ? left : right;
+      return Math.max(120, Math.min(1800, Math.round(chosen)));
+    }
     const { x, w } = el.bbox;
     const leftSpot = x - 60;
     const rightSpot = x + w + 60;
@@ -287,6 +302,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   const cues = plan.cues ?? [];
   const elements = plan.elements ?? [];
   const theme = plan.theme ?? 'light';
+  const style = plan.style;
 
   // Walk schedule across move cues
   let x = start.x;
@@ -424,10 +440,10 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     }
   }
 
-  // Focus target point (20 px below bottom center of focus element, or diagram center)
+  // Focus target point (`anchors.front` for stage objects, or 20 px below bottom center for diagram elements)
   const focusEl = focusIdx !== null ? elements[focusIdx] : null;
   const focusPt = focusEl
-    ? [focusEl.bbox.x + focusEl.bbox.w / 2, focusEl.bbox.y + focusEl.bbox.h + 20]
+    ? (focusEl.anchors?.front ?? [focusEl.bbox.x + focusEl.bbox.w / 2, focusEl.bbox.y + focusEl.bbox.h + 20])
     : [1240, 320];
 
   // Quiet stretches between gesture and move cues, and the fidgets in them (§4.3)
@@ -518,9 +534,13 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
             lift = hop;
             angles = tweenPoseAngles(manifest, toA, spec.angles, Math.min(dt, 0.35), { duration: 0.35, anticipate: true, overshoot: true });
           } else if (activeOnce.gesture === 'tap') {
+            if (focusEl) facing = focusPt[0] >= x ? 1 : -1;
             const reach = Math.sin(u * Math.PI);
-            const tapTarget = [focusPt[0], focusPt[1] - 12 * reach];
-            angles = aimArmAt(manifest, toA, { view, facing, x, ground, target: tapTarget, prop: heldProp });
+            const tapBase = poseAngles(manifest, 'tap', heldProp, view);
+            const tapTarget = focusEl?.anchors?.front
+              ? [focusPt[0] - facing * 12 * (1 - reach), focusPt[1]]
+              : [focusPt[0], focusPt[1] - 12 * reach];
+            angles = aimArmAt(manifest, tapBase, { view, facing, x, ground, target: tapTarget, prop: heldProp });
             if (u >= 0.4 && u <= 0.65) tapImpact = Math.sin(((u - 0.4) / 0.25) * Math.PI);
           } else {
             // H gestures (小青人设设计 §4.1): wind up into the pose, then the gesture's own accent.
@@ -652,6 +672,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     prop,
     blink: micro.blink,
     theme,
+    ...(style !== undefined ? { style } : {}),
     seed: plan.seed ?? 'sh01',
     angles,
     lift,

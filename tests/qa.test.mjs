@@ -91,3 +91,101 @@ test('runQa catches BT.601 color, host occlusion and rushed moves, and passes a 
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('runQa reports HOST_OBJECT_OVERLAP when qaByShot records objectOverlapFrames > 0, while clean stage renders have 0 overlap', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'svs-qa-stage-'));
+  try {
+    const p = {
+      ...minimal(),
+      world: { metaphor: '缓存是桌上的文件', style: 'chalkboard', scene: 'office' },
+      voice: { provider: 'import' },
+      sections: [{ id: 's01', title: '舞台', text: '桌面文件就在眼前。' }],
+      shots: [{
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'explaining', gesture: 'idle' },
+        visual: {
+          template: 'stage',
+          data: {
+            objects: [{ prop: 'doc', label: '缓存', at: 'mid-left' }],
+          },
+        },
+        cues: [{ sentence: 0, do: 'move', target: 0 }],
+        note: 'clean stage',
+      }],
+    };
+    mkdirSync(join(dir, 'audio'), { recursive: true });
+    const sr = 48000;
+    const samples = new Int16Array(Math.round(sr * 1.2));
+    for (let i = 1500; i < samples.length - 1500; i += 1) samples[i] = Math.round(8000 * Math.sin((2 * Math.PI * 330 * i) / sr));
+    writeFileSync(join(dir, 'audio/s01-0.wav'), makeWavBuffer(samples, sr));
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(p, null, 2));
+
+    const rendered = await renderProject(dir, { preview: true, workers: 1 });
+    assert.equal(rendered.qaByShot.sh01.objectOverlapFrames, 0, 'clean stage layout produces zero host-object overlap');
+    const cleanQa = await runQa(dir, {
+      videoPath: rendered.videoPath,
+      expectedFps: rendered.fps,
+      timeline: rendered.timeline,
+      shotPlans: rendered.shotPlans,
+      qaByShot: rendered.qaByShot,
+    });
+    assert.equal(cleanQa.ok, true, `unexpected QA issues: ${JSON.stringify(cleanQa.issues)}`);
+
+    const overlapQa = await runQa(dir, {
+      videoPath: rendered.videoPath,
+      expectedFps: rendered.fps,
+      timeline: rendered.timeline,
+      shotPlans: rendered.shotPlans,
+      qaByShot: { sh01: { objectOverlapFrames: 4 } },
+    });
+    const issue = overlapQa.issues.find((i) => i.code === 'HOST_OBJECT_OVERLAP');
+    assert.ok(issue, `expected HOST_OBJECT_OVERLAP in ${JSON.stringify(overlapQa.issues)}`);
+    assert.equal(issue.shotId, 'sh01');
+    assert.equal(issue.frames, 4);
+    assert.equal(overlapQa.ok, false);
+
+    // Also verify encode.mjs records objectOverlapFrames > 0 when a crowded stage forces bodyBbox onto an object
+    const crowdedDir = join(dir, 'crowded');
+    mkdirSync(join(crowdedDir, 'audio'), { recursive: true });
+    writeFileSync(join(crowdedDir, 'audio/s01-0.wav'), makeWavBuffer(samples.subarray(0, Math.round(sr * 0.5)), sr));
+    const crowdedProj = {
+      ...p,
+      shots: [{
+        ...p.shots[0],
+        cues: [],
+        visual: {
+          template: 'stage',
+          data: {
+            objects: [
+              { prop: 'shop', at: 'left', size: 'lg' },
+              { prop: 'house', at: 'mid-left', size: 'lg' },
+              { prop: 'car', at: 'center', size: 'lg' },
+              { prop: 'truck', at: 'mid-right', size: 'lg' },
+              { prop: 'whiteboard', at: 'right', size: 'lg' },
+            ],
+          },
+        },
+      }],
+    };
+    writeFileSync(join(crowdedDir, 'project.json'), JSON.stringify(crowdedProj, null, 2));
+    const crowdedRendered = await renderProject(crowdedDir, { preview: true, workers: 1 });
+    assert.ok(crowdedRendered.qaByShot.sh01.objectOverlapFrames > 0, `expected overlap frames > 0, got ${crowdedRendered.qaByShot.sh01.objectOverlapFrames}`);
+    const crowdedQa = await runQa(crowdedDir, {
+      videoPath: crowdedRendered.videoPath,
+      expectedFps: crowdedRendered.fps,
+      timeline: crowdedRendered.timeline,
+      shotPlans: crowdedRendered.shotPlans,
+      qaByShot: crowdedRendered.qaByShot,
+    });
+    assert.ok(crowdedQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

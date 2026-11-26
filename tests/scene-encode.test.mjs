@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
 import { makeWavBuffer } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
-import { buildShotPlans, evaluateFrame, shotCacheKey } from '../skills/topic-to-video/scripts/lib/scene.mjs';
+import { buildShotPlans, evaluateFrame, SCENE_VERSION, shotCacheKey } from '../skills/topic-to-video/scripts/lib/scene.mjs';
 import { buildChapters, buildSubtitlesAss, buildSubtitlesSrt, renderProject } from '../skills/topic-to-video/scripts/lib/encode.mjs';
 
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
@@ -200,4 +200,164 @@ test('host-left diagram bottom leaves vertical room above the host 呆毛', () =
   const diagBottom = Math.max(...shotPlan.elements.map((e) => e.bbox.y + e.bbox.h));
   const frame = evaluateFrame(manifest, shotPlan, 0.5);
   assert.ok(diagBottom < frame.hostMeta.bodyBbox.y, `diagram bottom ${diagBottom} overlaps host top ${frame.hostMeta.bodyBbox.y}`);
+});
+
+test('stage shot renders style background, scene layer, props, host in exact layer order with chalkboard ink', () => {
+  const p = {
+    ...minimal(),
+    world: {
+      metaphor: '缓存是家门口的冰箱',
+      style: 'chalkboard',
+      scene: 'kitchen',
+      custom_props: [{
+        id: 'c_tray',
+        label: '托盘',
+        height: 0.25,
+        layer: 'mid',
+        parts: [{ shape: 'rect', x: -0.8, y: 0.2, w: 1.6, h: 0.6, fill: 'soft_accent' }],
+      }],
+    },
+    sections: [{ id: 's01', title: '舞台', text: '冰箱就在厨房里。' }],
+    shots: [{
+      id: 'sh01',
+      section: 's01',
+      sentences: [0],
+      layout: 'stage',
+      host: { expr: 'happy', gesture: 'point' },
+      visual: {
+        template: 'stage',
+        data: {
+          heading: '厨房里的冰箱',
+          objects: [
+            { prop: 'fridge', label: '缓存', at: 'center' },
+            { prop: 'c_tray', label: '托盘', at: 'right' },
+          ],
+        },
+      },
+      cues: [{ sentence: 0, do: 'highlight', target: 0 }],
+      note: 'stage shot',
+    }],
+  };
+  const timing = { 's01-0': { file: 'audio/s01-0.wav', duration_ms: 2000, speech: [50, 1900], source: 'estimate', words: [], sha256: 'st1' } };
+  const [plan] = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+  assert.equal(SCENE_VERSION, 4);
+  assert.equal(plan.style, 'chalkboard');
+  assert.equal(plan.scene, 'kitchen');
+  assert.equal(plan.customProps.length, 1);
+  assert.ok(plan.stageLayout);
+
+  const frame = evaluateFrame(manifest, plan, 0.8);
+  const svg = frame.vectorSvg;
+  assert.ok(!svg.includes('<text'), 'vectorSvg remains <text>-free');
+  const idxBg = svg.indexOf('#1d3328');
+  const idxScene = svg.indexOf('data-scene="kitchen"');
+  const idxProp = svg.indexOf('data-icon="fridge"');
+  const idxCustom = svg.indexOf('data-icon="c_tray"');
+  const idxHost = svg.indexOf('data-host="xiaoqing"');
+  assert.ok(idxBg >= 0 && idxScene > idxBg && idxProp > idxScene && idxCustom > idxScene && idxHost > idxProp,
+    `layer order bg(${idxBg}) -> scene(${idxScene}) -> prop(${idxProp}) -> host(${idxHost})`);
+  assert.ok(svg.includes('#f2f2f2'), 'chalkboard draws host in #f2f2f2');
+  assert.ok(svg.includes('#20a5a3'), 'chalkboard keeps teal scarf #20a5a3');
+  assert.ok(frame.textItems.some((ti) => ti.text === '厨房里的冰箱'), 'stage heading textItem present');
+  assert.ok(frame.textItems.some((ti) => ti.text === '缓存'), 'stage object label textItem present');
+  assert.ok(frame.textItems.some((ti) => ti.key.startsWith('sub-') && ti.color === '#f3f1e8'), 'subtitle uses chalkboard ink color');
+});
+
+test('stage <-> host-left preserves x continuity on y=930 without auto_return, and stage <-> full trots in/out', () => {
+  const p = {
+    ...minimal(),
+    world: { metaphor: '演示舞台切换', style: 'paper', scene: 'podium' },
+    sections: [{ id: 's01', title: '衔接', text: '第一句开场。第二句进舞台。第三句回左栏。第四句再上台。第五句切全屏。第六句回舞台。' }],
+    shots: [
+      { id: 'sh01', section: 's01', sentences: [0], layout: 'host-left', host: { expr: 'explaining', gesture: 'idle' }, visual: { template: 'title', data: { heading: '开场' } }, cues: [{ sentence: 0, do: 'move', target: 'center' }], note: 'move center' },
+      { id: 'sh02', section: 's01', sentences: [1], layout: 'stage', host: { expr: 'explaining', gesture: 'present' }, visual: { template: 'stage', data: { objects: [{ prop: 'box', label: '盒子', at: 'right' }] } }, cues: [{ sentence: 1, do: 'move', target: 0 }], note: 'to stage' },
+      { id: 'sh03', section: 's01', sentences: [2], layout: 'host-left', host: { expr: 'proud', gesture: 'idle' }, visual: { template: 'title', data: { heading: '回左栏' } }, note: 'back to host-left' },
+      { id: 'sh04', section: 's01', sentences: [3], layout: 'stage', host: { expr: 'curious', gesture: 'idle' }, visual: { template: 'stage', data: { objects: [{ prop: 'cup', label: '杯子', at: 'center' }] } }, note: 'back to stage' },
+      { id: 'sh05', section: 's01', sentences: [4], layout: 'full', visual: { template: 'title', data: { heading: '全屏' } }, note: 'stage to full' },
+      { id: 'sh06', section: 's01', sentences: [5], layout: 'stage', host: { expr: 'happy', gesture: 'idle' }, visual: { template: 'stage', data: { objects: [{ prop: 'cup', label: '杯子', at: 'center' }] } }, note: 'full to stage' },
+    ],
+  };
+  const timing = Object.fromEntries([0, 1, 2, 3, 4, 5].map((n) => [`s01-${n}`, { file: `audio/s01-${n}.wav`, duration_ms: 3500, speech: [50, 3400], source: 'estimate', words: [], sha256: `t${n}` }]));
+  const plans = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+
+  // host-left -> stage keeps x=960 continuously on ground 930
+  assert.equal(plans[1].transition.layoutSwitch, 'host-left->stage');
+  assert.equal(plans[1].startState.x, plans[0].endHostState.x);
+  assert.equal(evaluateFrame(manifest, plans[1], 0).hostMeta.ground, 930);
+
+  // stage -> host-left does NOT inject auto_return and starts at stage endHostState.x
+  assert.equal(plans[2].transition.layoutSwitch, 'stage->host-left');
+  assert.equal(plans[2].cues.some((c) => c.source === 'auto_return'), false);
+  assert.equal(plans[2].startState.x, plans[1].endHostState.x);
+  const fStageToLeft = evaluateFrame(manifest, plans[2], 0);
+  assert.equal(fStageToLeft.hostMeta.x, plans[1].endHostState.x);
+  assert.equal(fStageToLeft.hostMeta.ground, 930);
+
+  // stage -> full trots out (0.4s)
+  assert.equal(plans[4].transition.layoutSwitch, 'stage->full');
+  assert.equal(plans[4].transition.durationSec, 0.4);
+  const fStageToFull = evaluateFrame(manifest, plans[4], 0.15);
+  assert.ok(fStageToFull.vectorSvg.includes('data-host="xiaoqing"'));
+  assert.equal(fStageToFull.isFastMotion, true);
+
+  // full -> stage trots in (0.6s)
+  assert.equal(plans[5].transition.layoutSwitch, 'full->stage');
+  assert.equal(plans[5].transition.durationSec, 0.6);
+  const fFullToStage = evaluateFrame(manifest, plans[5], 0.2);
+  assert.ok(fFullToStage.vectorSvg.includes('data-host="xiaoqing"'));
+  assert.equal(fFullToStage.isFastMotion, true);
+});
+
+test('shotCacheKey invalidates on world.style, shot.scene, or world.custom_props, while legacy projects without world stay compatible', () => {
+  const legacy = minimal();
+  const timing = {
+    's01-0': { file: 'audio/s01-0.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'a' },
+    's01-1': { file: 'audio/s01-1.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'b' },
+  };
+  const legacyPlans = buildShotPlans(legacy, buildTimeline(legacy, timing, 60), manifest);
+  const legacyFrame = evaluateFrame(manifest, legacyPlans[1], 0.5);
+  assert.ok(legacyFrame.vectorSvg.includes('#fbfaf6'));
+  assert.ok(!legacyFrame.vectorSvg.includes('data-scene'));
+
+  const makeWorldProj = (overrides = {}) => ({
+    ...minimal(),
+    world: {
+      metaphor: '比喻',
+      style: overrides.style ?? 'paper',
+      scene: overrides.defaultScene ?? 'kitchen',
+      custom_props: overrides.custom_props ?? [{
+        id: 'c_tray',
+        label: '托盘',
+        height: 0.25,
+        layer: 'mid',
+        parts: [{ shape: 'rect', x: -0.8, y: 0.2, w: 1.6, h: 0.6, fill: 'soft_accent' }],
+      }],
+    },
+    shots: [{
+      id: 'sh01',
+      section: 's01',
+      sentences: [0],
+      layout: 'stage',
+      ...(overrides.shotScene ? { scene: overrides.shotScene } : {}),
+      host: { expr: 'explaining', gesture: 'idle' },
+      visual: { template: 'stage', data: { objects: [{ prop: 'c_tray', label: '托盘', at: 'center' }] } },
+      note: 'stage',
+    }],
+  });
+  const baseKey = shotCacheKey(buildShotPlans(makeWorldProj(), buildTimeline(makeWorldProj(), timing, 60), manifest)[0]);
+  const styleKey = shotCacheKey(buildShotPlans(makeWorldProj({ style: 'blueprint' }), buildTimeline(makeWorldProj({ style: 'blueprint' }), timing, 60), manifest)[0]);
+  const sceneKey = shotCacheKey(buildShotPlans(makeWorldProj({ shotScene: 'lab' }), buildTimeline(makeWorldProj({ shotScene: 'lab' }), timing, 60), manifest)[0]);
+  const propKey = shotCacheKey(buildShotPlans(makeWorldProj({
+    custom_props: [{
+      id: 'c_tray',
+      label: '托盘',
+      height: 0.4,
+      layer: 'mid',
+      parts: [{ shape: 'rect', x: -0.8, y: 0.2, w: 1.6, h: 0.6, fill: 'yellow' }],
+    }],
+  }), buildTimeline(makeWorldProj(), timing, 60), manifest)[0]);
+
+  assert.notEqual(baseKey, styleKey, 'changing world.style must change shotCacheKey');
+  assert.notEqual(baseKey, sceneKey, 'changing shot.scene must change shotCacheKey');
+  assert.notEqual(baseKey, propKey, 'changing world.custom_props must change shotCacheKey');
 });

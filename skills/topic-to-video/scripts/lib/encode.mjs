@@ -171,7 +171,11 @@ async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width,
 
   const frameCount = shotPlan.frameCount;
   const accum = motionBlur ? new Uint16Array(width * height * 4) : null;
-  const qaEvents = { rushedMove: false, occludedFrames: 0 };
+  const qaEvents = { rushedMove: false, occludedFrames: 0, objectOverlapFrames: 0 };
+  const firstRevealSec = shotPlan.elements.map((_, idx) => {
+    const times = shotPlan.cues.filter((c) => c.do === 'reveal' && c.target === idx).map((c) => c.timeMs / 1000);
+    return times.length ? Math.min(...times) : -Infinity;
+  });
 
   for (let f = 0; f < frameCount; f += 1) {
     const t = f / fps;
@@ -180,13 +184,22 @@ async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width,
     let finalRgba = main.rgba;
 
     if (main.hostMeta?.rushedMove) qaEvents.rushedMove = true;
-    // Check host occlusion against non-focus diagram elements (火柴人主持人设计 §7.6)
+    // Check host occlusion against diagram elements or stage objects (火柴人主持人设计 §7.6, 画面与同台互动设计 §5.4)
     if (main.hostMeta?.bodyBbox && main.hostMeta.lift <= 0.01) {
       const hb = main.hostMeta.bodyBbox;
-      const overlapsOther = shotPlan.elements.some((el, idx) => idx !== main.hostMeta.focusIdx
-        && hb.x < el.bbox.x + el.bbox.w && hb.x + hb.w > el.bbox.x
-        && hb.y < el.bbox.y + el.bbox.h && hb.y + hb.h > el.bbox.y);
-      if (overlapsOther) qaEvents.occludedFrames += 1;
+      if (shotPlan.shot.layout === 'stage') {
+        if (!main.hostMeta.interacting) {
+          const overlapsObj = shotPlan.elements.some((el, idx) => t >= firstRevealSec[idx]
+            && hb.x < el.bbox.x + el.bbox.w && hb.x + hb.w > el.bbox.x
+            && hb.y < el.bbox.y + el.bbox.h && hb.y + hb.h > el.bbox.y);
+          if (overlapsObj) qaEvents.objectOverlapFrames += 1;
+        }
+      } else {
+        const overlapsOther = shotPlan.elements.some((el, idx) => idx !== main.hostMeta.focusIdx
+          && hb.x < el.bbox.x + el.bbox.w && hb.x + hb.w > el.bbox.x
+          && hb.y < el.bbox.y + el.bbox.h && hb.y + hb.h > el.bbox.y);
+        if (overlapsOther) qaEvents.occludedFrames += 1;
+      }
     }
 
     // Selective 4x subframe motion blur on fast motion (超越路线图 §5.3)

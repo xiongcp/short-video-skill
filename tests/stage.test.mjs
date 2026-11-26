@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -9,6 +11,10 @@ import {
 } from '../skills/topic-to-video/scripts/lib/stage.mjs';
 import { GROUND_Y, STYLE_PALETTES } from '../skills/topic-to-video/scripts/lib/world.mjs';
 import { PROP_META } from '../skills/topic-to-video/scripts/lib/icons.mjs';
+import { drawHost, forwardKinematics } from '../skills/topic-to-video/scripts/lib/rig.mjs';
+import { evaluateHostAt, resolveStandX } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+
+const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
 
 const SAMPLE_FISHTANK = {
   id: 'c_fishtank',
@@ -389,4 +395,54 @@ test('layoutStage is deterministic and renderStage emits pure vectorSvg, heading
   assert.ok(hiddenOut.vectorSvg.includes('rotate(2)'));
   assert.equal(hiddenOut.textItems.find((ti) => ti.text === '热咖啡'), undefined);
   assert.equal(hiddenOut.textItems.find((ti) => ti.text === '12'), undefined);
+});
+
+test('stage move uses standSpots empty side, tap reaches anchors.front with tapImpact > 0.5, and drawHost supports style', () => {
+  // 1. resolveStandX respects standSpots and avoids blocked edge spot
+  const edgeLay = layoutStage({ objects: [{ prop: 'fridge', at: 'left' }] }, { hostAt: 'right' });
+  assert.equal(resolveStandX(0, 120, edgeLay.elements), Math.round(edgeLay.elements[0].standSpots.right));
+
+  // 2. move to stage object 0 stands on empty side within reach of anchors.front, and tap hits anchors.front
+  const lay = layoutStage({ objects: [{ prop: 'doc', label: '文件', at: 'center' }] }, { prevHostX: 320 });
+  const docEl = lay.elements[0];
+  const plan = {
+    seed: 'sh-tap',
+    style: 'chalkboard',
+    durationSec: 4,
+    ground: GROUND_Y,
+    startState: { x: lay.hostX, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' },
+    elements: lay.elements,
+    cues: [
+      { sentence: 0, do: 'move', target: 0, timeMs: 100 },
+      { sentence: 0, do: 'gesture', target: 'tap', timeMs: 100 },
+    ],
+    sentences: [{ index: 0, startMs: 0, endMs: 4000, text: '看这份文件。' }],
+  };
+  // Move 320 -> ~838 at 360px/s takes ~1.44s, starting at 0.1s -> ends ~1.54s; tap peaks at +0.3s (~1.84s)
+  let peakTap = null;
+  for (let t = 1.5; t <= 2.4; t += 0.02) {
+    const s = evaluateHostAt(manifest, plan, t);
+    if (s.gesture === 'tap' && (!peakTap || s.tapImpact > peakTap.tapImpact)) peakTap = s;
+  }
+  assert.ok(peakTap, 'tap plays after arriving at stage object');
+  assert.ok(peakTap.tapImpact > 0.5, `expected tapImpact > 0.5, got ${peakTap.tapImpact}`);
+  assert.ok(Math.abs(peakTap.x - docEl.standSpots.left) <= 3, `host stands at empty left standSpot (${peakTap.x} vs ${docEl.standSpots.left})`);
+  assert.equal(peakTap.style, 'chalkboard');
+
+  const fk = forwardKinematics(manifest, peakTap.angles, {
+    view: peakTap.view,
+    facing: peakTap.facing,
+    x: peakTap.x,
+    ground: peakTap.ground,
+    lift: peakTap.lift,
+  });
+  const handErr = Math.hypot(fk.points.l_hand[0] - docEl.anchors.front[0], fk.points.l_hand[1] - docEl.anchors.front[1]);
+  assert.ok(handErr <= 15, `tap hand (${fk.points.l_hand}) should reach anchors.front (${docEl.anchors.front}), err=${handErr.toFixed(2)}`);
+
+  // 3. drawHost accepts style='chalkboard' (dark body ink #f2f2f2, keeps teal scarf #20a5a3)
+  const hostSvg = drawHost(manifest, peakTap);
+  assert.ok(hostSvg.includes(manifest.ink.body.dark), 'chalkboard uses dark-bg light ink #f2f2f2');
+  assert.ok(!hostSvg.includes(manifest.ink.body.light), 'chalkboard does not use #1f1f1f');
+  assert.ok(hostSvg.includes(manifest.ink.accent), 'teal scarf #20a5a3 stays constant');
+  assert.throws(() => drawHost(manifest, { gesture: 'idle', expr: 'explaining', style: 'invalid_style' }), /unknown style/);
 });

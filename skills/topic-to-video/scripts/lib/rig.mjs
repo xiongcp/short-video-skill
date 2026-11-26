@@ -3,6 +3,7 @@
 // so the same input draws the same SVG. Motion, inverse kinematics and tweening come in S2.
 
 import { circlePoints, inkStroke, markerFill, num, pathData, resample } from './ink.mjs';
+import { resolveStyle } from './world.mjs';
 
 export const JOINTS = ['pelvis', 'waist', 'chest', 'neck', 'head', 'l_shoulder', 'l_elbow', 'l_wrist', 'r_shoulder', 'r_elbow', 'r_wrist',
   'l_hip', 'l_knee', 'l_ankle', 'r_hip', 'r_knee', 'r_ankle'];
@@ -348,20 +349,28 @@ function heldProp(ctx, fk, prop) {
 
 /**
  * SVG for the host at one moment, as a <g> to place in a 1920×1080 frame (or any frame in px).
- * state: { gesture, expr, view?, facing = 1, x, ground, prop?, blink = 0, theme = 'light', seed, outfit = 'none',
+ * state: { gesture, expr, view?, facing = 1, x, ground, prop?, blink = 0, theme = 'light', style?, seed, outfit = 'none',
  *   ahoge?: { fromExpr, mix, bend }, headStretch = 0, spark = 0 }
  * view defaults to the pose's own view; seed keeps the ink lines fixed within a shot (use the shot ID).
  */
 export function drawHost(manifest, state) {
   const {
-    gesture, expr, facing = 1, x = 0, ground = 0, blink = 0, theme = 'light', seed = 'host',
+    gesture, expr, facing = 1, x = 0, ground = 0, blink = 0, theme = 'light', style = undefined, seed = 'host',
     angles = null, lift = null, mouthOpen = 0, mouthWidth = 0.5, gaze = null, scarfAngles = null, hands = null, symbolOpacity = 1,
     outfit = 'none', ahoge = null, headStretch = 0, spark = 0,
   } = state;
   const prop = state.prop === 'none' ? undefined : state.prop; // the prop cue's none puts the prop down
   if (!manifest.expressions[expr]) throw new Error(`unknown expression ${expr}`);
   if (prop && !manifest.props[prop]) throw new Error(`unknown prop ${prop}`);
-  if (!manifest.ink.body[theme]) throw new Error(`unknown theme ${theme}`);
+  let resolvedStyle;
+  try {
+    resolvedStyle = resolveStyle(style ?? theme);
+  } catch (err) {
+    if (style != null) throw err;
+    throw new Error(`unknown theme ${theme}`);
+  }
+  const bodyInk = manifest.ink.body[resolvedStyle.palette.isDark ? 'dark' : 'light'];
+  if (!bodyInk) throw new Error(`unknown theme ${theme}`);
   if (outfit !== 'none' && !manifest.outfits?.[outfit]) throw new Error(`unknown outfit ${outfit}`);
   const pose = resolvePose(manifest, gesture);
   const view = state.view ?? pose.view;
@@ -371,7 +380,7 @@ export function drawHost(manifest, state) {
   const defaultLines = { face: [0.008, 0.011], symbol: [0.009, 0.013], prop: [0.012, 0.016], fine: [0.0075, 0.01], scarf: manifest.ink.width };
   const rawLines = { ...defaultLines, ...(manifest.ink.lines ?? {}) };
   const ctx = {
-    manifest, seed, H, R, ink: manifest.ink.body[theme], accent: manifest.ink.accent, markers: manifest.ink.markers,
+    manifest, seed, H, R, ink: bodyInk, accent: manifest.ink.accent, markers: manifest.ink.markers,
     width: manifest.ink.width.map((w) => w * H),
     lines: Object.fromEntries(Object.entries(rawLines).map(([k, w]) => [k, w.map((v) => v * H)])),
     wobble: manifest.ink.wobble * H,

@@ -5,10 +5,14 @@ import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
 import { evaluateHostAt, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
-import { DIAGRAM_ZONES, layoutElements, paperBackgroundSvg, renderDiagram, THEME_PALETTE } from './templates.mjs';
+import { layoutStage, renderStage } from './stage.mjs';
+import { DIAGRAM_ZONES, layoutElements, renderDiagram } from './templates.mjs';
 import { resolveCueTiming, splitClauses } from './timing.mjs';
+import { GROUND_Y, resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
 
-export const SCENE_VERSION = 3;
+export const SCENE_VERSION = 4;
+
+const isHostLayout = (layout) => layout === 'host-left' || layout === 'stage';
 
 const lerpBox = (a, b, t) => ({
   x: lerp(a.x, b.x, t),
@@ -39,6 +43,10 @@ function matchSharedElements(prevElems, nextElems) {
  */
 export function buildShotPlans(project, timeline, manifest) {
   const theme = project.settings?.theme ?? 'light';
+  const hasWorld = Boolean(project.world);
+  const style = resolveStyle(project.world?.style ?? theme).name;
+  const defaultScene = project.world?.scene ?? 'blank';
+  const customProps = project.world?.custom_props ?? [];
   const outfit = project.settings?.outfit ?? 'none';
   let lastHostEnd = { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none', autoSnaps: 0 };
   let prevPlan = null;
@@ -48,11 +56,22 @@ export function buildShotPlans(project, timeline, manifest) {
     const shot = project.shots[i];
     const tl = timeline.shots[i];
     const cues = resolveCueTiming(tl, shot.cues ?? []);
-    const elements = layoutElements(shot.visual, shot.layout);
+    const isStage = shot.layout === 'stage';
+    const isHost = isHostLayout(shot.layout);
+    const scene = isStage ? (shot.scene ?? defaultScene) : null;
     const reenteringFromFull = prevPlan?.shot.layout === 'full';
-    const startState = shot.layout === 'host-left'
+    const stageLayout = isStage
+      ? layoutStage(shot.visual.data, {
+          hostAt: shot.host?.at,
+          prevHostX: reenteringFromFull ? 320 : lastHostEnd.x,
+          customProps,
+          hostHeight: manifest.height_px,
+        })
+      : null;
+    const elements = isStage ? stageLayout.elements : layoutElements(shot.visual, shot.layout);
+    const startState = isHost
       ? {
-          x: reenteringFromFull ? 320 : lastHostEnd.x,
+          x: isStage ? stageLayout.hostX : (reenteringFromFull ? 320 : lastHostEnd.x),
           view: reenteringFromFull ? 'three_quarter' : lastHostEnd.view,
           facing: reenteringFromFull ? 1 : lastHostEnd.facing,
           gesture: shot.host?.gesture ?? lastHostEnd.gesture,
@@ -63,7 +82,7 @@ export function buildShotPlans(project, timeline, manifest) {
       : null;
 
     // If the host wandered away from the left column in the previous host-left shot, smoothly walk back
-    // to x=320 at the start of the new shot so she never lingers underneath the right-side diagram/title.
+    // to x=320 at the start of the new host-left shot so she never lingers underneath the right-side diagram/title.
     if (
       shot.layout === 'host-left'
       && prevPlan?.shot.layout === 'host-left'
@@ -79,11 +98,12 @@ export function buildShotPlans(project, timeline, manifest) {
       const layoutSwitch = prevPlan.shot.layout !== shot.layout
         ? `${prevPlan.shot.layout}->${shot.layout}`
         : null;
-      const bothHost = prevPlan.shot.layout === 'host-left' && shot.layout === 'host-left';
+      const bothHost = isHostLayout(prevPlan.shot.layout) && isHostLayout(shot.layout);
       if (shared.length > 0 || bothHost || layoutSwitch) {
+        const enterHost = layoutSwitch === 'full->host-left' || layoutSwitch === 'full->stage';
         transition = {
           kind: 'morph',
-          durationSec: layoutSwitch === 'full->host-left' ? 0.6 : 0.4,
+          durationSec: enterHost ? 0.6 : 0.4,
           layoutSwitch,
           shared,
         };
@@ -102,7 +122,12 @@ export function buildShotPlans(project, timeline, manifest) {
       index: i,
       id: shot.id,
       shot,
+      hasWorld,
       theme,
+      style,
+      scene,
+      customProps,
+      stageLayout,
       outfit,
       durationSec: tl.durationSec,
       frameCount: tl.frameCount,
@@ -115,6 +140,11 @@ export function buildShotPlans(project, timeline, manifest) {
       prevShot: prevPlan ? {
         id: prevPlan.id,
         shot: prevPlan.shot,
+        hasWorld: prevPlan.hasWorld,
+        style: prevPlan.style,
+        scene: prevPlan.scene,
+        customProps: prevPlan.customProps,
+        stageLayout: prevPlan.stageLayout,
         elements: prevPlan.elements,
         endHostState: prevPlan.endHostState,
         durationSec: prevPlan.durationSec,
@@ -122,11 +152,13 @@ export function buildShotPlans(project, timeline, manifest) {
       } : null,
     };
 
-    if (shot.layout === 'host-left') {
+    if (isHost) {
       const endEval = evaluateHostAt(manifest, {
         seed: shot.id,
         theme,
+        style,
         outfit,
+        ground: GROUND_Y,
         durationSec: tl.durationSec,
         startState,
         cues,
@@ -155,6 +187,9 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     durationSec: Number(shotPlan.durationSec.toFixed(4)),
     frameCount: shotPlan.frameCount,
     theme: shotPlan.theme,
+    style: shotPlan.style,
+    scene: shotPlan.scene ?? null,
+    customProps: shotPlan.customProps ?? [],
     outfit: shotPlan.outfit ?? 'none',
     audioHashes: shotPlan.audioHashes,
     startState: shotPlan.startState,
@@ -265,12 +300,43 @@ function subtitleAt(shotPlan, t, pal) {
   };
 }
 
+function renderPrevLayer(shotPlan, prevStates, fadeOut) {
+  const prev = shotPlan.prevShot;
+  const res = prev.shot.layout === 'stage'
+    ? renderStage(prev.shot.visual, {
+        style: shotPlan.style ?? 'paper',
+        seed: prev.id,
+        t: prev.durationSec,
+        duration: prev.durationSec,
+        elementStates: prevStates,
+        customProps: prev.customProps ?? shotPlan.customProps ?? [],
+        layoutResult: prev.stageLayout,
+      })
+    : renderDiagram(prev.shot.visual, {
+        layout: prev.shot.layout,
+        theme: shotPlan.theme,
+        style: (prev.hasWorld ?? shotPlan.hasWorld) ? shotPlan.style : undefined,
+        seed: prev.id,
+        t: prev.durationSec,
+        duration: prev.durationSec,
+        elementStates: prevStates,
+      });
+  return {
+    vectorSvg: res.vectorSvg,
+    textItems: res.textItems
+      .map((ti) => (ti.key === 'stage-heading' ? { ...ti, opacity: (ti.opacity ?? 1) * fadeOut } : ti))
+      .filter((ti) => ti.opacity > 0.02),
+  };
+}
+
 /**
  * Evaluates a single frame at continuous time `t` (in seconds relative to shot start).
  * Returns `{ vectorSvg, textItems, isFastMotion, hostMeta }` ready for layered resvg rendering.
  */
 export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
-  const pal = THEME_PALETTE[shotPlan.theme] ?? THEME_PALETTE.light;
+  const resolvedStyle = resolveStyle(shotPlan.style ?? shotPlan.theme);
+  const styleName = resolvedStyle.name;
+  const pal = resolvedStyle.palette;
   const duration = Math.max(0.1, shotPlan.durationSec);
   const tr = shotPlan.transition;
   const inTr = tr.kind !== 'cut' && t < tr.durationSec && shotPlan.prevShot;
@@ -285,11 +351,13 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   let hostMeta = null;
   let isFastMotion = false;
 
-  if (shotPlan.shot.layout === 'host-left') {
+  if (isHostLayout(shotPlan.shot.layout)) {
     const evalPlan = {
       seed: shotPlan.id,
       theme: shotPlan.theme,
+      style: styleName,
       outfit: shotPlan.outfit,
+      ground: GROUND_Y,
       durationSec: duration,
       startState: shotPlan.startState,
       cues: shotPlan.cues,
@@ -298,11 +366,11 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     };
     const hostState = evaluateHostAt(manifest, evalPlan, t, audioFrame);
     hostMeta = hostState;
-    if (inTr && tr.layoutSwitch === 'full->host-left') {
+    if (inTr && (tr.layoutSwitch === 'full->host-left' || tr.layoutSwitch === 'full->stage')) {
       // Trot in from left edge during [0, 0.6s]
       const u = easeOutCubic(trU);
       const enterX = lerp(-120, hostState.x, u);
-      const wf = walkFrame(manifest, t * 2, { x: enterX, ground: 930, facing: 1, trot: true });
+      const wf = walkFrame(manifest, t * 2, { x: enterX, ground: GROUND_Y, facing: 1, trot: true });
       hostSvg = drawHost(manifest, {
         ...hostState,
         x: enterX,
@@ -316,12 +384,12 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
       hostSvg = drawHost(manifest, hostState);
       if (hostState.isFastMotion) isFastMotion = true;
     }
-  } else if (inTr && tr.layoutSwitch === 'host-left->full' && shotPlan.prevShot?.endHostState) {
+  } else if (inTr && (tr.layoutSwitch === 'host-left->full' || tr.layoutSwitch === 'stage->full') && shotPlan.prevShot?.endHostState) {
     // Trot out off the left edge during [0, 0.4s]
     const prevHost = shotPlan.prevShot.endHostState;
     const u = easeInOutCubic(trU);
     const exitX = lerp(prevHost.x, -140, u);
-    const wf = walkFrame(manifest, t * 2, { x: exitX, ground: 930, facing: -1, trot: true });
+    const wf = walkFrame(manifest, t * 2, { x: exitX, ground: GROUND_Y, facing: -1, trot: true });
     hostSvg = drawHost(manifest, {
       gesture: 'idle',
       expr: prevHost.expr ?? 'explaining',
@@ -329,8 +397,9 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
       view: 'side',
       facing: -1,
       x: exitX,
-      ground: 930,
+      ground: GROUND_Y,
       theme: shotPlan.theme,
+      style: styleName,
       outfit: shotPlan.outfit,
       seed: shotPlan.prevShot.id,
       angles: wf.angles,
@@ -339,12 +408,12 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     isFastMotion = true;
   }
 
-  // Diagram zone interpolation during layout switch
+  // Diagram zone interpolation during layout switch (only between host-left and full)
   let zoneOverride = null;
   if (inTr && tr.layoutSwitch) {
     const zFrom = DIAGRAM_ZONES[shotPlan.prevShot.shot.layout];
     const zTo = DIAGRAM_ZONES[shotPlan.shot.layout];
-    zoneOverride = lerpBox(zFrom, zTo, easeInOutCubic(trU));
+    if (zFrom && zTo) zoneOverride = lerpBox(zFrom, zTo, easeInOutCubic(trU));
     isFastMotion = true;
   }
 
@@ -379,54 +448,58 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
         opacity: sharedPrevSet.has(pi) ? 0 : fadeOut,
         scale: lerp(hasShared ? 0.92 : 0.96, 1, fadeOut),
       }));
-      const prevRes = renderDiagram(shotPlan.prevShot.shot.visual, {
-        layout: shotPlan.prevShot.shot.layout,
-        theme: shotPlan.theme,
-        seed: shotPlan.prevShot.id,
-        t: shotPlan.prevShot.durationSec,
-        duration: shotPlan.prevShot.durationSec,
-        elementStates: prevStates,
-      });
+      const prevRes = renderPrevLayer(shotPlan, prevStates, fadeOut);
       prevDiagSvg = prevRes.vectorSvg;
-      prevTextItems.push(...prevRes.textItems.filter((ti) => ti.opacity > 0.02));
+      prevTextItems.push(...prevRes.textItems);
     }
     isFastMotion = true;
   } else if (inTr && tr.kind === 'crossfade') {
     const u = easeInOutCubic(trU);
     states.forEach((st) => { st.opacity *= u; });
     const prevStates = shotPlan.prevShot.elements.map(() => ({ opacity: 1 - u }));
-    const prevRes = renderDiagram(shotPlan.prevShot.shot.visual, {
-      layout: shotPlan.prevShot.shot.layout,
-      theme: shotPlan.theme,
-      seed: shotPlan.prevShot.id,
-      t: shotPlan.prevShot.durationSec,
-      duration: shotPlan.prevShot.durationSec,
-      elementStates: prevStates,
-    });
+    const prevRes = renderPrevLayer(shotPlan, prevStates, 1 - u);
     prevDiagSvg = prevRes.vectorSvg;
-    prevTextItems.push(...prevRes.textItems.filter((ti) => ti.opacity > 0.02));
+    prevTextItems.push(...prevRes.textItems);
     isFastMotion = true;
   }
 
-  const diag = renderDiagram(shotPlan.shot.visual, {
-    layout: shotPlan.shot.layout,
-    theme: shotPlan.theme,
-    seed: shotPlan.id,
-    t,
-    duration,
-    elementStates: states,
-    zoneOverride,
-  });
+  const isStage = shotPlan.shot.layout === 'stage';
+  const sceneBg = isStage
+    ? sceneBackgroundSvg(shotPlan.scene ?? 'blank', { style: styleName, seed: shotPlan.id, ground: GROUND_Y })
+    : '';
+  const diag = isStage
+    ? renderStage(shotPlan.shot.visual, {
+        style: styleName,
+        seed: shotPlan.id,
+        t,
+        duration,
+        elementStates: states,
+        customProps: shotPlan.customProps ?? [],
+        layoutResult: shotPlan.stageLayout,
+      })
+    : renderDiagram(shotPlan.shot.visual, {
+        layout: shotPlan.shot.layout,
+        theme: shotPlan.theme,
+        style: shotPlan.hasWorld ? styleName : undefined,
+        seed: shotPlan.id,
+        t,
+        duration,
+        elementStates: states,
+        zoneOverride,
+      });
 
-  // Camera transform around center (960, 540) for diagram layer
+  // Camera transform around center (960, 540) for scene and diagram/stage layers
   const camOpen = `<g transform="translate(960 540) scale(${camScale.toFixed(4)}) translate(-960 -540)">`;
+  const backLayer = isStage ? diag.backVectorSvg : diag.vectorSvg;
+  const frontLayer = isStage && diag.frontVectorSvg ? `${camOpen}${diag.frontVectorSvg}</g>` : '';
   const vectorSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">`
-    + paperBackgroundSvg(shotPlan.theme, 1920, 1080, bgParallax)
-    + camOpen + prevDiagSvg + diag.vectorSvg + '</g>'
+    + styleBackgroundSvg(styleName, 1920, 1080, bgParallax)
+    + camOpen + sceneBg + prevDiagSvg + backLayer + '</g>'
     + hostSvg
+    + frontLayer
     + '</svg>';
 
-  // Apply gentle camera scale to diagram text items (not subtitle)
+  // Apply gentle camera scale to diagram/stage text items (not subtitle)
   const scaledText = [...prevTextItems, ...diag.textItems].map((ti) => ({
     ...ti,
     x: 960 + (ti.x - 960) * camScale,

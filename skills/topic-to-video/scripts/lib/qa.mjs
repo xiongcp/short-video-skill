@@ -214,6 +214,9 @@ export async function runQa(projectDir, {
     if ((meta?.occludedFrames ?? 0) > 0) {
       issues.push({ code: 'HOST_OCCLUSION', shotId, frames: meta.occludedFrames, message: `镜头 ${shotId} 有 ${meta.occludedFrames} 帧出现主持人遮挡非焦点图解元素` });
     }
+    if ((meta?.objectOverlapFrames ?? 0) > 0) {
+      issues.push({ code: 'HOST_OBJECT_OVERLAP', shotId, frames: meta.objectOverlapFrames, message: `镜头 ${shotId} 有 ${meta.objectOverlapFrames} 帧出现主持人身体与舞台物件重叠` });
+    }
   }
 
   // Semantic matching report per shot
