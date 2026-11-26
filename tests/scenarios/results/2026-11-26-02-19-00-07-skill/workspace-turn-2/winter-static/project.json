@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么冬天静电多？",
+  "brief": {
+    "topic": "为什么冬天静电多？",
+    "audience": "对这个主题没有专业基础的普通观众",
+    "promise": "冬天空气干燥不易导走电荷，衣物摩擦产生的电荷容易在人体表面积聚，触碰导体时便会瞬间放电",
+    "sources": [],
+    "open_questions": [
+      "请核实讲稿中关于冬天空气干燥导致电荷容易在人体表面积聚、夏天通过水蒸气导走电荷的物理机制表述是否符合预期"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 60,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "light"
+  },
+  "voice": {
+    "provider": "undecided",
+    "preset": "male-sunny"
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "冬天被电的日常",
+      "text": "冬天脱毛衣噼啪乱响，碰门把手瞬间被电一下。有时跟朋友握个手，也会突然被刺痛一下。为什么一到冬天，我们总会变成移动的发电机？"
+    },
+    {
+      "id": "s02",
+      "title": "摩擦起电与夏天",
+      "text": "其实摩擦产生静电，一年四季一直在发生。化纤衣物和皮肤相互摩擦，电荷就会悄悄转移。夏天空气湿度高，电荷很快通过水蒸气溜走了。"
+    },
+    {
+      "id": "s03",
+      "title": "冬天干燥易积聚",
+      "text": "但冬天空气通常非常干燥，缺少水分导电。电荷无法及时疏导，只能在人体表面越积越多。当你伸出手碰金属把手，电荷瞬间集中释放，你就会被电得一麻。"
+    },
+    {
+      "id": "s04",
+      "title": "防静电小技巧",
+      "text": "想要避开静电，记得多涂护手霜或者多穿纯棉衣服。在室内放台加湿器，也能减少电荷积聚。空气湿润了，冬天也能告别啪啪放电。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0],
+      "layout": "host-left",
+      "host": { "expr": "surprised", "gesture": "idle" },
+      "visual": {
+        "template": "title",
+        "data": { "heading": "冬天脱毛衣", "sub": "碰门把手瞬间被电一下" }
+      },
+      "cues": [],
+      "note": "展现冬天脱毛衣和碰门把手被静电电到的常见生活场景"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [1],
+      "layout": "host-left",
+      "host": { "expr": "worried", "gesture": "idle" },
+      "visual": {
+        "template": "title",
+        "data": { "heading": "握手被刺痛", "sub": "有时跟朋友握个手" }
+      },
+      "cues": [],
+      "note": "表现握手时被静电刺痛的体验"
+    },
+    {
+      "id": "sh03",
+      "section": "s01",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": { "expr": "curious", "gesture": "think" },
+      "visual": {
+        "template": "title",
+        "data": { "heading": "为什么冬天静电多", "sub": "变成移动的发电机？" }
+      },
+      "cues": [{ "sentence": 2, "do": "prop", "target": "question" }],
+      "note": "小青举起问号牌，抛出核心疑问"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "flow",
+        "data": { "nodes": ["衣物摩擦", "电荷转移"] }
+      },
+      "cues": [{ "sentence": 1, "do": "reveal", "target": 1 }],
+      "note": "解释摩擦起电机制：化纤衣物与皮肤摩擦引起电荷转移"
+    },
+    {
+      "id": "sh05",
+      "section": "s02",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "present" },
+      "visual": {
+        "template": "flow",
+        "data": { "nodes": ["夏天湿度高", "水蒸气", "电荷溜走"] }
+      },
+      "cues": [{ "sentence": 2, "do": "reveal", "target": 2 }],
+      "note": "小青指出夏天空气湿度高，电荷能通过水蒸气及时导走"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": { "items": ["空气非常干燥", "缺少水分导电", "电荷越积越多"] }
+      },
+      "cues": [
+        { "sentence": 1, "do": "reveal", "target": 1 },
+        { "sentence": 1, "do": "reveal", "target": 2 }
+      ],
+      "note": "揭示冬天干燥的特点：缺乏水分导致电荷在人体表面不断累积"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": { "expr": "worried", "gesture": "idle" },
+      "visual": {
+        "template": "flow",
+        "data": { "nodes": ["碰金属把手", "电荷集中释放", "被电得一麻"] }
+      },
+      "cues": [
+        { "sentence": 2, "do": "expr", "target": "worried" }
+      ],
+      "note": "触碰金属把手瞬间集中放电，小青表情担忧"
+    },
+    {
+      "id": "sh08",
+      "section": "s04",
+      "sentences": [0, 1],
+      "layout": "full",
+      "visual": {
+        "template": "bullets",
+        "data": { "items": ["涂护手霜", "穿纯棉衣服", "放台加湿器"] }
+      },
+      "cues": [
+        { "sentence": 0, "do": "reveal", "target": 1 },
+        { "sentence": 1, "do": "reveal", "target": 2 }
+      ],
+      "note": "列出三条实用的日常防静电小技巧"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [2],
+      "layout": "host-left",
+      "host": { "expr": "happy", "gesture": "wave" },
+      "visual": {
+        "template": "title",
+        "data": { "heading": "告别啪啪放电", "sub": "空气湿润电荷难积聚" }
+      },
+      "cues": [],
+      "note": "小青向观众挥手致意，作总结收尾"
+    }
+  ],
+  "checkpoints": [
+    {
+      "stage": "plan",
+      "revision": 1,
+      "at": "2026-11-25T18:22:34-08:00",
+      "note": "方案可以，出提示词包。"
+    }
+  ],
+  "jobs": []
+}
