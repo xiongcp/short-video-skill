@@ -349,14 +349,14 @@ function heldProp(ctx, fk, prop) {
 /**
  * SVG for the host at one moment, as a <g> to place in a 1920×1080 frame (or any frame in px).
  * state: { gesture, expr, view?, facing = 1, x, ground, prop?, blink = 0, theme = 'light', seed, outfit = 'none',
- *   ahoge?: { fromExpr, mix, bend }, headStretch = 0 }
+ *   ahoge?: { fromExpr, mix, bend }, headStretch = 0, spark = 0 }
  * view defaults to the pose's own view; seed keeps the ink lines fixed within a shot (use the shot ID).
  */
 export function drawHost(manifest, state) {
   const {
     gesture, expr, facing = 1, x = 0, ground = 0, blink = 0, theme = 'light', seed = 'host',
     angles = null, lift = null, mouthOpen = 0, mouthWidth = 0.5, gaze = null, scarfAngles = null, hands = null, symbolOpacity = 1,
-    outfit = 'none', ahoge = null, headStretch = 0,
+    outfit = 'none', ahoge = null, headStretch = 0, spark = 0,
   } = state;
   const prop = state.prop === 'none' ? undefined : state.prop; // the prop cue's none puts the prop down
   if (!manifest.expressions[expr]) throw new Error(`unknown expression ${expr}`);
@@ -422,11 +422,16 @@ export function drawHost(manifest, state) {
     + `<g data-face="${expr}" transform="${headFrame}">${face(ctx, expr, view, blink, { mouthOpen, mouthWidth, gaze, outfit })}</g>${hair}</g>`;
   const rawSym = manifest.expressions[expr].symbol ? symbol(ctx, manifest.expressions[expr].symbol, p.head_center, facing) : '';
   const sym = rawSym && symbolOpacity < 0.999 ? `<g opacity="${num(Math.max(0, symbolOpacity))}">${rawSym}</g>` : rawSym;
+  // The snap's sparkle beside the acting hand (小青人设设计 §4.1).
+  const sparkAt = step(mid(p[`${ACTING}_wrist`], p[`${ACTING}_hand`]), -90, 0.07 * H);
+  const sparkSvg = spark > 0.01
+    ? `<g data-spark="1" opacity="${num(Math.min(1, spark))}"><path d="${pathData(Array.from({ length: 8 }, (_, i) => step(sparkAt, -90 + i * 45, (i % 2 ? 0.012 : 0.04) * H)), true)}" fill="${ctx.markers.yellow}" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[0])}"/></g>`
+    : '';
   const apron = outfit === 'apron' ? apronShape(ctx, fk) : '';
   // Far limbs behind the torso, near limbs in front; in the front view every limb is in front.
   // Mirroring keeps the left limbs on the near side whichever way the host faces.
   const body = view === 'front'
     ? [tails, torso, leg('r'), leg('l'), apron, scarf, head, arm('r'), arm('l')]
     : [arm('r'), leg('r'), tails, torso, leg('l'), apron, scarf, head, arm('l')];
-  return `<g data-host="${manifest.host}" data-gesture="${gesture}" data-expr="${expr}" data-view="${view}">${body.join('')}${sym}</g>`;
+  return `<g data-host="${manifest.host}" data-gesture="${gesture}" data-expr="${expr}" data-view="${view}">${body.join('')}${sym}${sparkSvg}</g>`;
 }

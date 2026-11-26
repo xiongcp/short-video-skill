@@ -172,6 +172,25 @@ export function simulateScarfSpring(manifest, velocityFn, t) {
   });
 }
 
+/**
+ * The 呆毛's bend in degrees at `t`: a fixed-step (1/240 s) spring pulled toward `targetFn(ts)`, started at rest
+ * 2 s before `t` (it settles well within that), so the result does not depend on the frame rate (小青人设设计 §3.1).
+ */
+export function simulateAhogeSpring(manifest, targetFn, t) {
+  const dt = 1 / 240;
+  const { stiffness: k, damping: c } = manifest.ahoge.spring;
+  const start = Math.max(0, t - 2);
+  const steps = Math.max(0, Math.round((t - start) / dt));
+  let bend = 0;
+  let omega = 0;
+  for (let i = 0; i < steps; i += 1) {
+    const acc = -k * (bend - targetFn(start + i * dt)) - c * omega;
+    omega += acc * dt;
+    bend += omega * dt;
+  }
+  return bend;
+}
+
 const BEAT_CYCLE = ['present', 'point', 'emphasize', 'shrug'];
 
 /**
@@ -353,6 +372,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
 
   // Active expression, prop, hold gesture, and one-shot gesture
   let expr = start.expr;
+  let prevExpr = start.expr;
   let exprChangedAt = -10;
   let prop = start.prop ?? 'none';
   let holdGesture = resolvePose(manifest, start.gesture).type === 'once' ? 'idle' : start.gesture;
@@ -363,7 +383,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   for (const c of effectiveCues) {
     const ct = c.timeMs / 1000;
     if (ct > t) break;
-    if (c.do === 'expr') { expr = c.target; exprChangedAt = ct; }
+    if (c.do === 'expr') { prevExpr = expr; expr = c.target; exprChangedAt = ct; }
     else if (c.do === 'prop') { prop = c.target; }
     else if (c.do === 'gesture') {
       const p = resolvePose(manifest, c.target);
@@ -380,6 +400,10 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
 
   // Build angles + lift + view
   let gesture = holdGesture;
+  let spark = 0;
+  let gazeOverride = null;
+  let shiftX = 0;
+  let inOnce = false;
   let view = resolvePose(manifest, holdGesture).view;
   let angles;
   let lift = resolvePose(manifest, holdGesture).lift ?? 0;
@@ -416,6 +440,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
       const sec = spec.seconds ?? 0.8;
       const dt = t - activeOnce.t0;
       if (dt >= 0 && dt < sec + 0.3) {
+        inOnce = true;
         gesture = activeOnce.gesture;
         view = spec.view;
         if (dt < sec) {
@@ -454,6 +479,28 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
             const tapTarget = [focusPt[0], focusPt[1] - 12 * reach];
             angles = aimArmAt(manifest, toA, { view, facing, x, ground, target: tapTarget, prop: heldProp });
             if (u >= 0.4 && u <= 0.65) tapImpact = Math.sin(((u - 0.4) / 0.25) * Math.PI);
+          } else {
+            // H gestures (小青人设设计 §4.1): wind up into the pose, then the gesture's own accent.
+            angles = tweenPoseAngles(manifest, toA, spec.angles, Math.min(dt, 0.3), { duration: 0.3, anticipate: true, overshoot: true });
+            if (activeOnce.gesture === 'snap') {
+              const flick = u > 0.45 && u < 0.65 ? Math.sin(((u - 0.45) / 0.2) * Math.PI) : 0;
+              angles = clampAngles(manifest, { ...angles, l_wrist: angles.l_wrist - 30 * flick });
+              if (u >= 0.5) spark = 1 - (u - 0.5) / 0.5;
+            } else if (activeOnce.gesture === 'startle') {
+              isFastMotion = u < 0.4;
+              lift = u < 0.4 ? Math.sin((u / 0.4) * Math.PI) * 0.03 : 0;
+              shiftX = -facing * 0.03 * H * Math.sin(Math.min(1, u / 0.3) * (Math.PI / 2)) * (1 - u);
+            } else if (activeOnce.gesture === 'double_take') {
+              const away = u < 0.35 ? Math.sin((u / 0.35) * (Math.PI / 2)) : u < 0.5 ? 1 - easeOutCubic((u - 0.35) / 0.15) : 0;
+              const back = u >= 0.35 && u < 0.75 ? Math.sin(((u - 0.35) / 0.4) * Math.PI) : 0;
+              isFastMotion = u >= 0.35 && u < 0.5;
+              angles = clampAngles(manifest, { ...angles, neck: angles.neck + 10 * away - 4 * back, head: angles.head + 14 * away - 10 * back });
+              lift = back * 0.015;
+              gazeOverride = away > 0.5 ? [-0.08, 0.04] : back > 0.2 ? [0.08, -0.03] : null;
+            } else if (activeOnce.gesture === 'scratch_head') {
+              const rub = u > 0.2 && u < 0.85 ? Math.sin(u * 6 * Math.PI) : 0;
+              angles = clampAngles(manifest, { ...angles, l_wrist: angles.l_wrist + 15 * rub, l_elbow: angles.l_elbow + 6 * rub });
+            }
           }
         } else {
           // Return smoothly to hold gesture over 0.3s
@@ -463,6 +510,17 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
       }
     }
   }
+
+  // Walk velocity at any time, for the scarf and the 呆毛 springs
+  const velAt = (ts) => {
+    for (const seg of walkSegments) {
+      if (ts >= seg.t0 && ts < seg.t1 && seg.t1 > seg.t0) {
+        const u = (ts - seg.t0) / (seg.t1 - seg.t0);
+        return ((seg.toX - seg.fromX) / (seg.t1 - seg.t0)) * 6 * u * (1 - u);
+      }
+    }
+    return 0;
+  };
 
   // Question-end detection for micro head tilt
   const activeSent = (plan.sentences ?? []).find((s) => t * 1000 >= s.startMs && t * 1000 <= s.endMs);
@@ -491,18 +549,28 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     l_wrist: (angles.l_wrist ?? 0) + talkWrist,
     r_elbow: (angles.r_elbow ?? 0) + talkOtherElbow,
   });
-  const finalX = x + micro.weightShift;
+  // Surprise recoil (§4.4): surprised or amazed leans the body back for 0.3 s; the gesture stays.
+  const surpriseAt = ['surprised', 'amazed'].includes(expr) && exprChangedAt >= 0 ? exprChangedAt : null;
+  const recoil = surpriseAt !== null && t - surpriseAt < 0.3 ? Math.sin(((t - surpriseAt) / 0.3) * Math.PI) : 0;
+  angles = clampAngles(manifest, { ...angles, waist: angles.waist - 5 * recoil, chest: angles.chest - 4 * recoil });
+  shiftX += -facing * 0.015 * H * recoil;
+  const finalX = x + micro.weightShift + shiftX;
+
+  // 呆毛: morph to the new expression's shape, spring on walks and kicks (§3.1, §4.4)
+  const kicks = [
+    ...effectiveCues.filter((c) => c.do === 'gesture' && ['jump', 'startle', 'double_take'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: c.target === 'startle' ? -1 : 1 })),
+    ...effectiveCues.filter((c) => c.do === 'expr' && ['surprised', 'amazed'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: -0.7 })),
+  ];
+  const kick = manifest.ahoge.spring.kick;
+  const bend = simulateAhogeSpring(manifest, (ts) => {
+    const k = kicks.find((kk) => ts >= kk.t0 && ts < kk.t0 + 0.08);
+    return k ? k.amp * kick : Math.max(-kick, Math.min(kick, -Math.abs(velAt(ts)) * 0.06));
+  }, t);
+  const ahoge = { fromExpr: prevExpr, mix: easeInOutCubic(clamp01((t - exprChangedAt) / manifest.ahoge.morph_seconds)), bend };
+  const squash = manifest.expressions[expr].squash ?? 0;
+  const headStretch = t - exprChangedAt >= 0 && t - exprChangedAt < 0.3 ? squash * (1 - easeOutCubic((t - exprChangedAt) / 0.3)) : 0;
 
   // Deterministic scarf spring (velocity sampled from walk segments)
-  const velAt = (ts) => {
-    for (const seg of walkSegments) {
-      if (ts >= seg.t0 && ts < seg.t1 && seg.t1 > seg.t0) {
-        const u = (ts - seg.t0) / (seg.t1 - seg.t0);
-        return ((seg.toX - seg.fromX) / (seg.t1 - seg.t0)) * 6 * u * (1 - u);
-      }
-    }
-    return 0;
-  };
   const scarfAngles = simulateScarfSpring(manifest, velAt, Math.min(t, 3));
   const symbolOpacity = exprChangedAt >= 0 ? clamp01((t - exprChangedAt) / 0.2) : 1;
 
@@ -531,9 +599,12 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     lift,
     mouthOpen: audioFrame?.open ?? 0,
     mouthWidth: audioFrame?.width ?? 0.5,
-    gaze: micro.gaze,
+    gaze: gazeOverride ?? micro.gaze,
     scarfAngles,
     outfit: plan.outfit ?? 'none',
+    ahoge,
+    headStretch,
+    spark,
     symbolOpacity,
     // Metadata for scene & QA:
     tapImpact,

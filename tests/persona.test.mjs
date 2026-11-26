@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ahogePoints, drawHost, resolvePose } from '../skills/topic-to-video/scripts/lib/rig.mjs';
-import { evaluateHostAt } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { evaluateHostAt, simulateAhogeSpring } from '../skills/topic-to-video/scripts/lib/motion.mjs';
 
 // 小青人设设计 (H): the 呆毛, bigger faces, amazed, five persona gestures, outfits, auto beats and fidgets.
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
@@ -159,4 +159,92 @@ test('evaluateHostAt passes the plan\'s outfit on to drawHost', () => {
   const dressed = evaluateHostAt(manifest, plan([], { outfit: 'chef_hat' }), 1);
   assert.equal(dressed.outfit, 'chef_hat');
   assert.match(drawHost(manifest, dressed), /data-outfit="chef_hat"/);
+});
+
+const near = (a, b, eps) => a.every(([u, v], i) => Math.abs(u - b[i][0]) <= eps && Math.abs(v - b[i][1]) <= eps);
+const exprAt = (target, ms = 1000) => plan([{ sentence: 0, do: 'gesture', target: 'idle', timeMs: 0 }, { sentence: 0, do: 'expr', target, timeMs: ms }]);
+
+test('a new expression morphs the 呆毛 over 0.2 s', () => {
+  const p = exprAt('surprised');
+  const at = (t) => { const s = evaluateHostAt(manifest, p, t); return ahogePoints(manifest, { expr: s.expr, ...s.ahoge, bend: 0 }); };
+  const curl = ahogePoints(manifest, { expr: 'explaining' });
+  const straight = ahogePoints(manifest, { expr: 'surprised' });
+  const mid = at(1.1);
+  assert.ok(!near(mid, curl, 1e-3) && !near(mid, straight, 1e-3), 'halfway it is neither shape');
+  mid.forEach(([, v], i) => assert.ok(v <= Math.max(curl[i][1], straight[i][1]) + 1e-9 && v >= Math.min(curl[i][1], straight[i][1]) - 1e-9, `point ${i}`));
+  assert.ok(near(at(1.2), straight, 1e-9));
+});
+
+test('a jump kicks the 呆毛 and it settles within 2 px a second after the jump ends', () => {
+  const p = plan([{ sentence: 0, do: 'gesture', target: 'idle', timeMs: 0 }, { sentence: 0, do: 'gesture', target: 'jump', timeMs: 1000 }]);
+  const rest = ahogePoints(manifest, { expr: 'explaining' }).at(-1);
+  const off = (t) => {
+    const s = evaluateHostAt(manifest, p, t);
+    const tip = ahogePoints(manifest, { expr: s.expr, ...s.ahoge }).at(-1);
+    return Math.hypot(tip[0] - rest[0], tip[1] - rest[1]) * R;
+  };
+  assert.ok(off(1.15) > 6, `tip moved ${off(1.15)} px`);
+  const settled = 1 + resolvePose(manifest, 'jump').seconds + 1;
+  assert.ok(off(settled) <= 2, `tip ${off(settled)} px from rest`);
+});
+
+test('the 呆毛 spring gives the same bend at a time whatever frames came before', () => {
+  const pulse = (ts) => (ts >= 0.5 && ts < 0.58 ? 30 : 0);
+  assert.equal(simulateAhogeSpring(manifest, pulse, 1.0), simulateAhogeSpring(manifest, pulse, 1.0));
+  assert.ok(Math.abs(simulateAhogeSpring(manifest, pulse, 0.7)) > 1);
+  assert.ok(Math.abs(simulateAhogeSpring(manifest, pulse, 4)) < 0.01);
+});
+
+test('surprised stretches the head for 0.3 s and leans the body back, keeping the gesture', () => {
+  const p = exprAt('surprised');
+  assert.ok(evaluateHostAt(manifest, p, 1.1).headStretch > 0);
+  assert.equal(evaluateHostAt(manifest, p, 1.3).headStretch, 0);
+  assert.ok(evaluateHostAt(manifest, exprAt('worried'), 1.1).headStretch < 0);
+  assert.equal(evaluateHostAt(manifest, exprAt('curious'), 1.1).headStretch, 0);
+  const before = evaluateHostAt(manifest, p, 0.99);
+  const during = evaluateHostAt(manifest, p, 1.15);
+  assert.ok(during.angles.waist < before.angles.waist - 2, 'leans back');
+  assert.equal(during.gesture, before.gesture);
+});
+
+test('persona once gestures move the body, not just the label', () => {
+  for (const g of ['snap', 'startle', 'double_take', 'scratch_head']) {
+    const p = plan([{ sentence: 0, do: 'gesture', target: 'idle', timeMs: 0 }, { sentence: 0, do: 'gesture', target: g, timeMs: 1000 }]);
+    const hold = evaluateHostAt(manifest, p, 0.9).angles;
+    const mid = evaluateHostAt(manifest, p, 1 + resolvePose(manifest, g).seconds / 2).angles;
+    const maxDelta = Math.max(...Object.keys(hold).map((j) => Math.abs(mid[j] - hold[j])));
+    assert.ok(maxDelta > 15, `${g} moves a joint by only ${maxDelta.toFixed(1)}°`);
+  }
+});
+
+test('a snap shows a sparkle at the hand for its second half', () => {
+  const p = plan([{ sentence: 0, do: 'gesture', target: 'snap', timeMs: 1000 }]);
+  assert.equal(evaluateHostAt(manifest, p, 1.1).spark, 0);
+  const s = evaluateHostAt(manifest, p, 1.45);
+  assert.ok(s.spark > 0.5, `spark ${s.spark}`);
+  assert.match(drawHost(manifest, s), /data-spark="1"/);
+  assert.doesNotMatch(drawHost(manifest, evaluateHostAt(manifest, p, 2)), /data-spark/);
+});
+
+test('a startle hops back and a double take looks away, then back at the focus', () => {
+  const startle = plan([{ sentence: 0, do: 'gesture', target: 'startle', timeMs: 1000 }]);
+  const still = evaluateHostAt(manifest, startle, 0.9);
+  const jolt = evaluateHostAt(manifest, startle, 1.15);
+  assert.ok(jolt.lift > 0.01 && jolt.x < still.x - 3, `lift ${jolt.lift}, x ${still.x} → ${jolt.x}`);
+  const take = plan([{ sentence: 0, do: 'gesture', target: 'double_take', timeMs: 1000 }]);
+  assert.ok(evaluateHostAt(manifest, take, 1.3).gaze[0] < 0, 'looks away');
+  assert.ok(evaluateHostAt(manifest, take, 1.55).gaze[0] > 0, 'looks back');
+});
+
+test('a shot that starts with a snap plays it, then stands idle', () => {
+  const p = plan([], { startState: { ...START, gesture: 'snap' } });
+  assert.equal(evaluateHostAt(manifest, p, 0.3).gesture, 'snap');
+  assert.equal(evaluateHostAt(manifest, p, 1.2).gesture, 'idle');
+});
+
+test('at 540p the snap sparkle outline stays at least 1.5 px wide', () => {
+  const small = { ...manifest, height_px: 200 };
+  const svg = drawHost(small, { gesture: 'snap', expr: 'amazed', spark: 1, x: 200, ground: 465, seed: 'small-spark' });
+  assert.match(svg, /data-spark="1"/);
+  for (const m of svg.matchAll(/stroke-width="([\d.]+)"/g)) assert.ok(Number(m[1]) >= 1.5 - 1e-6, `stroke ${m[1]}`);
 });
