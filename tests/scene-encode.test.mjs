@@ -139,3 +139,13 @@ test('settings.outfit dresses the host in every frame and is part of the shot ca
   assert.match(evaluateFrame(manifest, plain[0], 0.5).vectorSvg, /data-part="ahoge"/, 'an older project gets the 呆毛 without any change');
   assert.notEqual(shotCacheKey(dressed[0]), shotCacheKey(plain[0]));
 });
+
+test('the automatic snap count carries from one host-left shot to the next', () => {
+  const p = minimal();
+  p.sections[0].text = '原来是缓存。原来是副本。原来如此。';
+  p.shots = [0, 1, 2].map((n) => ({ id: `sh0${n + 1}`, section: 's01', sentences: [n], layout: 'host-left', host: { expr: 'explaining', gesture: 'idle' }, visual: { template: 'title', data: { heading: `${n}` } }, note: 'reveal' }));
+  const timing = Object.fromEntries([0, 1, 2].map((n) => [`s01-${n}`, { file: `audio/s01-${n}.wav`, duration_ms: 2000, speech: [50, 1900], source: 'estimate', words: [], sha256: `h${n}` }]));
+  const plans = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+  assert.deepEqual(plans.map((pl) => pl.startState.autoSnaps), [0, 1, 2]);
+  assert.notEqual(evaluateFrame(manifest, plans[2], 0.5).vectorSvg.match(/data-gesture="(\w+)"/)[1], 'snap');
+});

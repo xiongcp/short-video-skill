@@ -212,11 +212,15 @@ const BEAT_CYCLE = ['present', 'point', 'emphasize', 'shrug'];
  * Picks a purposeful conversational gesture (and optional expression hint) for a sentence that has no explicit gesture cue,
  * ensuring every sentence carries an active, non-repeating host beat.
  */
-export function inferSentenceBeat(text = '', { index = 0, hasVisualCue = false, prevGesture = 'idle' } = {}) {
+export function inferSentenceBeat(text = '', { index = 0, hasVisualCue = false, prevGesture = 'idle', autoSnaps = 0 } = {}) {
   const s = String(text);
   let candidates;
   if (/[？?][」』”’）)》】\]"']*$/.test(s) || /(?:吗|呢|为什么|怎么|还能)/.test(s)) {
-    candidates = ['think', 'shrug', 'present'];
+    candidates = ['lean_in', 'think', 'shrug'];
+  } else if (/(?:原来|答案是|所以说|这就是)/.test(s)) {
+    candidates = ['snap', 'present', 'emphasize'];
+  } else if (/(?:居然|竟然|没想到)/.test(s)) {
+    candidates = ['startle', 'double_take', 'emphasize'];
   } else if (/[！!][」』”’）)》】\]"']*$/.test(s) || /(?:记住|关键|直接|瞬间|省掉|省下|一定)/.test(s)) {
     candidates = ['emphasize', 'present', 'point'];
   } else if (hasVisualCue || /(?:看|先看|找到|并排|这边|这张图|三零四|服务器|浏览器|副本)/.test(s)) {
@@ -225,6 +229,8 @@ export function inferSentenceBeat(text = '', { index = 0, hasVisualCue = false, 
     const start = Math.abs(index) % BEAT_CYCLE.length;
     candidates = [...BEAT_CYCLE.slice(start), ...BEAT_CYCLE.slice(0, start)];
   }
+  // Two automatic snaps per video keep it a signature move (小青人设设计 §4.2).
+  if (autoSnaps >= 2) candidates = candidates.filter((g) => g !== 'snap');
   const gesture = candidates.find((g) => g !== prevGesture) ?? candidates[0];
   return { gesture };
 }
@@ -363,6 +369,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   const explicitGestureSentences = new Set(cues.filter((c) => c.do === 'gesture').map((c) => c.sentence));
   const visualCueSentences = new Set(cues.filter((c) => c.do === 'reveal' || c.do === 'highlight' || c.do === 'move').map((c) => c.sentence));
   const autoBeats = [];
+  let autoSnaps = start.autoSnaps ?? 0;
   let runningGesture = start.gesture;
   sentences.forEach((s, si) => {
     const sentIdx = s.index ?? si;
@@ -379,7 +386,9 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
       index: sentIdx,
       hasVisualCue: visualCueSentences.has(sentIdx),
       prevGesture: runningGesture,
+      autoSnaps,
     });
+    if (beat.gesture === 'snap') autoSnaps += 1;
     runningGesture = beat.gesture;
     autoBeats.push({ sentence: sentIdx, timeMs: Math.max(0, (s.startMs ?? 0) - 80), do: 'gesture', target: beat.gesture });
   });
@@ -645,6 +654,6 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     rushedMove,
     isFastMotion,
     bodyBbox,
-    endState: { x: curX, view, facing, gesture: holdGesture, expr, prop },
+    endState: { x: curX, view, facing, gesture: holdGesture, expr, prop, autoSnaps },
   };
 }

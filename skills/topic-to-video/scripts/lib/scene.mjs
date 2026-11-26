@@ -40,7 +40,7 @@ function matchSharedElements(prevElems, nextElems) {
 export function buildShotPlans(project, timeline, manifest) {
   const theme = project.settings?.theme ?? 'light';
   const outfit = project.settings?.outfit ?? 'none';
-  let lastHostEnd = { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
+  let lastHostEnd = { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none', autoSnaps: 0 };
   let prevPlan = null;
   const plans = [];
 
@@ -58,6 +58,7 @@ export function buildShotPlans(project, timeline, manifest) {
           gesture: shot.host?.gesture ?? lastHostEnd.gesture,
           expr: shot.host?.expr ?? lastHostEnd.expr,
           prop: lastHostEnd.prop,
+          autoSnaps: lastHostEnd.autoSnaps ?? 0,
         }
       : null;
 

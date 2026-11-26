@@ -102,8 +102,8 @@ test('evaluateHostAt drives move, jump arc, continuous lip-sync and deterministi
 });
 
 test('every sentence gets a distinct host action beat and speech-driven conversational arm motion', () => {
-  assert.equal(inferSentenceBeat('还要从头下载吗？', { index: 0, prevGesture: 'idle' }).gesture, 'think');
-  assert.equal(inferSentenceBeat('记住这三种动作！', { index: 1, prevGesture: 'think' }).gesture, 'emphasize');
+  assert.equal(inferSentenceBeat('还要从头下载吗？', { index: 0, prevGesture: 'idle' }).gesture, 'lean_in');
+  assert.equal(inferSentenceBeat('记住这三种动作！', { index: 1, prevGesture: 'lean_in' }).gesture, 'emphasize');
   assert.notEqual(
     inferSentenceBeat('第一句讲解。', { index: 0, prevGesture: 'idle' }).gesture,
     inferSentenceBeat('第二句继续讲。', { index: 1, prevGesture: 'present' }).gesture,

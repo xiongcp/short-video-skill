@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ahogePoints, drawHost, resolvePose } from '../skills/topic-to-video/scripts/lib/rig.mjs';
-import { evaluateHostAt, fidgetSchedule, simulateAhogeSpring } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { evaluateHostAt, fidgetSchedule, inferSentenceBeat, simulateAhogeSpring } from '../skills/topic-to-video/scripts/lib/motion.mjs';
 
 // 小青人设设计 (H): the 呆毛, bigger faces, amazed, five persona gestures, outfits, auto beats and fidgets.
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
@@ -276,4 +276,31 @@ test('no fidget while walking or during a once gesture', () => {
 test('a seated host never floats: tiptoe is skipped while sitting', () => {
   const seated = plan([], { durationSec: 30, startState: { ...START, gesture: 'sit' }, sentences: [{ index: 0, startMs: 0, endMs: 29800, text: '讲。' }] });
   for (let t = 0; t < 30; t += 0.05) assert.equal(evaluateHostAt(manifest, seated, t).lift, 0, `t=${t}`);
+});
+
+test('auto beats: a question leans in, a reveal snaps, a surprise startles, and no sentence repeats the last', () => {
+  assert.equal(inferSentenceBeat('还要从头下载吗？').gesture, 'lean_in');
+  assert.equal(inferSentenceBeat('还要从头下载吗？', { prevGesture: 'lean_in' }).gesture, 'think');
+  for (const s of ['原来浏览器早就存了一份。', '答案是三零四。', '所以说缓存不是白存的。', '这就是协商缓存。']) assert.equal(inferSentenceBeat(s).gesture, 'snap', s);
+  for (const s of ['居然一个字节都没下载。', '竟然只花了一毫秒。', '没想到服务器只回了一句话。']) assert.equal(inferSentenceBeat(s).gesture, 'startle', s);
+  assert.equal(inferSentenceBeat('居然一个字节都没下载。', { prevGesture: 'startle' }).gesture, 'double_take');
+  assert.equal(inferSentenceBeat('原来如此！').gesture, 'snap', 'a reveal comes before the exclamation rule');
+  assert.equal(inferSentenceBeat('这就是答案吗？').gesture, 'lean_in', 'a question comes first');
+});
+
+test('after two automatic snaps the next reveal takes the next candidate', () => {
+  assert.equal(inferSentenceBeat('原来如此。', { autoSnaps: 1 }).gesture, 'snap');
+  assert.equal(inferSentenceBeat('原来如此。', { autoSnaps: 2 }).gesture, 'present');
+  assert.equal(inferSentenceBeat('原来如此。', { autoSnaps: 2, prevGesture: 'present' }).gesture, 'emphasize');
+  const reveal = (i) => ({ index: i, startMs: i * 2000, endMs: i * 2000 + 1800, text: '原来是这样。' });
+  const three = plan([], { durationSec: 8, sentences: [reveal(0), { index: 1, startMs: 2000, endMs: 3800, text: '讲一句。' }, reveal(2), { index: 3, startMs: 6000, endMs: 7800, text: '讲一句。' }] });
+  assert.equal(evaluateHostAt(manifest, three, 7.9).endState.autoSnaps, 2);
+  const capped = plan([], { startState: { ...START, autoSnaps: 2 }, sentences: [reveal(0)] });
+  assert.notEqual(evaluateHostAt(manifest, capped, 0.2).gesture, 'snap');
+});
+
+test('a snap the agent writes always plays and does not count toward the cap', () => {
+  const p = plan([{ sentence: 0, do: 'gesture', target: 'snap', timeMs: 0 }], { startState: { ...START, autoSnaps: 2 }, sentences: [{ index: 0, startMs: 0, endMs: 1800, text: '原来如此。' }] });
+  assert.equal(evaluateHostAt(manifest, p, 0.2).gesture, 'snap');
+  assert.equal(evaluateHostAt(manifest, p, 1).endState.autoSnaps, 2);
 });
