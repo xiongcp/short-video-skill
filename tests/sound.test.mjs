@@ -104,3 +104,60 @@ test('thinSoundEvents keeps at most two effects a second and guards steps', () =
   assert.deepEqual(thinSoundEvents([e(60, 'step', 'step'), e(100, 'normal', 'pop')]).map((x) => x.kind), ['pop']);
   assert.deepEqual(thinSoundEvents([e(0, 'step', 'step'), e(250, 'step', 'step')]).map((x) => x.tMs), [0, 250]);
 });
+
+// Effects stem (音效与配乐设计 §6.2)
+import { panGains, renderSfxStem, speechIntervals, TIER_LEVELS_DB } from '../skills/topic-to-video/scripts/lib/sound.mjs';
+
+const midDb = (stem) => {
+  const mid = Float32Array.from(stem.left, (v, i) => (v + stem.right[i]) / 2);
+  return 20 * Math.log10(loudestWindowRms(mid));
+};
+const one = (kind, tier, tMs = 1000, x = null) => [{ tMs, kind, tier, x, source: 't' }];
+
+test('tier levels follow the design table', () => {
+  assert.deepEqual(TIER_LEVELS_DB, { step: { speech: -26, gap: -26 }, normal: { speech: -14, gap: -10 }, accent: { speech: -12, gap: -8 } });
+});
+
+test('effects sit at their tier level below the voice, quieter during speech', () => {
+  const total = 48000 * 3;
+  assert.ok(Math.abs(midDb(renderSfxStem(one('pop', 'normal'), total, { voiceRefDb: -20, intervals: [] })) - -30) <= 0.5);
+  const speaking = [{ start: 0, end: total }];
+  assert.ok(Math.abs(midDb(renderSfxStem(one('pop', 'normal'), total, { voiceRefDb: -20, intervals: speaking })) - -34) <= 0.5);
+  assert.ok(Math.abs(midDb(renderSfxStem(one('sparkle', 'accent'), total, { voiceRefDb: -20, intervals: [] })) - -28) <= 0.5);
+  assert.ok(Math.abs(midDb(renderSfxStem(one('step', 'step'), total, { voiceRefDb: -20, intervals: [] })) - -46) <= 0.5);
+});
+
+test('panGains is centred for null and mid-screen, equal power and clamped', () => {
+  assert.deepEqual(panGains(null), [1, 1]);
+  const [cl, cr] = panGains(960);
+  assert.ok(Math.abs(cl - 1) < 1e-9 && Math.abs(cr - 1) < 1e-9);
+  const [l, r] = panGains(1920);
+  assert.ok(r > l);
+  assert.ok(Math.abs(l * l + r * r - 2) < 1e-9);
+  assert.deepEqual(panGains(-500), panGains(0));
+});
+
+test('an effect cut by the end of the video fades to zero without overflowing', () => {
+  const total = 48000;
+  const stem = renderSfxStem(one('ding', 'normal', (1000 * (total - 100)) / 48000), total, { voiceRefDb: -20, intervals: [] });
+  assert.equal(stem.left.length, total);
+  assert.ok(Math.abs(stem.left[total - 1]) < 1e-6 && Math.abs(stem.right[total - 1]) < 1e-6);
+});
+
+test('renderSfxStem counts kinds and is deterministic', () => {
+  const ev = [...one('pop', 'normal', 100), ...one('pop', 'normal', 900), ...one('ding', 'normal', 1500, 1700)];
+  const a = renderSfxStem(ev, 96000, { voiceRefDb: -20, intervals: [], seed: 'x' });
+  const b = renderSfxStem(ev, 96000, { voiceRefDb: -20, intervals: [], seed: 'x' });
+  assert.deepEqual(a.counts, { pop: 2, ding: 1 });
+  assert.deepEqual(a.left, b.left);
+});
+
+test('speechIntervals turns every sentence speech span into samples on the video clock', () => {
+  const { plans } = soundFixture();
+  const iv = speechIntervals(plans, FPS);
+  assert.equal(iv.length, 3);
+  const s1 = plans[1].sentences[0];
+  const start1 = Math.round((plans[0].frameCount * 48000) / FPS + ((s1.startMs + 50) * 48000) / 1000);
+  assert.equal(iv[1].start, start1);
+  assert.ok(iv.every((r, i) => r.end > r.start && (i === 0 || r.start >= iv[i - 1].end)));
+});

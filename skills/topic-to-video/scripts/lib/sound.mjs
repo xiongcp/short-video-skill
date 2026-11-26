@@ -73,9 +73,9 @@ export function windowRms(samples, start, length) {
   return Math.sqrt(sum / (e - s));
 }
 
-/** RMS of the loudest `windowSamples` window (100 ms by default), stepping 2.5 ms. */
+/** RMS of the loudest `windowSamples` window (100 ms by default), stepping 2.5 ms; a shorter sound counts the silence after it. */
 export function loudestWindowRms(samples, windowSamples = 4800) {
-  if (samples.length <= windowSamples) return windowRms(samples, 0, samples.length);
+  if (samples.length <= windowSamples) return windowRms(samples, 0, samples.length) * Math.sqrt(samples.length / windowSamples);
   let best = 0;
   for (let s = 0; s + windowSamples <= samples.length; s += 120) best = Math.max(best, windowRms(samples, s, windowSamples));
   return best;
@@ -358,4 +358,75 @@ export function thinSoundEvents(events, { minGapMs = 500, stepGuardMs = 120 } = 
   }
   const steps = sorted.filter((ev) => ev.tier === 'step' && !kept.some((k) => Math.abs(k.tMs - ev.tMs) < stepGuardMs));
   return [...kept, ...steps].sort((a, b) => a.tMs - b.tMs);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Effects stem (音效与配乐设计 §6.2): levels relative to the voice reference V, gentle equal-power panning.
+
+export const TIER_LEVELS_DB = { step: { speech: -26, gap: -26 }, normal: { speech: -14, gap: -10 }, accent: { speech: -12, gap: -8 } };
+
+/** Equal-power pan scaled so the centre is unity on both channels; x is a 1920-wide screen coordinate. */
+export function panGains(x) {
+  if (x === null || x === undefined || !Number.isFinite(x)) return [1, 1];
+  const pan = Math.max(-0.3, Math.min(0.3, (x / 1920 - 0.5) * 0.6));
+  const theta = ((pan + 1) * Math.PI) / 4;
+  return [Math.SQRT2 * Math.cos(theta), Math.SQRT2 * Math.sin(theta)];
+}
+
+/** Speech spans of every sentence, in samples on the video clock (shot starts from frame counts). */
+export function speechIntervals(shotPlans, fps, sampleRate = SAMPLE_RATE) {
+  const out = [];
+  let offsetFrames = 0;
+  for (const plan of shotPlans) {
+    const base = (offsetFrames * sampleRate) / fps;
+    for (const s of plan.sentences) {
+      const [a, b] = s.speech ?? [0, s.durationMs ?? 0];
+      const start = Math.round(base + ((s.startMs + a) * sampleRate) / 1000);
+      const end = Math.round(base + ((s.startMs + b) * sampleRate) / 1000);
+      if (end > start) out.push({ start, end });
+    }
+    offsetFrames += plan.frameCount;
+  }
+  return out.sort((x, y) => x.start - y.start);
+}
+
+/** Binary search: is `sample` inside one of the sorted, non-overlapping intervals? */
+export function isInIntervals(intervals, sample) {
+  let lo = 0;
+  let hi = intervals.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (sample < intervals[mid].start) hi = mid - 1;
+    else if (sample >= intervals[mid].end) lo = mid + 1;
+    else return true;
+  }
+  return false;
+}
+
+/** Mixes thinned events into a stereo effects stem of `totalSamples`, each scaled so its loudest 100 ms sits at V + tier offset. */
+export function renderSfxStem(events, totalSamples, { voiceRefDb, intervals = [], seed = 'sfx' } = {}) {
+  const left = new Float32Array(totalSamples);
+  const right = new Float32Array(totalSamples);
+  const counts = {};
+  events.forEach((ev, i) => {
+    const start = Math.round((ev.tMs * SR) / 1000);
+    if (start >= totalSamples || start < 0) return;
+    const buf = synthSfx(ev.kind, { seed: `${seed}:${i}` });
+    const levels = TIER_LEVELS_DB[ev.tier] ?? TIER_LEVELS_DB.normal;
+    const offsetDb = isInIntervals(intervals, start) ? levels.speech : levels.gap;
+    const ref = loudestWindowRms(buf);
+    if (ref <= 0) return;
+    const g = 10 ** ((voiceRefDb + offsetDb) / 20) / ref;
+    const [gl, gr] = panGains(ev.x);
+    const len = Math.min(buf.length, totalSamples - start);
+    const fadeFrom = len < buf.length ? Math.max(0, len - FADE_SAMPLES) : len;
+    for (let k = 0; k < len; k += 1) {
+      let v = buf[k] * g;
+      if (k >= fadeFrom) v *= Math.sin((Math.PI / 2) * ((len - 1 - k) / Math.max(1, len - 1 - fadeFrom))) ** 2;
+      left[start + k] += v * gl;
+      right[start + k] += v * gr;
+    }
+    counts[ev.kind] = (counts[ev.kind] ?? 0) + 1;
+  });
+  return { left, right, counts };
 }
