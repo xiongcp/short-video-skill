@@ -6,8 +6,8 @@ import { join } from 'node:path';
 const DIR = join(import.meta.dirname, 'scenarios');
 const specs = readdirSync(DIR).filter((f) => /^\d{2}-.+\.json$/.test(f)).sort();
 
-test('there are seven scenarios numbered 01–07', () => {
-  assert.deepEqual(specs.map((f) => f.slice(0, 2)), ['01', '02', '03', '04', '05', '06', '07']);
+test('there are eight scenarios numbered 01–08', () => {
+  assert.deepEqual(specs.map((f) => f.slice(0, 2)), ['01', '02', '03', '04', '05', '06', '07', '08']);
 });
 
 for (const file of specs) {

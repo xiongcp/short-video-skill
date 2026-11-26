@@ -1,0 +1,16 @@
+{
+  "id": "08",
+  "title": "小青人设：指定安全帽与新表情动作",
+  "level": "L0",
+  "fixtures": [],
+  "turns": [
+    "帮我做一个 1 分钟的视频，讲讲“为什么飞机翅膀不会折断”，让小青戴上安全帽出镜。",
+    "方案可以，出提示词包。"
+  ],
+  "checks": [
+    "第 1 轮没有为服装追问，直接在 project.json 里写入 settings.outfit 为 \"hardhat\"",
+    "分镜里至少用到 1 个 H 阶段新增的表情或动作（amazed、snap、lean_in、startle、double_take、scratch_head）",
+    "自动检查摘要中 schema_errors、check_errors、derived_docs 都为空，lint_warnings 没有 ESTIMATE_OFF_TARGET",
+    "第 2 轮在 checkpoints 中记录了 stage 为 plan 的确认并产出提示词包.md，提示词包里的主持人描述包含“呆毛”且体现了安全帽；全程没有安装工具，也没有调用付费服务或 TTS"
+  ]
+}
