@@ -28,6 +28,19 @@ export function findTitleFont() {
   return findCjkFont(TITLE_FONT_CANDIDATES);
 }
 
+const EDGE_COMMAND = 'edge-tts --voice {voice} --rate={rate} --pitch={pitch} --text {text} --write-media {out} --write-subtitles {sub}';
+
+/**
+ * The voice settings to copy into project.json for the local TTS found. The edge-tts ones carry no voice or speed,
+ * so copying them keeps the voice.preset the project chose (声音人设设计 §6).
+ */
+export function recommendVoice({ edgeTts = false, uvx = false, say = false } = {}) {
+  if (edgeTts) return { provider: 'command', command: EDGE_COMMAND };
+  if (uvx) return { provider: 'command', command: `uvx --from edge-tts ${EDGE_COMMAND}` };
+  if (say) return { provider: 'command', voice: 'Tingting', command: 'say -v Tingting -o {out} {text}' };
+  return { provider: 'import' };
+}
+
 function checkCmd(bin, args = ['--version']) {
   const res = spawnSync(bin, args, { encoding: 'utf8' });
   if (res.error || res.status !== 0) return { ok: false, path: null };
@@ -68,13 +81,7 @@ export async function runDoctor({ ffmpeg = process.env.FFMPEG || 'ffmpeg', ffpro
   if (!resvgOk) missing.push('@resvg/resvg-js');
 
   const l1_ready = missing.length === 0;
-  const recommended_voice = edgeTts.ok
-    ? { provider: 'command', voice: 'zh-CN-XiaoxiaoNeural', speed: 0.96, command: 'edge-tts --voice {voice} --rate={rate} --text {text} --write-media {out} --write-subtitles {sub}' }
-    : uvxCheck.ok
-      ? { provider: 'command', voice: 'zh-CN-XiaoxiaoNeural', speed: 0.96, command: 'uvx --from edge-tts edge-tts --voice {voice} --rate={rate} --text {text} --write-media {out} --write-subtitles {sub}' }
-      : macSay.ok
-        ? { provider: 'command', voice: 'Tingting', command: 'say -v Tingting -o {out} {text}' }
-        : { provider: 'import' };
+  const recommended_voice = recommendVoice({ edgeTts: edgeTts.ok, uvx: uvxCheck.ok, say: macSay.ok });
 
   return {
     ok: true,

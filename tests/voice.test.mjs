@@ -4,7 +4,9 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { recommendVoice } from '../skills/topic-to-video/scripts/doctor.mjs';
 import { readWavPcm } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
+import { parseArgs, runAudition } from '../skills/topic-to-video/scripts/render.mjs';
 import { auditionCommand, auditionVoices, pitchToEdge, resolveVoice, selectPresets, sentenceHash, synthesizeProject } from '../skills/topic-to-video/scripts/lib/tts.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
@@ -138,4 +140,34 @@ test('a second, shorter audition leaves no clips from the first one and keeps ot
   writeFileSync(join(dir, 'out/audition/备注.txt'), '留着');
   auditionVoices(p, dir, { presets: ['child-cute'], command });
   assert.deepEqual(readdirSync(join(dir, 'out/audition')).sort(), ['01-child-cute.wav', 'all.wav', '备注.txt']);
+});
+
+test('doctor recommends edge-tts, then uvx, then say, then import, and leaves voice and speed to the preset', () => {
+  assert.deepEqual(recommendVoice({ edgeTts: true, uvx: true, say: true }), { provider: 'command', command: EDGE });
+  assert.deepEqual(recommendVoice({ uvx: true, say: true }), { provider: 'command', command: `uvx --from edge-tts ${EDGE}` });
+  assert.deepEqual(recommendVoice({ say: true }), { provider: 'command', voice: 'Tingting', command: 'say -v Tingting -o {out} {text}' });
+  assert.deepEqual(recommendVoice({}), { provider: 'import' });
+  const copied = { ...recommendVoice({ edgeTts: true }), preset: 'male-sunny' };
+  assert.deepEqual(resolveVoice(copied), { voice: 'zh-CN-YunxiNeural', speed: 0.92, rate: '-8%', pitch: '+0Hz' });
+});
+
+test('render.mjs reads the word after --audition as a preset list only when it looks like one', () => {
+  assert.deepEqual(parseArgs(['proj', '--audition']), { projectDir: 'proj', audition: true });
+  assert.deepEqual(parseArgs(['proj', '--audition', 'male,female-warm']), { projectDir: 'proj', audition: true, auditionList: 'male,female-warm' });
+  assert.deepEqual(parseArgs(['--audition', 'proj']), { projectDir: 'proj', audition: true });
+  assert.deepEqual(parseArgs(['proj', '--audition', 'male-deep']), { projectDir: 'proj', audition: true, auditionList: 'male-deep' });
+  assert.deepEqual(parseArgs(['proj', '--preset', 'slow']), { projectDir: 'proj', preset: 'slow' });
+});
+
+test('--audition needs FFmpeg and an edge-tts command but not resvg, and reports a bad list instead of throwing', () => {
+  const { dir, command } = scratch();
+  writeFileSync(join(dir, 'project.json'), JSON.stringify(minimal()));
+  const doc = (ffmpeg, recommended_voice) => ({ checks: { ffmpeg: { ok: ffmpeg }, resvg: { ok: false } }, recommended_voice });
+  assert.deepEqual(runAudition({ projectDir: dir }, doc(false, recommendVoice({ edgeTts: true }))), { ok: false, message: '试听需要 FFmpeg' });
+  assert.deepEqual(runAudition({ projectDir: dir }, doc(true, recommendVoice({ say: true }))), { ok: false, message: '试听需要 edge-tts 或 uvx' });
+  const bad = runAudition({ projectDir: dir, auditionList: 'male-deep' }, doc(true, { provider: 'command', command }));
+  assert.equal(bad.ok, false);
+  assert.match(bad.message, /male-deep/);
+  const r = runAudition({ projectDir: dir, auditionList: 'child' }, doc(true, { provider: 'command', command }));
+  assert.deepEqual([r.ok, r.presets.map((x) => x.file)], [true, ['out/audition/01-child-cute.wav']]);
 });

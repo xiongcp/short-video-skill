@@ -1,12 +1,20 @@
 // Unified cross-agent render CLI (agy / Claude Code / Codex):
 //   node <skill>/scripts/render.mjs <projectDir> [--preview] [--sample sh08-sh09]
 //     [--resolution 1080p|1440p|2160p] [--fps 60|30] [--master] [--motion-blur] [--skip-tts] [--no-qa]
-// Falls back cleanly to L0 guidance when FFmpeg or @resvg/resvg-js is unavailable.
+//   node <skill>/scripts/render.mjs <projectDir> --audition [male,female-warm,...]   voice presets into out/audition/
+// Falls back cleanly to L0 guidance when FFmpeg or @resvg/resvg-js is unavailable; --audition needs only FFmpeg and edge-tts or uvx.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runDoctor } from './doctor.mjs';
 import { renderProject } from './lib/encode.mjs';
+import { auditionCommand, auditionVoices, selectPresets } from './lib/tts.mjs';
 
-function parseArgs(argv) {
+// The word after --audition is a preset list only when every item looks like a preset ID or prefix, so
+// `--audition <projectDir>` still names the project and a typo such as male-deep is reported instead of taken as a folder.
+const AUDITION_ITEM = /^(female|male|child)(-[a-z]+)*$/;
+
+export function parseArgs(argv) {
   const opts = { projectDir: '.' };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -21,14 +29,36 @@ function parseArgs(argv) {
     else if (a === '--fps') opts.fps = Number(argv[++i]);
     else if (a === '--preset') opts.preset = argv[++i];
     else if (a === '--workers') opts.workers = Number(argv[++i]);
-    else if (!a.startsWith('--')) opts.projectDir = a;
+    else if (a === '--audition') {
+      opts.audition = true;
+      if (argv[i + 1]?.split(',').every((s) => AUDITION_ITEM.test(s))) opts.auditionList = argv[++i];
+    } else if (!a.startsWith('--')) opts.projectDir = a;
   }
   return opts;
+}
+
+/** --audition: reads voice presets aloud into out/audition/. Needs FFmpeg and an edge-tts command, never resvg or macOS say. */
+export function runAudition(opts, doc) {
+  if (!doc.checks.ffmpeg.ok) return { ok: false, message: '试听需要 FFmpeg' };
+  try {
+    const project = JSON.parse(readFileSync(join(opts.projectDir, 'project.json'), 'utf8'));
+    const command = auditionCommand(project.voice, doc.recommended_voice.command);
+    if (!command) return { ok: false, message: '试听需要 edge-tts 或 uvx' };
+    return auditionVoices(project, opts.projectDir, { presets: selectPresets(opts.auditionList), command, ffmpeg: process.env.FFMPEG || 'ffmpeg' });
+  } catch (err) {
+    return { ok: false, message: err.message };
+  }
 }
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const doc = await runDoctor();
+  if (opts.audition) {
+    const result = runAudition(opts, doc);
+    console.log(JSON.stringify(result, null, 2));
+    if (!result.ok) process.exitCode = 1;
+    return;
+  }
   if (!doc.l1_ready) {
     console.log(JSON.stringify({ ok: false, fallback: 'L0', missing: doc.missing, message: doc.fallback }, null, 2));
     process.exitCode = 2;
