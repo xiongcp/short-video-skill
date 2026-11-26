@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkProject, estimateSeconds, INTERACTION_CUES, lintScript, lintVoice } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { checkProject, estimateSeconds, INTERACTION_CUES, lintScript, lintSoundFiles, lintVoice } from '../skills/topic-to-video/scripts/lib/project.mjs';
 import { lintStoryboard } from '../skills/topic-to-video/scripts/lib/match.mjs';
 import { checkDerivedDocs } from './helpers/derived-docs.mjs';
 import { validateProject } from './helpers/schema.mjs';
@@ -61,4 +61,10 @@ test('example shows the new host acting: a move, a new gesture, a new expression
   assert.ok(hosts.some((h) => !OLD_GESTURES.includes(h.gesture)), 'a new gesture');
   assert.ok(hosts.some((h) => !OLD_EXPRESSIONS.includes(h.expr)), 'a new expression');
   assert.ok(hosts.every((h) => h.gesture !== 'point_right'), 'the example uses point, not the old name');
+});
+
+test('example turns on effects and the playful music bed with no check errors or warnings', () => {
+  assert.deepEqual(project.sound, { sfx: 'auto', music: { mood: 'playful' } });
+  assert.deepEqual(checkProject(project), []);
+  assert.deepEqual(lintSoundFiles(project, DIR), []);
 });

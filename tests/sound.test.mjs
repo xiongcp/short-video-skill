@@ -1,0 +1,196 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { loudestWindowRms, SAMPLE_RATE, SFX_DURATION_MS, SFX_KINDS, synthSfx } from '../skills/topic-to-video/scripts/lib/sound.mjs';
+
+test('there are 17 effects plus the conclusion chime', () => {
+  assert.equal(SFX_KINDS.length, 18);
+  assert.ok(SFX_KINDS.includes('chime') && SFX_KINDS.includes('rise'));
+});
+
+for (const kind of SFX_KINDS) {
+  test(`${kind} is deterministic, bounded, DC-free and fades out`, () => {
+    const a = synthSfx(kind, { seed: 'sh01:3' });
+    const b = synthSfx(kind, { seed: 'sh01:3' });
+    assert.deepEqual(a, b);
+    assert.equal(a.length, Math.round((SFX_DURATION_MS[kind] * SAMPLE_RATE) / 1000));
+    let peak = 0;
+    let sum = 0;
+    for (const v of a) {
+      assert.ok(Number.isFinite(v));
+      peak = Math.max(peak, Math.abs(v));
+      sum += v;
+    }
+    assert.ok(peak <= 0.99 && peak > 0.1, `peak ${peak}`);
+    assert.ok(Math.abs(sum / a.length) < 1e-3, 'DC');
+    assert.equal(a[a.length - 1], 0);
+    const lastMs = a.subarray(a.length - 48);
+    assert.ok(Math.max(...lastMs.map(Math.abs)) <= 0.04, 'faded tail, no click');
+    assert.ok(loudestWindowRms(a) > 0);
+  });
+}
+
+test('different seeds vary pitch a little but not the length', () => {
+  const a = synthSfx('ding', { seed: 'a' });
+  const b = synthSfx('ding', { seed: 'b' });
+  assert.equal(a.length, b.length);
+  assert.notDeepEqual(a, b);
+  assert.deepEqual(synthSfx('ding', { seed: 'a', variation: false }), synthSfx('ding', { seed: 'b', variation: false }));
+});
+
+// Events (音效与配乐设计 §4.1–4.2)
+import { hostPlanForShot } from '../skills/topic-to-video/scripts/lib/scene.mjs';
+import { FPS, manifest, soundFixture } from './helpers/sound-fixture.mjs';
+import { hostEventTimeline } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { collectSoundEvents, thinSoundEvents } from '../skills/topic-to-video/scripts/lib/sound.mjs';
+
+const offsetMs = (plans, i) => (plans.slice(0, i).reduce((s, pl) => s + pl.frameCount, 0) * 1000) / FPS;
+const near = (events, kind, tMs, tol = 1) => events.find((e) => e.kind === kind && Math.abs(e.tMs - tMs) <= tol);
+const cueIdx = (plan, d) => plan.cues.findIndex((c) => c.do === d);
+const cueStart = (plan, idx) => plan.endHostMeta?.interactionStarts?.get(idx) ?? plan.cues[idx].timeMs / 1000;
+
+test('hostEventTimeline exposes walks, interactions and one-shot gestures', () => {
+  const { plans } = soundFixture();
+  const tl = hostEventTimeline(manifest, hostPlanForShot(plans[1]));
+  assert.ok(tl.walks.length >= 1);
+  assert.ok(tl.interactions.some((e) => e.kind === 'open'));
+  assert.ok(tl.gestures.some((g) => g.gesture === 'jump'));
+});
+
+test('collectSoundEvents places effects at contact moments across shots', () => {
+  const { project, plans } = soundFixture();
+  const ev = collectSoundEvents(plans, manifest, { fps: FPS, lastSectionId: 's02' });
+  const [p0, p1] = plans;
+  const reveal = p0.cues.find((c) => c.do === 'reveal');
+  assert.ok(near(ev, 'pop', reveal.timeMs + 50), 'reveal pop');
+  assert.ok(near(ev, 'swish', p0.cues.find((c) => c.do === 'highlight').timeMs), 'highlight swish');
+  const o1 = offsetMs(plans, 1);
+  const walk = hostEventTimeline(manifest, hostPlanForShot(p1)).walks[0];
+  assert.ok(ev.filter((e) => e.kind === 'step' && e.tMs >= o1 + walk.t0 * 1000 && e.tMs <= o1 + walk.t1 * 1000 + 1).length >= 2, 'steps');
+  assert.ok(near(ev, 'click', o1 + (cueStart(p1, cueIdx(p1, 'open')) + 0.15) * 1000), 'open click');
+  const stamp = near(ev, 'thump', o1 + (cueStart(p1, cueIdx(p1, 'state')) + 0.12) * 1000);
+  assert.equal(stamp?.tier, 'accent');
+  const sendT = o1 + cueStart(p1, cueIdx(p1, 'send')) * 1000;
+  assert.ok(near(ev, 'whoosh', sendT) && near(ev, 'pop', sendT + 800), 'send');
+  const jump = hostEventTimeline(manifest, hostPlanForShot(p1)).gestures.find((g) => g.gesture === 'jump');
+  assert.equal(near(ev, 'rise', o1 + (jump.t0 + 0.15) * 1000)?.tier, 'accent');
+  assert.equal(near(ev, 'thump', o1 + (jump.t0 + 0.5) * 1000)?.tier, 'normal');
+  assert.ok(near(ev, 'page', o1), 'host-left -> stage is a page turn');
+  const o2 = offsetMs(plans, 2);
+  assert.ok(near(ev, 'whoosh', o2), 'stage -> full is a whoosh');
+  assert.ok(near(ev, 'chime', o2 + 200), 'conclusion chime');
+  assert.deepEqual(ev.map((e) => e.tMs), [...ev.map((e) => e.tMs)].sort((a, b) => a - b));
+  assert.equal(project.sections.at(-1).id, 's02');
+});
+
+test('collectSoundEvents on a sample starts at the first selected shot and skips its transition', () => {
+  const { plans } = soundFixture();
+  const ev = collectSoundEvents(plans.slice(1), manifest, { fps: FPS, lastSectionId: 's02' });
+  assert.ok(!near(ev, 'page', 0), 'no transition on the first sampled shot');
+  assert.ok(ev.every((e) => e.tMs >= 0));
+  assert.ok(near(ev, 'chime', offsetMs(plans.slice(1), 1) + 200));
+});
+
+test('events past the end of their shot are dropped', () => {
+  const { plans } = soundFixture({ gapMs: 0 });
+  assert.ok(plans[2].durationSec < 0.2);
+  const ev = collectSoundEvents(plans, manifest, { fps: FPS, lastSectionId: 's02' });
+  assert.equal(ev.filter((e) => e.kind === 'chime').length, 0);
+});
+
+test('thinSoundEvents keeps at most two effects a second and guards steps', () => {
+  const e = (tMs, tier, kind) => ({ tMs, tier, kind, x: null, source: 't' });
+  assert.deepEqual(thinSoundEvents([e(0, 'normal', 'pop'), e(300, 'accent', 'sparkle'), e(900, 'normal', 'ding')]).map((x) => x.kind), ['sparkle', 'ding']);
+  assert.deepEqual(thinSoundEvents([e(0, 'normal', 'pop'), e(300, 'normal', 'swish')]).map((x) => x.kind), ['pop']);
+  assert.deepEqual(thinSoundEvents([e(60, 'step', 'step'), e(100, 'normal', 'pop')]).map((x) => x.kind), ['pop']);
+  assert.deepEqual(thinSoundEvents([e(0, 'step', 'step'), e(250, 'step', 'step')]).map((x) => x.tMs), [0, 250]);
+});
+
+// Effects stem (音效与配乐设计 §6.2)
+import { panGains, renderSfxStem, speechIntervals, TIER_LEVELS_DB } from '../skills/topic-to-video/scripts/lib/sound.mjs';
+
+const midDb = (stem) => {
+  const mid = Float32Array.from(stem.left, (v, i) => (v + stem.right[i]) / 2);
+  return 20 * Math.log10(loudestWindowRms(mid));
+};
+const one = (kind, tier, tMs = 1000, x = null) => [{ tMs, kind, tier, x, source: 't' }];
+
+test('tier levels follow the design table', () => {
+  assert.deepEqual(TIER_LEVELS_DB, { step: { speech: -26, gap: -26 }, normal: { speech: -14, gap: -10 }, accent: { speech: -12, gap: -8 } });
+});
+
+test('effects sit at their tier level below the voice, quieter during speech', () => {
+  const total = 48000 * 3;
+  assert.ok(Math.abs(midDb(renderSfxStem(one('pop', 'normal'), total, { voiceRefDb: -20, intervals: [] })) - -30) <= 0.5);
+  const speaking = [{ start: 0, end: total }];
+  assert.ok(Math.abs(midDb(renderSfxStem(one('pop', 'normal'), total, { voiceRefDb: -20, intervals: speaking })) - -34) <= 0.5);
+  assert.ok(Math.abs(midDb(renderSfxStem(one('sparkle', 'accent'), total, { voiceRefDb: -20, intervals: [] })) - -28) <= 0.5);
+  assert.ok(Math.abs(midDb(renderSfxStem(one('step', 'step'), total, { voiceRefDb: -20, intervals: [] })) - -46) <= 0.5);
+});
+
+test('panGains is centred for null and mid-screen, equal power and clamped', () => {
+  assert.deepEqual(panGains(null), [1, 1]);
+  const [cl, cr] = panGains(960);
+  assert.ok(Math.abs(cl - 1) < 1e-9 && Math.abs(cr - 1) < 1e-9);
+  const [l, r] = panGains(1920);
+  assert.ok(r > l);
+  assert.ok(Math.abs(l * l + r * r - 2) < 1e-9);
+  assert.deepEqual(panGains(-500), panGains(0));
+});
+
+test('an effect cut by the end of the video fades to zero without overflowing', () => {
+  const total = 48000;
+  const stem = renderSfxStem(one('ding', 'normal', (1000 * (total - 100)) / 48000), total, { voiceRefDb: -20, intervals: [] });
+  assert.equal(stem.left.length, total);
+  assert.ok(Math.abs(stem.left[total - 1]) < 1e-6 && Math.abs(stem.right[total - 1]) < 1e-6);
+});
+
+test('renderSfxStem counts kinds and is deterministic', () => {
+  const ev = [...one('pop', 'normal', 100), ...one('pop', 'normal', 900), ...one('ding', 'normal', 1500, 1700)];
+  const a = renderSfxStem(ev, 96000, { voiceRefDb: -20, intervals: [], seed: 'x' });
+  const b = renderSfxStem(ev, 96000, { voiceRefDb: -20, intervals: [], seed: 'x' });
+  assert.deepEqual(a.counts, { pop: 2, ding: 1 });
+  assert.deepEqual(a.left, b.left);
+});
+
+test('speechIntervals turns every sentence speech span into samples on the video clock', () => {
+  const { plans } = soundFixture();
+  const iv = speechIntervals(plans, FPS);
+  assert.equal(iv.length, 3);
+  const s1 = plans[1].sentences[0];
+  const start1 = Math.round((plans[0].frameCount * 48000) / FPS + ((s1.startMs + 50) * 48000) / 1000);
+  assert.equal(iv[1].start, start1);
+  assert.ok(iv.every((r, i) => r.end > r.start && (i === 0 || r.start >= iv[i - 1].end)));
+});
+
+test('an effect whose tail runs into speech takes the speech level', () => {
+  const V = -20;
+  const start = 48000;
+  const intervals = [{ start: start + 2400, end: start + 96000 }];
+  const into = renderSfxStem(one('sparkle', 'accent', 1000), 192000, { voiceRefDb: V, intervals });
+  const gap = renderSfxStem(one('sparkle', 'accent', 1000), 192000, { voiceRefDb: V, intervals: [] });
+  const mid = (st) => st.left.map((v, i) => (v + st.right[i]) / 2);
+  const ratio = loudestWindowRms(mid(into)) / loudestWindowRms(mid(gap));
+  assert.ok(Math.abs(20 * Math.log10(ratio) - (-12 - -8)) < 0.2, String(20 * Math.log10(ratio)));
+});
+
+test('effect seeds come from the shot and the event, so a --sample plays the same effect as the full render', () => {
+  const { plans } = soundFixture();
+  const all = thinSoundEvents(collectSoundEvents(plans, manifest, { fps: FPS, lastSectionId: 's02' }));
+  const part = thinSoundEvents(collectSoundEvents(plans.slice(1), manifest, { fps: FPS, lastSectionId: 's02' }));
+  const offsetMs = (plans[0].frameCount * 1000) / FPS;
+  const rise = (list) => list.find((e) => e.kind === 'rise');
+  const a = rise(all);
+  const b = rise(part);
+  assert.ok(a && b && Math.abs(a.tMs - offsetMs - b.tMs) < 1e-6);
+  const lenMs = 120;
+  for (const list of [all, part]) {
+    const r = rise(list);
+    assert.ok(!list.some((e) => e !== r && e.tMs < r.tMs + lenMs && e.tMs + SFX_DURATION_MS[e.kind] > r.tMs), 'nothing else sounds over the rise');
+  }
+  const total = (list) => Math.round(((list.at(-1).tMs + 2000) * 48000) / 1000);
+  const sa = renderSfxStem(all, total(all), { voiceRefDb: -20 });
+  const sb = renderSfxStem(part, total(part), { voiceRefDb: -20 });
+  const ia = Math.round((a.tMs * 48000) / 1000);
+  const ib = Math.round((b.tMs * 48000) / 1000);
+  for (let k = 0; k < 5760; k += 1) assert.ok(Math.abs(sa.left[ia + k] - sb.left[ib + k]) < 1e-6, `sample ${k}`);
+});

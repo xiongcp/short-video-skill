@@ -2,17 +2,20 @@
 //   node <skill>/scripts/render.mjs <projectDir> [--preview] [--sample sh08-sh09]
 //     [--resolution 1080p|1440p|2160p] [--fps 60|30] [--master] [--motion-blur] [--skip-tts] [--no-qa]
 //   node <skill>/scripts/render.mjs <projectDir> --audition [male,female-warm,...]   voice presets into out/audition/
+//   node <skill>/scripts/render.mjs <projectDir> --audition-sound [calm,playful,...]  music moods and effects into out/audition/
 // Falls back cleanly to L0 guidance when FFmpeg or @resvg/resvg-js is unavailable; --audition needs only FFmpeg and edge-tts or uvx.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runDoctor } from './doctor.mjs';
 import { renderProject } from './lib/encode.mjs';
+import { auditionSound } from './lib/music.mjs';
 import { auditionCommand, auditionVoices, selectPresets } from './lib/tts.mjs';
 
 // The word after --audition is a preset list only when every item looks like a preset ID or prefix, so
 // `--audition <projectDir>` still names the project and a typo such as male-deep is reported instead of taken as a folder.
 const AUDITION_ITEM = /^(female|male|child)(-[a-z]+)*$/;
+const MOOD_ITEM = /^(calm|playful|curious|upbeat)$/;
 
 export function parseArgs(argv) {
   const opts = { projectDir: '.' };
@@ -32,6 +35,9 @@ export function parseArgs(argv) {
     else if (a === '--audition') {
       opts.audition = true;
       if (argv[i + 1]?.split(',').every((s) => AUDITION_ITEM.test(s))) opts.auditionList = argv[++i];
+    } else if (a === '--audition-sound') {
+      opts.auditionSound = true;
+      if (argv[i + 1]?.split(',').every((s) => MOOD_ITEM.test(s))) opts.auditionSoundList = argv[++i];
     } else if (!a.startsWith('--')) opts.projectDir = a;
   }
   return opts;
@@ -52,6 +58,10 @@ export function runAudition(opts, doc) {
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
+  if (opts.auditionSound) {
+    console.log(JSON.stringify(auditionSound(opts.projectDir, opts.auditionSoundList ? { moods: opts.auditionSoundList.split(',') } : {}), null, 2));
+    return;
+  }
   const doc = await runDoctor();
   if (opts.audition) {
     const result = runAudition(opts, doc);
@@ -75,6 +85,7 @@ async function main() {
         timeline: result.timeline,
         shotPlans: result.shotPlans,
         qaByShot: result.qaByShot,
+        audio: result.audio,
       });
     } catch (err) {
       qa = { skipped: true, reason: err.message };
@@ -88,6 +99,7 @@ async function main() {
     fps: result.fps,
     shots_rendered: result.shotsRendered,
     shots_cached: result.shotsCached,
+    sound: result.audio ? { music: result.audio.musicSource, sfx: Object.values(result.audio.sfxCounts).reduce((a, b) => a + b, 0) } : null,
     qa: qa ? { ok: qa.ok, issues: qa.issues?.length ?? 0 } : null,
   }, null, 2));
 }

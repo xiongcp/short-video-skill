@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { makeWavBuffer } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
 import { renderProject } from '../skills/topic-to-video/scripts/lib/encode.mjs';
-import { analyzeFrameDiffs, checkAnchorSync, runQa } from '../skills/topic-to-video/scripts/lib/qa.mjs';
+import { analyzeFrameDiffs, analyzeMixLevels, checkAnchorSync, runQa } from '../skills/topic-to-video/scripts/lib/qa.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 
@@ -185,6 +185,134 @@ test('runQa reports HOST_OBJECT_OVERLAP when qaByShot records objectOverlapFrame
       qaByShot: crowdedRendered.qaByShot,
     });
     assert.ok(crowdedQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+const MIX_SR = 48000;
+const mixDb = (v) => 20 * Math.log10(v);
+const toneAt = (n, hz, rmsDb, from = 0, to = n) => {
+  const out = new Float32Array(n);
+  const amp = 10 ** (rmsDb / 20) * Math.SQRT2;
+  for (let i = from; i < to; i += 1) out[i] = amp * Math.sin((2 * Math.PI * hz * (i - from)) / MIX_SR);
+  return out;
+};
+const noiseBurst = (n, rmsDb, from, len) => {
+  const out = new Float32Array(n);
+  let seed = 7;
+  let sum = 0;
+  for (let i = from; i < from + len; i += 1) {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    out[i] = seed / 1073741824 - 1;
+    sum += out[i] * out[i];
+  }
+  const k = 10 ** (rmsDb / 20) / Math.sqrt(sum / len);
+  for (let i = from; i < from + len; i += 1) out[i] *= k;
+  return out;
+};
+const MIX_N = 3 * MIX_SR;
+const SPEECH = [{ start: MIX_SR, end: 3 * MIX_SR }];
+const mixFixture = ({ musicDb = -40, sfxDb = -34 } = {}) => ({
+  voice: toneAt(MIX_N, 220, -20, SPEECH[0].start, SPEECH[0].end),
+  musicMid: toneAt(MIX_N, 330, musicDb),
+  sfxMid: noiseBurst(MIX_N, sfxDb, 96000 - 2400, 4800),
+  intervals: SPEECH,
+});
+
+test('analyzeMixLevels passes music 20 dB and an effect 14 dB under the voice', () => {
+  const res = analyzeMixLevels(mixFixture());
+  assert.deepEqual(res.issues, []);
+  assert.ok(Math.abs(res.musicMarginDb - 20) < 1, String(res.musicMarginDb));
+  assert.ok(Math.abs(res.sfxMarginDb - 14) < 1, String(res.sfxMarginDb));
+});
+
+test('analyzeMixLevels reports music that is not ducked under speech once per sentence', () => {
+  const res = analyzeMixLevels(mixFixture({ musicDb: -30 }));
+  const music = res.issues.filter((i) => i.code === 'MUSIC_TOO_LOUD');
+  assert.equal(music.length, 1);
+  assert.ok(Math.abs(music[0].marginDb - 10) < 1);
+  assert.match(music[0].message, /\d+\.\d 秒/);
+  assert.ok(!res.issues.some((i) => i.code === 'SFX_OVER_VOICE'));
+});
+
+test('analyzeMixLevels reports an accent effect 10 dB too loud', () => {
+  const res = analyzeMixLevels(mixFixture({ sfxDb: -24 }));
+  const sfx = res.issues.filter((i) => i.code === 'SFX_OVER_VOICE');
+  assert.equal(sfx.length, 1);
+  assert.ok(Math.abs(sfx[0].atSec - 2) < 0.1, String(sfx[0].atSec));
+  assert.ok(sfx[0].marginDb < 8);
+});
+
+test('analyzeMixLevels treats a 50 ms sentence as a single window', () => {
+  const fx = mixFixture();
+  const res = analyzeMixLevels({ ...fx, intervals: [{ start: MIX_SR, end: MIX_SR + 2400 }] });
+  assert.ok(Number.isFinite(res.musicMarginDb) && Number.isFinite(res.sfxMarginDb));
+  assert.equal(analyzeMixLevels({ ...fx, intervals: [] }).musicMarginDb, null);
+});
+
+const makeQaClip = (dir) => {
+  const file = join(dir, 'out/clip.mp4');
+  mkdirSync(join(dir, 'out'), { recursive: true });
+  const r = spawnSync('ffmpeg', [
+    '-v', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=white:s=320x180:r=60:d=1',
+    '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=1',
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709',
+    '-c:a', 'aac', '-shortest', file,
+  ]);
+  assert.equal(r.status, 0, String(r.stderr));
+  return file;
+};
+
+test('runQa writes the sound section and the sound_mix review item', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'svs-qa-sound-'));
+  try {
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(minimal(), null, 2));
+    const videoPath = makeQaClip(dir);
+
+    const none = await runQa(dir, { videoPath, audio: null });
+    assert.equal(none.audio, null);
+    assert.equal(none.manual_review.sound_mix, 'not_checked');
+    assert.match(readFileSync(join(dir, 'out/qa.md'), 'utf8'), /## 声音\n- 没有音效和音乐/);
+
+    const missing = await runQa(dir, {
+      videoPath,
+      audio: {
+        sfxCounts: { pop: 2, swish: 1 }, musicSource: 'synth:calm', musicLicense: null,
+        voiceRefDb: -20, voiceMissing: true, levels: { musicMarginDb: null, sfxMarginDb: null, issues: [] },
+      },
+    });
+    const md = readFileSync(join(dir, 'out/qa.md'), 'utf8');
+    assert.equal(missing.audio.voice_missing, true);
+    assert.deepEqual(missing.audio.sfx_counts, { pop: 2, swish: 1 });
+    assert.equal(missing.audio.music_source, 'synth:calm');
+    assert.ok(!missing.issues.some((i) => ['MUSIC_TOO_LOUD', 'SFX_OVER_VOICE'].includes(i.code)));
+    assert.match(md, /音乐比人声低：没有人声，未检查/);
+    assert.match(md, /音效：pop 2、swish 1（共 3 个）/);
+    assert.match(md, /音乐：synth:calm（许可：内置合成，无版权问题）/);
+    assert.match(md, /混音听感：`not_checked`/);
+    const json = JSON.parse(readFileSync(join(dir, 'out/qa.json'), 'utf8'));
+    assert.equal(json.manual_review.sound_mix, 'not_checked');
+    assert.equal(json.audio.voice_missing, true);
+
+    const loud = await runQa(dir, {
+      videoPath,
+      audio: {
+        sfxCounts: {}, musicSource: 'music/bed.mp3', musicLicense: 'CC BY 4.0', musicWarning: 'MUSIC_SILENT',
+        voiceRefDb: -20, voiceMissing: false,
+        levels: { musicMarginDb: 10, sfxMarginDb: 12, issues: [{ code: 'MUSIC_TOO_LOUD', atSec: 1.2, marginDb: 10, message: '1.2 秒处音乐只比人声低 10.0 dB（下限 15 dB）' }] },
+      },
+    });
+    const md2 = readFileSync(join(dir, 'out/qa.md'), 'utf8');
+    assert.equal(loud.ok, false);
+    assert.ok(loud.issues.some((i) => i.code === 'MUSIC_TOO_LOUD'));
+    assert.ok(loud.warnings.some((w) => w.code === 'MUSIC_SILENT'));
+    assert.match(md2, /音乐比人声低：最少 10\.0 dB（下限 15 dB）/);
+    assert.match(md2, /音乐：music\/bed\.mp3（许可：CC BY 4\.0）/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

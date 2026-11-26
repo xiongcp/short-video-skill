@@ -14,12 +14,15 @@
     "settings": { "$ref": "#/$defs/settings" },
     "voice": { "$ref": "#/$defs/voice" },
     "world": { "$ref": "#/$defs/world" },
+    "sound": { "$ref": "#/$defs/sound" },
     "sections": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/section" } },
     "shots": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/shot" } },
     "checkpoints": { "type": "array", "items": { "$ref": "#/$defs/checkpoint" } },
     "jobs": { "type": "array", "items": { "$ref": "#/$defs/job" } }
   },
   "$defs": {
+    "sound": {"type": "object", "additionalProperties": false, "description": "音效与背景音乐，见 references/providers.md 的声音一节", "properties": {"sfx": {"enum": ["auto", "off"], "description": "程序化音效开关；有 world 时缺省 auto，没有 world 时缺省 off"}, "music": {"$ref": "#/$defs/music"}}},
+    "music": {"type": "object", "additionalProperties": false, "properties": {"mood": {"enum": ["calm", "playful", "curious", "upbeat", "none"], "description": "合成音乐床的情绪；none 表示不要音乐；缺省按场景推荐"}, "file": {"type": "string", "pattern": "^(?!/)(?![a-zA-Z][a-zA-Z0-9+.-]*:)(?!(.*/)?\\.\\.(/|$)).+\\.([mM][pP]3|[wW][aA][vV]|[mM]4[aA]|[aA][aA][cC]|[fF][lL][aA][cC]|[oO][gG][gG])$", "description": "项目文件夹内的音乐文件相对路径"}, "source": {"type": "string", "minLength": 1, "maxLength": 200, "description": "来源：网址、出处或“用户自有”"}, "license": {"type": "string", "minLength": 1, "maxLength": 200, "description": "许可说明，照抄用户原话"}}, "oneOf": [{"required": ["mood"], "not": {"required": ["file"]}}, {"required": ["file", "source", "license"], "not": {"required": ["mood"]}}]},
     "text": { "type": "string", "minLength": 1 },
     "timestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}" },
     "expr": { "enum": ["explaining", "focused", "happy", "curious", "surprised", "worried", "frustrated", "proud", "amazed"] },

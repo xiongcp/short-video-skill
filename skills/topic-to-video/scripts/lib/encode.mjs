@@ -8,6 +8,9 @@ import { join, resolve } from 'node:path';
 import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads';
 import { findCjkFont, findTitleFont } from '../doctor.mjs';
 import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from './mouth.mjs';
+import { buildSoundtrack, makeStereoWavBuffer } from './music.mjs';
+import { resolveSound } from './project.mjs';
+import { analyzeMixLevels } from './qa.mjs';
 import { buildShotPlans, evaluateFrame, shotCacheKey } from './scene.mjs';
 import { buildTimeline } from './timebase.mjs';
 import { synthesizeProject } from './tts.mjs';
@@ -345,7 +348,7 @@ export function buildChapters(project, timeline) {
   }).join('\n')}\n`;
 }
 
-function assembleAudioWav(projectDir, selectedPlans, fps, outWav) {
+export function assembleAudioWav(projectDir, selectedPlans, fps, outWav) {
   const sr = 48000;
   const totalFrames = selectedPlans.reduce((s, p) => s + p.frameCount, 0);
   const totalSamples = Math.max(1, Math.round((totalFrames * sr) / fps));
@@ -368,21 +371,30 @@ function assembleAudioWav(projectDir, selectedPlans, fps, outWav) {
   writeFileSync(outWav, makeWavBuffer(pcm, sr));
 }
 
-function twoPassLoudnorm(inWav, outM4a, { ffmpeg = 'ffmpeg' } = {}) {
-  const voicePolish = 'highpass=f=80,acompressor=threshold=-18dB:ratio=2.5:attack=10:release=120';
+const VOICE_POLISH = 'highpass=f=80,acompressor=threshold=-18dB:ratio=2.5:attack=10:release=120';
+
+/** Applies the voice polish chain on its own so the mix can measure and duck against the polished voice. */
+export function polishVoiceWav(inWav, outWav, { ffmpeg = 'ffmpeg' } = {}) {
+  const run = spawnSync(ffmpeg, ['-y', '-loglevel', 'error', '-i', inWav, '-af', VOICE_POLISH, '-ac', '1', '-ar', '48000', '-c:a', 'pcm_s16le', outWav], { encoding: 'utf8' });
+  if (run.error || run.status !== 0) throw new Error(`ffmpeg voice polish failed: ${run.stderr || run.error?.message}`);
+}
+
+/** Two-pass linear loudnorm to -16 LUFS; `polish: false` skips the voice polish prefix for an already mixed track. */
+export function twoPassLoudnorm(inWav, outM4a, { ffmpeg = 'ffmpeg', polish = true } = {}) {
+  const pre = polish ? `${VOICE_POLISH},` : '';
   const p1 = spawnSync(ffmpeg, [
     '-hide_banner', '-i', inWav,
-    '-af', `${voicePolish},loudnorm=I=-16:TP=-1:LRA=11:print_format=json`,
+    '-af', `${pre}loudnorm=I=-16:TP=-1:LRA=11:print_format=json`,
     '-f', 'null', '-',
   ], { encoding: 'utf8' });
   const log = `${p1.stdout ?? ''}\n${p1.stderr ?? ''}`;
   const jsonMatch = log.match(/\{[\s\S]*"input_i"[\s\S]*\}/);
-  let af = `${voicePolish},loudnorm=I=-16:TP=-1:LRA=11`;
+  let af = `${pre}loudnorm=I=-16:TP=-1:LRA=11`;
   if (jsonMatch) {
     try {
       const m = JSON.parse(jsonMatch[0]);
       if (Number.isFinite(Number(m.input_i)) && Number(m.input_i) > -60) {
-        af = `${voicePolish},loudnorm=I=-16:TP=-1:LRA=11:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
+        af = `${pre}loudnorm=I=-16:TP=-1:LRA=11:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
       }
     } catch { /* fallback to single-pass loudnorm */ }
   }
@@ -483,7 +495,23 @@ export async function renderProject(rawProjectDir, opts = {}) {
   const rawAudio = join(cacheDir, 'narration.wav');
   const normAudio = join(cacheDir, 'narration.m4a');
   assembleAudioWav(projectDir, selectedPlans, fps, rawAudio);
-  twoPassLoudnorm(rawAudio, normAudio, { ffmpeg });
+  const sound = resolveSound(project);
+  let audio = null;
+  if (!sound.sfx && !sound.music) {
+    twoPassLoudnorm(rawAudio, normAudio, { ffmpeg });
+  } else {
+    const polished = join(cacheDir, 'voice-polished.wav');
+    polishVoiceWav(rawAudio, polished, { ffmpeg });
+    const voice = readWavPcm(readFileSync(polished)).samples;
+    const track = buildSoundtrack({ project, projectDir, allPlans, selectedPlans, fps, voice, manifest, ffmpeg });
+    const mixWav = join(cacheDir, 'mix.wav');
+    writeFileSync(mixWav, makeStereoWavBuffer(track.left, track.right));
+    twoPassLoudnorm(mixWav, normAudio, { ffmpeg, polish: false });
+    const levels = track.voiceMissing
+      ? { musicMarginDb: null, sfxMarginDb: null, issues: [] }
+      : analyzeMixLevels({ voice: track.stems.voice, sfxMid: track.stems.sfxMid, musicMid: track.stems.musicMid, intervals: track.intervals });
+    audio = { ...track.report, voiceRefDb: track.voiceRefDb, voiceMissing: track.voiceMissing, levels };
+  }
 
   const outName = opts.preview ? 'preview.mp4' : opts.sample ? 'sample.mp4' : 'final.mp4';
   const videoPath = join(outDir, outName);
@@ -551,5 +579,6 @@ export async function renderProject(rawProjectDir, opts = {}) {
     timeline,
     shotPlans: selectedPlans,
     qaByShot,
+    audio,
   };
 }

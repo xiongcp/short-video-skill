@@ -103,3 +103,13 @@ test('check.mjs warns about a preset the voice command ignores and fails on an u
   assert.equal(failed.status, 1);
   assert.deepEqual(failed.out.errors.map((e) => `${e.code} ${e.path}`), ['INVALID_VALUE /voice/preset']);
 });
+
+test('check.mjs warns, without failing, when the music file is missing', () => {
+  const dir = copy();
+  const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
+  project.sound = { music: { file: 'music/bgm.mp3', source: '用户自有', license: '用户自制' } };
+  writeFileSync(join(dir, 'project.json'), JSON.stringify(project));
+  const { status, out } = run(dir);
+  assert.equal(status, 0);
+  assert.deepEqual(out.warnings.map((w) => w.code), ['MUSIC_FILE_MISSING']);
+});

@@ -58,7 +58,12 @@ function getCachedEvalPlan(shotPlan, styleName, duration) {
   return ep;
 }
 
-const isHostLayout = (layout) => layout === 'host-left' || layout === 'stage';
+/** The host plan `evaluateFrame` uses for a shot (same cached object), for the sound layer. */
+export function hostPlanForShot(shotPlan) {
+  return getCachedEvalPlan(shotPlan, resolveStyle(shotPlan.style ?? shotPlan.theme).name, Math.max(0.1, shotPlan.durationSec));
+}
+
+export const isHostLayout = (layout) => layout === 'host-left' || layout === 'stage';
 
 const lerpBox = (a, b, t) => ({
   x: lerp(a.x, b.x, t),

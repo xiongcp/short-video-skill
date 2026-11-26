@@ -54,3 +54,10 @@ test('both READMEs describe stage interactions, state/send and link the upgraded
   assert.ok(zh.includes('提示词包.md') && zh.includes('同台互动') && zh.includes('`state`') && zh.includes('`send`'));
   assert.ok(en.includes('提示词包.md') && en.includes('stage interactions') && en.includes('`state`') && en.includes('`send`'));
 });
+
+test('both READMEs describe synthesized sound effects and background music with --audition-sound', () => {
+  const zh = read('README.md');
+  const en = read('README.en.md');
+  for (const word of ['音效', '背景音乐', '--audition-sound']) assert.ok(zh.includes(word), word);
+  for (const word of ['sound effects', 'music', '--audition-sound']) assert.ok(en.includes(word), word);
+});

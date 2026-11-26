@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   checkProject,
@@ -11,7 +12,11 @@ import {
   INTERACTION_CUES,
   isApproved,
   lintScript,
+  lintSoundFiles,
   lintVoice,
+  MUSIC_BY_SCENE,
+  MUSIC_MOODS,
+  resolveSound,
   SCHEMA_FIELDS,
   SENDABLE_PROPS,
   supportedInteractions,
@@ -697,4 +702,74 @@ test('prototype-key strings (toString / constructor) do not crash or leak Object
   const errs = checkProject(p);
   assert.ok(errs.length > 0);
   assert.ok(errs.every((e) => typeof e.code === 'string' && typeof e.message === 'string'));
+});
+
+// Sound (音效与配乐设计 §3)
+const withWorld = (world = { metaphor: '缓存是冰箱', style: 'paper', scene: 'kitchen' }) => ({ ...minimal(), world });
+const userMusic = { file: 'music/bgm.mp3', source: '用户自有', license: '用户自制，可商用' };
+
+test('music moods and scene recommendations cover every scene', () => {
+  assert.deepEqual(MUSIC_MOODS, ['calm', 'playful', 'curious', 'upbeat']);
+  assert.deepEqual(Object.keys(MUSIC_BY_SCENE).sort(), ['blank', 'kitchen', 'lab', 'office', 'outdoor', 'podium', 'street', 'workshop']);
+  assert.ok(Object.values(MUSIC_BY_SCENE).every((m) => MUSIC_MOODS.includes(m)));
+});
+
+test('resolveSound turns sound on for projects with a world and off for old projects', () => {
+  assert.deepEqual(resolveSound(withWorld()), { sfx: true, music: { kind: 'synth', mood: 'playful' } });
+  assert.deepEqual(resolveSound(withWorld({ metaphor: 'x', style: 'night', scene: 'street' })).music, { kind: 'synth', mood: 'curious' });
+  assert.deepEqual(resolveSound(minimal()), { sfx: false, music: null });
+  assert.deepEqual(resolveSound({ ...minimal(), sound: { sfx: 'auto' } }), { sfx: true, music: null });
+});
+
+test('resolveSound honours sfx off, mood none and user files', () => {
+  assert.deepEqual(resolveSound({ ...withWorld(), sound: { sfx: 'off' } }), { sfx: false, music: { kind: 'synth', mood: 'playful' } });
+  assert.deepEqual(resolveSound({ ...withWorld(), sound: { music: { mood: 'none' } } }), { sfx: true, music: null });
+  assert.deepEqual(resolveSound({ ...withWorld(), sound: { music: { mood: 'upbeat' } } }).music, { kind: 'synth', mood: 'upbeat' });
+  assert.deepEqual(resolveSound({ ...withWorld(), sound: { music: userMusic } }).music, { kind: 'file', ...userMusic });
+});
+
+test('valid sound settings have no errors', () => {
+  assert.deepEqual(checkProject({ ...withWorld(), sound: { sfx: 'off', music: { mood: 'calm' } } }), []);
+  assert.deepEqual(checkProject({ ...withWorld(), sound: { music: userMusic } }), []);
+  assert.deepEqual(checkProject({ ...minimal(), sound: {} }), []);
+});
+
+test('rejects unknown sfx and mood values and mood together with file', () => {
+  assert.deepEqual(placed({ ...minimal(), sound: { sfx: 'loud' } }), ['INVALID_VALUE /sound/sfx']);
+  assert.deepEqual(placed({ ...minimal(), sound: { music: { mood: 'jazz' } } }), ['INVALID_VALUE /sound/music/mood']);
+  assert.deepEqual(placed({ ...minimal(), sound: { music: { mood: 'calm', ...userMusic } } }), ['INVALID_VALUE /sound/music']);
+});
+
+test('a user music file needs its source and license', () => {
+  for (const music of [{ file: 'music/a.mp3', license: 'CC0' }, { file: 'music/a.mp3', source: '用户自有' }, { file: 'music/a.mp3', source: ' ', license: 'CC0' }]) {
+    assert.ok(codes({ ...minimal(), sound: { music } }).includes('MUSIC_LICENSE_MISSING'), JSON.stringify(music));
+  }
+});
+
+test('a user music file must be a local audio path inside the project', () => {
+  for (const file of ['https://x/a.mp3', '/abs/a.mp3', '../a.mp3', 'music/../../a.mp3', 'music/a.exe', 'C:/a.mp3']) {
+    assert.deepEqual(codes({ ...minimal(), sound: { music: { ...userMusic, file } } }), ['MUSIC_PATH_INVALID'], file);
+  }
+  assert.deepEqual(codes({ ...minimal(), sound: { music: { ...userMusic, file: 'Music/Theme.MP3' } } }), []);
+});
+
+test('long music source or license and unknown sound fields are reported', () => {
+  assert.deepEqual(codes({ ...minimal(), sound: { music: { ...userMusic, license: '许'.repeat(201) } } }), ['TEXT_TOO_LONG']);
+  assert.deepEqual(placed({ ...minimal(), sound: { extra: 1 } }), ['UNKNOWN_FIELD /sound/extra']);
+  assert.deepEqual(placed({ ...minimal(), sound: { music: { mood: 'calm', volume: -3 } } }), ['UNKNOWN_FIELD /sound/music/volume']);
+});
+
+test('sound and sound.music must be objects', () => {
+  assert.deepEqual(placed({ ...minimal(), sound: 'on' }), ['MISSING_FIELD /sound']);
+  assert.deepEqual(placed({ ...minimal(), sound: { music: 'calm' } }), ['MISSING_FIELD /sound/music']);
+});
+
+test('lintSoundFiles warns when the music file is not in the project folder', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'svs-sound-'));
+  const p = { ...minimal(), sound: { music: userMusic } };
+  assert.deepEqual(lintSoundFiles(p, dir).map((w) => `${w.code} ${w.path}`), ['MUSIC_FILE_MISSING /sound/music/file']);
+  mkdirSync(join(dir, 'music'));
+  writeFileSync(join(dir, 'music/bgm.mp3'), 'x');
+  assert.deepEqual(lintSoundFiles(p, dir), []);
+  assert.deepEqual(lintSoundFiles(withWorld(), dir), []);
 });
