@@ -108,7 +108,7 @@
       "section": "s02",
       "sentences": [0],
       "layout": "stage",
-      "host": { "expr": "worried", "gesture": "shrug", "at": "left" },
+      "host": { "expr": "worried", "gesture": "shrug", "at": "mid-left" },
       "visual": {
         "template": "stage",
         "data": {
@@ -118,7 +118,7 @@
         }
       },
       "cues": [
-        { "sentence": 0, "at": "冰箱", "do": "open", "target": 0 },
+        { "sentence": 0, "at": "打开", "do": "open", "target": 0 },
         { "sentence": 0, "at": "空", "do": "state", "target": 0, "value": "empty" }
       ],
       "note": "第一趟打开冰箱，发现里面是空的"
@@ -129,13 +129,13 @@
       "sentences": [1, 2],
       "layout": "stage",
       "scene": "street",
-      "host": { "expr": "explaining", "gesture": "idle", "at": "left" },
+      "host": { "expr": "explaining", "gesture": "idle", "at": "mid-left" },
       "visual": {
         "template": "stage",
         "data": {
           "heading": "去超市搬回包裹",
           "objects": [
-            { "prop": "fridge", "label": "缓存冰箱", "at": "mid-left", "state": "open" },
+            { "prop": "fridge", "label": "缓存冰箱", "at": "left", "state": "open" },
             { "prop": "package", "label": "新包裹", "at": "center", "layer": "mid", "state": "fresh" },
             { "prop": "shop", "label": "远处超市", "at": "right", "size": "sm", "state": "open" }
           ],
@@ -179,7 +179,7 @@
       "section": "s03",
       "sentences": [0],
       "layout": "stage",
-      "host": { "expr": "curious", "gesture": "lean_in", "at": "left" },
+      "host": { "expr": "curious", "gesture": "lean_in", "at": "mid-left" },
       "visual": {
         "template": "stage",
         "data": {
@@ -203,13 +203,13 @@
       "section": "s03",
       "sentences": [1, 2],
       "layout": "stage",
-      "host": { "expr": "happy", "gesture": "present", "at": "left" },
+      "host": { "expr": "happy", "gesture": "present", "at": "mid-left" },
       "visual": {
         "template": "stage",
         "data": {
           "heading": "推开旧箱直接拿",
           "objects": [
-            { "prop": "box", "label": "旧箱子", "at": "mid-left", "state": "crossed" },
+            { "prop": "box", "label": "旧箱子", "at": "left", "state": "crossed" },
             { "prop": "package", "label": "新包裹", "at": "center", "layer": "mid", "state": "fresh" },
             { "prop": "shop", "label": "远处超市", "at": "right", "size": "sm", "state": "closed" }
           ],
@@ -274,28 +274,28 @@
       "sentences": [2, 3, 4],
       "layout": "stage",
       "scene": "street",
-      "host": { "expr": "curious", "gesture": "present", "at": "left" },
+      "host": { "expr": "curious", "gesture": "present", "at": 0.72 },
       "visual": {
         "template": "stage",
         "data": {
           "heading": "问超市拿304凭证",
           "objects": [
-            { "prop": "phone", "label": "问超市", "at": "mid-left", "state": "lit" },
-            { "prop": "ticket", "label": "304凭证", "at": "center", "layer": "mid", "state": "fresh" },
-            { "prop": "shop", "label": "街上超市", "at": "right", "size": "sm", "state": "open" }
+            { "prop": "phone", "label": "问超市", "at": "left", "state": "lit" },
+            { "prop": "shop", "label": "街上超市", "at": "center", "size": "sm", "state": "open" },
+            { "prop": "ticket", "label": "304凭证", "at": "right", "layer": "mid", "state": "fresh" }
           ],
           "links": [
-            { "from": 0, "to": 2, "style": "dashed", "label": "核对" },
-            { "from": 2, "to": 1, "style": "solid", "label": "304" }
+            { "from": 0, "to": 1, "style": "dashed", "label": "核对" },
+            { "from": 1, "to": 2, "style": "solid", "label": "304" }
           ]
         }
       },
       "cues": [
         { "sentence": 2, "at": "电话", "do": "send", "target": 0, "value": "key" },
         { "sentence": 3, "at": "三零四", "do": "send", "target": 1, "value": "ticket" },
-        { "sentence": 3, "at": "凭证", "do": "state", "target": 1, "value": "count:304" },
-        { "sentence": 4, "at": "盖上章", "do": "state", "target": 1, "value": "stamped" },
-        { "sentence": 4, "at": "盖上章", "do": "hold_up", "target": 1 },
+        { "sentence": 3, "at": "凭证", "do": "state", "target": 2, "value": "count:304" },
+        { "sentence": 4, "at": "盖上章", "do": "state", "target": 2, "value": "stamped" },
+        { "sentence": 4, "at": "盖上章", "do": "hold_up", "target": 2 },
         { "sentence": 4, "at": "放心", "do": "expr", "target": "happy" }
       ],
       "note": "发验证信息问超市，拿到304凭证盖章并高举展示"
@@ -345,7 +345,7 @@
       "section": "s05",
       "sentences": [2],
       "layout": "stage",
-      "host": { "expr": "proud", "gesture": "cheer", "at": "left" },
+      "host": { "expr": "proud", "gesture": "cheer", "at": "mid-right" },
       "visual": {
         "template": "stage",
         "data": {
