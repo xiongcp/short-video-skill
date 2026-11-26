@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { CHARS_PER_SECOND, DEFAULT_SENTENCE_GAP_MS, MAX_SENTENCE_CHARS, estimateReport } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import { CHARS_PER_SECOND, DEFAULT_SENTENCE_GAP_MS, MAX_SENTENCE_CHARS, estimateReport, VOICE_PRESETS } from '../skills/topic-to-video/scripts/lib/project.mjs';
 import { splitSentences } from '../skills/topic-to-video/scripts/lib/captions.mjs';
 import { MAX_MOVES, STATIC_SECONDS } from '../skills/topic-to-video/scripts/lib/match.mjs';
 
@@ -74,4 +74,30 @@ test('SKILL.md names the stick-figure host 小青', () => {
   const skill = readFileSync(join(SKILL, 'SKILL.md'), 'utf8');
   assert.match(skill, /手绘火柴人“小青”/);
   assert.ok(!skill.includes('晴'));
+});
+
+test('script.md lists every voice preset with the name 讲稿.md uses, the audition command and the tone rules', () => {
+  const text = ref('script.md');
+  assert.match(text, /^## 配音人设与口吻$/m);
+  for (const [id, { name }] of Object.entries(VOICE_PRESETS)) assert.ok(text.includes(`| \`${id}\` | ${name} |`), id);
+  assert.ok(text.includes('"voice": { "provider": "undecided", "preset": "female-warm" }'));
+  assert.ok(text.includes('- 配音：女声·晓晓（female-warm）'));
+  assert.ok(text.includes('--audition'));
+});
+
+test('SKILL.md defaults to 女声·晓晓, takes 男声·云希 for a male voice, and asks for a new sample after a preset change', () => {
+  const skill = readFileSync(join(SKILL, 'SKILL.md'), 'utf8');
+  assert.ok(skill.includes('女声·晓晓（`female-warm`）'));
+  assert.ok(skill.includes('男声·云希（`male-sunny`）'));
+  assert.ok(skill.includes('`{"provider": "undecided", "preset": "<人设>"}`'));
+  assert.match(skill, /只换配音人设.*不加 `revision`.*重新出样片/);
+});
+
+test('providers.md documents {pitch}, the preset form of the edge-tts voice and the audition', () => {
+  const text = ref('providers.md');
+  assert.ok(text.includes('`{pitch}`'));
+  assert.ok(text.includes('{"provider":"command","preset":"female-warm","command":"edge-tts --voice {voice} --rate={rate} --pitch={pitch} '));
+  assert.match(text, /^### 试听人设$/m);
+  assert.ok(text.includes('--audition'));
+  assert.ok(!text.includes('中文常用神经音色'));
 });

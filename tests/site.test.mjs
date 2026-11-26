@@ -66,3 +66,7 @@ test('Pages workflow publishes the site folder', () => {
 test('site documents cross-agent install paths for agy, Claude Code and Codex', () => {
   assert.ok(html.includes('Claude Code') && html.includes('Codex') && html.includes('agy'));
 });
+
+test('site says the voice has 8 male and female presets to audition', () => {
+  assert.ok(html.includes('男女声 8 个人设，可以先试听'));
+});

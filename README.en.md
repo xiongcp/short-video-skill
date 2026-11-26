@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · [Website](https://xiongcp.github.io/short-video-skill/)
 
-A lightweight skill for agy, Claude Code, Codex and other agents. Name a topic, or give it sources or a draft, and it writes the script and storyboard for a Chinese explainer video. Once you approve them, it outputs a prompt pack for external video models (L0) or renders the finished MP4 locally (L1) with 小青 (Xiaoqing), an original hand-drawn stick-figure host, at 1080p60/4K with matched-element transitions and local TTS (`edge-tts` / macOS `say`).
+A lightweight skill for agy, Claude Code, Codex and other agents. Name a topic, or give it sources or a draft, and it writes the script and storyboard for a Chinese explainer video. Once you approve them, it outputs a prompt pack for external video models (L0) or renders the finished MP4 locally (L1) with 小青 (Xiaoqing), an original hand-drawn stick-figure host, at 1080p60/4K with matched-element transitions and local TTS: `edge-tts` with 8 male and female voice presets you can audition first, or macOS `say`.
 
 ## Three steps
 

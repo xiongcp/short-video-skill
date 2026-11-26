@@ -30,7 +30,7 @@
 "revision": 1,
 "title": "为什么缓存能让网页变快？",
 "settings": { "ratio": "16:9", "target_seconds": 120, "lang": "zh-CN", "host": "xiaoqing", "theme": "light" },
-"voice": { "provider": "undecided" },
+"voice": { "provider": "undecided", "preset": "female-warm" },
 "sections": [{ "id": "s01", "title": "同一张图，两次打开", "text": "……还要从头下载吗？我们跟着它走两趟。", "source_ids": ["src01"] }],
 "shots": [],
 "checkpoints": [],
@@ -64,6 +64,23 @@
 - 数字按读法写：`304` 写成"三零四"，`3.5` 写成"三点五"。需要在屏幕上出现阿拉伯数字时，写进分镜的图解。
 - 英文术语第一次出现时，紧跟一句中文解释。读音容易出错的词写进所在段落的 `pronunciation`（不是项目顶层），例如 `"pronunciation": [{"term": "Redis", "reading": "瑞迪斯"}]`。
 
+## 配音人设与口吻
+
+`voice.preset` 全片固定。用户没指定用 `female-warm`，要男声用 `male-sunny`，点名了风格就按下表选；不按主题自动换，但可以在回复里推荐。只写 `preset`，音色和语速由人设决定。想先听再选：见 providers.md 的“试听人设”（`--audition`）。
+
+| `preset` | 讲稿.md 里写 | 适合 |
+| --- | --- | --- |
+| `female-warm` | 女声·晓晓 | 通用（默认） |
+| `female-lively` | 女声·晓伊 | 生活、轻松 |
+| `male-sunny` | 男声·云希 | 通用（男声默认） |
+| `male-passion` | 男声·云健 | 体育、励志 |
+| `male-pro` | 男声·云扬 | 新闻、严肃 |
+| `child-cute` | 童声·云夏 | 儿童向 |
+| `female-dongbei` | 东北话·晓北 | 搞笑 |
+| `female-shaanxi` | 陕西话·晓妮 | 地方特色 |
+
+口吻：像对朋友讲，用"你""我们"和设问；"其实""你看""那么"每段最多一两个；活泼人设多用短句，专业人设少用语气词，方言人设仍写普通话；同一期不变。
+
 ## 事实与来源
 
 - 只写资料里有的、或者广为公认的事实。不编造数据、研究、引用和人物原话。
@@ -82,6 +99,7 @@
 - 目标时长：120 秒（估算约 114 秒，429 字）
 - 看完能说清：……
 - 采用的默认值：比例 16:9，浅色主题
+- 配音：女声·晓晓（female-warm）
 - 来源：src01 RFC 9111 · HTTP Caching（网址）
 - 待核实：……
 - 确认状态：待确认（revision 1）
@@ -102,3 +120,4 @@
 - [ ] 没有资料不支持的事实；存疑的说法已写进 `open_questions`
 - [ ] `brief.sources` 为空时，讲稿里每个具体数字（比例、温度、高度、百分比、年份）都已逐条写进 `open_questions`，`ABSOLUTE_CLAIM` 提醒都已处理
 - [ ] 讲稿.md 与 project.json 一致
+- [ ] 配音人设与用户要求一致，与讲稿.md 的"配音"一行相符

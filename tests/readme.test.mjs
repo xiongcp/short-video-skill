@@ -28,3 +28,8 @@ test('both READMEs introduce the host 小青 with the cheatsheet and no longer n
     assert.ok(!text.includes('晴'), name);
   }
 });
+
+test('both READMEs say the voice has 8 male and female presets to audition', () => {
+  assert.ok(read('README.md').includes('男女声 8 个人设，可以先试听'));
+  assert.ok(read('README.en.md').includes('8 male and female voice presets you can audition first'));
+});
