@@ -75,6 +75,7 @@ async function main() {
         timeline: result.timeline,
         shotPlans: result.shotPlans,
         qaByShot: result.qaByShot,
+        audio: result.audio,
       });
     } catch (err) {
       qa = { skipped: true, reason: err.message };
@@ -88,6 +89,7 @@ async function main() {
     fps: result.fps,
     shots_rendered: result.shotsRendered,
     shots_cached: result.shotsCached,
+    sound: result.audio ? { music: result.audio.musicSource, sfx: Object.values(result.audio.sfxCounts).reduce((a, b) => a + b, 0) } : null,
     qa: qa ? { ok: qa.ok, issues: qa.issues?.length ?? 0 } : null,
   }, null, 2));
 }

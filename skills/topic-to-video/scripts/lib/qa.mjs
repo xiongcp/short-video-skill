@@ -108,6 +108,66 @@ function generateTransitionStrip(videoPath, outPng, cutFrames, fps, ffmpeg = 'ff
   ]);
 }
 
+const MIX_CHECKS = [
+  { key: 'musicMarginDb', stem: 'musicMid', windowMs: 400, stepMs: 200, floorDb: 15, code: 'MUSIC_TOO_LOUD', label: '音乐' },
+  { key: 'sfxMarginDb', stem: 'sfxMid', windowMs: 100, stepMs: 50, floorDb: 8, code: 'SFX_OVER_VOICE', label: '音效' },
+];
+
+function rmsOf(x, start, end) {
+  let sum = 0;
+  for (let i = start; i < end; i += 1) sum += (x[i] ?? 0) ** 2;
+  return end > start ? Math.sqrt(sum / (end - start)) : 0;
+}
+
+/**
+ * Checks that the music stays 15 dB and the effects 8 dB under the voice in every speech span (音效与配乐设计 §7).
+ * Windows lie wholly inside a span (a span shorter than a window is one window); each code is reported once per span.
+ */
+export function analyzeMixLevels({ voice, sfxMid, musicMid, intervals, sampleRate = 48000 }) {
+  const stems = { sfxMid, musicMid };
+  const out = { musicMarginDb: null, sfxMarginDb: null, issues: [] };
+  for (const { start, end } of intervals) {
+    const vDb = 20 * Math.log10(Math.max(rmsOf(voice, start, end), 1e-9));
+    for (const c of MIX_CHECKS) {
+      const win = Math.round((c.windowMs * sampleRate) / 1000);
+      const step = Math.round((c.stepMs * sampleRate) / 1000);
+      const starts = [];
+      if (end - start <= win) starts.push([start, end]);
+      else for (let a = start; a + win <= end; a += step) starts.push([a, a + win]);
+      let worst = null;
+      for (const [a, b] of starts) {
+        const margin = vDb - 20 * Math.log10(Math.max(rmsOf(stems[c.stem], a, b), 1e-9));
+        if (!worst || margin < worst.margin) worst = { margin, atSec: (a + b) / 2 / sampleRate };
+      }
+      if (!worst) continue;
+      if (out[c.key] === null || worst.margin < out[c.key]) out[c.key] = worst.margin;
+      if (worst.margin < c.floorDb) {
+        out.issues.push({
+          code: c.code,
+          atSec: Number(worst.atSec.toFixed(1)),
+          marginDb: Number(worst.margin.toFixed(1)),
+          message: `${worst.atSec.toFixed(1)} 秒处${c.label}只比人声低 ${worst.margin.toFixed(1)} dB（下限 ${c.floorDb} dB）`,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+function soundSection(audio) {
+  if (!audio) return ['- 没有音效和音乐'];
+  const margin = (v, floor) => (audio.voiceMissing ? '没有人声，未检查' : v === null || v === undefined ? '未检查' : `最少 ${v.toFixed(1)} dB（下限 ${floor} dB）`);
+  const counts = Object.entries(audio.sfxCounts ?? {});
+  const total = counts.reduce((s, [, n]) => s + n, 0);
+  const license = audio.musicSource?.startsWith('synth:') ? '内置合成，无版权问题' : audio.musicLicense;
+  return [
+    `- 音乐比人声低：${margin(audio.levels?.musicMarginDb, 15)}`,
+    `- 音效比人声低：${margin(audio.levels?.sfxMarginDb, 8)}`,
+    `- 音效：${counts.length ? `${counts.map(([k, n]) => `${k} ${n}`).join('、')}（共 ${total} 个）` : '无'}`,
+    `- 音乐：${audio.musicSource ? `${audio.musicSource}（许可：${license}）` : '无'}`,
+  ];
+}
+
 /**
  * Runs complete L1 QA on a rendered video and writes `out/qa.json` and `out/qa.md`.
  */
@@ -117,6 +177,7 @@ export async function runQa(projectDir, {
   timeline = null,
   shotPlans = null,
   qaByShot = {},
+  audio = null,
   ffmpeg = process.env.FFMPEG ?? 'ffmpeg',
   ffprobe = process.env.FFPROBE ?? 'ffprobe',
 } = {}) {
@@ -219,6 +280,13 @@ export async function runQa(projectDir, {
     }
   }
 
+  if (audio) {
+    if (!audio.voiceMissing) issues.push(...(audio.levels?.issues ?? []));
+    if (audio.musicWarning === 'MUSIC_SILENT') {
+      warnings.push({ code: 'MUSIC_SILENT', message: `音乐文件 ${audio.musicSource} 几乎没有声音，已按没有音乐处理` });
+    }
+  }
+
   // Semantic matching report per shot
   const bySection = new Map(project.sections.map((s) => [s.id, splitSentences(s.text)]));
   const storyboardWarnings = lintStoryboard(project);
@@ -251,7 +319,18 @@ export async function runQa(projectDir, {
       aesthetics: 'not_checked',
       voice_naturalness: 'not_checked',
       lip_sync_spot_check: 'not_checked',
+      sound_mix: 'not_checked',
     },
+    audio: audio
+      ? {
+        music_margin_db: audio.levels?.musicMarginDb ?? null,
+        sfx_margin_db: audio.levels?.sfxMarginDb ?? null,
+        sfx_counts: audio.sfxCounts ?? {},
+        music_source: audio.musicSource ?? null,
+        music_license: audio.musicLicense ?? null,
+        voice_missing: Boolean(audio.voiceMissing),
+      }
+      : null,
     match: matchTable,
   };
 
@@ -268,10 +347,14 @@ export async function runQa(projectDir, {
     '## 提醒与警告',
     ...(report.warnings.length ? report.warnings.map((w) => `- ${w.code}：${w.message}`) : ['- 无']),
     '',
+    '## 声音',
+    ...soundSection(audio),
+    '',
     '## 人工复核项（`not_checked`）',
     '- 画面审美与排版平衡：`not_checked`（请看 `out/contact.png`、`out/transitions.png`）',
     '- 配音自然度与停顿：`not_checked`',
     '- 口型抽检（开头/中段/结尾）：`not_checked`',
+    '- 混音听感：`not_checked`',
     '',
     '## 逐镜口播与画面关键词对照',
     '| 镜头 | 画面关键词 | 口播原文 |',

@@ -10,6 +10,7 @@ import { findCjkFont, findTitleFont } from '../doctor.mjs';
 import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from './mouth.mjs';
 import { buildSoundtrack, makeStereoWavBuffer } from './music.mjs';
 import { resolveSound } from './project.mjs';
+import { analyzeMixLevels } from './qa.mjs';
 import { buildShotPlans, evaluateFrame, shotCacheKey } from './scene.mjs';
 import { buildTimeline } from './timebase.mjs';
 import { synthesizeProject } from './tts.mjs';
@@ -506,7 +507,10 @@ export async function renderProject(rawProjectDir, opts = {}) {
     const mixWav = join(cacheDir, 'mix.wav');
     writeFileSync(mixWav, makeStereoWavBuffer(track.left, track.right));
     twoPassLoudnorm(mixWav, normAudio, { ffmpeg, polish: false });
-    audio = { ...track.report, voiceRefDb: track.voiceRefDb, voiceMissing: track.voiceMissing, levels: null };
+    const levels = track.voiceMissing
+      ? { musicMarginDb: null, sfxMarginDb: null, issues: [] }
+      : analyzeMixLevels({ voice: track.stems.voice, sfxMid: track.stems.sfxMid, musicMid: track.stems.musicMid, intervals: track.intervals });
+    audio = { ...track.report, voiceRefDb: track.voiceRefDb, voiceMissing: track.voiceMissing, levels };
   }
 
   const outName = opts.preview ? 'preview.mp4' : opts.sample ? 'sample.mp4' : 'final.mp4';
