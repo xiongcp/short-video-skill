@@ -2,7 +2,18 @@
 // Only this module imports sound.mjs; sound.mjs never imports it back.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { makeRng, onePoleHighpass, onePoleLowpass, SAMPLE_RATE } from './sound.mjs';
+import { join } from 'node:path';
+import { resolveSound } from './project.mjs';
+import {
+  collectSoundEvents,
+  makeRng,
+  onePoleHighpass,
+  onePoleLowpass,
+  renderSfxStem,
+  SAMPLE_RATE,
+  speechIntervals,
+  thinSoundEvents,
+} from './sound.mjs';
 
 const SR = SAMPLE_RATE;
 const TAU = 2 * Math.PI;
@@ -287,4 +298,139 @@ export function loadUserMusic(absPath, totalSamples, { ffmpeg = 'ffmpeg' } = {})
   }
   const fitted = fitMusicToLength(left, right, totalSamples);
   return { ...fitted, silent: stereoRms(fitted.left, fitted.right) < 1e-5 };
+}
+
+/** Mean RMS of the voice over the speech spans in dBFS, or null when there is no speech to measure. */
+export function voiceReferenceDb(voice, intervals) {
+  let sum = 0;
+  let count = 0;
+  for (const { start, end } of intervals) {
+    const e = Math.min(end, voice.length);
+    for (let i = Math.max(0, start); i < e; i += 1) sum += voice[i] * voice[i];
+    count += Math.max(0, e - Math.max(0, start));
+  }
+  if (!count) return null;
+  const rms = Math.sqrt(sum / count);
+  return rms < 1e-5 ? null : 20 * Math.log10(rms);
+}
+
+/** Voice on both channels plus the effects and music stems; scaled as a whole when the peak would pass 0.99. */
+export function mixStems(voice, sfx, music) {
+  const n = sfx.left.length;
+  const left = new Float32Array(n);
+  const right = new Float32Array(n);
+  let peak = 0;
+  for (let i = 0; i < n; i += 1) {
+    const v = voice[i] ?? 0;
+    left[i] = v + sfx.left[i] + music.left[i];
+    right[i] = v + sfx.right[i] + music.right[i];
+    peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
+  }
+  const scale = peak > 0.99 ? 0.99 / peak : 1;
+  if (scale < 1) {
+    for (let i = 0; i < n; i += 1) {
+      left[i] *= scale;
+      right[i] *= scale;
+    }
+  }
+  return { left, right, scale };
+}
+
+/** Interleaved 16-bit PCM stereo WAV; samples are clamped to [-1, 1] before scaling by 32767. */
+export function makeStereoWavBuffer(left, right, sampleRate = SAMPLE_RATE) {
+  const frames = left.length;
+  const buf = Buffer.alloc(44 + frames * 4);
+  buf.write('RIFF', 0, 'ascii');
+  buf.writeUInt32LE(36 + frames * 4, 4);
+  buf.write('WAVE', 8, 'ascii');
+  buf.write('fmt ', 12, 'ascii');
+  buf.writeUInt32LE(16, 16);
+  buf.writeUInt16LE(1, 20);
+  buf.writeUInt16LE(2, 22);
+  buf.writeUInt32LE(sampleRate, 24);
+  buf.writeUInt32LE(sampleRate * 4, 28);
+  buf.writeUInt16LE(4, 32);
+  buf.writeUInt16LE(16, 34);
+  buf.write('data', 36, 'ascii');
+  buf.writeUInt32LE(frames * 4, 40);
+  const q = (v) => Math.round(Math.max(-1, Math.min(1, v)) * 32767);
+  for (let i = 0; i < frames; i += 1) {
+    buf.writeInt16LE(q(left[i]), 44 + i * 4);
+    buf.writeInt16LE(q(right[i]), 46 + i * 4);
+  }
+  return buf;
+}
+
+const samplesFor = (plans, fps) => Math.round((plans.reduce((s, p) => s + p.frameCount, 0) * SR) / fps);
+const midOf = ({ left, right }) => left.map((v, i) => (v + right[i]) / 2);
+
+/**
+ * Builds the stereo soundtrack for the selected shots: the polished voice, the effects stem and the ducked music bed.
+ * The music is made for the whole timeline, scaled there and then cut at the selected shots, so a --sample render
+ * plays the same stretch of music as the final one.
+ */
+export function buildSoundtrack({ project, projectDir, allPlans, selectedPlans, fps, voice, manifest, ffmpeg = 'ffmpeg' }) {
+  const { sfx, music } = resolveSound(project);
+  const totalSamples = Math.max(1, samplesFor(selectedPlans, fps));
+  const intervals = speechIntervals(selectedPlans, fps);
+  const ref = voiceReferenceDb(voice, intervals);
+  const voiceMissing = ref === null;
+  const voiceRefDb = ref ?? -20;
+  const report = { sfxCounts: {}, musicSource: null, musicLicense: null };
+
+  let sfxStem = { left: new Float32Array(totalSamples), right: new Float32Array(totalSamples) };
+  if (sfx) {
+    const events = thinSoundEvents(collectSoundEvents(selectedPlans, manifest, { fps, lastSectionId: project.sections.at(-1)?.id ?? null }));
+    const stem = renderSfxStem(events, totalSamples, { voiceRefDb, intervals, seed: project.title });
+    sfxStem = { left: stem.left, right: stem.right };
+    report.sfxCounts = stem.counts;
+  }
+
+  let musicStem = { left: new Float32Array(totalSamples), right: new Float32Array(totalSamples) };
+  if (music) {
+    const fullSamples = Math.max(1, samplesFor(allPlans, fps));
+    const firstIdx = Math.max(0, allPlans.findIndex((p) => p.id === selectedPlans[0]?.id));
+    const offset = samplesFor(allPlans.slice(0, firstIdx), fps);
+    let bed = null;
+    if (music.kind === 'synth') {
+      const breathAtSec = [];
+      let frames = 0;
+      allPlans.forEach((plan, i) => {
+        if (i > 0 && plan.shot.section !== allPlans[i - 1].shot.section) breathAtSec.push(frames / fps);
+        frames += plan.frameCount;
+      });
+      bed = synthMusicBed(music.mood, { durationSec: fullSamples / SR, breathAtSec, seed: project.title });
+      report.musicSource = `synth:${music.mood}`;
+    } else {
+      const loaded = loadUserMusic(join(projectDir, music.file), fullSamples, { ffmpeg });
+      if (loaded.silent) report.musicWarning = 'MUSIC_SILENT';
+      else bed = loaded;
+      report.musicSource = music.file;
+      report.musicLicense = music.license;
+    }
+    if (bed) {
+      const rms = stereoRms(bed.left, bed.right);
+      const k = rms > 0 ? 10 ** ((voiceRefDb - 14) / 20) / rms : 0;
+      const g = duckingGains(intervals, totalSamples);
+      for (let i = 0; i < totalSamples; i += 1) {
+        const j = offset + i;
+        if (j >= bed.left.length) break;
+        musicStem.left[i] = bed.left[j] * k * g[i];
+        musicStem.right[i] = bed.right[j] * k * g[i];
+      }
+    }
+  }
+
+  const voiceFit = voice.length === totalSamples ? voice : Float32Array.from({ length: totalSamples }, (_, i) => voice[i] ?? 0);
+  const mix = mixStems(voiceFit, sfxStem, musicStem);
+  return {
+    left: mix.left,
+    right: mix.right,
+    stems: { voice: voiceFit, sfxMid: midOf(sfxStem), musicMid: midOf(musicStem) },
+    intervals,
+    voiceRefDb,
+    voiceMissing,
+    scale: mix.scale,
+    report,
+  };
 }

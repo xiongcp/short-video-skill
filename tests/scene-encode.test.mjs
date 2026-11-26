@@ -1,13 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
 import { makeWavBuffer } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
 import { buildShotPlans, evaluateFrame, SCENE_VERSION, shotCacheKey } from '../skills/topic-to-video/scripts/lib/scene.mjs';
-import { buildChapters, buildSubtitlesAss, buildSubtitlesSrt, renderProject } from '../skills/topic-to-video/scripts/lib/encode.mjs';
+import { assembleAudioWav, buildChapters, buildSubtitlesAss, buildSubtitlesSrt, renderProject } from '../skills/topic-to-video/scripts/lib/encode.mjs';
 import { runQa } from '../skills/topic-to-video/scripts/lib/qa.mjs';
 
 const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
@@ -119,6 +120,7 @@ test('renderProject renders a valid 60fps BT.709 MP4, cover, captions and chapte
     assert.equal(v.pix_fmt, 'yuv420p');
     assert.equal(v.color_space, 'bt709');
     assert.equal(a.sample_rate, '48000');
+    assert.equal(res.audio, null, 'a project without world or sound keeps the narration-only path');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -678,6 +680,58 @@ test('renderProject exempts HOST_OBJECT_OVERLAP during sit_on/open/carry while c
       qaByShot: swapRes.qaByShot,
     });
     assert.equal(swapQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'), false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('the narration WAV for a project without sound is byte-identical to before the sound layer', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'svs-golden-audio-'));
+  try {
+    const p = minimal();
+    mkdirSync(join(dir, 'audio'));
+    const sr = 48000;
+    const tone = new Int16Array(1.5 * sr);
+    for (let i = 0; i < tone.length; i += 1) tone[i] = Math.round(9000 * Math.sin((2 * Math.PI * 440 * i) / sr));
+    const timing = {};
+    for (const key of ['s01-0', 's01-1']) {
+      writeFileSync(join(dir, `audio/${key}.wav`), makeWavBuffer(tone, sr));
+      timing[key] = { file: `audio/${key}.wav`, duration_ms: 1500, speech: [0, 1500], source: 'import', words: [] };
+    }
+    const plans = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+    assembleAudioWav(dir, plans, 60, join(dir, 'narration.wav'));
+    const hash = createHash('sha256').update(readFileSync(join(dir, 'narration.wav'))).digest('hex');
+    assert.equal(hash, 'a1f8f84f05241db89add16f1eecf67b74b83c9fa2efa7383552f93bd6dd447ec');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a world project renders a stereo 48 kHz mix with the synthesized music bed', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'svs-render-sound-'));
+  try {
+    const p = minimal();
+    p.world = { metaphor: '天空是一块幕布', style: 'paper', scene: 'outdoor' };
+    p.voice = { provider: 'import' };
+    mkdirSync(join(dir, 'audio'), { recursive: true });
+    for (const [key, freq] of [['s01-0', 320], ['s01-1', 440]]) {
+      const sr = 48000;
+      const samples = new Int16Array(Math.round(sr * 1.2));
+      for (let i = 2000; i < samples.length - 2000; i += 1) samples[i] = Math.round(9000 * Math.sin((2 * Math.PI * freq * i) / sr));
+      writeFileSync(join(dir, `audio/${key}.wav`), makeWavBuffer(samples, sr));
+    }
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(p, null, 2));
+    const res = await renderProject(dir, { preview: true, workers: 2, runQa: false });
+    const probe = JSON.parse(spawnSync('ffprobe', ['-v', 'quiet', '-print_format', 'json', '-show_streams', res.videoPath], { encoding: 'utf8' }).stdout);
+    const a = probe.streams.find((s) => s.codec_type === 'audio');
+    assert.equal(a.channels, 2);
+    assert.equal(a.sample_rate, '48000');
+    assert.match(res.audio.musicSource, /^synth:/);
+    assert.equal(res.audio.voiceMissing, false);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
