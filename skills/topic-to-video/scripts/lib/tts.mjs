@@ -5,8 +5,14 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { splitSentences } from './captions.mjs';
-import { readWavPcm } from './mouth.mjs';
+import { makeWavBuffer, readWavPcm, trimSilenceWithFade } from './mouth.mjs';
 import { detectSpeechBounds, estimateWords, parseSubtitles, splitRecordingBySilence } from './timing.mjs';
+
+/** Converts numeric speed (e.g. 0.96 -> "-4%", 1.08 -> "+8%") to edge-tts --rate format. */
+export function speedToEdgeRate(speed = 1) {
+  const pct = Math.round((Number(speed) - 1) * 100);
+  return `${pct >= 0 ? '+' : ''}${pct}%`;
+}
 
 /** Applies section.pronunciation term -> reading substitutions to spoken text only (keeps display text untouched). */
 export function applyPronunciation(text, pronunciation = []) {
@@ -81,6 +87,7 @@ function runCommandTts(voice, text, wavOut, subOut, { ffmpeg = 'ffmpeg' } = {}) 
     '{sub}': subOut,
     '{voice}': voice.voice ?? 'zh-CN-XiaoxiaoNeural',
     '{speed}': String(voice.speed ?? 1),
+    '{rate}': speedToEdgeRate(voice.speed ?? 0.96),
   };
   const args = tokens.slice(1).map((tok) => Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(k, v), tok));
   const res = spawnSync(tokens[0], args, { encoding: 'utf8' });
@@ -194,15 +201,42 @@ export async function synthesizeProject(project, projectDir, { ffmpeg = 'ffmpeg'
       continue;
     }
 
-    const wavBuf = readFileSync(wavPath);
-    const decoded = readWavPcm(wavBuf);
+    const rawBuf = readFileSync(wavPath);
+    const rawDecoded = readWavPcm(rawBuf);
+    let wavBuf = rawBuf;
+    let decoded = rawDecoded;
+    // Trim dead leading/trailing silence on synthesized clips so punctuation-driven pauses stay crisp and natural
+    let trimOffsetMs = 0;
+    if (voice.provider !== 'import') {
+      const [rawStart] = detectSpeechBounds(rawDecoded.samples, rawDecoded.sampleRate, -42);
+      const trimmed = trimSilenceWithFade(rawDecoded.samples, rawDecoded.sampleRate, { thresholdDb: -42, padMs: 35, fadeMs: 20 });
+      if (trimmed.length < rawDecoded.samples.length - 480) {
+        trimOffsetMs = Math.max(0, rawStart - 35);
+        const i16 = new Int16Array(trimmed.length);
+        for (let k = 0; k < trimmed.length; k += 1) i16[k] = Math.max(-32768, Math.min(32767, Math.round(trimmed[k] * 32767)));
+        wavBuf = makeWavBuffer(i16, rawDecoded.sampleRate);
+        writeFileSync(wavPath, wavBuf);
+        decoded = readWavPcm(wavBuf);
+      }
+    }
     const speech = detectSpeechBounds(decoded.samples, decoded.sampleRate);
     let words = [];
     let source = 'estimate';
     const subCandidate = [subPath, join(audioDir, `${s.key}.srt`)].find((p) => existsSync(p));
     if (subCandidate) {
-      words = parseSubtitles(readFileSync(subCandidate, 'utf8'));
-      if (words.length) source = 'provider';
+      const parsed = parseSubtitles(readFileSync(subCandidate, 'utf8')).map((w) => ({
+        ...w,
+        start_ms: Math.max(0, w.start_ms - trimOffsetMs),
+        end_ms: Math.min(decoded.durationMs, Math.max(1, w.end_ms - trimOffsetMs)),
+      }));
+      if (parsed.length > 1) {
+        words = parsed;
+        source = 'provider';
+      } else if (parsed.length === 1) {
+        // edge-tts v7 emits one sentence-level cue: subdivide its exact speech span into weighted words
+        words = estimateWords(s.text, parsed[0].start_ms, Math.max(parsed[0].start_ms + 50, parsed[0].end_ms));
+        source = 'provider';
+      }
     }
     if (!words.length) {
       words = estimateWords(s.text, speech[0], speech[1]);
@@ -225,6 +259,7 @@ export async function synthesizeProject(project, projectDir, { ffmpeg = 'ffmpeg'
 
 /** Convenience preset command templates for local TTS tools. */
 export const LOCAL_TTS_PRESETS = {
-  'edge-tts': 'edge-tts --voice {voice} --text {text} --write-media {out} --write-subtitles {sub}',
+  'edge-tts': 'edge-tts --voice {voice} --rate={rate} --text {text} --write-media {out} --write-subtitles {sub}',
+  'uvx-edge-tts': 'uvx --from edge-tts edge-tts --voice {voice} --rate={rate} --text {text} --write-media {out} --write-subtitles {sub}',
   'macos-say': 'say -v Tingting -o {out} {text}',
 };

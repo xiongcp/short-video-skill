@@ -4,10 +4,10 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ease, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp, linear } from '../skills/topic-to-video/scripts/lib/ease.mjs';
-import { buildTimeline, samplesPerFrame } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
-import { detectSpeechBounds, estimateWords, parseSubtitles, resolveAnchorMs, resolveCueTiming } from '../skills/topic-to-video/scripts/lib/timing.mjs';
-import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
-import { applyPronunciation, splitCommandTemplate, synthesizeProject } from '../skills/topic-to-video/scripts/lib/tts.mjs';
+import { buildTimeline, samplesPerFrame, sentencePauseMs } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
+import { detectSpeechBounds, estimateWords, parseSubtitles, resolveAnchorMs, resolveCueTiming, splitClauses } from '../skills/topic-to-video/scripts/lib/timing.mjs';
+import { analyzeAudioFrames, makeWavBuffer, readWavPcm, trimSilenceWithFade } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
+import { applyPronunciation, speedToEdgeRate, splitCommandTemplate, synthesizeProject } from '../skills/topic-to-video/scripts/lib/tts.mjs';
 import { runDoctor } from '../skills/topic-to-video/scripts/doctor.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
@@ -35,7 +35,8 @@ test('timebase produces contiguous half-open frame intervals without rounding dr
   assert.equal(tl.shots[0].startFrame, 0);
   assert.equal(tl.shots[1].startFrame, tl.shots[0].endFrame);
   assert.equal(tl.totalFrames, tl.shots.at(-1).endFrame);
-  assert.equal(tl.totalMs, 1333 + 250 + 1667 + 250);
+  // s01-0 ends with ？ (+160ms thinking beat -> 410ms), s01-1 ends with 。 (base 250ms)
+  assert.equal(tl.totalMs, 1333 + 410 + 1667 + 250);
 });
 
 test('timing parses WebVTT/SRT from edge-tts, estimates weighted Chinese/number/English words, and resolves cue anchors', () => {
@@ -132,12 +133,41 @@ test('tts supports safe command templates, pronunciation substitution, caching a
     const timing = await synthesizeProject(p, dir);
     assert.ok(timing['s01-0'] && timing['s01-1']);
     assert.equal(timing['s01-0'].source, 'provider');
-    assert.ok(timing['s01-0'].duration_ms >= 490 && timing['s01-0'].duration_ms <= 510);
+    assert.ok(timing['s01-0'].duration_ms >= 440 && timing['s01-0'].duration_ms <= 510, `trimmed duration ${timing['s01-0'].duration_ms}`);
+    assert.ok(timing['s01-0'].words.length > 1, 'subdivides single-cue sentence VTT into weighted words');
     const saved = JSON.parse(readFileSync(join(dir, 'audio/timing.json'), 'utf8'));
     assert.equal(saved['s01-0'].file, 'audio/s01-0.wav');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('natural phrasing: variable punctuation pauses, clause splitting, silence trim fade, and edge-tts rate formatting', () => {
+  const gap = 250;
+  assert.ok(sentencePauseMs('普通陈述句。', { baseGapMs: gap }) >= 250);
+  assert.ok(sentencePauseMs('还要从头下载吗？', { baseGapMs: gap }) > sentencePauseMs('普通陈述句。', { baseGapMs: gap }));
+  assert.ok(sentencePauseMs('太快了！', { baseGapMs: gap }) > sentencePauseMs('普通陈述句。', { baseGapMs: gap }));
+  assert.ok(sentencePauseMs('最后一句。', { baseGapMs: gap, sectionEnd: true }) > sentencePauseMs('还要从头下载吗？', { baseGapMs: gap }));
+
+  assert.deepEqual(splitClauses('你昨天见过的这张图标，今天再打开，还要从头下载吗？'), [
+    '你昨天见过的这张图标，',
+    '今天再打开，',
+    '还要从头下载吗？',
+  ]);
+  assert.deepEqual(splitClauses('我们跟着它走两趟。'), ['我们跟着它走两趟。']);
+
+  assert.equal(speedToEdgeRate(1), '+0%');
+  assert.equal(speedToEdgeRate(0.95), '-5%');
+  assert.equal(speedToEdgeRate(1.08), '+8%');
+
+  const sr = 48000;
+  const padded = new Float32Array(sr); // 1s: 0.3s silence + 0.3s speech + 0.4s silence
+  for (let i = Math.floor(0.3 * sr); i < Math.floor(0.6 * sr); i += 1) {
+    padded[i] = 0.4 * Math.sin((2 * Math.PI * 300 * i) / sr);
+  }
+  const trimmed = trimSilenceWithFade(padded, sr);
+  assert.ok(trimmed.length < padded.length * 0.5, `trimmed dead silence: ${trimmed.length} vs ${padded.length}`);
+  assert.ok(Math.abs(trimmed[0]) < 1e-4 && Math.abs(trimmed.at(-1)) < 1e-4, 'fade-in/out avoids clicks');
 });
 
 test('doctor reports environment capabilities cleanly and never crashes when tools are missing', async () => {

@@ -61,6 +61,39 @@ export function readWavPcm(buf) {
 }
 
 /**
+ * Trims excessive leading/trailing dead silence from mono Float32 PCM, keeping `padMs` room breath
+ * and applying a `fadeMs` linear fade-in/out to prevent clicks between sentences.
+ */
+export function trimSilenceWithFade(samples, sampleRate, { thresholdDb = -42, padMs = 35, fadeMs = 20 } = {}) {
+  if (!samples.length) return samples;
+  const threshold = 10 ** (thresholdDb / 20);
+  const win = Math.max(1, Math.round(sampleRate * 0.01));
+  let first = -1;
+  let last = -1;
+  for (let i = 0; i < samples.length; i += win) {
+    const end = Math.min(samples.length, i + win);
+    let sq = 0;
+    for (let j = i; j < end; j += 1) sq += samples[j] * samples[j];
+    if (Math.sqrt(sq / (end - i)) >= threshold) {
+      if (first < 0) first = i;
+      last = end;
+    }
+  }
+  if (first < 0) return samples;
+  const pad = Math.round((padMs / 1000) * sampleRate);
+  const start = Math.max(0, first - pad);
+  const end = Math.min(samples.length, last + pad);
+  const out = Float32Array.from(samples.subarray(start, end));
+  const fade = Math.min(Math.floor(out.length / 2), Math.round((fadeMs / 1000) * sampleRate));
+  for (let i = 0; i < fade; i += 1) {
+    const gain = i / Math.max(1, fade);
+    out[i] *= gain;
+    out[out.length - 1 - i] *= gain;
+  }
+  return out;
+}
+
+/**
  * Analyzes mono Float32 PCM at `fps`: returns per-frame `{ open, width, rms, nod }`.
  * open ∈ [0, 1] uses 95th-percentile normalization and fast-open 30 ms / slow-close 80 ms smoothing.
  * width ∈ [0, 1] maps zero-crossing rate (round vowels low → wide vowels high).

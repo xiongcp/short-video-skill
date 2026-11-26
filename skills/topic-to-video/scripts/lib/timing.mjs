@@ -17,6 +17,21 @@ const parseTimestamp = (raw) => {
   return ((h * 60 + min) * 60 + s) * 1000 + ms;
 };
 
+/** Splits a sentence into natural breath clauses on Chinese/ASCII commas, semicolons, colons, dashes and ellipses. */
+export function splitClauses(sentence) {
+  const text = String(sentence ?? '').trim();
+  if (!text) return [];
+  const raw = text.split(/(?<=[，、；：,:;]|——|……)/).map((s) => s.trim()).filter(Boolean);
+  if (raw.length <= 1) return raw;
+  // Merge tiny orphan fragments (<= 2 chars) into their neighbor so subtitles stay balanced
+  const merged = [];
+  for (const part of raw) {
+    if (merged.length && [...part].length <= 2) merged[merged.length - 1] += part;
+    else merged.push(part);
+  }
+  return merged;
+}
+
 /** Parses WebVTT or SRT subtitle text (such as edge-tts --write-subtitles output) into word/phrase timings. */
 export function parseSubtitles(content) {
   const blocks = String(content).replace(/\r\n/g, '\n').split(/\n{2,}/);

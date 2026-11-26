@@ -321,19 +321,20 @@ function assembleAudioWav(projectDir, selectedPlans, fps, outWav) {
 }
 
 function twoPassLoudnorm(inWav, outM4a, { ffmpeg = 'ffmpeg' } = {}) {
+  const voicePolish = 'highpass=f=80,acompressor=threshold=-18dB:ratio=2.5:attack=10:release=120';
   const p1 = spawnSync(ffmpeg, [
     '-hide_banner', '-i', inWav,
-    '-af', 'loudnorm=I=-16:TP=-1:LRA=11:print_format=json',
+    '-af', `${voicePolish},loudnorm=I=-16:TP=-1:LRA=11:print_format=json`,
     '-f', 'null', '-',
   ], { encoding: 'utf8' });
   const log = `${p1.stdout ?? ''}\n${p1.stderr ?? ''}`;
   const jsonMatch = log.match(/\{[\s\S]*"input_i"[\s\S]*\}/);
-  let af = 'loudnorm=I=-16:TP=-1:LRA=11';
+  let af = `${voicePolish},loudnorm=I=-16:TP=-1:LRA=11`;
   if (jsonMatch) {
     try {
       const m = JSON.parse(jsonMatch[0]);
       if (Number.isFinite(Number(m.input_i)) && Number(m.input_i) > -60) {
-        af = `loudnorm=I=-16:TP=-1:LRA=11:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
+        af = `${voicePolish},loudnorm=I=-16:TP=-1:LRA=11:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
       }
     } catch { /* fallback to single-pass loudnorm */ }
   }

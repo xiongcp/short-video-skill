@@ -6,7 +6,7 @@ import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp
 import { evaluateHostAt, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
 import { DIAGRAM_ZONES, layoutElements, paperBackgroundSvg, renderDiagram, THEME_PALETTE } from './templates.mjs';
-import { resolveCueTiming } from './timing.mjs';
+import { resolveCueTiming, splitClauses } from './timing.mjs';
 
 export const SCENE_VERSION = 1;
 
@@ -207,21 +207,21 @@ function subtitleAt(shotPlan, t, pal) {
     .filter((c) => c.sentence === sent.index && c.at && ms >= c.anchorMs - 50)
     .at(-1)?.at;
   let display = sent.text;
-  // Split long subtitle (> 18 chars) at comma/pause proportionally by time
-  if ([...display].length > 18) {
-    const parts = display.split(/(?<=[，、；：,:;])/).filter(Boolean);
-    if (parts.length > 1) {
-      const totalChars = [...display].length;
-      const frac = clamp01((ms - sent.startMs) / Math.max(1, sent.endMs - sent.startMs));
-      let acc = 0;
-      for (const p of parts) {
-        const len = [...p].length;
-        if (frac <= (acc + len) / totalChars || p === parts.at(-1)) {
-          display = p;
-          break;
-        }
-        acc += len;
+  // Split into natural breath clauses synced proportionally to the sentence's spoken window
+  const parts = splitClauses(display);
+  if (parts.length > 1 && [...display].length > 12) {
+    const totalChars = [...display].length;
+    const sp0 = sent.startMs + (sent.speech?.[0] ?? 0);
+    const sp1 = sent.startMs + (sent.speech?.[1] ?? (sent.endMs - sent.startMs));
+    const frac = clamp01((ms - sp0) / Math.max(1, sp1 - sp0));
+    let acc = 0;
+    for (const p of parts) {
+      const len = [...p].length;
+      if (frac <= (acc + len) / totalChars || p === parts.at(-1)) {
+        display = p.replace(/[，、；：,:;]$/, '');
+        break;
       }
+      acc += len;
     }
   }
   return {

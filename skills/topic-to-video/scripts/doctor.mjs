@@ -48,6 +48,7 @@ export async function runDoctor({ ffmpeg = process.env.FFMPEG || 'ffmpeg', ffpro
     resvgOk = false;
   }
   const edgeTts = checkCmd('edge-tts', ['--version']);
+  const uvxCheck = checkCmd('uvx', ['--version']);
   const macSay = process.platform === 'darwin' ? checkCmd('say', ['-v', '?']) : { ok: false };
   const font = findCjkFont();
 
@@ -57,7 +58,7 @@ export async function runDoctor({ ffmpeg = process.env.FFMPEG || 'ffmpeg', ffpro
     ffprobe: ffprobeCheck,
     resvg: { ok: resvgOk },
     font: { ok: Boolean(font), path: font },
-    tts_local: { edge_tts: edgeTts.ok, macos_say: macSay.ok },
+    tts_local: { edge_tts: edgeTts.ok, uvx: uvxCheck.ok, macos_say: macSay.ok },
   };
 
   const missing = [];
@@ -68,10 +69,12 @@ export async function runDoctor({ ffmpeg = process.env.FFMPEG || 'ffmpeg', ffpro
 
   const l1_ready = missing.length === 0;
   const recommended_voice = edgeTts.ok
-    ? { provider: 'command', voice: 'zh-CN-XiaoxiaoNeural', command: 'edge-tts --voice {voice} --text {text} --write-media {out} --write-subtitles {sub}' }
-    : macSay.ok
-      ? { provider: 'command', voice: 'Tingting', command: 'say -v Tingting -o {out} {text}' }
-      : { provider: 'import' };
+    ? { provider: 'command', voice: 'zh-CN-XiaoxiaoNeural', speed: 0.96, command: 'edge-tts --voice {voice} --rate={rate} --text {text} --write-media {out} --write-subtitles {sub}' }
+    : uvxCheck.ok
+      ? { provider: 'command', voice: 'zh-CN-XiaoxiaoNeural', speed: 0.96, command: 'uvx --from edge-tts edge-tts --voice {voice} --rate={rate} --text {text} --write-media {out} --write-subtitles {sub}' }
+      : macSay.ok
+        ? { provider: 'command', voice: 'Tingting', command: 'say -v Tingting -o {out} {text}' }
+        : { provider: 'import' };
 
   return {
     ok: true,

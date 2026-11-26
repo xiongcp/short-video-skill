@@ -8,6 +8,16 @@ export function samplesPerFrame(fps, sampleRate = 48000) {
 }
 
 /**
+ * Natural breath pause after a sentence based on punctuation and section boundaries:
+ * statements -> baseGapMs, questions/exclamations -> +160 ms thinking beat, section boundary -> +350 ms chapter breath.
+ */
+export function sentencePauseMs(text = '', { baseGapMs = DEFAULT_SENTENCE_GAP_MS, sectionEnd = false } = {}) {
+  if (sectionEnd) return baseGapMs + 350;
+  if (/[？?！!][」』”’）)》】\]"']*$/.test(String(text).trim())) return baseGapMs + 160;
+  return baseGapMs;
+}
+
+/**
  * Computes cumulative ms and contiguous [startFrame, endFrame) ranges for every shot and sentence.
  * @param {object} project
  * @param {Record<string, { file: string, duration_ms: number, speech?: number[], source?: string, words?: any[], sha256?: string }>} timing
@@ -16,6 +26,7 @@ export function samplesPerFrame(fps, sampleRate = 48000) {
 export function buildTimeline(project, timing, fps = project.settings?.fps ?? 60) {
   const gapMs = project.settings?.sentence_gap_ms ?? DEFAULT_SENTENCE_GAP_MS;
   const bySection = new Map(project.sections.map((s) => [s.id, splitSentences(s.text)]));
+  const lastSectionId = project.sections.at(-1)?.id;
   let cursorMs = 0;
   let prevEndFrame = 0;
   const shots = [];
@@ -31,6 +42,8 @@ export function buildTimeline(project, timing, fps = project.settings?.fps ?? 60
       const dur = entry?.duration_ms ?? Math.max(500, Math.round((text.length / 4) * 1000));
       const sStart = cursorMs;
       const sEnd = sStart + dur;
+      const isSectionEnd = idx === sentences.length - 1 && shot.section !== lastSectionId;
+      const pauseMs = sentencePauseMs(text, { baseGapMs: gapMs, sectionEnd: isSectionEnd });
       sentenceRanges.push({
         index: idx,
         key,
@@ -40,11 +53,12 @@ export function buildTimeline(project, timing, fps = project.settings?.fps ?? 60
         startMs: sStart,
         endMs: sEnd,
         durationMs: dur,
+        pauseMs,
         speech: entry?.speech ?? [0, dur],
         source: entry?.source ?? 'estimate',
         words: entry?.words ?? [],
       });
-      cursorMs = sEnd + gapMs;
+      cursorMs = sEnd + pauseMs;
     }
     const endMs = cursorMs;
     const startFrame = prevEndFrame;
