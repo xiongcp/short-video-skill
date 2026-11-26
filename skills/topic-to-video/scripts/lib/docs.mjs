@@ -1,6 +1,8 @@
 import { isApproved } from './project.mjs';
 
 const squash = (s) => s.replace(/\s+/g, '');
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const hasWord = (text, word) => typeof word === 'string' && word.length > 0 && new RegExp(`(^|[^A-Za-z0-9_])${esc(word)}(?![A-Za-z0-9_])`).test(text);
 const ids = (text, pattern) => [...new Set([...text.matchAll(pattern)].map((m) => m[1]))];
 const SHOT_ID = /(?:^|[^A-Za-z0-9_])(sh\d{2,3})(?![A-Za-z0-9_])/g;
 
@@ -21,6 +23,13 @@ export function checkDerivedDocs(project, scriptMd, boardMd, packMd = null) {
   }
   for (const id of ids(boardMd, SHOT_ID)) {
     if (!shots.has(id)) problems.push(`分镜.md 有项目里没有的镜头 ${id}`);
+  }
+  if (project.world) {
+    if (!hasWord(boardMd, project.world.style)) problems.push(`分镜.md 缺少或不一致的视觉世界风格 ${project.world.style}`);
+    if (!hasWord(boardMd, project.world.scene)) problems.push(`分镜.md 缺少或不一致的视觉世界场景 ${project.world.scene}`);
+    if (typeof project.world.metaphor === 'string' && project.world.metaphor.length > 0 && !squash(boardMd).includes(squash(project.world.metaphor))) {
+      problems.push('分镜.md 没有包含视觉世界比喻');
+    }
   }
   if (packMd !== null) problems.push(...checkPromptPack(project, packMd, shots));
   return problems;

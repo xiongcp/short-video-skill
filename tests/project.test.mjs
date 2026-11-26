@@ -369,3 +369,105 @@ test('settings.outfit is optional, none means no outfit, and an unknown one name
   assert.equal(`${error.code} ${error.path}`, 'INVALID_VALUE /settings/outfit');
   assert.match(error.message, /cape.*glasses、hardhat、chef_hat、apron/);
 });
+
+const stageProject = () => {
+  const p = minimal();
+  p.world = {
+    metaphor: '缓存是家门口的冰箱',
+    style: 'paper',
+    scene: 'kitchen',
+    custom_props: [
+      { id: 'c_tank', label: '鱼缸', height: 0.5, layer: 'ground', parts: [{ shape: 'rect', x: -0.5, y: -0.5, w: 1, h: 1, fill: 'soft_accent' }] },
+    ],
+  };
+  p.shots[0] = {
+    id: 'sh01',
+    section: 's01',
+    sentences: [0],
+    layout: 'stage',
+    scene: 'kitchen',
+    host: { expr: 'curious', gesture: 'idle', at: 'left' },
+    visual: {
+      template: 'stage',
+      data: {
+        heading: '冰箱缓存',
+        objects: [
+          { prop: 'fridge', label: '冰箱', at: 'center', state: 'open' },
+          { prop: 'cup', label: '杯子', at: 'right', state: 'full' },
+        ],
+        links: [{ from: 0, to: 1, style: 'solid', label: '连接' }],
+      },
+    },
+    note: '演示舞台',
+  };
+  return p;
+};
+
+test('stage shot without world reports STAGE_NEEDS_WORLD', () => {
+  const p = stageProject();
+  delete p.world;
+  assert.ok(codes(p).includes('STAGE_NEEDS_WORLD'));
+});
+
+test('mismatched stage layout, template, or scene reports STAGE_LAYOUT_MISMATCH', () => {
+  const a = stageProject();
+  a.shots[0].visual = { template: 'bullets', data: { items: ['阳光'] } };
+  assert.deepEqual(placed(a), ['STAGE_LAYOUT_MISMATCH /shots/0/visual/template']);
+
+  const b = stageProject();
+  b.shots[0].layout = 'host-left';
+  b.shots[0].visual.data.objects.pop();
+  b.shots[0].visual.data.links = [];
+  assert.ok(codes(b).includes('STAGE_LAYOUT_MISMATCH'));
+
+  const c = minimal();
+  c.shots[1].scene = 'kitchen';
+  assert.deepEqual(placed(c), ['STAGE_LAYOUT_MISMATCH /shots/1/scene']);
+});
+
+test('crowded stage reports STAGE_CROWDED', () => {
+  const p = stageProject();
+  p.shots[0].visual.data.links = [];
+  p.shots[0].visual.data.objects = [
+    { prop: 'shop', at: 'left', size: 'lg' },
+    { prop: 'house', at: 'mid-left', size: 'lg' },
+    { prop: 'car', at: 'center', size: 'lg' },
+    { prop: 'truck', at: 'mid-right', size: 'lg' },
+    { prop: 'whiteboard', at: 'right', size: 'lg' },
+  ];
+  assert.deepEqual(codes(p), ['STAGE_CROWDED']);
+});
+
+test('invalid world.custom_props reports CUSTOM_PROP_INVALID', () => {
+  const p = stageProject();
+  p.world.custom_props = [{ id: 'bad_id', height: 0.5, parts: [{ shape: 'rect', x: 0.5, y: 0, w: 0.8, h: 0.5 }] }];
+  assert.ok(codes(p).includes('CUSTOM_PROP_INVALID'));
+});
+
+test('unsupported initial object state (such as open on cup) reports STATE_UNSUPPORTED', () => {
+  const p = stageProject();
+  p.shots[0].visual.data.objects[1].state = 'open';
+  assert.deepEqual(placed(p), ['STATE_UNSUPPORTED /shots/0/visual/data/objects/1/state']);
+  p.shots[0].visual.data.objects[1].state = 'count:12';
+  assert.deepEqual(checkProject(p), []);
+});
+
+test('stage shot allows expr, gesture, move, prop, reveal and highlight cues', () => {
+  const p = stageProject();
+  p.shots[0].cues = [
+    { sentence: 0, do: 'expr', target: 'happy' },
+    { sentence: 0, do: 'gesture', target: 'point' },
+    { sentence: 0, do: 'move', target: 0 },
+    { sentence: 0, do: 'prop', target: 'magnifier' },
+    { sentence: 0, do: 'reveal', target: 1 },
+    { sentence: 0, do: 'highlight', target: 0 },
+  ];
+  assert.deepEqual(checkProject(p), []);
+});
+
+test('legacy project without world keeps exact checkProject and estimateSeconds behavior', () => {
+  const p = minimal();
+  assert.equal(p.world, undefined);
+  assert.deepEqual(checkProject(p), []);
+  assert.equal(estimateSeconds(p), 4.25);
+});

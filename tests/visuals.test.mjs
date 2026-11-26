@@ -8,11 +8,9 @@ import { STYLE_PALETTES } from '../skills/topic-to-video/scripts/lib/world.mjs';
 
 const schema = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/schema/project.schema.json'), 'utf8'));
 
-test('icons.mjs implements all 60 props including all 24 schema icons deterministically in light and dark themes with no <text>', () => {
+test('icons.mjs implements all 60 props matching schema.$defs.icon deterministically in light and dark themes with no <text>', () => {
   assert.equal(ICONS.length, 60);
-  for (const name of schema.$defs.icon.enum) {
-    assert.ok(ICONS.includes(name), `schema icon ${name} in ICONS`);
-  }
+  assert.deepEqual([...ICONS].sort(), [...schema.$defs.icon.enum].sort());
   for (const name of ICONS) {
     const a = drawIcon(name, { x: 100, y: 100, size: 48, seed: 'sh01' });
     const b = drawIcon(name, { x: 100, y: 100, size: 48, seed: 'sh01' });

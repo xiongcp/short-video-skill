@@ -32,6 +32,84 @@ const valid = {
     p.shots[1].visual.data.icons = ['bulb', 'globe', 'clock'];
     p.shots[1].cues[0].at = '蓝光';
   },
+  'world with custom_props, stage shot, timeline, and cycle': (p) => {
+    p.world = {
+      metaphor: '缓存是家门口的冰箱，服务器是远处的超市',
+      style: 'paper',
+      scene: 'kitchen',
+      custom_props: [
+        {
+          id: 'c_fishtank',
+          label: '鱼缸',
+          height: 0.5,
+          layer: 'ground',
+          parts: [
+            { shape: 'rect', x: -0.9, y: -0.5, w: 1.8, h: 1.5, fill: 'soft_accent' },
+            { shape: 'circle', cx: -0.3, cy: 0.2, r: 0.15, fill: 'yellow' },
+            { shape: 'poly', points: [[0.1, 0.2], [0.4, 0.05], [0.4, 0.35]], fill: 'yellow' },
+            { shape: 'line', points: [[-0.9, -0.3], [0.9, -0.3]] },
+          ],
+        },
+      ],
+    };
+    p.sections[0].text = '第一句。第二句。第三句。';
+    p.shots = [
+      {
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        scene: 'kitchen',
+        host: { expr: 'curious', gesture: 'idle', at: 'left' },
+        visual: {
+          template: 'stage',
+          data: {
+            heading: '冰箱和超市',
+            objects: [
+              { prop: 'fridge', label: '缓存', at: 'mid-left', state: 'closed' },
+              { prop: 'c_fishtank', label: '鱼缸', at: 0.75, size: 'sm', layer: 'ground', state: 'count:2' },
+            ],
+            links: [{ from: 0, to: 1, style: 'dashed', label: '很远' }],
+          },
+        },
+        note: '缓存就在手边',
+      },
+      {
+        id: 'sh02',
+        section: 's01',
+        sentences: [1],
+        layout: 'host-left',
+        host: { expr: 'explaining', gesture: 'point' },
+        visual: {
+          template: 'timeline',
+          data: {
+            items: [
+              { time: '第1步', label: '查冰箱', icon: 'fridge' },
+              { time: '第2步', label: '去超市', icon: 'shop' },
+            ],
+          },
+        },
+        note: '先看顺序',
+      },
+      {
+        id: 'sh03',
+        section: 's01',
+        sentences: [2],
+        layout: 'full',
+        visual: {
+          template: 'cycle',
+          data: {
+            items: [
+              { label: '请求', icon: 'browser' },
+              { label: '缓存', icon: 'cache' },
+              { label: '返回', icon: 'check' },
+            ],
+          },
+        },
+        note: '形成闭环',
+      },
+    ];
+  },
 };
 for (const [name, mutate] of Object.entries(valid)) {
   test(`accepts ${name}`, () => {
@@ -70,6 +148,38 @@ const invalid = {
   'a pitch past 20 Hz': (p) => { p.voice = { provider: 'undecided', pitch: 25 }; },
   'a fractional pitch': (p) => { p.voice = { provider: 'undecided', pitch: 1.5 }; },
   'an unknown outfit': (p) => { p.settings.outfit = 'cape'; },
+  'a stage shot without host': (p) => {
+    p.shots[0] = {
+      id: 'sh01', section: 's01', sentences: [0], layout: 'stage',
+      visual: { template: 'stage', data: { objects: [{ prop: 'fridge', at: 'center' }] } },
+      note: '缺少主持人',
+    };
+  },
+  'a stage layout paired with bullets template': (p) => {
+    p.shots[0].layout = 'stage';
+    p.shots[0].visual = { template: 'bullets', data: { items: ['阳光'] } };
+  },
+  'a host-left layout paired with stage template': (p) => {
+    p.shots[0].visual = { template: 'stage', data: { objects: [{ prop: 'fridge', at: 'center' }] } };
+  },
+  'a full shot with scene': (p) => {
+    p.shots[1].scene = 'kitchen';
+  },
+  'world.metaphor over 60 characters': (p) => {
+    p.world = { metaphor: '一'.repeat(61), style: 'paper', scene: 'kitchen' };
+  },
+  'world.custom_props over 4 items': (p) => {
+    const item = (i) => ({ id: `c_p${i}`, height: 0.4, parts: [{ shape: 'circle', cx: 0, cy: 0, r: 0.3 }] });
+    p.world = { metaphor: '比喻', style: 'paper', scene: 'kitchen', custom_props: [0, 1, 2, 3, 4].map(item) };
+  },
+  'timeline with only 1 item': (p) => {
+    p.shots[1].visual = { template: 'timeline', data: { items: [{ time: '第1步', label: '唯一' }] } };
+    p.shots[1].cues = [];
+  },
+  'cycle with only 2 items': (p) => {
+    p.shots[1].visual = { template: 'cycle', data: { items: [{ label: '第一步' }, { label: '第二步' }] } };
+    p.shots[1].cues = [];
+  },
 };
 for (const [name, mutate] of Object.entries(invalid)) {
   test(`rejects ${name}`, () => {

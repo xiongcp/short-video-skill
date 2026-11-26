@@ -235,3 +235,49 @@ test('cues on a sentence outside the shot raise neither STATIC_STRETCH, FOCUS_SP
   ];
   assert.deepEqual(codes(q), ['POINT_MISSING /shots/0']);
 });
+
+test('visualKeywords extracts heading and object labels from stage, time and label from timeline, and label from cycle', () => {
+  assert.deepEqual(
+    visualKeywords({
+      template: 'stage',
+      data: {
+        heading: '冰箱与超市',
+        objects: [{ prop: 'fridge', label: '缓存', at: 'left' }, { prop: 'shop', at: 'right' }],
+        links: [{ from: 0, to: 1, label: '很远' }],
+      },
+    }),
+    ['冰箱与超市', '缓存'],
+  );
+  assert.deepEqual(
+    visualKeywords({
+      template: 'timeline',
+      data: { items: [{ time: '第1步', label: '发请求' }, { time: '第2步', label: '读缓存' }] },
+    }),
+    ['第1步', '发请求', '第2步', '读缓存'],
+  );
+  assert.deepEqual(
+    visualKeywords({
+      template: 'cycle',
+      data: { items: [{ label: '提问' }, { label: '验证' }, { label: '总结' }] },
+    }),
+    ['提问', '验证', '总结'],
+  );
+});
+
+test('stage shot saying 看这里 without pointing warns POINT_MISSING', () => {
+  const p = minimal();
+  p.world = { metaphor: '缓存是冰箱', style: 'paper', scene: 'kitchen' };
+  p.sections[0].text = '看这里就明白了。答案藏在阳光里。';
+  p.shots[0] = {
+    id: 'sh01',
+    section: 's01',
+    sentences: [0],
+    layout: 'stage',
+    host: { expr: 'explaining', gesture: 'idle' },
+    visual: { template: 'stage', data: { objects: [{ prop: 'fridge', label: '明白', at: 'center' }] } },
+    note: '指着冰箱',
+  };
+  assert.deepEqual(codes(p), ['POINT_MISSING /shots/0']);
+  p.shots[0].host.gesture = 'point';
+  assert.deepEqual(lintStoryboard(p), []);
+});

@@ -1,7 +1,7 @@
 // Storyboard advice from references/storyboard.md: what is on screen against what is said, and how the host acts.
 // Warnings only: VISUAL_NOT_IN_NARRATION, POINT_MISSING, MOVE_TOO_MANY, FOCUS_SPLIT and STATIC_STRETCH.
 import { splitSentences } from './captions.mjs';
-import { checkShape, estimateReport } from './project.mjs';
+import { checkShape, estimateReport, HOST_LAYOUTS } from './project.mjs';
 
 const DIGITS = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
 const UNITS = { 十: 10, 百: 100, 千: 1000 };
@@ -55,6 +55,9 @@ export function visualKeywords(visual) {
     compare: () => [d.left?.label, ...list(d.left?.rows), d.right?.label, ...list(d.right?.rows)],
     number: () => [d.value, d.label],
     bars: () => list(d.items).map((item) => item?.label),
+    stage: () => [d.heading, ...list(d.objects).map((obj) => obj?.label)],
+    timeline: () => list(d.items).flatMap((item) => [item?.time, item?.label]),
+    cycle: () => list(d.items).map((item) => item?.label),
   }[visual?.template];
   return (pick?.() ?? []).filter((t) => typeof t === 'string' || typeof t === 'number').map(String);
 }
@@ -84,7 +87,7 @@ export function lintStoryboard(project) {
     if (judged.length && !judged.some((k) => fragments(k).some((f) => narration.includes(f)))) {
       warnings.push({ path: `/shots/${i}/visual`, code: 'VISUAL_NOT_IN_NARRATION', message: `镜头 ${shot.id} 的画面关键词（${judged.join('、')}）都不在本镜口播里；改用口播里的词，或调整这一镜包含的句子（见 storyboard.md）` });
     }
-    if (shot.layout !== 'host-left') return;
+    if (!HOST_LAYOUTS.includes(shot.layout)) return;
     shot.sentences.forEach((n, j) => {
       const word = DEICTIC_WORDS.find((w) => said[j].includes(w));
       if (word && !POINTING.includes(gestureAt(shot, n))) {

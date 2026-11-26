@@ -2,6 +2,9 @@
 // schema/project.schema.json; these checks cover what a JSON Schema cannot express.
 import { readFileSync } from 'node:fs';
 import { countChars, splitSentences } from './captions.mjs';
+import { COMMON_STATES, ICONS, PROP_META, propSupportsState, validateCustomProps } from './icons.mjs';
+import { layoutStage, STAGE_SLOTS } from './stage.mjs';
+import { SCENE_NAMES, STYLE_NAMES } from './world.mjs';
 
 const PROFILE = JSON.parse(readFileSync(new URL('../../assets/host/profile.json', import.meta.url), 'utf8'));
 /** The only host this skill draws; settings.host must name it (assets/host/profile.json). */
@@ -10,32 +13,31 @@ export const HOST_ID = PROFILE.id;
 export const CHARS_PER_SECOND = 4;
 export const DEFAULT_SENTENCE_GAP_MS = 250;
 export const MAX_SENTENCE_CHARS = 30;
+export const HOST_LAYOUTS = ['host-left', 'stage'];
 // Words that make a claim absolute. Without sources, script.md asks for neutral wording or an open question.
 // 都 counts only in a sentence without a hedge such as 大部分 or 通常.
 const ABSOLUTE_WORDS = ['所有', '全部', '一切', '任何', '总是', '从不', '永远', '一定', '必然', '绝对', '完全', '彻底', '唯一', '都'];
 const HEDGES = ['大部分', '大多', '多数', '基本', '通常', '一般', '往往'];
 const absoluteWords = (sentence) => ABSOLUTE_WORDS.filter((w) => sentence.includes(w) && (w !== '都' || !HEDGES.some((h) => sentence.includes(h))));
 
-const LIST_FIELD = { bullets: 'items', flow: 'nodes', bars: 'items' };
+const LIST_FIELD = { bullets: 'items', flow: 'nodes', bars: 'items', timeline: 'items', cycle: 'items', stage: 'objects' };
 
-/** Elements a reveal, highlight or move cue can address: list items, flow nodes, bars, or the two compare columns. */
+/** Elements a reveal, highlight or move cue can address: list items, flow nodes, bars, timeline/cycle items, stage objects, or the two compare columns. */
 function elementCount(visual) {
   if (visual.template === 'compare') return 2;
   const field = LIST_FIELD[visual.template];
-  return field ? visual.data[field].length : 0;
+  return field && Array.isArray(visual.data?.[field]) ? visual.data[field].length : 0;
 }
 
 const duplicates = (ids) => [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
 
-const isObject = (v) => typeof v === 'object' && v !== null;
+const isObject = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
+const isStageAt = (at) => (typeof at === 'string' && Object.hasOwn(STAGE_SLOTS, at))
+  || (typeof at === 'number' && Number.isFinite(at) && at >= 0.08 && at <= 0.92);
 
 // Length limits from schema/project.schema.json, kept in sync by tests/project.test.mjs. A number is the
 // maximum length in characters; [min, max, item] is the allowed list length and the limit for each item.
-export const ICON_NAMES = [
-  'browser', 'server', 'database', 'cache', 'clock', 'doc', 'user', 'phone',
-  'cloud', 'lock', 'key', 'chart', 'check', 'cross', 'warn', 'bulb',
-  'gear', 'network', 'folder', 'image', 'search', 'money', 'plane', 'globe',
-];
+export const ICON_NAMES = ICONS;
 const COLUMN = { label: 8, rows: [1, 3, 12] };
 export const VISUAL_LIMITS = {
   title: { heading: 16, sub: 24 },
@@ -44,17 +46,26 @@ export const VISUAL_LIMITS = {
   compare: { left: COLUMN, right: COLUMN },
   number: { value: 8, label: 12 },
   bars: { items: [1, 6, { label: 6 }], unit: 4 },
+  stage: { heading: 14, objects: [1, 5, { label: 8 }], links: [0, 4, undefined] },
+  timeline: { items: [2, 5, { time: 6, label: 8 }] },
+  cycle: { items: [3, 5, { label: 6 }] },
 };
 // Field names from schema/project.schema.json, kept in sync by tests/project.test.mjs. The schema rejects any
 // other field, and nothing else here reads one, so without this a misplaced field passes the self-check.
 export const SCHEMA_FIELDS = {
-  project: ['version', 'revision', 'title', 'brief', 'settings', 'voice', 'sections', 'shots', 'checkpoints', 'jobs'],
+  project: ['version', 'revision', 'title', 'brief', 'settings', 'voice', 'world', 'sections', 'shots', 'checkpoints', 'jobs'],
   brief: ['topic', 'audience', 'promise', 'sources', 'open_questions'],
   source: ['id', 'title', 'where', 'note'],
   settings: ['ratio', 'target_seconds', 'lang', 'host', 'theme', 'sentence_gap_ms', 'fps', 'resolution', 'outfit'],
   voice: ['provider', 'model', 'voice', 'speed', 'base_url', 'api_key_env', 'command', 'preset', 'pitch'],
+  world: ['metaphor', 'style', 'scene', 'custom_props'],
   section: ['id', 'title', 'text', 'pronunciation', 'source_ids'],
-  shot: ['id', 'section', 'sentences', 'layout', 'host', 'visual', 'cues', 'transition', 'note'],
+  shot: ['id', 'section', 'sentences', 'layout', 'scene', 'host', 'visual', 'cues', 'transition', 'note'],
+  host: ['expr', 'gesture', 'at'],
+  stage_object: ['prop', 'label', 'at', 'layer', 'size', 'state'],
+  stage_link: ['from', 'to', 'style', 'label'],
+  timeline_item: ['time', 'label', 'icon'],
+  cycle_item: ['label', 'icon'],
   cue: ['sentence', 'at', 'do', 'target'],
   checkpoint: ['stage', 'revision', 'at', 'note'],
   job: ['id', 'provider', 'kind', 'status', 'ref', 'cost', 'at'],
@@ -109,6 +120,7 @@ export function checkShape(project) {
   need(typeof project.settings?.target_seconds === 'number', '/settings/target_seconds', 'settings.target_seconds 应是数字');
   ['sections', 'shots', 'checkpoints'].forEach((key) => need(Array.isArray(project[key]), `/${key}`, `${key} 应是数组`));
   if (errors.length) return errors;
+  need(project.world === undefined || isObject(project.world), '/world', 'world 应是对象');
   project.brief.sources.forEach((s, i) => need(isObject(s), `/brief/sources/${i}`, '来源应是对象'));
   project.sections.forEach((s, i) => need(typeof s?.text === 'string', `/sections/${i}/text`, `段落 ${s?.id ?? i} 的 text 应是字符串`));
   project.checkpoints.forEach((c, i) => need(isObject(c), `/checkpoints/${i}`, '确认记录应是对象'));
@@ -117,9 +129,121 @@ export function checkShape(project) {
     need(isObject(shot?.visual), `/shots/${i}/visual`, `镜头 ${shot?.id ?? i} 缺少 visual`);
     const field = LIST_FIELD[shot?.visual?.template];
     if (field) need(Array.isArray(shot.visual.data?.[field]), `/shots/${i}/visual/data/${field}`, `镜头 ${shot.id ?? i} 的 visual.data.${field} 应是数组`);
+    if (shot?.visual?.template === 'stage' && Array.isArray(shot.visual.data?.objects)) {
+      need(shot.visual.data.objects.every(isObject), `/shots/${i}/visual/data/objects`, `镜头 ${shot.id ?? i} 的 stage.objects 应是对象数组`);
+      need(shot.visual.data?.links === undefined || (Array.isArray(shot.visual.data.links) && shot.visual.data.links.every(isObject)),
+        `/shots/${i}/visual/data/links`, `镜头 ${shot.id ?? i} 的 stage.links 应是对象数组`);
+    }
+    if ((shot?.visual?.template === 'timeline' || shot?.visual?.template === 'cycle') && Array.isArray(shot.visual.data?.items)) {
+      need(shot.visual.data.items.every(isObject), `/shots/${i}/visual/data/items`, `镜头 ${shot.id ?? i} 的 items 应是对象数组`);
+    }
     need(shot?.cues === undefined || (Array.isArray(shot.cues) && shot.cues.every(isObject)), `/shots/${i}/cues`, `镜头 ${shot?.id ?? i} 的 cues 应是对象数组`);
   });
   return errors;
+}
+
+const WORLD_METAPHOR_LIMIT = 60;
+const STAGE_LAYERS = ['ground', 'mid', 'air'];
+const STAGE_SIZES = ['sm', 'md', 'lg'];
+const LINK_STYLES = ['solid', 'dashed'];
+
+function checkWorld(world, add) {
+  if (typeof world.metaphor !== 'string' || !world.metaphor.trim()) {
+    add('/world/metaphor', 'INVALID_VALUE', '视觉世界缺少一句话比喻 metaphor（见 world.md）');
+  } else {
+    checkLimits(world.metaphor, WORLD_METAPHOR_LIMIT, '/world/metaphor', add, '视觉世界比喻', '（见 world.md）');
+  }
+  if (!STYLE_NAMES.includes(world.style)) {
+    add('/world/style', 'INVALID_VALUE', `视觉世界风格 ${world.style ?? '空'} 不存在，可选 ${STYLE_NAMES.join('、')}（见 world.md）`);
+  }
+  if (!SCENE_NAMES.includes(world.scene)) {
+    add('/world/scene', 'INVALID_VALUE', `视觉世界场景 ${world.scene ?? '空'} 不存在，可选 ${SCENE_NAMES.join('、')}（见 world.md）`);
+  }
+  if (world.custom_props !== undefined) {
+    for (const err of validateCustomProps(world.custom_props)) {
+      const ptr = `/${err.path.replace(/\[(\d+)\]/g, '/$1').replace(/\./g, '/')}`;
+      add(ptr, err.code, err.message);
+    }
+  }
+}
+
+function checkStageShots(project, add) {
+  const customProps = Array.isArray(project.world?.custom_props) ? project.world.custom_props.filter(isObject) : [];
+  const customIds = new Set(customProps.map((p) => p.id).filter((id) => typeof id === 'string'));
+  let prevHostX = 320;
+
+  project.shots.forEach((shot, i) => {
+    const at = `/shots/${i}`;
+    const isStageLayout = shot.layout === 'stage';
+    const isStageTemplate = shot.visual?.template === 'stage';
+    if (isStageLayout && !project.world) {
+      add(`${at}/layout`, 'STAGE_NEEDS_WORLD', `镜头 ${shot.id} 用了 stage 版式，但项目还没定视觉世界 world（见 world.md）`);
+    }
+    if (isStageLayout && !isStageTemplate) {
+      add(`${at}/visual/template`, 'STAGE_LAYOUT_MISMATCH', `镜头 ${shot.id} 是 stage 版式，visual.template 必须是 stage`);
+    } else if (!isStageLayout && isStageTemplate) {
+      add(`${at}/layout`, 'STAGE_LAYOUT_MISMATCH', `镜头 ${shot.id} 用了 stage 模板，layout 必须是 stage`);
+    }
+    if (shot.scene !== undefined && !isStageLayout) {
+      add(`${at}/scene`, 'STAGE_LAYOUT_MISMATCH', `镜头 ${shot.id} 的 scene 只能写在 stage 镜头上`);
+    } else if (shot.scene !== undefined && !SCENE_NAMES.includes(shot.scene)) {
+      add(`${at}/scene`, 'INVALID_VALUE', `镜头 ${shot.id} 的场景 ${shot.scene ?? '空'} 不存在，可选 ${SCENE_NAMES.join('、')}（见 world.md）`);
+    }
+    if (isStageLayout && !isObject(shot.host)) {
+      add(`${at}/host`, 'STAGE_LAYOUT_MISMATCH', `镜头 ${shot.id} 是 stage 版式，必须写 host（见 world.md）`);
+    }
+    if (shot.host?.at !== undefined && !isStageAt(shot.host.at)) {
+      add(`${at}/host/at`, 'INVALID_VALUE', `镜头 ${shot.id} 的 host.at ${shot.host.at} 不合法，写槽位（${Object.keys(STAGE_SLOTS).join('、')}）或 0.08–0.92 的比例`);
+    }
+
+    if (!isStageTemplate) {
+      if (shot.layout === 'full') prevHostX = 320;
+      return;
+    }
+
+    const objects = shot.visual.data?.objects ?? [];
+    let stageValidForLayout = true;
+    objects.forEach((obj, k) => {
+      const hasProp = typeof obj.prop === 'string' && (ICON_NAMES.includes(obj.prop) || customIds.has(obj.prop));
+      if (!hasProp) {
+        stageValidForLayout = false;
+        add(`${at}/visual/data/objects/${k}/prop`, 'UNKNOWN_ICON', `镜头 ${shot.id} 的物件 ${obj.prop ?? '空'} 不在内置 ${ICON_NAMES.length} 个物件或 world.custom_props 里`);
+      }
+      if (obj.at !== undefined && !isStageAt(obj.at)) {
+        add(`${at}/visual/data/objects/${k}/at`, 'INVALID_VALUE', `镜头 ${shot.id} 的物件站位 ${obj.at} 不合法，写槽位（${Object.keys(STAGE_SLOTS).join('、')}）或 0.08–0.92 的比例`);
+      }
+      if (obj.layer !== undefined && !STAGE_LAYERS.includes(obj.layer)) {
+        add(`${at}/visual/data/objects/${k}/layer`, 'INVALID_VALUE', `镜头 ${shot.id} 的高度层 ${obj.layer} 不合法，可选 ${STAGE_LAYERS.join('、')}`);
+      }
+      if (obj.size !== undefined && !STAGE_SIZES.includes(obj.size)) {
+        add(`${at}/visual/data/objects/${k}/size`, 'INVALID_VALUE', `镜头 ${shot.id} 的尺寸 ${obj.size} 不合法，可选 ${STAGE_SIZES.join('、')}`);
+      }
+      if (obj.state !== undefined && hasProp && !propSupportsState(obj.prop, obj.state, customProps)) {
+        const supported = [...(PROP_META[obj.prop]?.states ?? []), ...COMMON_STATES, 'count:<值>'].join('、');
+        add(`${at}/visual/data/objects/${k}/state`, 'STATE_UNSUPPORTED', `镜头 ${shot.id} 的物件 ${obj.prop} 不支持状态 ${obj.state}，可用 ${supported}`);
+      }
+    });
+
+    (shot.visual.data?.links ?? []).forEach((lnk, k) => {
+      if (!Number.isInteger(lnk.from) || lnk.from < 0 || lnk.from >= objects.length) {
+        add(`${at}/visual/data/links/${k}/from`, 'INVALID_VALUE', `镜头 ${shot.id} 的连线起点 ${lnk.from ?? '空'} 超出物件个数 ${objects.length}`);
+      }
+      if (!Number.isInteger(lnk.to) || lnk.to < 0 || lnk.to >= objects.length || lnk.to === lnk.from) {
+        add(`${at}/visual/data/links/${k}/to`, 'INVALID_VALUE', `镜头 ${shot.id} 的连线终点 ${lnk.to ?? '空'} 必须是不同于起点的物件序号`);
+      }
+      if (lnk.style !== undefined && !LINK_STYLES.includes(lnk.style)) {
+        add(`${at}/visual/data/links/${k}/style`, 'INVALID_VALUE', `镜头 ${shot.id} 的连线样式 ${lnk.style} 不合法，可选 ${LINK_STYLES.join('、')}`);
+      }
+    });
+
+    if (isStageLayout && stageValidForLayout && objects.length > 0) {
+      const staged = layoutStage(shot.visual.data, { hostAt: shot.host?.at, prevHostX, customProps });
+      if (staged.crowded) {
+        add(`${at}/visual/data/objects`, 'STAGE_CROWDED', `镜头 ${shot.id} 的舞台太挤，缩到 0.6 倍仍放不下全部物件和主持人；减少物件或拆成两个镜头（见 world.md）`);
+      }
+      prevHostX = staged.hostX;
+    }
+  });
 }
 
 /** @returns {{path: string, code: string, message: string}[]} */
@@ -129,6 +253,7 @@ export function checkProject(project) {
   const errors = [];
   const add = (path, code, message) => errors.push({ path, code, message });
   checkFields(project, add);
+  if (project.world !== undefined) checkWorld(project.world, add);
   const preset = project.voice?.preset;
   if (preset !== undefined && !Object.hasOwn(VOICE_PRESETS, preset)) {
     add('/voice/preset', 'INVALID_VALUE', `配音人设 ${preset} 不存在，可选 ${Object.keys(VOICE_PRESETS).join('、')}（见 script.md 的配音人设一节）`);
@@ -151,6 +276,7 @@ export function checkProject(project) {
     if (!sources.has(id)) add(`/sections/${i}/source_ids`, 'UNKNOWN_SOURCE', `段落 ${s.id} 引用了不存在的来源 ${id}`);
   }));
   if (project.shots.length) checkCoverage(project, add); // empty after step 1, before the storyboard
+  checkStageShots(project, add);
   const sentencesBySection = new Map(project.sections.map((s) => [s.id, splitSentences(s.text)]));
   project.shots.forEach((shot, i) => checkCues(shot, `/shots/${i}`, sentencesBySection.get(shot.section) ?? [], add));
   project.checkpoints.forEach((c, i) => {
@@ -166,10 +292,27 @@ function checkFields(project, add) {
     [project.brief, 'brief', '/brief', 'brief'],
     [project.settings, 'settings', '/settings', 'settings'],
     [project.voice, 'voice', '/voice', 'voice'],
+    ...(isObject(project.world) ? [[project.world, 'world', '/world', 'world']] : []),
     ...project.brief.sources.map((s, i) => [s, 'source', `/brief/sources/${i}`, `来源 ${s.id ?? i}`]),
     ...project.sections.map((s, i) => [s, 'section', `/sections/${i}`, `段落 ${s.id}`]),
-    ...project.shots.flatMap((shot, i) => [[shot, 'shot', `/shots/${i}`, `镜头 ${shot.id}`],
-      ...(shot.cues ?? []).map((c, j) => [c, 'cue', `/shots/${i}/cues/${j}`, `镜头 ${shot.id} 的 cue ${j}`])]),
+    ...project.shots.flatMap((shot, i) => {
+      const list = [[shot, 'shot', `/shots/${i}`, `镜头 ${shot.id}`]];
+      if (isObject(shot.host)) list.push([shot.host, 'host', `/shots/${i}/host`, `镜头 ${shot.id} 的 host`]);
+      if (shot.visual?.template === 'stage' && isObject(shot.visual.data)) {
+        if (Array.isArray(shot.visual.data.objects)) {
+          list.push(...shot.visual.data.objects.map((o, k) => [o, 'stage_object', `/shots/${i}/visual/data/objects/${k}`, `镜头 ${shot.id} 的物件 ${k}`]));
+        }
+        if (Array.isArray(shot.visual.data.links)) {
+          list.push(...shot.visual.data.links.map((l, k) => [l, 'stage_link', `/shots/${i}/visual/data/links/${k}`, `镜头 ${shot.id} 的连线 ${k}`]));
+        }
+      }
+      if ((shot.visual?.template === 'timeline' || shot.visual?.template === 'cycle') && Array.isArray(shot.visual.data?.items)) {
+        const schemaKey = shot.visual.template === 'timeline' ? 'timeline_item' : 'cycle_item';
+        list.push(...shot.visual.data.items.map((it, k) => [it, schemaKey, `/shots/${i}/visual/data/items/${k}`, `镜头 ${shot.id} 的元素 ${k}`]));
+      }
+      list.push(...(shot.cues ?? []).map((c, j) => [c, 'cue', `/shots/${i}/cues/${j}`, `镜头 ${shot.id} 的 cue ${j}`]));
+      return list;
+    }),
     ...project.checkpoints.map((c, i) => [c, 'checkpoint', `/checkpoints/${i}`, `确认记录 ${i}`]),
     ...(Array.isArray(project.jobs) ? project.jobs : []).map((j, i) => [j, 'job', `/jobs/${i}`, `任务 ${j?.id ?? i}`]),
   ];
@@ -219,9 +362,16 @@ function checkCues(shot, at, sentences, add) {
       add(`${at}/visual/data/icons`, 'UNKNOWN_ICON', `镜头 ${shot.id} 的 icons 个数应等于元素个数 ${count}`);
     } else {
       icons.forEach((name, k) => {
-        if (!ICON_NAMES.includes(name)) add(`${at}/visual/data/icons/${k}`, 'UNKNOWN_ICON', `镜头 ${shot.id} 的图标 ${name ?? '空'} 不在内置 24 个图标里`);
+        if (!ICON_NAMES.includes(name)) add(`${at}/visual/data/icons/${k}`, 'UNKNOWN_ICON', `镜头 ${shot.id} 的图标 ${name ?? '空'} 不在内置 ${ICON_NAMES.length} 个图标里`);
       });
     }
+  }
+  if ((shot.visual.template === 'timeline' || shot.visual.template === 'cycle') && Array.isArray(shot.visual.data?.items)) {
+    shot.visual.data.items.forEach((item, k) => {
+      if (item?.icon !== undefined && !ICON_NAMES.includes(item.icon)) {
+        add(`${at}/visual/data/items/${k}/icon`, 'UNKNOWN_ICON', `镜头 ${shot.id} 的图标 ${item.icon ?? '空'} 不在内置 ${ICON_NAMES.length} 个图标里`);
+      }
+    });
   }
   if (isObject(shot.host)) {
     if (!PROFILE.expressions.includes(shot.host.expr)) add(`${at}/host/expr`, 'INVALID_VALUE', `镜头 ${shot.id} 的表情 ${shot.host.expr ?? '空'} 不在可选列表里（见 storyboard.md 的主持人一节）`);
@@ -237,7 +387,7 @@ function checkCues(shot, at, sentences, add) {
       }
     }
     if (!CUE_ACTIONS.includes(cue.do)) return add(`${path}/do`, 'INVALID_VALUE', `镜头 ${shot.id} 的 cue 动作 ${cue.do ?? '空'} 不存在，可选 ${CUE_ACTIONS.join('、')}`);
-    if (HOST_CUES.includes(cue.do) && shot.layout !== 'host-left') {
+    if (HOST_CUES.includes(cue.do) && !HOST_LAYOUTS.includes(shot.layout)) {
       add(`${path}/do`, 'CUE_NEEDS_HOST', `镜头 ${shot.id} 不显示主持人，不能用 ${cue.do} cue`);
     }
     // move takes an element number or a preset spot (left, center, right); only a number has to exist.

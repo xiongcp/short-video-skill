@@ -62,3 +62,18 @@ test('after a revision of a confirmed plan, asks for the stale line instead of a
     '提示词包.md 已过期：方案改到 revision 2 后还没确认，在标题下加一行“以下镜头已过期，待确认后更新：sh…”，其他内容不动',
   ]);
 });
+
+test('checks visual world line in 分镜.md only when project.world is present', () => {
+  const withWorld = {
+    ...project,
+    world: { metaphor: '缓存是家门口的冰箱', style: 'paper', scene: 'kitchen' },
+  };
+  assert.ok(checkDerivedDocs(withWorld, script, board).length > 0);
+  const worldBoard = `视觉世界：缓存是家门口的冰箱；风格 paper；场景 kitchen\n${board}`;
+  assert.deepEqual(checkDerivedDocs(withWorld, script, worldBoard), []);
+  assert.ok(checkDerivedDocs(withWorld, script, worldBoard.replace('paper', 'night')).length > 0);
+  assert.ok(checkDerivedDocs(withWorld, script, worldBoard.replace('kitchen', 'lab')).length > 0);
+  assert.ok(checkDerivedDocs(withWorld, script, worldBoard.replace('家门口的冰箱', '超市')).length > 0);
+  // Legacy project without world does not require visual world line
+  assert.deepEqual(checkDerivedDocs(project, script, board), []);
+});

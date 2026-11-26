@@ -27,6 +27,7 @@
 | 版式 | 画面 | 适合 |
 | --- | --- | --- |
 | `host-left` | 图解在上部，主持人在下方，能走到元素旁边 | 开场、提问、总结、情绪转折、要指着讲的元素 |
+| `stage` | 主持人和物件落地同台 | 比喻、过程、对比 |
 | `full` | 图解占满画面，不出现主持人 | 机制、流程、对比、数据 |
 
 - `host-left` 镜头必须写 `host`；`full` 镜头不写。
@@ -82,6 +83,9 @@
 | `compare` | `left`、`right`：各含 `label` 和 1–3 行 `rows` | 标签 8 字，每行 12 字 | 0 是左栏，1 是右栏 |
 | `number` | `value`、`label` | 8 字 / 12 字 | 无 |
 | `bars` | `items`：1–6 个 `{label, value}`，可选 `unit` | 标签 6 字，单位 4 字 | 每根柱子 |
+| `stage` | `objects` 1–5 个，可选 `heading`/`links` | 14 / 8 字 | 每个物件 |
+| `timeline` | `items` 2–5 个 `{time, label, icon?}` | 6 / 8 字 | 每个时间点 |
+| `cycle` | `items` 3–5 个 `{label, icon?}` | 6 字 | 每一步 |
 
 ```json
 { "template": "flow", "data": { "nodes": ["验证信息", "询问服务器", "返回304"] } }
@@ -112,7 +116,7 @@
 | `move` | 元素序号，或 `left`、`center`、`right` | 主持人在这句开始时走过去（仅限 `host-left`） |
 | `prop` | 道具名，或 `none` | 主持人在这句开始时拿起道具，`none` 是放下（仅限 `host-left`） |
 
-- `sentence` 必须是本镜头 `sentences` 里的句子。可选：`cue.at` 填本句关键词子串（L1 精准卡点）；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（24 个内置图标）。
+- `sentence` 必须是本镜头 `sentences` 里的句子。可选：`cue.at` 填本句关键词子串（L1 精准卡点）；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（60 个内置图标）。
 - `title` 和 `number` 没有可单独指定的元素，不能用 `reveal`、`highlight` 或写序号的 `move`。
 
 ## 分镜.md 格式
@@ -127,7 +131,7 @@
 | sh01 | s01·0 | 6 秒 | host-left | curious / think | title：同一张图，两次打开 / 还要从头下载吗？ | 抛出问题：第二次打开还要重新下载吗 | 句 0 拿起问号牌 |
 ```
 
-样片候选：挑一段 15–20 秒的连续镜头，包含主持人、最难的一个图解和一次版式切换。
+样片候选：挑 15–20 秒连续镜头，含主持人、最难图解和一次版式切换。
 
 ## 交付前自查
 
