@@ -381,6 +381,13 @@ test('polished poses: smooth spine arc, tucked jump, knee-hugging sit, and light
   assert.ok((emphasize.waist ?? 0) <= 4, `emphasize waist ${emphasize.waist}`);
 });
 
+test('drawHost stays backward compatible with a v1 manifest that omits ink.lines', () => {
+  const v1 = structuredClone(manifest);
+  delete v1.ink.lines;
+  const svg = drawHost(v1, { gesture: 'idle', expr: 'explaining', x: 400, ground: 930, seed: 'v1' });
+  assert.ok(svg.includes('data-host="xiaoqing"'));
+});
+
 test('an unknown gesture, expression, prop, view or theme is a clear error', () => {
   assert.throws(() => draw({ gesture: 'dance' }), /unknown gesture dance/);
   assert.throws(() => draw({ expr: 'angry' }), /unknown expression angry/);

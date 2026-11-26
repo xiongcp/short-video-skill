@@ -176,12 +176,19 @@ export async function runQa(projectDir, {
     for (const p of plans) {
       cutFrames.add(cursorFrame);
       if (cursorFrame > 0) cutFrames.add(cursorFrame + 1); // allow 1-frame codec alignment
-      // Transition & reveal motion windows
-      for (let f = cursorFrame + 2; f < Math.min(cursorFrame + Math.round(0.35 * fps), cursorFrame + p.frameCount); f += 1) {
-        motionFrames.add(f);
+      // Only check freezes during explicit active transitions or reveal/move/once-gesture animations
+      const trSec = p.transition?.kind && p.transition.kind !== 'cut' ? (p.transition.durationSec ?? 0.3) : 0;
+      if (trSec > 0) {
+        const endF = Math.min(cursorFrame + Math.round(trSec * fps) - 2, cursorFrame + p.frameCount);
+        for (let f = cursorFrame + 2; f < endF; f += 1) motionFrames.add(f);
       }
       for (const c of p.cues ?? []) {
         if (c.at) anchoredCues.push({ shotId: p.id, ...c, actualMs: c.timeMs });
+        if (['reveal', 'move'].includes(c.do)) {
+          const cf = cursorFrame + Math.round(((c.timeMs ?? 0) / 1000) * fps);
+          const endF = Math.min(cf + Math.round(0.25 * fps), cursorFrame + p.frameCount);
+          for (let f = cf + 1; f < endF; f += 1) motionFrames.add(f);
+        }
       }
       cursorFrame += p.frameCount;
     }

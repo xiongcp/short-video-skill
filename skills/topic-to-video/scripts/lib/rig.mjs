@@ -286,10 +286,12 @@ export function drawHost(manifest, state) {
   if (!manifest.views[view]) throw new Error(`unknown view ${view}`);
   const fk = forwardKinematics(manifest, angles ?? poseAngles(manifest, gesture, prop, view), { view, facing, x, ground, lift: lift ?? pose.lift ?? 0 });
   const { points: p, dirs, H, R } = fk;
+  const defaultLines = { face: [0.008, 0.011], symbol: [0.009, 0.013], prop: [0.012, 0.016], fine: [0.0075, 0.01], scarf: manifest.ink.width };
+  const rawLines = { ...defaultLines, ...(manifest.ink.lines ?? {}) };
   const ctx = {
     manifest, seed, H, R, ink: manifest.ink.body[theme], accent: manifest.ink.accent, markers: manifest.ink.markers,
     width: manifest.ink.width.map((w) => w * H),
-    lines: Object.fromEntries(Object.entries(manifest.ink.lines).map(([k, w]) => [k, w.map((v) => v * H)])),
+    lines: Object.fromEntries(Object.entries(rawLines).map(([k, w]) => [k, w.map((v) => v * H)])),
     wobble: manifest.ink.wobble * H,
   };
   const [fw, fh] = manifest.figure.foot.map((v) => (v * H) / 2);
