@@ -3,7 +3,7 @@
 // and standing spot solver (火柴人主持人设计 §5–§7).
 import { clamp01, easeInOutCubic, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
 import { random } from './ink.mjs';
-import { ACTING, clampAngles, forwardKinematics, JOINTS, poseAngles, resolvePose } from './rig.mjs';
+import { ACTING, ahogePoints, clampAngles, forwardKinematics, JOINTS, poseAngles, resolvePose } from './rig.mjs';
 
 const RAD = Math.PI / 180;
 const DEG = 180 / Math.PI;
@@ -404,6 +404,12 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   let holdChangedAt = -10;
   let activeOnce = resolvePose(manifest, start.gesture).type === 'once' ? { gesture: start.gesture, t0: 0 } : null;
 
+  // One-shot gestures that land during a move cue wait until the walk arrives instead of being swallowed.
+  const afterWalk = (ct) => {
+    const seg = walkSegments.find((s) => s.t1 > s.t0 && ct >= s.t0 - 1e-6 && ct < s.t1);
+    return seg ? seg.t1 : ct;
+  };
+
   for (const c of effectiveCues) {
     const ct = c.timeMs / 1000;
     if (ct > t) break;
@@ -411,8 +417,10 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     else if (c.do === 'prop') { prop = c.target; }
     else if (c.do === 'gesture') {
       const p = resolvePose(manifest, c.target);
-      if (p.type === 'once') activeOnce = { gesture: c.target, t0: ct };
-      else { prevHoldGesture = holdGesture; holdGesture = c.target; holdChangedAt = ct; }
+      if (p.type === 'once') {
+        const onceT0 = afterWalk(ct);
+        if (onceT0 <= t && (!activeOnce || onceT0 >= activeOnce.t0)) activeOnce = { gesture: c.target, t0: onceT0 };
+      } else { prevHoldGesture = holdGesture; holdGesture = c.target; holdChangedAt = ct; }
     }
   }
 
@@ -604,7 +612,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   const kickOf = (g, t0) => ({ t0: g === 'double_take' ? t0 + 0.35 * (resolvePose(manifest, g).seconds ?? 1) : t0, amp: g === 'startle' ? -1 : 1 });
   const kicks = [
     ...(['jump', 'startle', 'double_take'].includes(start.gesture) ? [kickOf(start.gesture, 0)] : []),
-    ...effectiveCues.filter((c) => c.do === 'gesture' && ['jump', 'startle', 'double_take'].includes(c.target)).map((c) => kickOf(c.target, c.timeMs / 1000)),
+    ...effectiveCues.filter((c) => c.do === 'gesture' && ['jump', 'startle', 'double_take'].includes(c.target)).map((c) => kickOf(c.target, afterWalk(c.timeMs / 1000))),
     ...effectiveCues.filter((c) => c.do === 'expr' && ['surprised', 'amazed'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: -0.7 })),
     ...fidgets.filter((f) => f.kind === 'flick').map((f) => ({ t0: f.t0, amp: 0.6 })),
   ];
@@ -621,9 +629,12 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   const scarfAngles = simulateScarfSpring(manifest, velAt, Math.min(t, 3));
   const symbolOpacity = exprChangedAt >= 0 ? clamp01((t - exprChangedAt) / 0.2) : 1;
 
-  // Compute body bbox (head + torso, excluding arms/props) for QA occlusion check (§7.6)
+  // Compute body bbox (head + hat/呆毛 + torso, excluding arms/props) for QA occlusion check (§7.6)
   const fk = forwardKinematics(manifest, angles, { view, facing, x: finalX, ground, lift });
-  const headTop = fk.points.head_center[1] - fk.R;
+  const topV = manifest.ahoge
+    ? Math.min(-1, ...ahogePoints(manifest, { expr, ...ahoge, outfit: plan.outfit ?? 'none' }).map(([, v]) => v)) - Math.max(0, headStretch)
+    : -1;
+  const headTop = fk.points.head_center[1] + topV * fk.R;
   const bodyBbox = {
     x: finalX - fk.R,
     y: headTop,

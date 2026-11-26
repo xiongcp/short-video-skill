@@ -8,7 +8,7 @@ import { drawHost } from './rig.mjs';
 import { DIAGRAM_ZONES, layoutElements, paperBackgroundSvg, renderDiagram, THEME_PALETTE } from './templates.mjs';
 import { resolveCueTiming, splitClauses } from './timing.mjs';
 
-export const SCENE_VERSION = 2;
+export const SCENE_VERSION = 3;
 
 const lerpBox = (a, b, t) => ({
   x: lerp(a.x, b.x, t),
@@ -172,15 +172,17 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
 
 function buildElementStates(shotPlan, t, tapFocusIdx, tapImpact) {
   const revealed = new Map();
-  const highlighted = new Map();
+  const focusChanges = [];
   for (const c of shotPlan.cues) {
     if (c.do === 'reveal' && Number.isInteger(c.target)) {
       if (!revealed.has(c.target)) revealed.set(c.target, c.timeMs / 1000);
+      focusChanges.push({ do: 'reveal', target: c.target, t: c.timeMs / 1000 });
     }
     if (c.do === 'highlight' && Number.isInteger(c.target)) {
-      highlighted.set(c.target, c.timeMs / 1000);
+      focusChanges.push({ do: 'highlight', target: c.target, t: c.timeMs / 1000 });
     }
   }
+  focusChanges.sort((a, b) => a.t - b.t);
   let fastMotion = false;
   const states = shotPlan.elements.map((_, i) => {
     let opacity = 1;
@@ -205,9 +207,15 @@ function buildElementStates(shotPlan, t, tapFocusIdx, tapImpact) {
       }
     }
     let highlight = 0;
-    if (highlighted.has(i)) {
-      const dt = t - highlighted.get(i);
-      if (dt >= 0) highlight = dt < 0.25 ? easeOutBack(dt / 0.25) : 1;
+    const lastHl = focusChanges.filter((e) => e.do === 'highlight' && e.target === i && e.t <= t).at(-1);
+    if (lastHl) {
+      const nextFocus = focusChanges.find((e) => e.t > lastHl.t && e.target !== i);
+      if (!nextFocus || t < nextFocus.t) {
+        const dt = t - lastHl.t;
+        highlight = dt < 0.25 ? easeOutBack(dt / 0.25) : 1;
+      } else if (t - nextFocus.t < 0.25) {
+        highlight = 1 - easeOutCubic((t - nextFocus.t) / 0.25);
+      }
     }
     const tapShake = tapFocusIdx === i ? tapImpact : 0;
     return { opacity, scale, dy, highlight, arrowProgress, tapShake };
@@ -351,22 +359,25 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     const sharedByNext = new Map(tr.shared.map((s) => [s.nextIndex, s.prevIndex]));
     const sharedPrevSet = new Set(tr.shared.map((s) => s.prevIndex));
     const u = easeInOutCubic(trU);
+    const hasShared = tr.shared.length > 0;
     states.forEach((st, ni) => {
       if (sharedByNext.has(ni)) {
         const pi = sharedByNext.get(ni);
         st.overrideBbox = lerpBox(shotPlan.prevShot.elements[pi].bbox, shotPlan.elements[ni].bbox, u);
-      } else {
+      } else if (hasShared) {
         // New-only elements fade in during [0.15s, duration]
         const fade = clamp01((t - 0.15) / Math.max(0.1, tr.durationSec - 0.15));
         st.opacity *= fade;
+      } else {
+        st.opacity *= u;
       }
     });
-    // Old-only elements shrink & fade out during [0, 0.2s]
-    if (t < 0.2) {
-      const fadeOut = 1 - easeOutCubic(t / 0.2);
+    // Old-only elements: cross-dissolve smoothly when nothing is morphing; clear early when shared elements morph.
+    if (!hasShared || t < 0.2) {
+      const fadeOut = hasShared ? 1 - easeOutCubic(t / 0.2) : 1 - u;
       const prevStates = shotPlan.prevShot.elements.map((_, pi) => ({
         opacity: sharedPrevSet.has(pi) ? 0 : fadeOut,
-        scale: lerp(0.92, 1, fadeOut),
+        scale: lerp(hasShared ? 0.92 : 0.96, 1, fadeOut),
       }));
       const prevRes = renderDiagram(shotPlan.prevShot.shot.visual, {
         layout: shotPlan.prevShot.shot.layout,

@@ -5,7 +5,7 @@ import { drawIcon } from './icons.mjs';
 import { circlePoints, inkStroke, markerFill, num, resample } from './ink.mjs';
 
 export const DIAGRAM_ZONES = {
-  'host-left': { x: 640, y: 80, w: 1200, h: 420 },
+  'host-left': { x: 640, y: 48, w: 1200, h: 400 },
   full: { x: 120, y: 120, w: 1680, h: 740 },
 };
 

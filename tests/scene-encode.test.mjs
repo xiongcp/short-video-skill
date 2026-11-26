@@ -149,3 +149,55 @@ test('the automatic snap count carries from one host-left shot to the next', () 
   assert.deepEqual(plans.map((pl) => pl.startState.autoSnaps), [0, 1, 2]);
   assert.notEqual(evaluateFrame(manifest, plans[2], 0.5).vectorSvg.match(/data-gesture="(\w+)"/)[1], 'snap');
 });
+
+test('a newer highlight or reveal fades out the previous highlight circle instead of leaving both lit', () => {
+  const p = minimal();
+  p.sections[0].text = '先看左边。再看右边。';
+  p.shots = [{
+    id: 'sh01', section: 's01', sentences: [0, 1], layout: 'full',
+    visual: { template: 'compare', data: { left: { label: '甲', rows: ['一'] }, right: { label: '乙', rows: ['二'] } } },
+    cues: [
+      { sentence: 0, do: 'highlight', target: 0 },
+      { sentence: 1, do: 'highlight', target: 1 },
+    ],
+    note: 'switch highlight',
+  }];
+  const timing = {
+    's01-0': { file: 'audio/s01-0.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'a' },
+    's01-1': { file: 'audio/s01-1.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'b' },
+  };
+  const [shotPlan] = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+  assert.match(evaluateFrame(manifest, shotPlan, 0.8).vectorSvg, /data-highlight="0"/);
+  const later = evaluateFrame(manifest, shotPlan, 2.5).vectorSvg;
+  assert.match(later, /data-highlight="1"/);
+  assert.doesNotMatch(later, /data-highlight="0"/, 'earlier highlight clears once focus moves');
+});
+
+test('a host-left morph with no shared elements cross-dissolves without a mid-transition blank gap', () => {
+  const p = minimal();
+  p.shots[1].layout = 'host-left';
+  p.shots[1].host = { expr: 'explaining', gesture: 'point' };
+  p.shots[1].cues = [];
+  const timing = {
+    's01-0': { file: 'audio/s01-0.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'a' },
+    's01-1': { file: 'audio/s01-1.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'b' },
+  };
+  const plans = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+  const mid = evaluateFrame(manifest, plans[1], 0.18);
+  const textOpacities = mid.textItems.filter((ti) => !ti.key?.startsWith('sub-')).map((ti) => ti.opacity);
+  const maxOp = Math.max(0, ...textOpacities);
+  assert.ok(maxOp >= 0.4, `mid-transition diagram faded to near-blank (maxOpacity=${maxOp.toFixed(3)})`);
+});
+
+test('host-left diagram bottom leaves vertical room above the host 呆毛', () => {
+  const p = minimal();
+  p.shots[0].visual = { template: 'compare', data: { left: { label: '甲', rows: ['一'] }, right: { label: '乙', rows: ['二'] } } };
+  const timing = {
+    's01-0': { file: 'audio/s01-0.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'a' },
+    's01-1': { file: 'audio/s01-1.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'b' },
+  };
+  const [shotPlan] = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+  const diagBottom = Math.max(...shotPlan.elements.map((e) => e.bbox.y + e.bbox.h));
+  const frame = evaluateFrame(manifest, shotPlan, 0.5);
+  assert.ok(diagBottom < frame.hostMeta.bodyBbox.y, `diagram bottom ${diagBottom} overlaps host top ${frame.hostMeta.bodyBbox.y}`);
+});

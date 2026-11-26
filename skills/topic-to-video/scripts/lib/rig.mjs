@@ -422,7 +422,8 @@ export function drawHost(manifest, state) {
     : '';
   const head = `<g data-joint="head" ${origin(p.head_base)}>${pen(ctx, 'head', squash(circlePoints(p.head_center[0], p.head_center[1], R, { seed: `${seed}:head-circle` }), p.head_center, dirs.head, k))}`
     + `<g data-face="${expr}" transform="${headFrame}">${face(ctx, expr, view, blink, { mouthOpen, mouthWidth, gaze, outfit })}</g>${hair}</g>`;
-  const rawSym = manifest.expressions[expr].symbol ? symbol(ctx, manifest.expressions[expr].symbol, p.head_center, facing) : '';
+  const symName = manifest.expressions[expr].symbol;
+  const rawSym = symName && symName !== prop ? symbol(ctx, symName, p.head_center, facing) : '';
   const sym = rawSym && symbolOpacity < 0.999 ? `<g opacity="${num(Math.max(0, symbolOpacity))}">${rawSym}</g>` : rawSym;
   // The snap's sparkle beside the acting hand (小青人设设计 §4.1).
   const sparkAt = step(mid(p[`${ACTING}_wrist`], p[`${ACTING}_hand`]), -90, 0.07 * H);

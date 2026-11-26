@@ -352,3 +352,38 @@ test('starting a shot with startle, jump or double_take kicks the 呆毛 spring'
     assert.ok(maxBend > 2, `${g} at shot start had maxBend=${maxBend}`);
   }
 });
+
+test('a one-shot gesture queued with a move plays after the walk arrives instead of being swallowed', () => {
+  const el = [{ index: 0, label: '目标', bbox: { x: 1258, y: 64, w: 566, h: 368 } }];
+  const p = plan(
+    [{ sentence: 0, do: 'move', target: 0, timeMs: 1000 }, { sentence: 0, do: 'gesture', target: 'tap', timeMs: 1000 }],
+    { durationSec: 7, elements: el },
+  );
+  // Walk 320 -> 1198 takes ~2.44s (ends ~3.44s); tap should fire after arrival with tapImpact > 0
+  let sawTap = false;
+  let maxImpact = 0;
+  for (let t = 3.5; t <= 4.3; t += 0.05) {
+    const s = evaluateHostAt(manifest, p, t);
+    if (s.gesture === 'tap') sawTap = true;
+    maxImpact = Math.max(maxImpact, s.tapImpact);
+  }
+  assert.equal(sawTap, true, 'tap plays once the walk arrives');
+  assert.ok(maxImpact > 0.5, `expected tapImpact > 0.5, got ${maxImpact}`);
+});
+
+test('bodyBbox includes the 呆毛 and hats, and stays below host-left diagram cards', () => {
+  const p = plan([], { startState: { ...START, x: 1000, expr: 'surprised' }, outfit: 'hardhat' });
+  const s = evaluateHostAt(manifest, p, 1);
+  // Head center is ~576, R=47, hardhat+straight 呆毛 reaches well above head_center - R (~529)
+  assert.ok(s.bodyBbox.y < 500, `bodyBbox.y=${s.bodyBbox.y} should cover the 呆毛 and hat`);
+  const bare = evaluateHostAt(manifest, plan([], { startState: { ...START, x: 1000, expr: 'curious' } }), 1);
+  assert.ok(bare.bodyBbox.y > 448, `bare curious 呆毛 top (${bare.bodyBbox.y}) clears host-left diagram bottom (448)`);
+});
+
+test('holding the question prop hides the redundant curious question symbol beside the head', () => {
+  const withProp = draw({ expr: 'curious', prop: 'question' });
+  assert.match(withProp, /data-prop="question"/);
+  assert.doesNotMatch(withProp, /data-symbol="question"/);
+  const withoutProp = draw({ expr: 'curious', prop: 'none' });
+  assert.match(withoutProp, /data-symbol="question"/);
+});
