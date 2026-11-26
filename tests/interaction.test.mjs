@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   evaluateStageObjects,
   layoutStage,
@@ -7,6 +9,13 @@ import {
   renderStage,
 } from '../skills/topic-to-video/scripts/lib/stage.mjs';
 import { layoutElements, renderDiagram } from '../skills/topic-to-video/scripts/lib/templates.mjs';
+import { drawHost, forwardKinematics } from '../skills/topic-to-video/scripts/lib/rig.mjs';
+import { evaluateHostAt, inferSentenceBeat } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { GROUND_Y } from '../skills/topic-to-video/scripts/lib/world.mjs';
+
+const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
+const H = manifest.height_px;
+const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
 function makeStagePlan(visualData, cues = [], { hostX = 320, customProps = [] } = {}) {
   const stageLayout = layoutStage(visualData, { prevHostX: hostX, customProps });
@@ -567,4 +576,399 @@ test('5. send cue renders package near quadratic Bezier midpoint at t0+0.4 on st
   assert.ok(customPkt.includes('data-send-packet="c_token"'));
   assert.ok(customPkt.includes('data-icon="c_token"'));
   assert.ok(!customPkt.includes('<text'));
+});
+
+function makeHostStagePlan(visualData, cues = [], { hostX = 320, durationSec = 8, startOverrides = {}, sentences = [] } = {}) {
+  const stageLayout = layoutStage(visualData, { prevHostX: hostX });
+  return {
+    id: 'sh-host-inter',
+    seed: 'sh-host-inter',
+    theme: 'light',
+    style: 'paper',
+    ground: GROUND_Y,
+    durationSec,
+    shot: {
+      id: 'sh-host-inter',
+      layout: 'stage',
+      visual: { template: 'stage', data: visualData },
+      cues,
+    },
+    startState: {
+      x: stageLayout.hostX,
+      view: 'three_quarter',
+      facing: 1,
+      gesture: 'idle',
+      expr: 'explaining',
+      prop: 'none',
+      ...startOverrides,
+    },
+    stageLayout,
+    elements: stageLayout.elements,
+    customProps: [],
+    cues,
+    sentences,
+  };
+}
+
+function fkOf(hostState) {
+  return forwardKinematics(manifest, hostState.angles, {
+    view: hostState.view,
+    facing: hostState.facing,
+    x: hostState.x,
+    ground: hostState.ground,
+    lift: hostState.lift,
+    seatY: hostState.seatY ?? null,
+  });
+}
+
+test('6. all 8 stage interactions reach target anchors within 2px at peak and react responds to good vs bad object states', () => {
+  // 6a. open (0.6s): fridge handle within <= 2px at peak
+  const openPlan = makeHostStagePlan(
+    { objects: [{ prop: 'fridge', label: '冰箱', at: 'center', state: 'closed' }] },
+    [{ sentence: 0, do: 'open', target: 0, timeMs: 500 }],
+    { hostX: 1120 },
+  );
+  const openStart = evaluateHostAt(manifest, openPlan, 0.5).interactionStarts?.get(0);
+  assert.ok(Number.isFinite(openStart), 'open returns interactionStarts');
+  const openPeak = evaluateHostAt(manifest, openPlan, openStart + 0.3);
+  assert.equal(openPeak.interacting, true);
+  assert.equal(openPeak.interaction?.kind, 'open');
+  const openFk = fkOf(openPeak);
+  const fridgeHandle = openPlan.elements[0].anchors.handle;
+  assert.ok(dist(openFk.points.l_hand, fridgeHandle) <= 2, `open hand err=${dist(openFk.points.l_hand, fridgeHandle).toFixed(2)}`);
+  assert.ok(dist(openPeak.interaction.handPos, openFk.points.l_hand) <= 0.5);
+
+  // 6b. carry (pickup peak 0.35s): box handle within <= 2px even though box handle is low (needs crouch/lean)
+  const carryPlan = makeHostStagePlan(
+    { objects: [{ prop: 'box', label: '箱子', at: 'center' }] },
+    [{ sentence: 0, do: 'carry', target: 0, timeMs: 500 }],
+    { hostX: 800 },
+  );
+  const carryStart = evaluateHostAt(manifest, carryPlan, 0.5).interactionStarts?.get(0);
+  const carryPeak = evaluateHostAt(manifest, carryPlan, carryStart + 0.35);
+  assert.equal(carryPeak.interacting, true);
+  assert.equal(carryPeak.interaction?.kind, 'carry');
+  assert.equal(carryPeak.interaction?.carriedIdx, 0);
+  const carryFk = fkOf(carryPeak);
+  const boxHandle = carryPlan.elements[0].anchors.handle;
+  assert.ok(dist(carryFk.points.l_hand, boxHandle) <= 2, `carry pickup hand err=${dist(carryFk.points.l_hand, boxHandle).toFixed(2)}`);
+
+  // 6c. push & pull (0.7s): tracks animated object side/handle within <= 2px at peak while leaning forward/back
+  const pushPlan = makeHostStagePlan(
+    { objects: [{ prop: 'box', label: '推箱', at: 'center' }] },
+    [{ sentence: 0, do: 'push', target: 0, timeMs: 500 }],
+    { hostX: 800 },
+  );
+  const pushPeakT = 0.5 + 0.35;
+  const pushPeak = evaluateHostAt(manifest, pushPlan, pushPeakT);
+  assert.equal(pushPeak.interacting, true);
+  assert.equal(pushPeak.interaction?.kind, 'push');
+  assert.ok(Number.isFinite(pushPeak.interaction?.standX), 'push exposes interaction.standX');
+  assert.ok(pushPeak.angles.waist > 8, `push leans forward (waist=${pushPeak.angles.waist})`);
+  const pushStage = evaluateStageObjects(pushPlan, pushPeakT, pushPeak);
+  const pushSidePt = [pushPlan.elements[0].bbox.x + pushStage.objectStates[0].dx, pushPlan.elements[0].anchors.handle[1]];
+  const pushFk = fkOf(pushPeak);
+  assert.ok(dist(pushFk.points.l_hand, pushSidePt) <= 2, `push hand err=${dist(pushFk.points.l_hand, pushSidePt).toFixed(2)}`);
+
+  const pullPlan = makeHostStagePlan(
+    { objects: [{ prop: 'box', label: '拉箱', at: 'center' }] },
+    [{ sentence: 0, do: 'pull', target: 0, timeMs: 500 }],
+    { hostX: 800 },
+  );
+  const pullPeakT = 0.5 + 0.35;
+  const pullPeak = evaluateHostAt(manifest, pullPlan, pullPeakT);
+  assert.equal(pullPeak.interacting, true);
+  assert.equal(pullPeak.interaction?.kind, 'pull');
+  assert.ok(pullPeak.angles.waist < -5, `pull leans back (waist=${pullPeak.angles.waist})`);
+  const pullStage = evaluateStageObjects(pullPlan, pullPeakT, pullPeak);
+  const pullAnchorPt = [pullPlan.elements[0].anchors.handle[0] + pullStage.objectStates[0].dx, pullPlan.elements[0].anchors.handle[1]];
+  const pullFk = fkOf(pullPeak);
+  assert.ok(dist(pullFk.points.l_hand, pullAnchorPt) <= 2, `pull hand err=${dist(pullFk.points.l_hand, pullAnchorPt).toFixed(2)}`);
+
+  // 6d. hold_up (1.5s): both arms overhead to [x, headTop - 24] within <= 2px, then returns after 1.5s
+  const holdPlan = makeHostStagePlan(
+    { objects: [{ prop: 'package', label: '包裹', at: 'center' }] },
+    [{ sentence: 0, do: 'hold_up', target: 0, timeMs: 500 }],
+    { hostX: 830 },
+  );
+  const holdStart = evaluateHostAt(manifest, holdPlan, 0.5).interactionStarts?.get(0);
+  const holdPeak = evaluateHostAt(manifest, holdPlan, holdStart + 0.75);
+  assert.equal(holdPeak.interacting, true);
+  assert.equal(holdPeak.interaction?.kind, 'hold_up');
+  const holdFk = fkOf(holdPeak);
+  const overheadTarget = [holdPeak.x, holdFk.points.head_center[1] - holdFk.R - 24];
+  assert.ok(dist(holdFk.points.l_hand, overheadTarget) <= 2, `hold_up l_hand err=${dist(holdFk.points.l_hand, overheadTarget).toFixed(2)}`);
+  assert.ok(dist(holdFk.points.r_hand, overheadTarget) <= 2, `hold_up r_hand err=${dist(holdFk.points.r_hand, overheadTarget).toFixed(2)}`);
+  const holdAfter = evaluateHostAt(manifest, holdPlan, holdStart + 1.6);
+  assert.equal(holdAfter.interacting, false);
+  const holdAfterStage = evaluateStageObjects(holdPlan, holdStart + 1.6, holdAfter);
+  assert.equal(holdAfterStage.objectStates[0].heldUp, false);
+
+  // 6e. draw (1.0s): sweeps across anchors.front and lands within <= 2px of anchors.front at peak (0.5s)
+  const drawPlan = makeHostStagePlan(
+    { objects: [{ prop: 'whiteboard', label: '缓存流程图', at: 'center' }] },
+    [{ sentence: 0, do: 'draw', target: 0, timeMs: 500 }],
+    { hostX: 600 },
+  );
+  const drawStart = evaluateHostAt(manifest, drawPlan, 0.5).interactionStarts?.get(0);
+  const drawEarly = evaluateHostAt(manifest, drawPlan, drawStart + 0.125);
+  const drawPeak = evaluateHostAt(manifest, drawPlan, drawStart + 0.5);
+  assert.equal(drawPeak.interacting, true);
+  assert.equal(drawPeak.interaction?.kind, 'draw');
+  const drawFkPeak = fkOf(drawPeak);
+  const drawFkEarly = fkOf(drawEarly);
+  assert.ok(dist(drawFkPeak.points.l_hand, drawPlan.elements[0].anchors.front) <= 2,
+    `draw peak hand err=${dist(drawFkPeak.points.l_hand, drawPlan.elements[0].anchors.front).toFixed(2)}`);
+  assert.ok(Math.abs(drawFkEarly.points.l_hand[0] - drawFkPeak.points.l_hand[0]) > 15, 'draw sweeps horizontally across whiteboard');
+
+  // 6f. sit_on: pelvis aligns to seat within <= 2px
+  const sitPlan = makeHostStagePlan(
+    { objects: [{ prop: 'chair', label: '椅子', at: 'center' }] },
+    [{ sentence: 0, do: 'sit_on', target: 0, timeMs: 500 }],
+    { hostX: 960 },
+  );
+  const sitState = evaluateHostAt(manifest, sitPlan, 1.2);
+  assert.equal(sitState.interacting, true);
+  assert.equal(sitState.interaction?.kind, 'sit_on');
+  const sitFk = fkOf(sitState);
+  assert.ok(Math.abs(sitFk.points.pelvis[1] - sitPlan.elements[0].anchors.seat[1]) <= 2,
+    `sit_on pelvisY=${sitFk.points.pelvis[1]} vs seatY=${sitPlan.elements[0].anchors.seat[1]}`);
+
+  // 6g. react (0.8s, no walk): faces target; bad state recoils back; good state cheers with raised hands
+  const reactBadPlan = makeHostStagePlan(
+    { objects: [{ prop: 'doc', label: '旧文件', at: 'left', state: 'fresh' }] },
+    [
+      { sentence: 0, do: 'state', target: 0, value: 'expired', timeMs: 400 },
+      { sentence: 0, do: 'react', target: 0, timeMs: 600 },
+    ],
+    { hostX: 1100, startOverrides: { facing: 1 } },
+  );
+  const badPre = evaluateHostAt(manifest, reactBadPlan, 0.5);
+  const badPeak = evaluateHostAt(manifest, reactBadPlan, 1.0);
+  assert.equal(badPeak.interacting, true);
+  assert.equal(badPeak.interaction?.kind, 'react');
+  assert.equal(badPeak.facing, -1, 'react turns to face object on left');
+  assert.ok((badPeak.x - badPre.x) * badPeak.facing < -5, `expired react recoils backward: x ${badPre.x} -> ${badPeak.x}, facing=${badPeak.facing}`);
+  assert.ok(badPeak.angles.waist < -4, `expired react leans torso back (waist=${badPeak.angles.waist})`);
+
+  const reactGoodPlan = makeHostStagePlan(
+    { objects: [{ prop: 'doc', label: '新文件', at: 'right', state: 'fresh' }] },
+    [{ sentence: 0, do: 'react', target: 0, timeMs: 500 }],
+    { hostX: 400, startOverrides: { facing: -1 } },
+  );
+  const goodPeak = evaluateHostAt(manifest, reactGoodPlan, 0.9);
+  const goodFk = fkOf(goodPeak);
+  assert.equal(goodPeak.facing, 1, 'react faces object on right');
+  assert.ok(goodFk.points.l_hand[1] < goodFk.points.head_center[1] && goodFk.points.r_hand[1] < goodFk.points.head_center[1],
+    'fresh react raises both hands overhead to cheer');
+});
+
+test('7. auto-approach walks from x=240 to fridge at x=1320 before executing open, synchronizing stage state via interactionStarts', () => {
+  const plan = makeHostStagePlan(
+    { objects: [{ prop: 'fridge', label: '冰箱', at: 'mid-right', state: 'closed' }] },
+    [{ sentence: 0, do: 'open', target: 0, timeMs: 500 }],
+    { hostX: 240, durationSec: 8, startOverrides: { x: 240 } },
+  );
+
+  // Immediately after cue (t=1.0): host must be walking toward fridge, not reaching from x=240
+  const walking = evaluateHostAt(manifest, plan, 1.0);
+  assert.equal(walking.view, 'side', 'host is walking before reaching fridge');
+  assert.ok(walking.x > 240 && walking.x < 1200, `host mid-walk at x=${walking.x}`);
+  assert.equal(walking.interacting, false);
+  const walkingStage = evaluateStageObjects(plan, 1.0, walking);
+  assert.equal(walkingStage.objectStates[0].state, 'closed', 'fridge stays closed until host arrives');
+
+  // After arrival: interactionStarts[0] marks when open begins
+  const openStart = walking.interactionStarts.get(0);
+  assert.ok(openStart > 2.5, `expected auto-approach arrival > 2.5s, got ${openStart}`);
+  const openPeak = evaluateHostAt(manifest, plan, openStart + 0.3);
+  assert.equal(openPeak.interacting, true);
+  assert.equal(openPeak.interaction?.kind, 'open');
+  const peakFk = fkOf(openPeak);
+  assert.ok(dist(peakFk.points.l_hand, plan.elements[0].anchors.handle) <= 2,
+    `after auto-approach open hand err=${dist(peakFk.points.l_hand, plan.elements[0].anchors.handle).toFixed(2)}`);
+
+  const openStage = evaluateStageObjects(plan, openStart + 0.3, openPeak);
+  assert.equal(openStage.objectStates[0].state, 'open');
+  assert.ok(openStage.objectStates[0].stateProgress > 0 && openStage.objectStates[0].stateProgress < 1);
+
+  // Cumulative push offset: push box +160px then open it — open must aim at pushed handle, not original handle
+  const pushThenOpenPlan = makeHostStagePlan(
+    { objects: [{ prop: 'box', label: '推开箱', at: 'center', state: 'closed' }] },
+    [
+      { sentence: 0, do: 'push', target: 0, timeMs: 200 },
+      { sentence: 0, do: 'open', target: 0, timeMs: 1200 },
+    ],
+    { hostX: 800, durationSec: 6 },
+  );
+  const openAfterPushStart = evaluateHostAt(manifest, pushThenOpenPlan, 0.1).interactionStarts.get(1);
+  const openAfterPushPeak = evaluateHostAt(manifest, pushThenOpenPlan, openAfterPushStart + 0.3);
+  const openAfterPushStage = evaluateStageObjects(pushThenOpenPlan, openAfterPushStart + 0.3, openAfterPushPeak);
+  const shiftedBoxHandle = [
+    pushThenOpenPlan.elements[0].anchors.handle[0] + openAfterPushStage.objectStates[0].dx,
+    pushThenOpenPlan.elements[0].anchors.handle[1],
+  ];
+  assert.ok(openAfterPushStage.objectStates[0].dx > 150, `box pushed before open (dx=${openAfterPushStage.objectStates[0].dx})`);
+  assert.ok(dist(fkOf(openAfterPushPeak).points.l_hand, shiftedBoxHandle) <= 2,
+    `post-push open targets shifted handle err=${dist(fkOf(openAfterPushPeak).points.l_hand, shiftedBoxHandle).toFixed(2)}`);
+});
+
+test('8. carry chain drops held prop, follows host across move, drops at feet on carry:none, and auto-drops on carrying a second object', () => {
+  const visualData = {
+    objects: [
+      { prop: 'package', label: '包裹', at: 'left' },
+      { prop: 'cup', label: '咖啡', at: 'mid-left' },
+    ],
+  };
+  const cues = [
+    { sentence: 0, do: 'carry', target: 0, timeMs: 200 },
+    { sentence: 0, do: 'move', target: 'right', timeMs: 1200 },
+    { sentence: 0, do: 'carry', target: 'none', timeMs: 6000 },
+  ];
+  const plan = makeHostStagePlan(visualData, cues, {
+    hostX: 480,
+    durationSec: 8,
+    startOverrides: { prop: 'phone' },
+  });
+
+  // Before carry: holding phone
+  const pre = evaluateHostAt(manifest, plan, 0.1);
+  assert.equal(pre.prop, 'phone');
+  assert.equal(pre.interaction, null);
+
+  // After carry pickup (t = 1.0): phone dropped, carrying object 0
+  const startCarry = pre.interactionStarts.get(0);
+  const holding = evaluateHostAt(manifest, plan, startCarry + 0.65);
+  assert.equal(holding.prop, 'none', 'held prop auto-dropped on carry');
+  assert.equal(holding.interacting, true);
+  assert.equal(holding.interaction?.carriedIdx, 0);
+  assert.ok(Array.isArray(holding.interaction?.carriedPos));
+
+  // After move to right (t = 5.5): host and carriedPos both moved right together
+  const moved = evaluateHostAt(manifest, plan, 5.5);
+  assert.ok(moved.x > 1400, `host moved right to x=${moved.x}`);
+  assert.equal(moved.interaction?.carriedIdx, 0);
+  assert.ok(moved.interaction.carriedPos[0] > 1400, `carriedPos followed host to x=${moved.interaction.carriedPos[0]}`);
+  const movedStage = evaluateStageObjects(plan, 5.5, moved);
+  assert.equal(movedStage.objectStates[0].carried, true);
+  assert.equal(movedStage.objectStates[0].inFront, true);
+
+  // After carry: 'none' (t = 6.2): cleared and dropped near host's right position
+  const dropped = evaluateHostAt(manifest, plan, 6.2);
+  assert.equal(dropped.interacting, false);
+  assert.equal(dropped.interaction?.carriedIdx, null);
+  assert.equal(dropped.interaction?.carriedPos, null);
+  assert.ok(dropped.interaction?.droppedSpots?.[0], 'records droppedSpots[0]');
+  assert.equal(dropped.interaction.droppedSpots[0].y, GROUND_Y);
+  assert.ok(dropped.interaction.droppedSpots[0].x > 1400, `dropped near right spot: ${dropped.interaction.droppedSpots[0].x}`);
+  const droppedStage = evaluateStageObjects(plan, 6.2, dropped);
+  assert.equal(droppedStage.objectStates[0].carried, false);
+  assert.equal(droppedStage.objectStates[0].inFront, false);
+
+  // Direct carry swap: carry 0 then carry 1 auto-drops 0
+  const swapPlan = makeHostStagePlan(
+    visualData,
+    [
+      { sentence: 0, do: 'carry', target: 0, timeMs: 200 },
+      { sentence: 0, do: 'carry', target: 1, timeMs: 1500 },
+    ],
+    { hostX: 480, durationSec: 5 },
+  );
+  const swap1Start = evaluateHostAt(manifest, swapPlan, 0.1).interactionStarts.get(1);
+  const swapped = evaluateHostAt(manifest, swapPlan, swap1Start + 0.4);
+  assert.equal(swapped.interaction?.carriedIdx, 1);
+  assert.ok(swapped.interaction?.droppedSpots?.[0], 'carrying object 1 auto-drops object 0');
+  assert.equal(swapped.interaction.droppedSpots[0].y, GROUND_Y);
+});
+
+test('9. sit_on aligns pelvis to seatY without feet poking below ground=930 and stands up on next move', () => {
+  for (const size of ['md', 'sm']) {
+    const plan = makeHostStagePlan(
+      { objects: [{ prop: 'chair', label: '椅子', at: 'center', size }] },
+      [
+        { sentence: 0, do: 'sit_on', target: 0, timeMs: 300 },
+        { sentence: 0, do: 'move', target: 'right', timeMs: 3000 },
+      ],
+      { hostX: 960, durationSec: 6 },
+    );
+    const seatPt = plan.elements[0].anchors.seat;
+    const seated = evaluateHostAt(manifest, plan, 1.5);
+    assert.equal(seated.interacting, true);
+    assert.equal(seated.interaction?.kind, 'sit_on');
+    const fk = fkOf(seated);
+    assert.ok(Math.abs(fk.points.pelvis[1] - seatPt[1]) <= 4, `${size} chair pelvis[1]=${fk.points.pelvis[1]} vs seatY=${seatPt[1]}`);
+    const sole = (manifest.figure.foot[1] * H) / 2;
+    for (const k of ['l_ankle', 'l_toe', 'r_ankle', 'r_toe']) {
+      assert.ok(fk.points[k][1] + sole <= GROUND_Y + 0.5, `${size} chair ${k} foot y=${fk.points[k][1] + sole} <= ${GROUND_Y}`);
+    }
+    const svg = drawHost(manifest, seated);
+    assert.ok(svg.includes('data-host="xiaoqing"'));
+
+    // Next move stands up and walks away
+    const stoodUp = evaluateHostAt(manifest, plan, 3.3);
+    assert.equal(stoodUp.view, 'side');
+    assert.equal(stoodUp.seatY ?? null, null);
+    assert.equal(stoodUp.interacting, false);
+    assert.ok(stoodUp.x > seatPt[0] + 10, `host stood up and walked right: x=${stoodUp.x}`);
+  }
+});
+
+test('10. micro-cooperation turns head on reveal, nods on highlight/state, and stage inferSentenceBeat skips interactions and repeated holds', () => {
+  const basePlan = makeHostStagePlan(
+    { objects: [{ prop: 'doc', label: '文档', at: 'right', state: 'fresh' }] },
+    [],
+    { hostX: 320, durationSec: 5 },
+  );
+  const revPlan = makeHostStagePlan(
+    { objects: [{ prop: 'doc', label: '文档', at: 'right', state: 'fresh' }] },
+    [{ sentence: 0, do: 'reveal', target: 0, timeMs: 1000 }],
+    { hostX: 320, durationSec: 5 },
+  );
+  const noRev = evaluateHostAt(manifest, basePlan, 1.2);
+  const atRev = evaluateHostAt(manifest, revPlan, 1.2);
+  assert.ok(Math.abs(atRev.angles.head - noRev.angles.head) >= 3, `head turns on reveal (base=${noRev.angles.head}, rev=${atRev.angles.head})`);
+  assert.ok(atRev.gaze[0] > 0.03, `gaze turns toward right element (${atRev.gaze})`);
+  const afterRev = evaluateHostAt(manifest, revPlan, 1.8);
+  assert.ok(Math.abs(afterRev.angles.head - evaluateHostAt(manifest, basePlan, 1.8).angles.head) < 0.5, 'reveal head turn settles after 0.6s');
+
+  const hlPlan = makeHostStagePlan(
+    { objects: [{ prop: 'doc', label: '文档', at: 'right', state: 'fresh' }] },
+    [{ sentence: 0, do: 'highlight', target: 0, timeMs: 1000 }],
+    { hostX: 320, durationSec: 5 },
+  );
+  const stPlan = makeHostStagePlan(
+    { objects: [{ prop: 'doc', label: '文档', at: 'right', state: 'fresh' }] },
+    [{ sentence: 0, do: 'state', target: 0, value: 'expired', timeMs: 1000 }],
+    { hostX: 320, durationSec: 5 },
+  );
+  const atHl = evaluateHostAt(manifest, hlPlan, 1.15);
+  const atSt = evaluateHostAt(manifest, stPlan, 1.15);
+  const baseNod = evaluateHostAt(manifest, basePlan, 1.15);
+  assert.ok(atHl.angles.head > baseNod.angles.head + 2, `highlight triggers nod (${atHl.angles.head} vs ${baseNod.angles.head})`);
+  assert.ok(atSt.angles.head > baseNod.angles.head + 2, `state change triggers nod (${atSt.angles.head} vs ${baseNod.angles.head})`);
+
+  // Stage sentence beat skips sentences with explicit interaction cues and does not repeat prior hold gesture across a once gesture
+  const beatStagePlan = makeHostStagePlan(
+    { objects: [{ prop: 'fridge', label: '冰箱', at: 'mid-right', state: 'closed' }] },
+    [
+      { sentence: 0, do: 'gesture', target: 'present', timeMs: 100 },
+      { sentence: 1, do: 'open', target: 0, timeMs: 2100 },
+    ],
+    {
+      hostX: 1500,
+      durationSec: 6,
+      sentences: [
+        { index: 0, startMs: 0, endMs: 1800, text: '先看看这里。' },
+        { index: 1, startMs: 2000, endMs: 3800, text: '打开冰箱看一眼。' },
+        { index: 2, startMs: 4000, endMs: 5800, text: '继续往下看。' },
+      ],
+    },
+  );
+  // Sentence 1 has explicit `open` -> should perform open, not synthesize an overriding auto-beat gesture
+  const duringS1 = evaluateHostAt(manifest, beatStagePlan, 2.4);
+  assert.equal(duringS1.interaction?.kind, 'open');
+  // Sentence 2 auto-beat skips repeating sentence 0's hold gesture 'present'
+  const duringS2 = evaluateHostAt(manifest, beatStagePlan, 4.6);
+  assert.notEqual(duringS2.gesture, 'present', 'auto-beat on stage shot skips repeating prior hold gesture');
+  assert.equal(inferSentenceBeat('继续往下看。', { index: 2, prevGesture: 'present' }).gesture !== 'present', true);
 });

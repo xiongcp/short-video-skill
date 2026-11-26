@@ -88,9 +88,12 @@ export function tweenPoseAngles(manifest, fromAngles, toAngles, elapsed, {
   return clampAngles(manifest, out);
 }
 
+const normDeg = (deg) => ((((deg + 180) % 360) + 360) % 360) - 180;
+
 /** Aims the acting arm (and optional pointer tip) at `target` via 2-bone analytical IK. */
-export function aimArmAt(manifest, angles, { view = 'three_quarter', facing = 1, x = 320, ground = 930, target, prop = null }) {
-  const fk = forwardKinematics(manifest, angles, { view, facing, x, ground });
+export function aimArmAt(manifest, angles, { view = 'three_quarter', facing = 1, x = 320, ground = 930, lift = 0, seatY = null, target, prop = null }) {
+  const a = clampAngles(manifest, angles);
+  const fk = forwardKinematics(manifest, a, { view, facing, x, ground, lift, seatY });
   const H = manifest.height_px;
   const L1 = manifest.joints.l_shoulder.length * H;
   const tipExtra = prop === 'pointer' ? (manifest.props.pointer.tip?.[0] ?? 0.3) * H : 0;
@@ -99,11 +102,73 @@ export function aimArmAt(manifest, angles, { view = 'three_quarter', facing = 1,
   // Solve in facing-right coordinates, then extract relative shoulder & elbow angles
   const relTarget = [shoulder[0] + facing * (target[0] - shoulder[0]), target[1]];
   const ik = solveTwoBoneIK(shoulder, relTarget, L1, L2, { bendSign: 1 });
-  const spineUp = -90 + (angles.pelvis ?? 0) + (angles.waist ?? 0) + (angles.chest ?? 0);
-  const norm = (deg) => ((((deg + 180) % 360) + 360) % 360) - 180;
-  const l_shoulder = norm(spineUp + 180 - ik.angle1);
-  const l_elbow = Math.max(0, norm(ik.angle1 - ik.angle2));
-  return clampAngles(manifest, { ...angles, l_shoulder, l_elbow, l_wrist: 0 });
+  const spineUp = -90 + a.pelvis + a.waist + a.chest;
+  const l_shoulder = normDeg(spineUp + 180 - ik.angle1);
+  const l_elbow = Math.max(0, normDeg(ik.angle1 - ik.angle2));
+  return clampAngles(manifest, { ...a, l_shoulder, l_elbow, l_wrist: 0 });
+}
+
+/** Aims both arms (`l` and `r`) at their targets via 2-bone analytical IK. */
+function aimBothArmsAt(manifest, angles, { view = 'front', facing = 1, x = 320, ground = 930, lift = 0, seatY = null, targetL, targetR = targetL }) {
+  const a = clampAngles(manifest, angles);
+  const fk = forwardKinematics(manifest, a, { view, facing, x, ground, lift, seatY });
+  const H = manifest.height_px;
+  const L1 = manifest.joints.l_shoulder.length * H;
+  const L2 = (manifest.joints.l_elbow.length + manifest.joints.l_wrist.length) * H;
+  const shoulder = fk.points.neck_base;
+  const spineUp = -90 + a.pelvis + a.waist + a.chest;
+  const relL = [shoulder[0] + facing * (targetL[0] - shoulder[0]), targetL[1]];
+  const ikL = solveTwoBoneIK(shoulder, relL, L1, L2, { bendSign: 1 });
+  const oR = view === 'front' ? -1 : 1;
+  const relR = [shoulder[0] + facing * (targetR[0] - shoulder[0]), targetR[1]];
+  const ikR = solveTwoBoneIK(shoulder, relR, L1, L2, { bendSign: oR });
+  return clampAngles(manifest, {
+    ...a,
+    l_shoulder: normDeg(spineUp + 180 - ikL.angle1),
+    l_elbow: Math.max(0, normDeg(ikL.angle1 - ikL.angle2)),
+    l_wrist: 0,
+    r_shoulder: normDeg(oR * (spineUp + 180 - ikR.angle1)),
+    r_elbow: Math.max(0, normDeg(oR * (ikR.angle1 - ikR.angle2))),
+    r_wrist: 0,
+  });
+}
+
+const CROUCH_POSE = {
+  pelvis: 15, waist: 42, chest: 22, neck: -8, head: -12,
+  l_hip: 78, l_knee: 126, l_ankle: -20, r_hip: 72, r_knee: 120, r_ankle: -18,
+};
+const LEG_CROUCH_POSE = {
+  pelvis: 10, l_hip: 75, l_knee: 150, l_ankle: -25, r_hip: 70, r_knee: 145, r_ankle: -22,
+};
+
+/** Solves arm IK toward `target`, crouching/leaning only as much as needed when `target` is below standing reach. */
+function solveReachWithCrouch(manifest, baseAngles, { view, facing, x, ground, lift = 0, seatY = null, target, bothArms = false, preserveTorso = false }) {
+  const H = manifest.height_px;
+  const maxReach = (manifest.joints.l_shoulder.length + manifest.joints.l_elbow.length + manifest.joints.l_wrist.length) * H;
+  const safeReach = maxReach * 0.92;
+  const fk0 = forwardKinematics(manifest, baseAngles, { view, facing, x, ground, lift, seatY });
+  let posed = baseAngles;
+  if (seatY == null && Math.hypot(target[0] - fk0.points.neck_base[0], target[1] - fk0.points.neck_base[1]) > safeReach) {
+    const crouchTarget = preserveTorso ? LEG_CROUCH_POSE : CROUCH_POSE;
+    const blendCrouch = (k) => {
+      const out = { ...baseAngles };
+      for (const [j, v] of Object.entries(crouchTarget)) out[j] = lerp(baseAngles[j] ?? 0, v, k);
+      return out;
+    };
+    let lo = 0;
+    let hi = 1;
+    for (let iter = 0; iter < 10; iter += 1) {
+      const mid = (lo + hi) / 2;
+      const cand = blendCrouch(mid);
+      const fk = forwardKinematics(manifest, cand, { view, facing, x, ground, lift, seatY });
+      if (Math.hypot(target[0] - fk.points.neck_base[0], target[1] - fk.points.neck_base[1]) <= safeReach) hi = mid;
+      else lo = mid;
+    }
+    posed = blendCrouch(hi);
+  }
+  return bothArms
+    ? aimBothArmsAt(manifest, posed, { view, facing, x, ground, lift, seatY, targetL: target, targetR: target })
+    : aimArmAt(manifest, posed, { view, facing, x, ground, lift, seatY, target });
 }
 
 /**
@@ -235,6 +300,87 @@ export function inferSentenceBeat(text = '', { index = 0, hasVisualCue = false, 
   return { gesture };
 }
 
+const INTERACTION_DO = new Set(['open', 'carry', 'push', 'pull', 'hold_up', 'draw', 'sit_on', 'react']);
+const BAD_OBJECT_STATES = new Set(['expired', 'broken', 'crossed', 'empty']);
+const CARRY_POSE = { l_shoulder: 38, l_elbow: 72, l_wrist: -12 };
+const SIT_ON_ANGLES = {
+  pelvis: -8, waist: 10, chest: 6, neck: 0, head: 2,
+  l_shoulder: 26, l_elbow: 58, l_wrist: 0,
+  r_shoulder: 18, r_elbow: 48, r_wrist: 0,
+  l_hip: 82, l_knee: 90, l_ankle: 0,
+  r_hip: 78, r_knee: 84, r_ankle: 4,
+};
+const clampStageX = (v) => Math.max(120, Math.min(1800, v));
+
+function isSpotClearOfOthers(sx, elements) {
+  return !elements.some((other) => {
+    const b = other?.bbox;
+    if (!b || b.y >= 930 - 1e-6 || b.y + b.h <= 530 + 1e-6) return false;
+    return sx - 47 < b.x + b.w && sx + 47 > b.x;
+  });
+}
+
+function applyObjectShift(elements, objDx, droppedSpots) {
+  return elements.map((el, i) => {
+    if (!el?.bbox) return el;
+    const spot = droppedSpots[i];
+    if (spot) {
+      const dx = spot.x - (el.bbox.x + el.bbox.w / 2);
+      const dy = spot.y - (el.bbox.y + el.bbox.h);
+      const bbox = { ...el.bbox, x: el.bbox.x + dx, y: el.bbox.y + dy };
+      const anchors = {};
+      for (const [k, pt] of Object.entries(el.anchors ?? {})) anchors[k] = [pt[0] + dx, pt[1] + dy];
+      return {
+        ...el,
+        bbox,
+        anchors,
+        standSpots: {
+          left: clampStageX(bbox.x - 70),
+          right: clampStageX(bbox.x + bbox.w + 70),
+        },
+      };
+    }
+    const dx = objDx[i] ?? 0;
+    if (!dx) return el;
+    const bbox = { ...el.bbox, x: el.bbox.x + dx };
+    const anchors = {};
+    for (const [k, pt] of Object.entries(el.anchors ?? {})) anchors[k] = [pt[0] + dx, pt[1]];
+    return {
+      ...el,
+      bbox,
+      anchors,
+      standSpots: el.standSpots
+        ? { left: clampStageX(el.standSpots.left + dx), right: clampStageX(el.standSpots.right + dx) }
+        : undefined,
+    };
+  });
+}
+
+function resolveInteractionStandX(targetIdx, currentX, elements, anchorX, maxReach) {
+  const el = elements[targetIdx];
+  if (!el?.standSpots) return resolveStandX(targetIdx, currentX, elements);
+  const { left, right } = el.standSpots;
+  const leftClear = Number.isFinite(left) && isSpotClearOfOthers(left, elements);
+  const rightClear = Number.isFinite(right) && isSpotClearOfOthers(right, elements);
+  const leftReach = leftClear && Math.abs(left - anchorX) <= maxReach * 0.92;
+  const rightReach = rightClear && Math.abs(right - anchorX) <= maxReach * 0.92;
+  if (leftReach && !rightReach) return clampStageX(Math.round(left));
+  if (rightReach && !leftReach) return clampStageX(Math.round(right));
+  return resolveStandX(targetIdx, currentX, elements);
+}
+
+function objectStateAt(elements, cues, interactionStarts, targetIdx, t) {
+  let state = elements[targetIdx]?.state ?? 'normal';
+  const ordered = cues
+    .map((c, idx) => ({ c, t0: interactionStarts.get(idx) ?? (c.timeMs ?? 0) / 1000, idx }))
+    .filter((e) => e.c.target === targetIdx && (e.c.do === 'state' || e.c.do === 'open') && e.t0 <= t)
+    .sort((a, b) => a.t0 - b.t0 || a.idx - b.idx);
+  for (const e of ordered) {
+    state = e.c.do === 'open' ? 'open' : (e.c.value ?? state);
+  }
+  return state;
+}
+
 /** Resolves a `move` cue target (preset spot or element index) to a ground X in [120, 1800]. */
 export function resolveStandX(target, currentX = 320, elements = []) {
   if (typeof target === 'string' && target in SPOTS) return SPOTS[target];
@@ -291,39 +437,24 @@ function computeMicroActing(t, seed, { audioFrame = null, isQuestionEnd = false,
   return { blink, breath, weightShift, nod, tilt, gaze };
 }
 
-/**
- * Evaluates full host state at time `t` inside a `host-left` shot.
- * Returns state directly consumable by `drawHost(manifest, state)` plus QA metadata (`rushedMove`, `tapImpact`, `bodyBbox`, `isFastMotion`).
- */
-export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
-  const H = manifest.height_px;
-  const ground = plan.ground ?? 930;
-  const start = plan.startState ?? { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
-  const cues = plan.cues ?? [];
-  const elements = plan.elements ?? [];
-  const theme = plan.theme ?? 'light';
-  const style = plan.style;
-
-  // Walk schedule across move cues
-  let x = start.x;
-  let facing = start.facing ?? 1;
-  let walking = false;
-  let trotting = false;
-  let walkPhase = 0;
-  let velocityX = 0;
-  let rushedMove = false;
-  let focusIdx = null;
-  let focusChangedAt = -10;
-
-  const moveCues = cues.filter((c) => c.do === 'move');
-  let curX = start.x;
+/** Plans walk segments (including auto-approach), interaction events, and resolved cue start times. */
+function planHostTimeline(H, elements, orderedCues, { startX, startFacing, ground, totalDur }) {
+  const maxReach = 0.35 * H;
   const walkSegments = [];
-  for (let i = 0; i < moveCues.length; i += 1) {
-    const mc = moveCues[i];
-    const t0 = mc.timeMs / 1000;
-    const dstX = resolveStandX(mc.target, curX, elements);
+  const interactionEvents = [];
+  const interactionStarts = new Map();
+  let curX = startX;
+  let curFacing = startFacing;
+  let rushedMove = false;
+  let walkBusyUntil = 0;
+  let interBusyUntil = 0;
+  let carryPickupEnd = 0;
+  let simCarriedIdx = null;
+  const simObjDx = {};
+  const simDroppedSpots = {};
+
+  const pushWalk = (t0, dstX, target, source, nextLimit) => {
     const distX = Math.abs(dstX - curX);
-    const nextLimit = i + 1 < moveCues.length ? moveCues[i + 1].timeMs / 1000 : plan.durationSec;
     const avail = Math.max(0.2, nextLimit - t0);
     const baseSpeed = 0.9 * H;
     let speed = baseSpeed;
@@ -334,68 +465,548 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
       } else {
         speed = Math.max(baseSpeed * 1.6, distX / avail);
         trot = true;
-        if (mc.source !== 'auto_return') rushedMove = true;
+        if (source !== 'auto_return' && source !== 'auto_approach') rushedMove = true;
       }
     }
     const dur = distX < 1 ? 0 : Math.min(avail, distX / speed);
-    walkSegments.push({ t0, t1: t0 + dur, fromX: curX, toX: dstX, dir: dstX >= curX ? 1 : -1, trot, target: mc.target });
+    const seg = { t0, t1: t0 + dur, fromX: curX, toX: dstX, dir: dstX >= curX ? 1 : -1, trot, target, source };
+    walkSegments.push(seg);
     curX = dstX;
+    walkBusyUntil = Math.max(walkBusyUntil, seg.t1);
+    return seg;
+  };
+
+  for (let i = 0; i < orderedCues.length; i += 1) {
+    const c = orderedCues[i];
+    const rawT0 = (c.timeMs ?? 0) / 1000;
+    const nextMoving = orderedCues.slice(i + 1).find((nc) => nc.do === 'move' || (INTERACTION_DO.has(nc.do) && nc.do !== 'react' && !(nc.do === 'carry' && nc.target === 'none')));
+    const nextLimit = nextMoving ? (nextMoving.timeMs ?? 0) / 1000 : totalDur;
+
+    if (c.do === 'move') {
+      const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
+      const dstX = resolveStandX(c.target, curX, shifted);
+      const t0 = Math.max(rawT0, interBusyUntil);
+      const seg = pushWalk(t0, dstX, c.target, c.source ?? 'move', Math.max(t0 + 0.2, nextLimit));
+      interactionStarts.set(c._idx, seg.t0);
+      if (Number.isInteger(c.target) && shifted[c.target]) {
+        const el = shifted[c.target];
+        curFacing = (el.bbox.x + el.bbox.w / 2) >= curX ? 1 : -1;
+      } else if (c.target === 'left') curFacing = 1;
+      else if (c.target === 'right') curFacing = -1;
+      else if (seg.t1 > seg.t0) curFacing = seg.dir;
+      interactionEvents.push({ kind: 'stand_up', t0: seg.t0, dur: 0, cueIdx: c._idx });
+      continue;
+    }
+
+    if (!INTERACTION_DO.has(c.do)) continue;
+
+    if (c.do === 'carry' && c.target === 'none') {
+      const actT0 = Math.max(rawT0, walkBusyUntil, carryPickupEnd);
+      interactionStarts.set(c._idx, actT0);
+      if (simCarriedIdx !== null) {
+        const spot = { x: clampStageX(curX + curFacing * 65), y: ground };
+        simDroppedSpots[simCarriedIdx] = spot;
+        interactionEvents.push({ kind: 'drop', t0: actT0, dur: 0, targetIdx: simCarriedIdx, dropSpot: spot, cueIdx: c._idx });
+        simCarriedIdx = null;
+      }
+      continue;
+    }
+
+    if (c.do === 'react') {
+      const activeWalk = walkSegments.find((s) => s.t1 > s.t0 && rawT0 >= s.t0 - 1e-6 && rawT0 < s.t1);
+      const actT0 = activeWalk ? activeWalk.t1 : rawT0;
+      interactionStarts.set(c._idx, actT0);
+      const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
+      const el = shifted[c.target];
+      const targetX = el ? el.bbox.x + el.bbox.w / 2 : curX;
+      curFacing = targetX >= curX ? 1 : -1;
+      interactionEvents.push({ kind: 'react', targetIdx: c.target, t0: actT0, dur: 0.8, targetX, cueIdx: c._idx });
+      interBusyUntil = Math.max(interBusyUntil, actT0 + 0.8);
+      continue;
+    }
+
+    const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
+    const targetIdx = c.target;
+    const el = shifted[targetIdx];
+    const elCx = el ? el.bbox.x + el.bbox.w / 2 : curX;
+    const elCy = el ? el.bbox.y + el.bbox.h * 0.5 : ground - 0.5 * H;
+
+    let anchorPt = [elCx, elCy];
+    let dstX = curX;
+    if (el) {
+      if (c.do === 'open' || c.do === 'carry') {
+        anchorPt = el.anchors?.handle ?? [el.bbox.x + el.bbox.w * 0.2, elCy];
+        dstX = resolveInteractionStandX(targetIdx, curX, shifted, anchorPt[0], maxReach);
+      } else if (c.do === 'push') {
+        dstX = resolveStandX(targetIdx, curX, shifted);
+        const pushSide = dstX <= elCx ? -1 : 1;
+        const hy = (el.anchors?.handle ?? el.anchors?.front)?.[1] ?? elCy;
+        anchorPt = [pushSide === -1 ? el.bbox.x : el.bbox.x + el.bbox.w, hy];
+      } else if (c.do === 'pull') {
+        dstX = resolveStandX(targetIdx, curX, shifted);
+        const pushSide = dstX <= elCx ? -1 : 1;
+        const handle = el.anchors?.handle ?? [elCx, elCy];
+        anchorPt = Math.abs(dstX - handle[0]) <= maxReach * 0.92
+          ? handle
+          : [pushSide === -1 ? el.bbox.x : el.bbox.x + el.bbox.w, handle[1]];
+      } else if (c.do === 'hold_up') {
+        dstX = resolveStandX(targetIdx, curX, shifted);
+        anchorPt = el.anchors?.handle ?? el.anchors?.front ?? [elCx, elCy];
+      } else if (c.do === 'draw') {
+        dstX = resolveStandX(targetIdx, curX, shifted);
+        anchorPt = el.anchors?.front ?? [elCx, elCy];
+      } else if (c.do === 'sit_on') {
+        anchorPt = el.anchors?.seat ?? [elCx, el.bbox.y + el.bbox.h * 0.5];
+        dstX = clampStageX(Math.round(anchorPt[0]));
+      }
+    }
+
+    const shoulderY = ground - 0.675 * H;
+    const needsApproach = Boolean(
+      el && (
+        Math.abs(curX - anchorPt[0]) > maxReach
+        || Math.hypot(curX - anchorPt[0], shoulderY - anchorPt[1]) > maxReach
+        || (c.do === 'sit_on' && Math.abs(curX - dstX) > maxReach)
+      ),
+    );
+    const walkStart = Math.max(rawT0, walkBusyUntil, interBusyUntil);
+    let actT0 = walkStart;
+    if (needsApproach && Math.abs(dstX - curX) >= 1) {
+      const seg = pushWalk(walkStart, dstX, targetIdx, 'auto_approach', Math.max(walkStart + 0.2, nextLimit));
+      actT0 = seg.t1;
+    }
+    interactionStarts.set(c._idx, actT0);
+
+    if (c.do === 'open') {
+      const face = anchorPt[0] >= curX ? 1 : -1;
+      curFacing = face;
+      interactionEvents.push({ kind: 'open', targetIdx, t0: actT0, dur: 0.6, standX: curX, anchorPt, facing: face, cueIdx: c._idx });
+      interBusyUntil = actT0 + 0.6;
+    } else if (c.do === 'carry') {
+      const face = anchorPt[0] >= curX ? 1 : -1;
+      let autoDrop = null;
+      if (simCarriedIdx !== null && simCarriedIdx !== targetIdx) {
+        const spot = { x: clampStageX(curX + curFacing * 65), y: ground };
+        simDroppedSpots[simCarriedIdx] = spot;
+        autoDrop = { idx: simCarriedIdx, spot };
+      }
+      delete simDroppedSpots[targetIdx];
+      simCarriedIdx = targetIdx;
+      curFacing = face;
+      interactionEvents.push({ kind: 'carry', targetIdx, t0: actT0, dur: 0.6, standX: curX, anchorPt, facing: face, autoDrop, cueIdx: c._idx });
+      carryPickupEnd = actT0 + 0.35;
+      interBusyUntil = actT0 + 0.6;
+    } else if (c.do === 'push' || c.do === 'pull') {
+      const origEl = elements[targetIdx];
+      const curObjDx = simObjDx[targetIdx] ?? 0;
+      const minDx = origEl ? 120 - origEl.bbox.x : -160;
+      const maxDx = origEl ? 1800 - (origEl.bbox.x + origEl.bbox.w) : 160;
+      const preObjCx = origEl ? origEl.bbox.x + origEl.bbox.w / 2 + curObjDx : anchorPt[0];
+      const awayDir = preObjCx >= curX ? 1 : -1;
+      const moveDir = c.do === 'push' ? awayDir : -awayDir;
+      const nextObjDx = Math.max(minDx, Math.min(maxDx, curObjDx + moveDir * 160));
+      const deltaDx = nextObjDx - curObjDx;
+      let endX = curX;
+      if (c.do === 'push' && origEl) {
+        endX = awayDir === 1
+          ? Math.max(curX, Math.min(preObjCx - 4, origEl.bbox.x + nextObjDx - 60))
+          : Math.min(curX, Math.max(preObjCx + 4, origEl.bbox.x + origEl.bbox.w + nextObjDx + 60));
+      } else if (c.do === 'pull') {
+        endX = clampStageX(curX + deltaDx);
+      }
+      simObjDx[targetIdx] = nextObjDx;
+      curFacing = awayDir;
+      interactionEvents.push({
+        kind: c.do, targetIdx, t0: actT0, dur: 0.7, standX: curX, endX, curObjDx, deltaDx,
+        awayDir, baseAnchor: [anchorPt[0] - curObjDx, anchorPt[1]], facing: awayDir, cueIdx: c._idx,
+      });
+      curX = endX;
+      interBusyUntil = actT0 + 0.7;
+    } else if (c.do === 'hold_up') {
+      interactionEvents.push({ kind: 'hold_up', targetIdx, t0: actT0, dur: 1.5, standX: curX, anchorPt, cueIdx: c._idx });
+      curFacing = 1;
+      interBusyUntil = actT0 + 1.5;
+    } else if (c.do === 'draw') {
+      const face = anchorPt[0] >= curX ? 1 : -1;
+      curFacing = face;
+      interactionEvents.push({ kind: 'draw', targetIdx, t0: actT0, dur: 1.0, standX: curX, anchorPt, facing: face, cueIdx: c._idx });
+      interBusyUntil = actT0 + 1.0;
+    } else if (c.do === 'sit_on') {
+      interactionEvents.push({ kind: 'sit_on', targetIdx, t0: actT0, dur: 0.25, fromX: curX, seat: anchorPt, facing: 1, cueIdx: c._idx });
+      curX = dstX;
+      curFacing = 1;
+      interBusyUntil = actT0 + 0.25;
+    }
   }
 
-  for (const seg of walkSegments) {
-    if (t >= seg.t0 && t < seg.t1 && seg.t1 > seg.t0) {
-      const u = (t - seg.t0) / (seg.t1 - seg.t0);
-      const eased = easeInOutCubic(u);
-      x = lerp(seg.fromX, seg.toX, eased);
-      facing = seg.dir;
-      walking = true;
-      trotting = seg.trot;
-      const cadence = seg.trot ? 2 : 1; // cycles per sec (2 steps/cycle -> 2 steps/s walk, 4 trot)
-      walkPhase = (t - seg.t0) * cadence;
-      velocityX = ((seg.toX - seg.fromX) / (seg.t1 - seg.t0)) * 6 * u * (1 - u);
-      if (Number.isInteger(seg.target)) { focusIdx = seg.target; focusChangedAt = seg.t0; }
-      break;
-    } else if (t >= seg.t1) {
+  return { walkSegments, interactionEvents, interactionStarts, curX, rushedMove };
+}
+
+/** Replays walk segments and interaction events up to time `t`. */
+function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, startX, startFacing }) {
+  let x = startX;
+  let facing = startFacing;
+  let walking = false;
+  let trotting = false;
+  let walkPhase = 0;
+  let focusIdx = null;
+  let focusChangedAt = -10;
+  let activeInter = null;
+  let seated = null;
+  let carriedIdx = null;
+  const droppedSpots = {};
+  const objDxAtT = {};
+
+  const timelineItems = [
+    ...walkSegments.map((s) => ({ kind: 'walk', t0: s.t0, seg: s })),
+    ...interactionEvents.map((ev) => ({ kind: 'inter', t0: ev.t0, ev })),
+  ].sort((a, b) => a.t0 - b.t0);
+
+  for (const item of timelineItems) {
+    if (item.t0 > t) break;
+    if (item.kind === 'walk') {
+      const seg = item.seg;
+      seated = null;
+      if (t < seg.t1 && seg.t1 > seg.t0) {
+        const u = (t - seg.t0) / (seg.t1 - seg.t0);
+        x = lerp(seg.fromX, seg.toX, easeInOutCubic(u));
+        facing = seg.dir;
+        walking = true;
+        trotting = seg.trot;
+        walkPhase = (t - seg.t0) * (seg.trot ? 2 : 1);
+        if (Number.isInteger(seg.target)) { focusIdx = seg.target; focusChangedAt = seg.t0; }
+        break;
+      }
       x = seg.toX;
       if (Number.isInteger(seg.target)) {
         focusIdx = seg.target;
         focusChangedAt = seg.t0;
-        const el = elements[seg.target];
+        const shiftedAtEnd = applyObjectShift(elements, objDxAtT, droppedSpots);
+        const el = shiftedAtEnd[seg.target];
         if (el) facing = (el.bbox.x + el.bbox.w / 2) >= x ? 1 : -1;
-      } else if (seg.target === 'left') {
-        facing = 1;
-      } else if (seg.target === 'right') {
-        facing = -1;
+      } else if (seg.target === 'left') facing = 1;
+      else if (seg.target === 'right') facing = -1;
+      continue;
+    }
+
+    const ev = item.ev;
+    if (ev.kind === 'stand_up') { seated = null; continue; }
+    if (ev.kind === 'drop') {
+      if (carriedIdx !== null) {
+        droppedSpots[carriedIdx] = ev.dropSpot;
+        carriedIdx = null;
+      }
+      continue;
+    }
+    seated = null;
+    if (Number.isInteger(ev.targetIdx)) {
+      focusIdx = ev.targetIdx;
+      focusChangedAt = Math.max(focusChangedAt, ev.t0);
+    }
+
+    const dt = t - ev.t0;
+    if (ev.kind === 'carry') {
+      if (ev.autoDrop) droppedSpots[ev.autoDrop.idx] = ev.autoDrop.spot;
+      delete droppedSpots[ev.targetIdx];
+      carriedIdx = dt >= 0.35 ? ev.targetIdx : null;
+    }
+    if (ev.kind === 'sit_on') seated = { targetIdx: ev.targetIdx, seat: ev.seat, facing: ev.facing };
+    if (ev.kind === 'push' || ev.kind === 'pull') {
+      if (dt >= ev.dur) {
+        objDxAtT[ev.targetIdx] = ev.curObjDx + ev.deltaDx;
+        x = ev.endX;
+      } else {
+        objDxAtT[ev.targetIdx] = ev.curObjDx + ev.deltaDx * easeOutBack(clamp01(dt / ev.dur));
       }
     }
-  }
 
-  // Track latest reveal/highlight for focus element
-  for (const c of cues) {
-    const ct = c.timeMs / 1000;
-    if (ct <= t && (c.do === 'reveal' || c.do === 'highlight') && Number.isInteger(c.target)) {
-      focusIdx = c.target;
-      focusChangedAt = Math.max(focusChangedAt, ct);
+    if (dt >= 0 && dt < ev.dur) {
+      activeInter = ev;
+      const u = dt / ev.dur;
+      if (ev.kind === 'open' || ev.kind === 'carry') {
+        facing = ev.facing;
+        const peakU = ev.kind === 'open' ? 0.5 : 0.58;
+        if (Math.abs(ev.anchorPt[0] - ev.standX) > 115) {
+          const stepInX = clampStageX(ev.anchorPt[0] - ev.facing * 85);
+          const stepEnv = u < peakU ? easeInOutCubic(u / peakU) : 1 - easeInOutCubic((u - peakU) / (1 - peakU));
+          x = lerp(ev.standX, stepInX, stepEnv);
+        } else x = ev.standX;
+      } else if (ev.kind === 'push') {
+        facing = ev.facing;
+        x = lerp(ev.standX, ev.endX, easeOutCubic(clamp01(u / 0.45)));
+      } else if (ev.kind === 'pull') {
+        facing = ev.facing;
+        const brace = ev.awayDir * 44 * Math.sin(u * Math.PI);
+        x = clampStageX(ev.standX + (ev.endX - ev.standX) * easeOutBack(u) + brace);
+      } else if (ev.kind === 'hold_up') {
+        facing = 1;
+        x = ev.standX;
+      } else if (ev.kind === 'draw') {
+        facing = ev.facing;
+        if (Math.abs(ev.anchorPt[0] - ev.standX) > 110) {
+          const workX = clampStageX(ev.anchorPt[0] - ev.facing * 75);
+          const stepEnv = u < 0.15 ? easeOutCubic(u / 0.15) : u > 0.85 ? 1 - easeOutCubic((u - 0.85) / 0.15) : 1;
+          x = lerp(ev.standX, workX, stepEnv);
+        } else x = ev.standX;
+      } else if (ev.kind === 'sit_on') {
+        facing = ev.facing;
+        x = lerp(ev.fromX, ev.seat[0], easeInOutCubic(clamp01(u)));
+      } else if (ev.kind === 'react') {
+        facing = ev.targetX >= x ? 1 : -1;
+      }
+    } else if (dt >= ev.dur) {
+      if (ev.kind === 'sit_on') { x = ev.seat[0]; facing = ev.facing; }
+      else if (ev.kind === 'react') facing = ev.targetX >= x ? 1 : -1;
+      else if (ev.facing !== undefined) facing = ev.facing;
     }
   }
 
-  // Synthesize automatic per-sentence gesture beats for sentences that lack an explicit gesture cue
-  // so every spoken sentence has active, lively stickman choreography.
+  return { x, facing, walking, trotting, walkPhase, focusIdx, focusChangedAt, activeInter, seated, carriedIdx, droppedSpots, objDxAtT };
+}
+
+/** Builds base body pose and pending IK descriptor for an active interaction event. */
+function buildInteractionPose(manifest, ev, { t, H, facing, baseHoldPose, carriedIdx, cues, elements, interactionStarts }) {
+  const dt = t - ev.t0;
+  const u = dt / ev.dur;
+  let view = 'three_quarter';
+  let angles = baseHoldPose;
+  let lift = 0;
+  let seatY = null;
+  let shiftX = 0;
+  let activeInterPhase = ev.kind;
+  let ikOp = null;
+  let isFastMotion = false;
+
+  if (ev.kind === 'open') {
+    const env = Math.sin(u * Math.PI);
+    const leanAngles = { ...baseHoldPose, waist: 8 * env, chest: 4 * env };
+    activeInterPhase = u <= 0.5 ? 'reach' : 'pull';
+    angles = leanAngles;
+    if (dt <= 0.22) ikOp = { kind: 'tween_in', from: baseHoldPose, target: ev.anchorPt, progress: dt / 0.22 };
+    else if (dt <= 0.36) ikOp = { kind: 'reach', target: ev.anchorPt };
+    else {
+      const pullU = (dt - 0.36) / (ev.dur - 0.36);
+      const pullTarget = [ev.anchorPt[0] - ev.facing * 26 * Math.sin(pullU * Math.PI), ev.anchorPt[1]];
+      ikOp = pullU < 0.65
+        ? { kind: 'reach', target: pullTarget }
+        : { kind: 'tween_out', to: baseHoldPose, target: pullTarget, progress: (pullU - 0.65) / 0.35 };
+    }
+    isFastMotion = u >= 0.15 && u <= 0.85;
+  } else if (ev.kind === 'carry') {
+    if (dt < 0.35) {
+      activeInterPhase = 'reach';
+      angles = { ...baseHoldPose, waist: 6, chest: 4 };
+      ikOp = dt <= 0.24
+        ? { kind: 'tween_in', from: baseHoldPose, target: ev.anchorPt, progress: dt / 0.24 }
+        : { kind: 'reach', target: ev.anchorPt };
+    } else {
+      activeInterPhase = 'lift';
+      ikOp = { kind: 'carry_lift', target: ev.anchorPt, progress: clamp01((dt - 0.35) / 0.25) };
+    }
+    isFastMotion = true;
+  } else if (ev.kind === 'push' || ev.kind === 'pull') {
+    const isPush = ev.kind === 'push';
+    const env = Math.sin(u * Math.PI);
+    const targetPt = [ev.baseAnchor[0] + ev.curObjDx + ev.deltaDx * easeOutBack(u), ev.baseAnchor[1]];
+    angles = clampAngles(manifest, {
+      ...baseHoldPose,
+      waist: isPush ? 24 * Math.max(0.5, env) : -14 * Math.max(0.5, env),
+      chest: isPush ? 12 * Math.max(0.5, env) : -8 * Math.max(0.5, env),
+      l_hip: isPush ? 18 * env : -10 * env,
+      l_knee: isPush ? 18 * env : 14 * env,
+      r_hip: isPush ? -12 * env : 16 * env,
+      r_knee: 10 * env,
+    });
+    ikOp = dt < 0.14
+      ? { kind: 'tween_in', from: baseHoldPose, target: targetPt, bothArms: isPush, preserveTorso: !isPush, progress: dt / 0.14 }
+      : dt <= 0.58
+        ? { kind: 'reach', target: targetPt, bothArms: isPush, preserveTorso: !isPush }
+        : { kind: 'tween_out', to: baseHoldPose, target: targetPt, bothArms: isPush, preserveTorso: !isPush, progress: (dt - 0.58) / 0.12 };
+    isFastMotion = true;
+  } else if (ev.kind === 'hold_up') {
+    view = 'front';
+    activeInterPhase = u < 0.25 ? 'lift' : u <= 0.75 ? 'hold' : 'lower';
+    angles = clampAngles(manifest, {
+      pelvis: 0, waist: 0, chest: 0, neck: 0, head: 0,
+      l_hip: 8, l_knee: 4, l_ankle: 0, r_hip: 10, r_knee: 6, r_ankle: 0,
+    });
+    ikOp = { kind: 'hold_up', u, anchorPt: ev.anchorPt };
+    isFastMotion = u < 0.25 || u > 0.75;
+  } else if (ev.kind === 'draw') {
+    const sweepPt = [
+      ev.anchorPt[0] + Math.sin(u * 4 * Math.PI) * 28,
+      ev.anchorPt[1] + Math.sin(u * 2 * Math.PI) * 14,
+    ];
+    angles = clampAngles(manifest, { ...baseHoldPose, waist: 6, chest: 4 });
+    ikOp = dt < 0.12
+      ? { kind: 'tween_in', from: baseHoldPose, target: sweepPt, progress: dt / 0.12 }
+      : dt <= 0.88
+        ? { kind: 'reach', target: sweepPt }
+        : { kind: 'tween_out', to: baseHoldPose, target: sweepPt, progress: (dt - 0.88) / 0.12 };
+    isFastMotion = true;
+  } else if (ev.kind === 'sit_on') {
+    activeInterPhase = 'sit';
+    seatY = ev.seat[1];
+    const sitEase = easeInOutCubic(u);
+    angles = clampAngles(manifest, Object.fromEntries(
+      JOINTS.map((j) => [j, lerp(baseHoldPose[j] ?? 0, SIT_ON_ANGLES[j] ?? 0, sitEase)]),
+    ));
+    if (carriedIdx !== null) angles = clampAngles(manifest, { ...angles, ...CARRY_POSE });
+    isFastMotion = true;
+  } else if (ev.kind === 'react') {
+    const objState = objectStateAt(elements, cues, interactionStarts, ev.targetIdx, ev.t0);
+    const env = Math.sin(u * Math.PI);
+    if (BAD_OBJECT_STATES.has(objState)) {
+      angles = clampAngles(manifest, {
+        ...baseHoldPose,
+        pelvis: -6 * env,
+        waist: -14 * env,
+        chest: -10 * env,
+        head: -8 * env,
+        l_shoulder: lerp(baseHoldPose.l_shoulder, 70, env),
+        l_elbow: lerp(baseHoldPose.l_elbow, 96, env),
+        r_shoulder: lerp(baseHoldPose.r_shoulder, 56, env),
+        r_elbow: lerp(baseHoldPose.r_elbow, 88, env),
+        l_hip: 18 * env,
+        l_knee: 24 * env,
+        r_hip: 10 * env,
+        r_knee: 16 * env,
+      });
+      shiftX = -facing * 0.05 * H * Math.sin(clamp01(u / 0.75) * Math.PI);
+    } else {
+      view = 'front';
+      const cheerSpec = resolvePose(manifest, 'cheer');
+      lift = u > 0.15 && u < 0.75 ? Math.sin(((u - 0.15) / 0.6) * Math.PI) * 0.05 : 0;
+      angles = tweenPoseAngles(manifest, baseHoldPose, cheerSpec.angles, Math.min(dt, 0.35), {
+        duration: 0.35, anticipate: true, overshoot: true,
+      });
+    }
+    isFastMotion = u >= 0.1 && u <= 0.8;
+  }
+
+  return { view, angles, lift, seatY, shiftX, activeInterPhase, ikOp, isFastMotion };
+}
+
+/** Applies the final IK pass after torso/micro perturbations so hands land within <= 2 px of target anchors. */
+function applyInteractionIK(manifest, ikOp, angles, { view, facing, x, ground, lift, seatY, baseHoldPose, H }) {
+  if (!ikOp) return angles;
+  if (ikOp.kind === 'point') {
+    return aimArmAt(manifest, angles, { view, facing, x, ground, lift, seatY, target: ikOp.target, prop: ikOp.prop });
+  }
+  if (ikOp.kind === 'reach') {
+    return solveReachWithCrouch(manifest, angles, { view, facing, x, ground, lift, seatY, target: ikOp.target, bothArms: ikOp.bothArms, preserveTorso: ikOp.preserveTorso });
+  }
+  if (ikOp.kind === 'tween_in') {
+    const ikPeak = solveReachWithCrouch(manifest, angles, { view, facing, x, ground, lift, seatY, target: ikOp.target, bothArms: ikOp.bothArms, preserveTorso: ikOp.preserveTorso });
+    const k = easeInOutCubic(clamp01(ikOp.progress));
+    return clampAngles(manifest, Object.fromEntries(JOINTS.map((j) => [j, lerp(ikOp.from[j] ?? angles[j] ?? 0, ikPeak[j] ?? 0, k)])));
+  }
+  if (ikOp.kind === 'tween_out') {
+    const ikStart = solveReachWithCrouch(manifest, angles, { view, facing, x, ground, lift, seatY, target: ikOp.target, bothArms: ikOp.bothArms, preserveTorso: ikOp.preserveTorso });
+    const k = easeInOutCubic(clamp01(ikOp.progress));
+    return clampAngles(manifest, Object.fromEntries(JOINTS.map((j) => [j, lerp(ikStart[j] ?? 0, ikOp.to[j] ?? 0, k)])));
+  }
+  if (ikOp.kind === 'carry_lift') {
+    const ikPickup = solveReachWithCrouch(manifest, angles, { view, facing, x, ground, lift, seatY, target: ikOp.target });
+    const carryAngles = clampAngles(manifest, { ...baseHoldPose, ...CARRY_POSE });
+    const k = easeInOutCubic(clamp01(ikOp.progress));
+    return clampAngles(manifest, Object.fromEntries(JOINTS.map((j) => [j, lerp(ikPickup[j] ?? 0, carryAngles[j] ?? 0, k)])));
+  }
+  if (ikOp.kind === 'hold_up') {
+    const fkHead = forwardKinematics(manifest, angles, { view: 'front', facing: 1, x, ground, lift });
+    const overhead = [x, fkHead.points.head_center[1] - fkHead.R - 24];
+    const chestPt = [x, Math.max(overhead[1] + 40, ground - 0.56 * H)];
+    let holdTarget = overhead;
+    if (ikOp.u < 0.25) {
+      const k = easeOutCubic(ikOp.u / 0.25);
+      holdTarget = [lerp(chestPt[0], overhead[0], k), lerp(chestPt[1], overhead[1], k)];
+    } else if (ikOp.u > 0.75) {
+      const k = easeInOutCubic((ikOp.u - 0.75) / 0.25);
+      holdTarget = [lerp(overhead[0], chestPt[0], k), lerp(overhead[1], chestPt[1], k)];
+    }
+    return aimBothArmsAt(manifest, angles, { view: 'front', facing: 1, x, ground, lift, targetL: holdTarget, targetR: holdTarget });
+  }
+  return angles;
+}
+
+/**
+ * Evaluates full host state at time `t` inside a `host-left` or `stage` shot.
+ * Returns state directly consumable by `drawHost(manifest, state)` plus QA metadata and live stage interaction state.
+ */
+export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
+  const H = manifest.height_px;
+  const ground = plan.ground ?? 930;
+  const start = plan.startState ?? { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
+  const cues = plan.cues ?? [];
+  const elements = plan.elements ?? [];
+  const theme = plan.theme ?? 'light';
+  const style = plan.style;
+
+  const orderedCues = cues
+    .map((c, idx) => ({ ...c, _idx: idx }))
+    .sort((a, b) => (a.timeMs ?? 0) - (b.timeMs ?? 0) || a._idx - b._idx);
+  const totalDur = Number.isFinite(plan.durationSec)
+    ? plan.durationSec
+    : Math.max(10, ...orderedCues.map((c) => (c.timeMs ?? 0) / 1000 + 4));
+
+  const { walkSegments, interactionEvents, interactionStarts, curX, rushedMove } = planHostTimeline(
+    H,
+    elements,
+    orderedCues,
+    { startX: start.x, startFacing: start.facing ?? 1, ground, totalDur },
+  );
+
+  let {
+    x, facing, walking, trotting, walkPhase, focusIdx, focusChangedAt,
+    activeInter, seated, carriedIdx, droppedSpots, objDxAtT,
+  } = evaluateTimelineAt(walkSegments, interactionEvents, elements, {
+    t,
+    startX: start.x,
+    startFacing: start.facing ?? 1,
+  });
+
+  // Track reveal, highlight, and state cues for focus & micro-cooperation (§6.4)
+  let revealAt = -10;
+  let revealTargetIdx = null;
+  let nodCueAt = -10;
+  for (const c of orderedCues) {
+    const ct = interactionStarts.get(c._idx) ?? (c.timeMs ?? 0) / 1000;
+    if (ct > t) continue;
+    if (c.do === 'reveal') {
+      if (Number.isInteger(c.target)) {
+        focusIdx = c.target;
+        focusChangedAt = Math.max(focusChangedAt, ct);
+        revealTargetIdx = c.target;
+      }
+      revealAt = Math.max(revealAt, ct);
+    } else if (c.do === 'highlight' || c.do === 'state') {
+      if (c.do === 'highlight' && Number.isInteger(c.target)) {
+        focusIdx = c.target;
+        focusChangedAt = Math.max(focusChangedAt, ct);
+      }
+      nodCueAt = Math.max(nodCueAt, ct);
+    }
+  }
+
+  // Synthesize automatic per-sentence gesture beats for sentences that lack an explicit gesture or interaction cue
+  // so every spoken sentence has active, lively stickman choreography while skipping repeated hold gestures (§6.4).
   const sentences = plan.sentences ?? [];
-  const explicitGestureSentences = new Set(cues.filter((c) => c.do === 'gesture').map((c) => c.sentence));
+  const explicitActionSentences = new Set(
+    cues.filter((c) => c.do === 'gesture' || INTERACTION_DO.has(c.do)).map((c) => c.sentence),
+  );
   const visualCueSentences = new Set(cues.filter((c) => c.do === 'reveal' || c.do === 'highlight' || c.do === 'move').map((c) => c.sentence));
   const autoBeats = [];
   let autoSnaps = start.autoSnaps ?? 0;
-  let runningGesture = start.gesture;
+  let runningGesture = resolvePose(manifest, start.gesture).type === 'once' ? 'idle' : start.gesture;
   sentences.forEach((s, si) => {
     const sentIdx = s.index ?? si;
-    if (explicitGestureSentences.has(sentIdx)) {
+    if (explicitActionSentences.has(sentIdx)) {
       const last = cues.filter((c) => c.do === 'gesture' && c.sentence === sentIdx).at(-1);
-      if (last) runningGesture = last.target;
+      if (last && resolvePose(manifest, last.target).type !== 'once') runningGesture = last.target;
       return;
     }
     if (si === 0 && start.gesture !== 'idle') {
-      runningGesture = start.gesture;
+      if (resolvePose(manifest, start.gesture).type !== 'once') runningGesture = start.gesture;
       return;
     }
     const beat = inferSentenceBeat(s.text, {
@@ -405,12 +1016,12 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
       autoSnaps,
     });
     if (beat.gesture === 'snap') autoSnaps += 1;
-    runningGesture = beat.gesture;
+    if (resolvePose(manifest, beat.gesture).type !== 'once') runningGesture = beat.gesture;
     autoBeats.push({ sentence: sentIdx, timeMs: Math.max(0, (s.startMs ?? 0) - 80), do: 'gesture', target: beat.gesture });
   });
-  const effectiveCues = [...cues, ...autoBeats].sort((a, b) => a.timeMs - b.timeMs);
+  const effectiveCues = [...cues, ...autoBeats].sort((a, b) => (a.timeMs ?? 0) - (b.timeMs ?? 0));
 
-  // Active expression, prop, hold gesture, and one-shot gesture
+  // Active expression, prop (auto-dropped by carry), hold gesture, and one-shot gesture
   let expr = start.expr;
   let prevExpr = start.expr;
   let exprChangedAt = -10;
@@ -420,17 +1031,24 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   let holdChangedAt = -10;
   let activeOnce = resolvePose(manifest, start.gesture).type === 'once' ? { gesture: start.gesture, t0: 0 } : null;
 
-  // One-shot gestures that land during a move cue wait until the walk arrives instead of being swallowed.
   const afterWalk = (ct) => {
     const seg = walkSegments.find((s) => s.t1 > s.t0 && ct >= s.t0 - 1e-6 && ct < s.t1);
     return seg ? seg.t1 : ct;
   };
 
+  const propTimeline = [
+    ...effectiveCues.filter((c) => c.do === 'prop').map((c) => ({ t: (c.timeMs ?? 0) / 1000, prop: c.target })),
+    ...interactionEvents.filter((ev) => ev.kind === 'carry').map((ev) => ({ t: ev.t0, prop: 'none' })),
+  ].sort((a, b) => a.t - b.t);
+  for (const pe of propTimeline) {
+    if (pe.t > t) break;
+    prop = pe.prop;
+  }
+
   for (const c of effectiveCues) {
-    const ct = c.timeMs / 1000;
+    const ct = (c.timeMs ?? 0) / 1000;
     if (ct > t) break;
     if (c.do === 'expr') { prevExpr = expr; expr = c.target; exprChangedAt = ct; }
-    else if (c.do === 'prop') { prop = c.target; }
     else if (c.do === 'gesture') {
       const p = resolvePose(manifest, c.target);
       if (p.type === 'once') {
@@ -440,21 +1058,27 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     }
   }
 
-  // Focus target point (`anchors.front` for stage objects, or 20 px below bottom center for diagram elements)
-  const focusEl = focusIdx !== null ? elements[focusIdx] : null;
+  // Focus target point accounting for any push/pull/drop offsets
+  const currentElements = applyObjectShift(elements, objDxAtT, droppedSpots);
+  const focusEl = focusIdx !== null ? currentElements[focusIdx] : null;
   const focusPt = focusEl
     ? (focusEl.anchors?.front ?? [focusEl.bbox.x + focusEl.bbox.w / 2, focusEl.bbox.y + focusEl.bbox.h + 20])
     : [1240, 320];
 
-  // Quiet stretches between gesture and move cues, and the fidgets in them (§4.3)
-  const cueTimes = [0, ...effectiveCues.filter((c) => c.do === 'gesture' || c.do === 'move').map((c) => c.timeMs / 1000), plan.durationSec ?? Infinity];
+  // Quiet stretches between gesture, move, and interaction cues, and the fidgets in them (§4.3)
+  const cueTimes = [
+    0,
+    ...effectiveCues.filter((c) => c.do === 'gesture' || c.do === 'move' || INTERACTION_DO.has(c.do)).map((c) => (c.timeMs ?? 0) / 1000),
+    plan.durationSec ?? Infinity,
+  ].sort((a, b) => a - b);
   const quiet = cueTimes.slice(1).map((end, i) => [cueTimes[i], end]).filter(([a, b]) => b > a);
   const fidgets = fidgetSchedule(quiet, plan.seed ?? 'sh01')
-    .filter((f) => !walkSegments.some((seg) => f.t0 < seg.t1 && f.t0 + 0.8 > seg.t0));
+    .filter((f) => !walkSegments.some((seg) => f.t0 < seg.t1 && f.t0 + 0.8 > seg.t0))
+    .filter((f) => !interactionEvents.some((ev) => f.t0 < ev.t0 + ev.dur && f.t0 + 0.8 > ev.t0));
   const fidget = fidgets.find((f) => t >= f.t0 && t < f.t0 + 0.8) ?? null;
   const fidgetEnv = fidget ? Math.sin(((t - fidget.t0) / 0.8) * Math.PI) : 0;
 
-  // Build angles + lift + view
+  // Build base angles + lift + seatY + view
   let gesture = holdGesture;
   let spark = 0;
   let gazeOverride = null;
@@ -463,8 +1087,14 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   let view = resolvePose(manifest, holdGesture).view;
   let angles;
   let lift = resolvePose(manifest, holdGesture).lift ?? 0;
+  let seatY = null;
   let tapImpact = 0;
   let isFastMotion = false;
+  let activeInterPhase = null;
+  let ikOp = null;
+
+  const heldProp = prop === 'none' ? undefined : prop;
+  const baseHoldPose = clampAngles(manifest, poseAngles(manifest, holdGesture, heldProp, view));
 
   if (walking) {
     const wf = walkFrame(manifest, walkPhase, { x, ground, facing, trot: trotting });
@@ -472,11 +1102,24 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     lift = wf.lift;
     view = 'side';
     isFastMotion = trotting;
+    if (carriedIdx !== null) angles = clampAngles(manifest, { ...angles, ...CARRY_POSE });
+  } else if (activeInter) {
+    const built = buildInteractionPose(manifest, activeInter, {
+      t, H, facing, baseHoldPose, carriedIdx, cues, elements, interactionStarts,
+    });
+    ({ view, angles, lift, seatY, shiftX, activeInterPhase, ikOp, isFastMotion } = built);
+  } else if (seated) {
+    view = 'three_quarter';
+    seatY = seated.seat[1];
+    lift = 0;
+    angles = clampAngles(manifest, {
+      ...SIT_ON_ANGLES,
+      ...(carriedIdx !== null ? CARRY_POSE : {}),
+    });
   } else {
-    const heldProp = prop === 'none' ? undefined : prop;
     const fromA = poseAngles(manifest, prevHoldGesture, heldProp, view);
     const toA = poseAngles(manifest, holdGesture, heldProp, view);
-    const isPoint = ['point', 'point_right', 'present'].includes(holdGesture);
+    const isPoint = ['point', 'point_right', 'present'].includes(holdGesture) && carriedIdx === null;
     const dur = isPoint ? 0.4 : tweenDuration(fromA, toA);
     if (t - holdChangedAt >= 0 && t - holdChangedAt < dur) {
       angles = tweenPoseAngles(manifest, fromA, toA, t - holdChangedAt, { duration: dur, anticipate: isPoint, overshoot: isPoint });
@@ -484,10 +1127,9 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
       angles = clampAngles(manifest, toA);
     }
 
-    // Apply IK aiming for point/present, and orient lean_in toward the focus element (小青人设设计 §4.1)
     if (isPoint && focusEl) {
       facing = focusPt[0] >= x ? 1 : -1;
-      angles = aimArmAt(manifest, angles, { view, facing, x, ground, target: focusPt, prop: heldProp });
+      ikOp = { kind: 'point', target: focusPt, prop: heldProp };
     } else if (holdGesture === 'lean_in') {
       if (focusEl) facing = focusPt[0] >= x ? 1 : -1;
       gazeOverride = [0.06, -0.04];
@@ -540,10 +1182,10 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
             const tapTarget = focusEl?.anchors?.front
               ? [focusPt[0] - facing * 12 * (1 - reach), focusPt[1]]
               : [focusPt[0], focusPt[1] - 12 * reach];
-            angles = aimArmAt(manifest, tapBase, { view, facing, x, ground, target: tapTarget, prop: heldProp });
+            angles = clampAngles(manifest, tapBase);
+            ikOp = { kind: 'point', target: tapTarget, prop: heldProp };
             if (u >= 0.4 && u <= 0.65) tapImpact = Math.sin(((u - 0.4) / 0.25) * Math.PI);
           } else {
-            // H gestures (小青人设设计 §4.1): wind up into the pose, then the gesture's own accent.
             angles = tweenPoseAngles(manifest, toA, spec.angles, Math.min(dt, 0.3), { duration: 0.3, anticipate: true, overshoot: true });
             if (activeOnce.gesture === 'snap') {
               const flick = u > 0.45 && u < 0.65 ? Math.sin(((u - 0.45) / 0.2) * Math.PI) : 0;
@@ -567,11 +1209,13 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
             }
           }
         } else {
-          // Return smoothly to hold gesture over 0.3s
           angles = tweenPoseAngles(manifest, spec.angles, toA, dt - sec, { duration: 0.3 });
           lift = 0;
         }
       }
+    }
+    if (carriedIdx !== null && !ikOp && !inOnce) {
+      angles = clampAngles(manifest, { ...angles, ...CARRY_POSE });
     }
   }
 
@@ -586,47 +1230,74 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     return 0;
   };
 
-  // Question-end detection for micro head tilt
+  // Question-end detection and micro-acting (§4.3, §6.4)
   const activeSent = (plan.sentences ?? []).find((s) => t * 1000 >= s.startMs && t * 1000 <= s.endMs);
   const isQuestionEnd = Boolean(activeSent && /[？?][」』”’）)》】\]"']*$/.test(activeSent.text) && (activeSent.endMs - t * 1000) <= 500);
   const micro = computeMicroActing(t, plan.seed ?? 'sh01', {
     audioFrame,
     isQuestionEnd,
     focusChangedAt,
-    isIdle: !walking && holdGesture === 'idle',
+    isIdle: !walking && !activeInter && !seated && holdGesture === 'idle',
     focusDirX: focusPt[0] >= x ? 1 : -1,
   });
 
+  // Auto micro-cooperation (§6.4): turn head on reveal (0.6s), nod on highlight/state (0.35s) when not walking/once/activeInter
+  let coopNeck = 0;
+  let coopHead = 0;
+  if (!walking && !inOnce && !activeInter) {
+    if (t - revealAt >= 0 && t - revealAt <= 0.6 && revealTargetIdx !== null) {
+      const revEnv = Math.sin(((t - revealAt) / 0.6) * Math.PI);
+      const revEl = currentElements[revealTargetIdx];
+      const rx = revEl ? revEl.bbox.x + revEl.bbox.w / 2 : focusPt[0];
+      const relDir = (rx >= x ? 1 : -1) * facing;
+      coopNeck += 4 * relDir * revEnv;
+      coopHead += 8 * relDir * revEnv;
+      if (!gazeOverride) gazeOverride = [0.08 * relDir * revEnv, -0.04 * revEnv];
+    }
+    if (t - nodCueAt >= 0 && t - nodCueAt <= 0.35) {
+      const nodEnv = Math.sin(((t - nodCueAt) / 0.35) * Math.PI);
+      coopHead += 5 * nodEnv;
+    }
+  }
+
   // Apply subtle breathing / weight shift / nod / question tilt + speech-driven conversational arm beats
+  const lockArms = Boolean(ikOp || activeInter || carriedIdx !== null);
   const speechEnv = !walking && lift < 0.01 ? clamp01((audioFrame?.open ?? 0) * 1.15) : 0;
-  const talkElbow = speechEnv > 0.08 ? Math.sin(t * 4.8) * 7 * speechEnv : 0;
-  const talkShoulder = speechEnv > 0.08 ? Math.sin(t * 2.4) * 4 * speechEnv : 0;
-  const talkWrist = speechEnv > 0.08 ? Math.sin(t * 4.8 - 0.6) * 8 * speechEnv : 0;
-  const talkOtherElbow = speechEnv > 0.08 ? Math.cos(t * 3.6) * 4 * speechEnv : 0;
+  const talkElbow = !lockArms && speechEnv > 0.08 ? Math.sin(t * 4.8) * 7 * speechEnv : 0;
+  const talkShoulder = !lockArms && speechEnv > 0.08 ? Math.sin(t * 2.4) * 4 * speechEnv : 0;
+  const talkWrist = !lockArms && speechEnv > 0.08 ? Math.sin(t * 4.8 - 0.6) * 8 * speechEnv : 0;
+  const talkOtherElbow = !lockArms && speechEnv > 0.08 ? Math.cos(t * 3.6) * 4 * speechEnv : 0;
+  const keepTorsoExact = activeInter?.kind === 'hold_up';
   angles = clampAngles(manifest, {
     ...angles,
-    waist: (angles.waist ?? 0) + speechEnv * 1.5,
-    chest: (angles.chest ?? 0) + micro.breath * 0.8 + speechEnv * 1.0,
-    head: (angles.head ?? 0) + micro.nod + micro.tilt,
+    waist: (angles.waist ?? 0) + (keepTorsoExact ? 0 : speechEnv * 1.5),
+    chest: (angles.chest ?? 0) + (keepTorsoExact ? 0 : micro.breath * 0.8 + speechEnv * 1.0),
+    neck: (angles.neck ?? 0) + coopNeck,
+    head: (angles.head ?? 0) + micro.nod + micro.tilt + coopHead,
     l_shoulder: (angles.l_shoulder ?? 0) + talkShoulder,
     l_elbow: (angles.l_elbow ?? 0) + talkElbow,
     l_wrist: (angles.l_wrist ?? 0) + talkWrist,
     r_elbow: (angles.r_elbow ?? 0) + talkOtherElbow,
   });
-  // Surprise recoil (§4.4): surprised or amazed leans the body back for 0.3 s; the gesture stays.
+
+  // Surprise recoil (§4.4) and fidgets
   const surpriseAt = ['surprised', 'amazed'].includes(expr) && exprChangedAt >= 0 ? exprChangedAt : null;
-  const recoil = surpriseAt !== null && t - surpriseAt < 0.3 ? Math.sin(((t - surpriseAt) / 0.3) * Math.PI) : 0;
-  const fidgetOn = fidget && !walking && !inOnce ? fidgetEnv : 0;
+  const recoil = !keepTorsoExact && surpriseAt !== null && t - surpriseAt < 0.3 ? Math.sin(((t - surpriseAt) / 0.3) * Math.PI) : 0;
+  const fidgetOn = fidget && !walking && !inOnce && !activeInter ? fidgetEnv : 0;
   angles = clampAngles(manifest, {
     ...angles,
     waist: angles.waist - 5 * recoil,
     chest: angles.chest - 4 * recoil,
     head: angles.head - (fidget?.kind === 'look' ? 6 * fidgetOn : 0),
   });
-  if (fidget?.kind === 'tiptoe' && holdGesture !== 'sit') lift += 0.02 * fidgetOn;
+  if (fidget?.kind === 'tiptoe' && holdGesture !== 'sit' && !seated && !activeInter) lift += 0.02 * fidgetOn;
   if (fidget?.kind === 'look' && fidgetOn > 0) gazeOverride = [-0.08 * fidgetOn, 0];
   shiftX += -facing * 0.015 * H * recoil;
-  const finalX = x + micro.weightShift + shiftX;
+  const finalX = x + (activeInter || seated ? 0 : micro.weightShift) + shiftX;
+
+  angles = applyInteractionIK(manifest, ikOp, angles, {
+    view, facing, x: finalX, ground, lift, seatY, baseHoldPose, H,
+  });
 
   // 呆毛: morph to the new expression's shape, spring on walks, kicks and flicks (§3.1, §4.3, §4.4)
   const kickOf = (g, t0) => ({ t0: g === 'double_take' ? t0 + 0.35 * (resolvePose(manifest, g).seconds ?? 1) : t0, amp: g === 'startle' ? -1 : 1 });
@@ -649,8 +1320,8 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   const scarfAngles = simulateScarfSpring(manifest, velAt, Math.min(t, 3));
   const symbolOpacity = exprChangedAt >= 0 ? clamp01((t - exprChangedAt) / 0.2) : 1;
 
-  // Compute body bbox (head + hat/呆毛 + torso, excluding arms/props) for QA occlusion check (§7.6)
-  const fk = forwardKinematics(manifest, angles, { view, facing, x: finalX, ground, lift });
+  // Final FK for bodyBbox & exact handPos / carriedPos
+  const fk = forwardKinematics(manifest, angles, { view, facing, x: finalX, ground, lift, seatY });
   const topV = manifest.ahoge
     ? Math.min(-1, ...ahogePoints(manifest, { expr, ...ahoge, outfit: plan.outfit ?? 'none' }).map(([, v]) => v)) - Math.max(0, headStretch)
     : -1;
@@ -662,6 +1333,23 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     h: ground - headTop,
   };
 
+  const handPos = [fk.points.l_hand[0], fk.points.l_hand[1]];
+  const carriedPos = carriedIdx !== null ? handPos : null;
+  const interacting = Boolean(activeInter || carriedIdx !== null || seated !== null);
+  const hasDropped = Object.keys(droppedSpots).length > 0;
+  const interaction = interacting || hasDropped
+    ? {
+        kind: activeInter ? activeInter.kind : (seated ? 'sit_on' : (carriedIdx !== null ? 'carry' : 'idle')),
+        targetIdx: activeInter ? activeInter.targetIdx : (seated ? seated.targetIdx : (carriedIdx !== null ? carriedIdx : null)),
+        phase: activeInter ? activeInterPhase : (seated || carriedIdx !== null ? 'hold' : null),
+        handPos,
+        ...(activeInter && (activeInter.kind === 'push' || activeInter.kind === 'pull') ? { standX: activeInter.standX } : {}),
+        carriedIdx,
+        carriedPos,
+        droppedSpots: { ...droppedSpots },
+      }
+    : null;
+
   return {
     gesture,
     expr,
@@ -669,6 +1357,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     facing,
     x: finalX,
     ground,
+    seatY,
     prop,
     blink: micro.blink,
     theme,
@@ -692,6 +1381,9 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     rushedMove,
     isFastMotion,
     bodyBbox,
+    interacting,
+    interaction,
+    interactionStarts,
     endState: { x: curX, view, facing, gesture: holdGesture, expr, prop, autoSnaps },
   };
 }

@@ -49,7 +49,7 @@ export function poseAngles(manifest, gesture, prop, view) {
  * the lowest foot, or the pelvis when sitting, touches `ground`, raised by `lift` × H.
  * @returns {{ points: Record<string, number[]>, dirs: Record<string, number>, H: number, R: number, view: string, facing: number }}
  */
-export function forwardKinematics(manifest, angles, { view = 'front', facing = 1, x = 0, ground = 0, lift = 0 } = {}) {
+export function forwardKinematics(manifest, angles, { view = 'front', facing = 1, x = 0, ground = 0, lift = 0, seatY = null } = {}) {
   const H = manifest.height_px;
   const a = clampAngles(manifest, angles);
   const len = (joint) => manifest.joints[joint].length * H;
@@ -63,6 +63,12 @@ export function forwardKinematics(manifest, angles, { view = 'front', facing = 1
   p.head_base = step(p.neck_base, d.neck, len('neck'));
   d.head = d.neck + a.head;
   p.head_center = step(p.head_base, d.head, len('head') / 2);
+  const sole = (manifest.figure.foot[1] * H) / 2;
+  const hasSeat = seatY !== null && seatY !== undefined && Number.isFinite(seatY);
+  const dySeat = hasSeat ? seatY - lift * H : null;
+  const clampSeatFeet = hasSeat && Number.isFinite(ground) && ground > dySeat + sole;
+  const maxRelY = clampSeatFeet ? ground - dySeat - sole : Infinity;
+
   for (const s of ['l', 'r']) {
     const o = view === 'front' && s === 'r' ? -1 : 1; // which way "forward" turns this limb
     d[`${s}_upper_arm`] = d.spine_up + 180 - o * a[`${s}_shoulder`];
@@ -71,16 +77,43 @@ export function forwardKinematics(manifest, angles, { view = 'front', facing = 1
     p[`${s}_wrist`] = step(p[`${s}_elbow`], d[`${s}_forearm`], len(`${s}_elbow`));
     d[`${s}_hand`] = d[`${s}_forearm`] - o * a[`${s}_wrist`];
     p[`${s}_hand`] = step(p[`${s}_wrist`], d[`${s}_hand`], len(`${s}_wrist`));
-    d[`${s}_thigh`] = 90 + a.pelvis - o * a[`${s}_hip`];
-    p[`${s}_knee`] = step(p.pelvis, d[`${s}_thigh`], len(`${s}_hip`));
-    d[`${s}_shin`] = d[`${s}_thigh`] + o * a[`${s}_knee`];
-    p[`${s}_ankle`] = step(p[`${s}_knee`], d[`${s}_shin`], len(`${s}_knee`));
-    d[`${s}_foot`] = d[`${s}_shin`] - o * (90 + a[`${s}_ankle`]);
-    p[`${s}_toe`] = step(p[`${s}_ankle`], d[`${s}_foot`], len(`${s}_ankle`) * manifest.views[view].foot_scale);
+
+    let hipDeg = a[`${s}_hip`];
+    let kneeDeg = a[`${s}_knee`];
+    let ankleDeg = a[`${s}_ankle`];
+    const computeLeg = () => {
+      d[`${s}_thigh`] = 90 + a.pelvis - o * hipDeg;
+      p[`${s}_knee`] = step(p.pelvis, d[`${s}_thigh`], len(`${s}_hip`));
+      d[`${s}_shin`] = d[`${s}_thigh`] + o * kneeDeg;
+      p[`${s}_ankle`] = step(p[`${s}_knee`], d[`${s}_shin`], len(`${s}_knee`));
+      d[`${s}_foot`] = d[`${s}_shin`] - o * (90 + ankleDeg);
+      p[`${s}_toe`] = step(p[`${s}_ankle`], d[`${s}_foot`], len(`${s}_ankle`) * manifest.views[view].foot_scale);
+    };
+    computeLeg();
+    if (clampSeatFeet && (p[`${s}_ankle`][1] > maxRelY || p[`${s}_toe`][1] > maxRelY)) {
+      const [hipLo, hipHi] = manifest.joints[`${s}_hip`].range;
+      const [kneeLo, kneeHi] = manifest.joints[`${s}_knee`].range;
+      const [ankleLo, ankleHi] = manifest.joints[`${s}_ankle`].range;
+      const L_thigh = len(`${s}_hip`);
+      const L_shin = len(`${s}_knee`);
+      const sinThigh = Math.max(-1, Math.min(1, (maxRelY - L_shin) / L_thigh));
+      const thAngle = Math.asin(sinThigh) / RAD;
+      const desiredThigh = o === 1 ? thAngle : 180 - thAngle;
+      hipDeg = Math.min(hipHi, Math.max(hipLo, o === 1 ? (90 + a.pelvis - desiredThigh) : (desiredThigh - (90 + a.pelvis))));
+      const dThigh = 90 + a.pelvis - o * hipDeg;
+      const kneePt = step(p.pelvis, dThigh, L_thigh);
+      const sinShin = Math.max(-1, Math.min(1, (maxRelY - kneePt[1]) / L_shin));
+      const shAngle = Math.asin(sinShin) / RAD;
+      const desiredShin = kneePt[1] + L_shin <= maxRelY ? 90 : (o === 1 ? shAngle : 180 - shAngle);
+      kneeDeg = Math.min(kneeHi, Math.max(kneeLo, o * (desiredShin - dThigh)));
+      const dShin = dThigh + o * kneeDeg;
+      const idealAnkle = o === 1 ? dShin - 90 : 90 - dShin;
+      ankleDeg = Math.min(ankleHi, Math.max(ankleLo, idealAnkle));
+      computeLeg();
+    }
   }
-  const sole = (manifest.figure.foot[1] * H) / 2;
   const lowest = Math.max(p.pelvis[1], ...['l_ankle', 'l_toe', 'r_ankle', 'r_toe'].map((k) => p[k][1] + sole));
-  const dy = ground - lowest - lift * H;
+  const dy = hasSeat ? dySeat : ground - lowest - lift * H;
   const points = Object.fromEntries(Object.entries(p).map(([k, [px, py]]) => [k, [x + facing * px, py + dy]]));
   const dirs = Object.fromEntries(Object.entries(d).map(([k, deg]) => [k, facing === 1 ? deg : 180 - deg]));
   return { points, dirs, H, R: len('head') / 2, view, facing };
@@ -356,7 +389,7 @@ function heldProp(ctx, fk, prop) {
 export function drawHost(manifest, state) {
   const {
     gesture, expr, facing = 1, x = 0, ground = 0, blink = 0, theme = 'light', style = undefined, seed = 'host',
-    angles = null, lift = null, mouthOpen = 0, mouthWidth = 0.5, gaze = null, scarfAngles = null, hands = null, symbolOpacity = 1,
+    angles = null, lift = null, seatY = null, mouthOpen = 0, mouthWidth = 0.5, gaze = null, scarfAngles = null, hands = null, symbolOpacity = 1,
     outfit = 'none', ahoge = null, headStretch = 0, spark = 0,
   } = state;
   const prop = state.prop === 'none' ? undefined : state.prop; // the prop cue's none puts the prop down
@@ -375,7 +408,7 @@ export function drawHost(manifest, state) {
   const pose = resolvePose(manifest, gesture);
   const view = state.view ?? pose.view;
   if (!manifest.views[view]) throw new Error(`unknown view ${view}`);
-  const fk = forwardKinematics(manifest, angles ?? poseAngles(manifest, gesture, prop, view), { view, facing, x, ground, lift: lift ?? pose.lift ?? 0 });
+  const fk = forwardKinematics(manifest, angles ?? poseAngles(manifest, gesture, prop, view), { view, facing, x, ground, lift: lift ?? pose.lift ?? 0, seatY });
   const { points: p, dirs, H, R } = fk;
   const defaultLines = { face: [0.008, 0.011], symbol: [0.009, 0.013], prop: [0.012, 0.016], fine: [0.0075, 0.01], scarf: manifest.ink.width };
   const rawLines = { ...defaultLines, ...(manifest.ink.lines ?? {}) };
