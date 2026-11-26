@@ -1,8 +1,9 @@
 // Visual style packs and 8 hand-drawn stage scenes (个性化路线图, S1/S2).
 // Pure vector SVG helpers without <text> or <filter>, keeping the central stage clear.
+import { FRAMES } from './frame.mjs';
 import { chaikin, circlePoints, inkStroke, markerFill, num, pathData, random } from './ink.mjs';
 
-export const GROUND_Y = 930;
+export const GROUND_Y = FRAMES['16:9'].ground;
 export const STYLE_NAMES = ['paper', 'chalkboard', 'blueprint', 'kraft', 'night'];
 export const SCENE_NAMES = ['blank', 'podium', 'kitchen', 'street', 'lab', 'office', 'outdoor', 'workshop'];
 

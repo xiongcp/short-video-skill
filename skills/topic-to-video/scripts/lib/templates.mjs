@@ -1,15 +1,13 @@
 // Eight hand-drawn explainer diagram templates (火柴人主持人设计 §3.5-3.6, 出片质量设计 §6.2, §7.1, 个性化路线图 S).
 // Returns pure vectorSvg (no <text>, fast resvg) + textItems (cached CJK layer) + elements with bboxes.
 import { clamp01, easeOutCubic, lerp } from './ease.mjs';
+import { FRAMES } from './frame.mjs';
 import { drawIcon, drawStateOverlay, isCountState } from './icons.mjs';
 import { circlePoints, inkStroke, markerFill, num, resample } from './ink.mjs';
 import { renderSendPacket } from './stage.mjs';
 import { resolveStyle, STYLE_PALETTES, styleBackgroundSvg } from './world.mjs';
 
-export const DIAGRAM_ZONES = {
-  'host-left': { x: 640, y: 48, w: 1200, h: 400 },
-  full: { x: 120, y: 120, w: 1680, h: 740 },
-};
+export const DIAGRAM_ZONES = FRAMES['16:9'].zones;
 
 export const THEME_PALETTE = {
   light: STYLE_PALETTES.paper,

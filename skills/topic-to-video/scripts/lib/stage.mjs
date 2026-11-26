@@ -1,33 +1,15 @@
 // Semantic stage auto-layout and pure-vector renderer for `layout: "stage"` (画面与同台互动设计 §4.2, §5.1–§5.4).
 // Pure deterministic functions without <text>, sharing geometry with project.mjs and scene.mjs.
 import { clamp01, easeOutBack, lerp } from './ease.mjs';
+import { FRAMES } from './frame.mjs';
 import { COMMON_STATES, customPropMeta, drawCustomProp, drawIcon, isCountState, PROP_META } from './icons.mjs';
 import { inkStroke, num, resample } from './ink.mjs';
 import { GROUND_Y, resolveStyle } from './world.mjs';
 
-export const STAGE_SLOTS = {
-  left: 240,
-  'mid-left': 600,
-  center: 960,
-  'mid-right': 1320,
-  right: 1680,
-};
+export const STAGE_SLOTS = FRAMES['16:9'].stage.slots;
+export const STAGE_BOUNDS = FRAMES['16:9'].stage.bounds;
 
 export const SIZE_MULTIPLIERS = { sm: 0.75, md: 1, lg: 1.3 };
-
-export const STAGE_BOUNDS = {
-  minX: 120,
-  maxX: 1800,
-  titleTop: 48,
-  titleBottom: 150,
-  airTopMin: 160,
-  airBottomMax: 470,
-  midDefaultBottom: 762,
-  subtitleSafeY: 950,
-  gap: 40,
-  hostClearWidth: 200,
-  minScale: 0.6,
-};
 
 const HOST_MIN_X = 200;
 const HOST_MAX_X = 1720;
