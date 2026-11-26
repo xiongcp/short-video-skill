@@ -39,6 +39,7 @@ function matchSharedElements(prevElems, nextElems) {
  */
 export function buildShotPlans(project, timeline, manifest) {
   const theme = project.settings?.theme ?? 'light';
+  const outfit = project.settings?.outfit ?? 'none';
   let lastHostEnd = { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
   let prevPlan = null;
   const plans = [];
@@ -101,6 +102,7 @@ export function buildShotPlans(project, timeline, manifest) {
       id: shot.id,
       shot,
       theme,
+      outfit,
       durationSec: tl.durationSec,
       frameCount: tl.frameCount,
       audioHashes: tl.sentenceRanges.map((r) => r.sha256 ?? r.key),
@@ -123,6 +125,7 @@ export function buildShotPlans(project, timeline, manifest) {
       const endEval = evaluateHostAt(manifest, {
         seed: shot.id,
         theme,
+        outfit,
         durationSec: tl.durationSec,
         startState,
         cues,
@@ -151,6 +154,7 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     durationSec: Number(shotPlan.durationSec.toFixed(4)),
     frameCount: shotPlan.frameCount,
     theme: shotPlan.theme,
+    outfit: shotPlan.outfit ?? 'none',
     audioHashes: shotPlan.audioHashes,
     startState: shotPlan.startState,
     transition: shotPlan.transition,
@@ -276,6 +280,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     const evalPlan = {
       seed: shotPlan.id,
       theme: shotPlan.theme,
+      outfit: shotPlan.outfit,
       durationSec: duration,
       startState: shotPlan.startState,
       cues: shotPlan.cues,
@@ -317,6 +322,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
       x: exitX,
       ground: 930,
       theme: shotPlan.theme,
+      outfit: shotPlan.outfit,
       seed: shotPlan.prevShot.id,
       angles: wf.angles,
       lift: wf.lift,

@@ -25,6 +25,7 @@ export const LABELS = {
   wave: '挥手', jump: '跳起', cheer: '欢呼', tap: '拍一下', snap: '打响指', lean_in: '凑近看', startle: '吓一跳', double_take: '再看一眼', scratch_head: '挠头',
   explaining: '讲解', focused: '专注', happy: '开心', curious: '好奇', surprised: '惊讶', worried: '担心', frustrated: '着急', proud: '得意', amazed: '恍然大悟',
   pointer: '教鞭', magnifier: '放大镜', phone: '手机', doc: '文件', bulb: '灯泡', question: '问号牌',
+  glasses: '圆眼镜', hardhat: '安全帽', chef_hat: '厨师帽', apron: '围裙',
 };
 
 /** The 呆毛 shapes; kept apart from LABELS because question is also a prop. */
@@ -59,7 +60,7 @@ export function hostRefSvg(manifest) {
 /** host-cheatsheet.png: the gestures, the expressions and the props, each with its name and a Chinese caption. */
 export function cheatsheetSvg(manifest) {
   const title = `<text x="40" y="64" font-family="${FONT}" font-size="40" fill="${INK}">小青 xiaoqing · 速查图</text>`
-    + `<text x="1760" y="64" font-family="${FONT}" font-size="24" fill="#6b6b6b" text-anchor="end">动作 ${Object.keys(manifest.poses).length} · 表情 ${Object.keys(manifest.expressions).length} · 道具 ${Object.keys(manifest.props).length}</text>`;
+    + `<text x="1760" y="64" font-family="${FONT}" font-size="24" fill="#6b6b6b" text-anchor="end">动作 ${Object.keys(manifest.poses).length} · 表情 ${Object.keys(manifest.expressions).length} · 道具 ${Object.keys(manifest.props).length} · 服装 ${Object.keys(manifest.outfits).length}</text>`;
   const gestures = Object.keys(manifest.poses).map((gesture, i) => {
     const [x, top] = [150 + (i % 6) * 300, 100 + Math.floor(i / 6) * 400];
     const figure = manifest.poses[gesture].alias
@@ -77,7 +78,11 @@ export function cheatsheetSvg(manifest) {
     const gesture = p.hand === 'acting' ? 'point' : 'idle';
     return scaled(0.7, drawHost(manifest, { gesture, expr: 'explaining', prop, x: x / 0.7, ground: 1940 / 0.7, seed: `sheet-${prop}` })) + label(x, 1980, prop);
   }).join('');
-  return svgDoc(1800, 2040, title + gestures + faces + props);
+  const outfits = Object.keys(manifest.outfits).map((outfit, i) => {
+    const x = 150 + i * 300;
+    return scaled(0.7, drawHost(manifest, { gesture: 'idle', expr: 'happy', outfit, x: x / 0.7, ground: 2380 / 0.7, seed: `sheet-${outfit}` })) + label(x, 2420, outfit);
+  }).join('');
+  return svgDoc(1800, 2480, title + gestures + faces + props + outfits);
 }
 
 /** The waving host in the site's hero frame; the page's CSS swings the left forearm and blinks the eyes. */

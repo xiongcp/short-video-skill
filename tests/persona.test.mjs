@@ -115,3 +115,48 @@ test('a head stretch draws the head taller than wide; a squash draws it wider', 
   const [w2, h2] = box(draw({ headStretch: -0.06 }));
   assert.ok(w2 > h2 * 1.08, `${w2} x ${h2}`);
 });
+
+const OUTFITS = ['glasses', 'hardhat', 'chef_hat', 'apron'];
+
+test('each outfit draws, a hat keeps the 呆毛 growing out of its crown, and an unknown outfit is an error', () => {
+  for (const outfit of OUTFITS) assert.match(draw({ outfit }), new RegExp(`data-outfit="${outfit}"`), outfit);
+  for (const outfit of ['hardhat', 'chef_hat']) {
+    assert.equal(ahogePoints(manifest, { expr: 'explaining', outfit })[0][1], manifest.outfits[outfit].crown, outfit);
+    const svg = draw({ outfit });
+    assert.ok(svg.indexOf(`data-outfit="${outfit}"`) < svg.indexOf('data-part="ahoge"'), `${outfit} is drawn under the 呆毛`);
+  }
+  assert.doesNotMatch(draw({}), /data-outfit/);
+  assert.throws(() => draw({ outfit: 'cape' }), /unknown outfit cape/);
+});
+
+test('glasses and the apron leave the 呆毛 where it grows', () => {
+  const bare = ahogePoints(manifest, { expr: 'explaining' });
+  assert.deepEqual(ahogePoints(manifest, { expr: 'explaining', outfit: 'glasses' }), bare);
+  assert.deepEqual(ahogePoints(manifest, { expr: 'explaining', outfit: 'apron' }), bare);
+});
+
+test('outfits use the theme\'s ink, so a dark frame has no black outlines', () => {
+  for (const outfit of OUTFITS) {
+    const svg = draw({ outfit, theme: 'dark' });
+    assert.ok(svg.includes(manifest.ink.body.dark), outfit);
+    assert.ok(!svg.includes(`stroke="${manifest.ink.body.light}"`), outfit);
+  }
+});
+
+test('at 540p the 呆毛, outfits and star eyes stay at least 1.5 px wide', () => {
+  const small = { ...manifest, height_px: 200 };
+  for (const outfit of OUTFITS) {
+    for (const expr of ['amazed', 'curious']) {
+      const svg = drawHost(small, { gesture: 'idle', expr, outfit, x: 200, ground: 465, seed: 'small' });
+      for (const m of svg.matchAll(/A([\d.]+) ([\d.]+)/g)) assert.ok(Number(m[1]) * 2 >= 1.5 - 1e-6, `cap ${m[1]} in ${outfit} ${expr}`);
+      for (const m of svg.matchAll(/stroke-width="([\d.]+)"/g)) assert.ok(Number(m[1]) >= 1.5 - 1e-6, `stroke ${m[1]} in ${outfit} ${expr}`);
+    }
+  }
+});
+
+test('evaluateHostAt passes the plan\'s outfit on to drawHost', () => {
+  assert.equal(evaluateHostAt(manifest, plan([]), 1).outfit, 'none');
+  const dressed = evaluateHostAt(manifest, plan([], { outfit: 'chef_hat' }), 1);
+  assert.equal(dressed.outfit, 'chef_hat');
+  assert.match(drawHost(manifest, dressed), /data-outfit="chef_hat"/);
+});

@@ -151,7 +151,7 @@ function pen(ctx, name, points, width = ctx.width, color = ctx.ink, opts = {}) {
 }
 
 // Face features in head units (R = 1), drawn for a host facing right around (0, 0).
-function face(base, expr, view, blink, { mouthOpen = 0, mouthWidth = 0.5, gaze = null } = {}) {
+function face(base, expr, view, blink, { mouthOpen = 0, mouthWidth = 0.5, gaze = null, outfit = 'none' } = {}) {
   const ctx = { ...base, wobble: base.wobble * 0.2 }; // small features need a steadier hand
   const e = ctx.manifest.expressions[expr];
   const v = ctx.manifest.views[view];
@@ -182,6 +182,14 @@ function face(base, expr, view, blink, { mouthOpen = 0, mouthWidth = 0.5, gaze =
   });
   const eyeCenter = at(v.eyes.reduce((s, u) => s + u, 0) / v.eyes.length, -0.02);
   parts.push(`<g data-face-part="eyes" style="transform-origin:${num(eyeCenter[0])}px ${num(eyeCenter[1])}px">${eyes.join('')}</g>`);
+  if (outfit === 'glasses') {
+    const rr = ctx.manifest.outfits.glasses.rim * R;
+    const xs = v.eyes.map((u) => at(u, 0)[0]);
+    const rims = xs.map((gx0, i) => pen(ctx, `glasses${i}`, circlePoints(gx0, -0.02 * R, rr, { seed: `${ctx.seed}:glasses${i}`, overdraw: 0.2, count: 32 }), ctx.lines.fine));
+    const bridge = xs.length > 1 ? pen(ctx, 'glasses_bridge', [[xs[0] + rr, -0.06 * R], [(xs[0] + xs[1]) / 2, -0.12 * R], [xs[1] - rr, -0.06 * R]], ctx.lines.fine) : '';
+    const arm = view === 'front' ? '' : pen(ctx, 'glasses_arm', [[xs[0] - rr, -0.05 * R], [-0.92 * R, -0.12 * R]], ctx.lines.fine);
+    parts.push(`<g data-outfit="glasses">${rims.join('')}${bridge}${arm}</g>`);
+  }
   v.eyes.forEach((u, i) => {
     const inward = u < 0 ? 1 : -1;
     const raise = (e.brow.lift * ctx.H) / R + (i === 0 ? 1 : -0.5) * ((e.brow.asym ?? 0) * ctx.H) / R;
@@ -285,6 +293,43 @@ function propShape(ctx, name) {
   }
 }
 
+// Hats in the head frame (R = 1, facing right, −y up); the 呆毛 is drawn after them, out of the crown.
+function hatShape(ctx, name) {
+  const o = ctx.manifest.outfits[name];
+  const P = (pts) => pts.map(([u, v]) => [u * ctx.R, v * ctx.R]);
+  const fill = (pts, color, key) => `<path d="${markerFill(P(pts), { seed: `${ctx.seed}:${key}`, shift: ctx.H * 0.003 })}" fill="${color}"/>`;
+  const outline = (pts, key) => `<path d="${pathData(P(pts), true)}" fill="none" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[1])}" stroke-linejoin="round" data-part="${key}"/>`;
+  if (name === 'hardhat') {
+    const dome = Array.from({ length: 13 }, (_, i) => [Math.cos(Math.PI + (i * Math.PI) / 12) * o.half, o.brim + Math.sin(Math.PI + (i * Math.PI) / 12) * (o.brim - o.crown)]);
+    return `<g data-outfit="hardhat">${fill(dome, ctx.markers[o.marker], 'hardhat_fill')}${outline(dome, 'hardhat')}`
+      + `${pen(ctx, 'hardhat_brim', P([[-o.half - 0.15, o.brim], [o.front, o.brim]]), ctx.width)}${pen(ctx, 'hardhat_ridge', P([[0, o.crown], [0.08, o.brim - 0.08]]), ctx.lines.fine)}</g>`;
+  }
+  if (name === 'chef_hat') {
+    const ring = (u, v) => Array.from({ length: 25 }, (_, j) => [u + Math.cos((j / 24) * 2 * Math.PI) * o.puff, v + Math.sin((j / 24) * 2 * Math.PI) * o.puff]);
+    const band = [[-o.half, o.band[0]], [o.half, o.band[0]], [o.half, o.band[1]], [-o.half, o.band[1]]];
+    const puffs = o.puffs.map(([u, v], i) => fill(ring(u, v), o.fill, `chef_puff${i}_fill`) + outline(ring(u, v), `chef_puff${i}`)).join('');
+    return `<g data-outfit="chef_hat">${puffs}${fill(band, o.fill, 'chef_band_fill')}${outline(band, 'chef_band')}</g>`;
+  }
+  return '';
+}
+
+// The apron hangs from the chest to the thighs along the spine and turns with the torso.
+function apronShape(ctx, fk) {
+  const o = ctx.manifest.outfits.apron;
+  const { points: p, H, view } = fk;
+  const len = Math.hypot(p.neck_base[0] - p.pelvis[0], p.neck_base[1] - p.pelvis[1]);
+  const a = [(p.neck_base[0] - p.pelvis[0]) / len, (p.neck_base[1] - p.pelvis[1]) / len];
+  const n = [-a[1], a[0]];
+  const wide = ctx.manifest.views[view].scarf_width;
+  const top = [p.pelvis[0] + a[0] * len * o.from, p.pelvis[1] + a[1] * len * o.from];
+  const bottom = [p.pelvis[0] - a[0] * o.below * H, p.pelvis[1] - a[1] * o.below * H];
+  const [wt, wb] = o.width.map((w) => w * H * wide);
+  const quad = [[top[0] + n[0] * wt, top[1] + n[1] * wt], [top[0] - n[0] * wt, top[1] - n[1] * wt], [bottom[0] - n[0] * wb, bottom[1] - n[1] * wb], [bottom[0] + n[0] * wb, bottom[1] + n[1] * wb]];
+  return `<g data-outfit="apron"><path d="${markerFill(quad, { seed: `${ctx.seed}:apron_fill`, shift: H * 0.003 })}" fill="${ctx.markers[o.marker]}"/>`
+    + `<path data-part="apron" d="${pathData(quad, true)}" fill="none" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[1])}" stroke-linejoin="round"/>`
+    + `${pen(ctx, 'apron_strap', [quad[0], p.neck_base, quad[1]], ctx.lines.fine)}</g>`;
+}
+
 // Stretch (k > 1) or squash (k < 1) points along the head's axis, keeping its area.
 function squash(points, [cx, cy], headDir, k) {
   if (k === 1) return points;
@@ -303,7 +348,7 @@ function heldProp(ctx, fk, prop) {
 
 /**
  * SVG for the host at one moment, as a <g> to place in a 1920×1080 frame (or any frame in px).
- * state: { gesture, expr, view?, facing = 1, x, ground, prop?, blink = 0, theme = 'light', seed,
+ * state: { gesture, expr, view?, facing = 1, x, ground, prop?, blink = 0, theme = 'light', seed, outfit = 'none',
  *   ahoge?: { fromExpr, mix, bend }, headStretch = 0 }
  * view defaults to the pose's own view; seed keeps the ink lines fixed within a shot (use the shot ID).
  */
@@ -311,12 +356,13 @@ export function drawHost(manifest, state) {
   const {
     gesture, expr, facing = 1, x = 0, ground = 0, blink = 0, theme = 'light', seed = 'host',
     angles = null, lift = null, mouthOpen = 0, mouthWidth = 0.5, gaze = null, scarfAngles = null, hands = null, symbolOpacity = 1,
-    ahoge = null, headStretch = 0,
+    outfit = 'none', ahoge = null, headStretch = 0,
   } = state;
   const prop = state.prop === 'none' ? undefined : state.prop; // the prop cue's none puts the prop down
   if (!manifest.expressions[expr]) throw new Error(`unknown expression ${expr}`);
   if (prop && !manifest.props[prop]) throw new Error(`unknown prop ${prop}`);
   if (!manifest.ink.body[theme]) throw new Error(`unknown theme ${theme}`);
+  if (outfit !== 'none' && !manifest.outfits?.[outfit]) throw new Error(`unknown outfit ${outfit}`);
   const pose = resolvePose(manifest, gesture);
   const view = state.view ?? pose.view;
   if (!manifest.views[view]) throw new Error(`unknown view ${view}`);
@@ -369,17 +415,18 @@ export function drawHost(manifest, state) {
   const k = 1 + headStretch;
   const headFrame = `translate(${num(p.head_center[0])} ${num(p.head_center[1])}) rotate(${num(dirs.head + 90)}) scale(${facing} 1)`;
   const hair = manifest.ahoge
-    ? `<g data-ahoge="${manifest.ahoge.by_expr[expr]}" transform="${headFrame}">${pen(ctx, 'ahoge',
-      ahogePoints(manifest, { expr, ...(ahoge ?? {}) }).map(([u, v]) => [u * R, (v - (k - 1)) * R]), ctx.width, ctx.ink, { smooth: 2, taper: 'end' })}</g>`
+    ? `<g data-ahoge="${manifest.ahoge.by_expr[expr]}" transform="${headFrame}">${hatShape(ctx, outfit)}${pen(ctx, 'ahoge',
+      ahogePoints(manifest, { expr, ...(ahoge ?? {}), outfit }).map(([u, v]) => [u * R, (v - (k - 1)) * R]), ctx.width, ctx.ink, { smooth: 2, taper: 'end' })}</g>`
     : '';
   const head = `<g data-joint="head" ${origin(p.head_base)}>${pen(ctx, 'head', squash(circlePoints(p.head_center[0], p.head_center[1], R, { seed: `${seed}:head-circle` }), p.head_center, dirs.head, k))}`
-    + `<g data-face="${expr}" transform="${headFrame}">${face(ctx, expr, view, blink, { mouthOpen, mouthWidth, gaze })}</g>${hair}</g>`;
+    + `<g data-face="${expr}" transform="${headFrame}">${face(ctx, expr, view, blink, { mouthOpen, mouthWidth, gaze, outfit })}</g>${hair}</g>`;
   const rawSym = manifest.expressions[expr].symbol ? symbol(ctx, manifest.expressions[expr].symbol, p.head_center, facing) : '';
   const sym = rawSym && symbolOpacity < 0.999 ? `<g opacity="${num(Math.max(0, symbolOpacity))}">${rawSym}</g>` : rawSym;
+  const apron = outfit === 'apron' ? apronShape(ctx, fk) : '';
   // Far limbs behind the torso, near limbs in front; in the front view every limb is in front.
   // Mirroring keeps the left limbs on the near side whichever way the host faces.
   const body = view === 'front'
-    ? [tails, torso, leg('r'), leg('l'), scarf, head, arm('r'), arm('l')]
-    : [arm('r'), leg('r'), tails, torso, leg('l'), scarf, head, arm('l')];
+    ? [tails, torso, leg('r'), leg('l'), apron, scarf, head, arm('r'), arm('l')]
+    : [arm('r'), leg('r'), tails, torso, leg('l'), apron, scarf, head, arm('l')];
   return `<g data-host="${manifest.host}" data-gesture="${gesture}" data-expr="${expr}" data-view="${view}">${body.join('')}${sym}</g>`;
 }

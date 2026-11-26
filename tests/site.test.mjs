@@ -35,12 +35,12 @@ test('in-page anchors point at existing ids', () => {
   for (const href of anchors) assert.ok(ids.has(href.slice(1)), href);
 });
 
-test('the host cheatsheet was drawn from the current rig and names every gesture, expression and prop', () => {
+test('the host cheatsheet was drawn from the current rig and names every gesture, expression, prop and outfit', () => {
   const png = readFileSync(join(SITE, 'assets/host-cheatsheet.png'));
   const svg = cheatsheetSvg(manifest);
-  assert.deepEqual(pngSize(png), { width: 1800, height: 2040 });
+  assert.deepEqual(pngSize(png), { width: 1800, height: 2480 });
   assert.equal(pngText(png, 'svg-sha256'), svgHash(svg), 'rig.mjs or manifest.json changed: run npm run export-host');
-  for (const name of [...Object.keys(manifest.poses), ...Object.keys(manifest.expressions), ...Object.keys(manifest.props)]) {
+  for (const name of [...Object.keys(manifest.poses), ...Object.keys(manifest.expressions), ...Object.keys(manifest.props), ...Object.keys(manifest.outfits)]) {
     assert.ok(svg.includes(`>${name}</text>`), name);
     assert.ok(svg.includes(`>${LABELS[name]}</text>`), `${name} has a Chinese caption`);
   }

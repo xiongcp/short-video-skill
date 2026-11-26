@@ -122,3 +122,20 @@ test('renderProject renders a valid 60fps BT.709 MP4, cover, captions and chapte
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('settings.outfit dresses the host in every frame and is part of the shot cache key', () => {
+  const p = minimal();
+  const timing = {
+    's01-0': { file: 'audio/s01-0.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'aaa' },
+    's01-1': { file: 'audio/s01-1.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'bbb' },
+  };
+  const plain = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+  p.settings.outfit = 'hardhat';
+  const dressed = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
+  assert.equal(plain[0].outfit, 'none');
+  assert.equal(dressed[0].outfit, 'hardhat');
+  assert.match(evaluateFrame(manifest, dressed[0], 0.5).vectorSvg, /data-outfit="hardhat"/);
+  assert.doesNotMatch(evaluateFrame(manifest, plain[0], 0.5).vectorSvg, /data-outfit/);
+  assert.match(evaluateFrame(manifest, plain[0], 0.5).vectorSvg, /data-part="ahoge"/, 'an older project gets the 呆毛 without any change');
+  assert.notEqual(shotCacheKey(dressed[0]), shotCacheKey(plain[0]));
+});

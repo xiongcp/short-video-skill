@@ -36,6 +36,7 @@ test('profile, manifest and schema list the same expressions, gestures and props
 test('profile and schema list the same outfits, starting with none', () => {
   assert.deepEqual(profile.outfits, schema.$defs.settings.properties.outfit.enum);
   assert.equal(profile.outfits[0], 'none');
+  assert.deepEqual(Object.keys(manifest.outfits).sort(), profile.outfits.slice(1).sort());
 });
 
 test('profile names the host and locks its look for external models', () => {

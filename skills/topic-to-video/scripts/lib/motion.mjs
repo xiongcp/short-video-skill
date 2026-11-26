@@ -533,6 +533,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     mouthWidth: audioFrame?.width ?? 0.5,
     gaze: micro.gaze,
     scarfAngles,
+    outfit: plan.outfit ?? 'none',
     symbolOpacity,
     // Metadata for scene & QA:
     tapImpact,
