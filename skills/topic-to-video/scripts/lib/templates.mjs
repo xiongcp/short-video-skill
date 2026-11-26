@@ -1,9 +1,9 @@
-// Six hand-drawn explainer diagram templates (火柴人主持人设计 §3.5-3.6, 出片质量设计 §6.2, §7.1).
+// Eight hand-drawn explainer diagram templates (火柴人主持人设计 §3.5-3.6, 出片质量设计 §6.2, §7.1, 个性化路线图 S).
 // Returns pure vectorSvg (no <text>, fast resvg) + textItems (cached CJK layer) + elements with bboxes.
-import { clamp01, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
+import { clamp01, easeOutCubic } from './ease.mjs';
 import { drawIcon } from './icons.mjs';
 import { circlePoints, inkStroke, markerFill, num, resample } from './ink.mjs';
-import { STYLE_PALETTES, styleBackgroundSvg } from './world.mjs';
+import { resolveStyle, STYLE_PALETTES, styleBackgroundSvg } from './world.mjs';
 
 export const DIAGRAM_ZONES = {
   'host-left': { x: 640, y: 48, w: 1200, h: 400 },
@@ -33,6 +33,26 @@ function handCard({ x, y, w, h }, { seed, fill, ink, strokeWidth = [4, 5.5], ove
   return fillPath + edges;
 }
 
+function handRoundedCard({ x, y, w, h, r = 14 }, { seed, fill, ink, strokeWidth = [4, 5.5] }) {
+  const rad = Math.max(4, Math.min(r, w / 4, h / 4));
+  const corners = [
+    [x + w - rad, y + rad, -Math.PI / 2, 0],
+    [x + w - rad, y + h - rad, 0, Math.PI / 2],
+    [x + rad, y + h - rad, Math.PI / 2, Math.PI],
+    [x + rad, y + rad, Math.PI, (3 * Math.PI) / 2],
+  ];
+  const pts = [];
+  for (const [cx, cy, a0, a1] of corners) {
+    for (let k = 0; k <= 3; k += 1) {
+      const a = a0 + ((a1 - a0) * k) / 3;
+      pts.push([cx + rad * Math.cos(a), cy + rad * Math.sin(a)]);
+    }
+  }
+  const fillPath = fill ? `<path d="${markerFill(pts, { seed: `${seed}:fill`, shift: 4 })}" fill="${fill}"/>` : '';
+  const outline = `<path d="${inkStroke([...pts, pts[0]], { seed: `${seed}:edge`, width: strokeWidth, wobble: 1.8 }).d}" fill="${ink}"/>`;
+  return fillPath + outline;
+}
+
 function handHighlight({ x, y, w, h }, index, { seed, color, progress = 1 }) {
   const pad = 12;
   const cx = x + w / 2;
@@ -50,11 +70,11 @@ function handHighlight({ x, y, w, h }, index, { seed, color, progress = 1 }) {
   return `<g data-highlight="${index}"><path d="${d}" fill="${color}"/></g>`;
 }
 
-function handArrow(x1, y1, x2, y2, { seed, color, progress = 1 }) {
+function handArrow(x1, y1, x2, y2, { seed, color, progress = 1, bend = null }) {
   const p = clamp01(progress);
   if (p <= 0.02) return '';
-  const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2 - 14;
+  const mx = (x1 + x2) / 2 + (bend ? bend[0] : 0);
+  const my = (y1 + y2) / 2 + (bend ? bend[1] : -14);
   const curve = Array.from({ length: 17 }, (_, i) => {
     const t = i / 16;
     const u = 1 - t;
@@ -72,7 +92,16 @@ function handArrow(x1, y1, x2, y2, { seed, color, progress = 1 }) {
   return shaft + head;
 }
 
-/** Computes element bounding boxes inside `zone` for any of the 6 templates. */
+function rayBoxExit(b, dx, dy, pad = 10) {
+  const cx = b.x + b.w / 2;
+  const cy = b.y + b.h / 2;
+  const tx = Math.abs(dx) > 1e-6 ? (b.w / 2 + pad) / Math.abs(dx) : Infinity;
+  const ty = Math.abs(dy) > 1e-6 ? (b.h / 2 + pad) / Math.abs(dy) : Infinity;
+  const k = Math.min(tx, ty);
+  return [cx + dx * k, cy + dy * k];
+}
+
+/** Computes element bounding boxes inside `zone` for any of the 8 templates. */
 export function layoutElements(visual, layout = 'full', zoneOverride = null) {
   const z = zoneOverride ?? DIAGRAM_ZONES[layout] ?? DIAGRAM_ZONES.full;
   const d = visual.data;
@@ -131,6 +160,45 @@ export function layoutElements(visual, layout = 'full', zoneOverride = null) {
       const y = z.y + 24;
       return d.items.map((item, index) => ({ index, label: item.label, bbox: { x: startX + index * (w + gap), y, w, h } }));
     }
+    case 'timeline': {
+      const n = d.items.length;
+      const padX = 36;
+      const gapX = Math.min(36, Math.max(16, (z.w * 0.08) / Math.max(1, n - 1)));
+      const w = Math.min(280, (z.w - padX * 2 - gapX * (n - 1)) / n);
+      const totalW = n * w + (n - 1) * gapX;
+      const startX = z.x + (z.w - totalW) / 2;
+      const axisY = z.y + z.h / 2;
+      const stemGap = 22;
+      const h = Math.min(210, z.h / 2 - stemGap - 12);
+      return d.items.map((item, index) => {
+        const isTop = index % 2 === 0;
+        const x = startX + index * (w + gapX);
+        const y = isTop ? axisY - stemGap - h : axisY + stemGap;
+        return { index, label: item.label, bbox: { x, y, w, h } };
+      });
+    }
+    case 'cycle': {
+      const n = d.items.length;
+      const cardW = layout === 'host-left'
+        ? Math.min(220, ((z.w - 120) / Math.max(3, n)) * 0.95)
+        : Math.min(270, ((z.w - 160) / Math.max(3, n)) * 0.95);
+      const cardH = layout === 'host-left' ? (n >= 5 ? 92 : 98) : (n >= 5 ? 124 : 134);
+      const cx = z.x + z.w / 2;
+      const cy = z.y + z.h / 2;
+      const ry = Math.max(60, (z.h - cardH) / 2 - 14);
+      const maxRx = (z.w - cardW) / 2 - 24;
+      const rx = Math.min(maxRx, ry * (layout === 'host-left' ? 2.25 : 1.55));
+      return d.items.map((item, index) => {
+        const a = -Math.PI / 2 + (2 * Math.PI * index) / n;
+        const nx = cx + rx * Math.cos(a);
+        const ny = cy + ry * Math.sin(a);
+        return {
+          index,
+          label: item.label,
+          bbox: { x: nx - cardW / 2, y: ny - cardH / 2, w: cardW, h: cardH },
+        };
+      });
+    }
     default:
       throw new Error(`unknown template ${visual.template}`);
   }
@@ -155,13 +223,16 @@ function formatAnimatedNumber(valueStr, t) {
 export function renderDiagram(visual, {
   layout = 'full',
   theme = 'light',
+  style,
   seed = 'sh01',
   t = 1,
   duration = 4,
   elementStates = [],
   zoneOverride = null,
 } = {}) {
-  const pal = THEME_PALETTE[theme] ?? THEME_PALETTE.light;
+  const { name: styleName, palette: pal } = resolveStyle(style ?? theme);
+  const iconStyleOpts = style != null ? { style: styleName } : { theme };
+  const zone = zoneOverride ?? DIAGRAM_ZONES[layout] ?? DIAGRAM_ZONES.full;
   const elements = layoutElements(visual, layout, zoneOverride);
   const vectors = [];
   const textItems = [];
@@ -228,7 +299,7 @@ export function renderDiagram(visual, {
         const iconName = d.icons?.[i];
         const card = handCard(b, { seed: `${seed}:b${i}`, fill: st.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
         const iconSvg = iconName
-          ? drawIcon(iconName, { x: b.x + 48, y: b.y + b.h / 2, size: Math.min(54, b.h * 0.58), theme, seed: `${seed}:bi${i}` })
+          ? drawIcon(iconName, { x: b.x + 48, y: b.y + b.h / 2, size: Math.min(54, b.h * 0.58), ...iconStyleOpts, seed: `${seed}:bi${i}` })
           : `<path d="${inkStroke(circlePoints(b.x + 40, b.y + b.h / 2, 11, { seed: `${seed}:bd${i}`, overdraw: 0.2, count: 16 }), { seed: `${seed}:bd${i}`, width: [4, 5], wobble: 0.8 }).d}" fill="${pal.teal}"/>`;
         const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.teal, progress: st.highlight }) : '';
         vectors.push(wrapTransform(b, st, card + iconSvg + hl));
@@ -256,7 +327,7 @@ export function renderDiagram(visual, {
         const iconName = d.icons?.[i];
         const card = handCard(b, { seed: `${seed}:f${i}`, fill: st.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
         const iconSvg = iconName
-          ? drawIcon(iconName, { x: b.x + b.w / 2, y: b.y + b.h * 0.34, size: Math.min(64, b.h * 0.36), theme, seed: `${seed}:fi${i}` })
+          ? drawIcon(iconName, { x: b.x + b.w / 2, y: b.y + b.h * 0.34, size: Math.min(64, b.h * 0.36), ...iconStyleOpts, seed: `${seed}:fi${i}` })
           : '';
         const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.red, progress: st.highlight }) : '';
         vectors.push(wrapTransform(b, st, card + iconSvg + hl));
@@ -401,6 +472,107 @@ export function renderDiagram(visual, {
           align: 'middle',
           opacity: st.opacity,
         });
+      });
+      break;
+    }
+
+    case 'timeline': {
+      const fills = [pal.softTeal, pal.softYellow, pal.softRed, pal.softTeal, pal.softYellow];
+      const axisY = zone.y + zone.h / 2;
+      const axis = `<path d="${inkStroke([[zone.x + 24, axisY], [zone.x + zone.w - 24, axisY]], { seed: `${seed}:tl-axis`, width: [4.5, 6], wobble: 1.8 }).d}" fill="${pal.ink}"/>`;
+      vectors.push(axis);
+
+      elements.forEach((el, i) => {
+        const st = getState(i);
+        const b = st.overrideBbox ?? el.bbox;
+        if (st.opacity <= 0.005) return;
+        const item = d.items[i];
+        const isTop = i % 2 === 0;
+        const cx = b.x + b.w / 2;
+        const stemY = isTop ? b.y + b.h : b.y;
+        const stem = `<path d="${inkStroke([[cx, axisY], [cx, stemY]], { seed: `${seed}:tls${i}`, width: [3.5, 5], wobble: 1.2 }).d}" fill="${pal.ink}"/>`;
+        const dotPts = circlePoints(cx, axisY, 10, { seed: `${seed}:tld${i}`, overdraw: 0.25, count: 18 });
+        const dot = `<g opacity="${num(clamp01(st.opacity))}">`
+          + `<path d="${markerFill(dotPts, { seed: `${seed}:tldf${i}`, shift: 2 })}" fill="${st.highlight > 0 ? pal.yellow : pal.softTeal}"/>`
+          + `<path d="${inkStroke(dotPts, { seed: `${seed}:tlds${i}`, width: [4, 5], wobble: 0.9 }).d}" fill="${pal.ink}"/>`
+          + '</g>';
+        const card = handCard(b, { seed: `${seed}:tlc${i}`, fill: st.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
+        const iconSvg = item.icon
+          ? drawIcon(item.icon, { x: b.x + 34, y: b.y + 36, size: Math.min(40, b.h * 0.28), ...iconStyleOpts, seed: `${seed}:tli${i}` })
+          : '';
+        const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.teal, progress: st.highlight }) : '';
+        vectors.push(dot + wrapTransform(b, st, stem + card + iconSvg + hl));
+
+        textItems.push({
+          key: `timeline-time-${i}`,
+          text: item.time,
+          x: item.icon ? b.x + 62 : cx,
+          y: b.y + 36 + (st.dy ?? 0),
+          fontSize: layout === 'host-left' ? 28 : 34,
+          color: pal.teal,
+          align: item.icon ? 'start' : 'middle',
+          weight: 'bold',
+          opacity: st.opacity,
+        });
+        textItems.push({
+          key: `timeline-label-${i}`,
+          text: item.label,
+          x: cx,
+          y: b.y + b.h * 0.68 + (st.dy ?? 0),
+          fontSize: layout === 'host-left' ? 32 : 38,
+          color: pal.ink,
+          align: 'middle',
+          weight: st.highlight > 0 ? 'bold' : 'normal',
+          opacity: st.opacity,
+        });
+      });
+      break;
+    }
+
+    case 'cycle': {
+      const n = d.items.length;
+      const fills = [pal.softTeal, pal.softYellow, pal.softRed, pal.softTeal, pal.softYellow];
+      elements.forEach((el, i) => {
+        const st = getState(i);
+        const b = st.overrideBbox ?? el.bbox;
+        if (st.opacity <= 0.005) return;
+        const item = d.items[i];
+        const card = handRoundedCard(b, { seed: `${seed}:cyc${i}`, fill: st.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
+        const iconSvg = item.icon
+          ? drawIcon(item.icon, { x: b.x + 40, y: b.y + b.h / 2, size: Math.min(48, b.h * 0.56), ...iconStyleOpts, seed: `${seed}:cyci${i}` })
+          : '';
+        const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.red, progress: st.highlight }) : '';
+        vectors.push(wrapTransform(b, st, card + iconSvg + hl));
+        textItems.push({
+          key: `cycle-${i}`,
+          text: item.label,
+          x: item.icon ? b.x + 74 : b.x + b.w / 2,
+          y: b.y + b.h / 2 + (st.dy ?? 0),
+          fontSize: layout === 'host-left' ? 34 : 42,
+          color: pal.ink,
+          align: item.icon ? 'start' : 'middle',
+          weight: 'bold',
+          opacity: st.opacity,
+        });
+
+        const prevIdx = (i - 1 + n) % n;
+        const prevSt = getState(prevIdx);
+        if (prevSt.opacity > 0.005) {
+          const prevB = prevSt.overrideBbox ?? elements[prevIdx].bbox;
+          const dx = (b.x + b.w / 2) - (prevB.x + prevB.w / 2);
+          const dy = (b.y + b.h / 2) - (prevB.y + prevB.h / 2);
+          const dist = Math.hypot(dx, dy) || 1;
+          const [sx, sy] = rayBoxExit(prevB, dx, dy, 10);
+          const [ex, ey] = rayBoxExit(b, -dx, -dy, 10);
+          const bendAmt = Math.min(34, dist * 0.14);
+          const arrow = handArrow(sx, sy, ex, ey, {
+            seed: `${seed}:cyca${i}`,
+            color: st.highlight > 0 ? pal.red : pal.teal,
+            progress: st.arrowProgress * Math.min(st.opacity, prevSt.opacity),
+            bend: [(dy / dist) * bendAmt, (-dx / dist) * bendAmt],
+          });
+          if (arrow) vectors.push(arrow);
+        }
       });
       break;
     }
