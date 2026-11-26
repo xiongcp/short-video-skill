@@ -110,6 +110,65 @@ const valid = {
       },
     ];
   },
+  'interaction, state, and send cues on stage and flow': (p) => {
+    p.world = {
+      metaphor: '缓存是冰箱',
+      style: 'paper',
+      scene: 'kitchen',
+      custom_props: [{ id: 'c_parcel', height: 0.3, parts: [{ shape: 'rect', x: -0.5, y: -0.5, w: 1, h: 1 }] }],
+    };
+    p.sections[0].text = '第一句。第二句。';
+    p.shots = [
+      {
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'explaining', gesture: 'idle' },
+        visual: {
+          template: 'stage',
+          data: {
+            objects: [
+              { prop: 'fridge', at: 'left' },
+              { prop: 'cup', at: 'mid-left' },
+              { prop: 'whiteboard', at: 'center' },
+              { prop: 'chair', at: 'mid-right' },
+              { prop: 'cloud', at: 'right' },
+            ],
+            links: [{ from: 0, to: 1 }],
+          },
+        },
+        cues: [
+          { sentence: 0, do: 'open', target: 0 },
+          { sentence: 0, do: 'carry', target: 1 },
+          { sentence: 0, do: 'carry', target: 'none' },
+          { sentence: 0, do: 'push', target: 0 },
+          { sentence: 0, do: 'pull', target: 0 },
+          { sentence: 0, do: 'hold_up', target: 1 },
+          { sentence: 0, do: 'draw', target: 2 },
+          { sentence: 0, do: 'sit_on', target: 3 },
+          { sentence: 0, do: 'react', target: 4 },
+          { sentence: 0, do: 'state', target: 0, value: 'expired' },
+          { sentence: 0, do: 'state', target: 1, value: 'count:304' },
+          { sentence: 0, do: 'send', target: 0, value: 'package' },
+          { sentence: 0, do: 'send', target: 0, value: 'c_parcel' },
+        ],
+        note: '全套互动与状态 cue',
+      },
+      {
+        id: 'sh02',
+        section: 's01',
+        sentences: [1],
+        layout: 'full',
+        visual: { template: 'flow', data: { nodes: ['请求', '缓存', '返回'] } },
+        cues: [
+          { sentence: 1, do: 'state', target: 0, value: 'crossed' },
+          { sentence: 1, do: 'send', target: 1, value: 'mail' },
+        ],
+        note: 'flow 上使用 state 与 send',
+      },
+    ];
+  },
 };
 for (const [name, mutate] of Object.entries(valid)) {
   test(`accepts ${name}`, () => {
@@ -179,6 +238,30 @@ const invalid = {
   'cycle with only 2 items': (p) => {
     p.shots[1].visual = { template: 'cycle', data: { items: [{ label: '第一步' }, { label: '第二步' }] } };
     p.shots[1].cues = [];
+  },
+  'state cue without value': (p) => {
+    p.shots[1].cues = [{ sentence: 1, do: 'state', target: 0 }];
+  },
+  'send cue without value': (p) => {
+    p.shots[1].cues = [{ sentence: 1, do: 'send', target: 1 }];
+  },
+  'reveal cue with value': (p) => {
+    p.shots[1].cues = [{ sentence: 1, do: 'reveal', target: 0, value: 'active' }];
+  },
+  'open cue with value': (p) => {
+    p.shots[0].cues = [{ sentence: 0, do: 'open', target: 0, value: 'open' }];
+  },
+  'open cue with a string target': (p) => {
+    p.shots[0].cues = [{ sentence: 0, do: 'open', target: 'fridge' }];
+  },
+  'carry cue with a non-none string target': (p) => {
+    p.shots[0].cues = [{ sentence: 0, do: 'carry', target: 'cup' }];
+  },
+  'state cue with an invalid state value': (p) => {
+    p.shots[1].cues = [{ sentence: 1, do: 'state', target: 0, value: 'bogus' }];
+  },
+  'send cue with a non-sendable value': (p) => {
+    p.shots[1].cues = [{ sentence: 1, do: 'send', target: 1, value: 'fridge' }];
   },
 };
 for (const [name, mutate] of Object.entries(invalid)) {

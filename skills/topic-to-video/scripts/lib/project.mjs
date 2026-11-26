@@ -2,7 +2,7 @@
 // schema/project.schema.json; these checks cover what a JSON Schema cannot express.
 import { readFileSync } from 'node:fs';
 import { countChars, splitSentences } from './captions.mjs';
-import { COMMON_STATES, ICONS, PROP_META, propSupportsState, validateCustomProps } from './icons.mjs';
+import { COMMON_STATES, customPropMeta, ICONS, isCountState, PROP_META, propSupportsState, validateCustomProps } from './icons.mjs';
 import { layoutStage, STAGE_SLOTS } from './stage.mjs';
 import { SCENE_NAMES, STYLE_NAMES } from './world.mjs';
 
@@ -66,7 +66,7 @@ export const SCHEMA_FIELDS = {
   stage_link: ['from', 'to', 'style', 'label'],
   timeline_item: ['time', 'label', 'icon'],
   cycle_item: ['label', 'icon'],
-  cue: ['sentence', 'at', 'do', 'target'],
+  cue: ['sentence', 'at', 'do', 'target', 'value'],
   checkpoint: ['stage', 'revision', 'at', 'note'],
   job: ['id', 'provider', 'kind', 'status', 'ref', 'cost', 'at'],
 };
@@ -277,8 +277,9 @@ export function checkProject(project) {
   }));
   if (project.shots.length) checkCoverage(project, add); // empty after step 1, before the storyboard
   checkStageShots(project, add);
+  const customProps = Array.isArray(project.world?.custom_props) ? project.world.custom_props.filter(isObject) : [];
   const sentencesBySection = new Map(project.sections.map((s) => [s.id, splitSentences(s.text)]));
-  project.shots.forEach((shot, i) => checkCues(shot, `/shots/${i}`, sentencesBySection.get(shot.section) ?? [], add));
+  project.shots.forEach((shot, i) => checkCues(shot, `/shots/${i}`, sentencesBySection.get(shot.section) ?? [], add, customProps));
   project.checkpoints.forEach((c, i) => {
     if (c.revision > project.revision) add(`/checkpoints/${i}/revision`, 'CHECKPOINT_REVISION', `确认记录的版本 ${c.revision} 比项目当前版本 ${project.revision} 还新`);
   });
@@ -351,10 +352,127 @@ function checkCoverage(project, add) {
 }
 
 const HOST_CUES = ['expr', 'gesture', 'move', 'prop'];
-const CUE_ACTIONS = ['reveal', 'highlight', ...HOST_CUES];
+export const INTERACTION_CUES = ['open', 'carry', 'push', 'pull', 'hold_up', 'draw', 'sit_on', 'react'];
+export const SENDABLE_PROPS = ['package', 'doc', 'mail', 'ticket', 'money', 'key'];
+export const DRAWABLE_PROPS = ['whiteboard', 'clipboard', 'doc', 'book'];
+const CUE_ACTIONS = ['reveal', 'highlight', ...HOST_CUES, ...INTERACTION_CUES, 'state', 'send'];
 const SPOTS = ['left', 'center', 'right'];
 
-function checkCues(shot, at, sentences, add) {
+/** Lists the stage interaction cues supported by `propId` at `layer` (defaults to the prop's natural layer). */
+export function supportedInteractions(propId, layer, customProps = []) {
+  if (typeof propId !== 'string') return [];
+  const builtin = PROP_META[propId];
+  const customDef = !builtin && Array.isArray(customProps) ? customProps.find((p) => p?.id === propId) : null;
+  if (!builtin && !customDef) return [];
+  const meta = builtin ?? customPropMeta(customDef);
+  const resolvedLayer = STAGE_LAYERS.includes(layer) ? layer : meta.layer;
+  return INTERACTION_CUES.filter((action) => {
+    if (action === 'open') return Boolean(builtin && builtin.states.includes('open'));
+    if (action === 'carry' || action === 'hold_up') return meta.carry === true;
+    if (action === 'push' || action === 'pull') return resolvedLayer === 'ground';
+    if (action === 'draw') return Boolean(builtin && DRAWABLE_PROPS.includes(propId));
+    if (action === 'sit_on') return Boolean(meta.anchors?.seat);
+    return true;
+  });
+}
+
+function checkInteractionCue(shot, cue, path, customProps, customIds, add) {
+  if (!HOST_LAYOUTS.includes(shot.layout)) {
+    return add(`${path}/do`, 'CUE_NEEDS_HOST', `镜头 ${shot.id} 不显示主持人，不能用 ${cue.do} cue（互动 cue 仅支持 stage 版式）`);
+  }
+  if (shot.layout !== 'stage') {
+    return add(`${path}/do`, 'INTERACTION_INVALID', `镜头 ${shot.id} 是 ${shot.layout} 版式，互动 cue ${cue.do} 只支持 stage 舞台版式`);
+  }
+  if (cue.value !== undefined) {
+    add(`${path}/value`, 'INVALID_VALUE', `镜头 ${shot.id} 的 ${cue.do} cue 不能写 value`);
+  }
+  if (cue.do === 'carry' && cue.target === 'none') return;
+  if (!Number.isInteger(cue.target)) {
+    return add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的 ${cue.do} 目标应是物件序号（从 0 开始）${cue.do === 'carry' ? '或 none' : ''}`);
+  }
+  if (shot.visual?.template !== 'stage') return;
+  const objects = shot.visual.data?.objects ?? [];
+  if (cue.target < 0 || cue.target >= objects.length) {
+    return add(`${path}/target`, 'CUE_TARGET_RANGE', `镜头 ${shot.id} 的 cue 目标 ${cue.target} 超出元素个数 ${objects.length}`);
+  }
+  const obj = objects[cue.target];
+  const hasProp = typeof obj?.prop === 'string' && (ICON_NAMES.includes(obj.prop) || customIds.has(obj.prop));
+  if (!hasProp) return;
+  const supported = supportedInteractions(obj.prop, obj.layer, customProps);
+  if (!supported.includes(cue.do)) {
+    add(`${path}/do`, 'INTERACTION_INVALID', `镜头 ${shot.id} 的物件 ${obj.prop} 不支持 ${cue.do}，可用 ${supported.join('、')}`);
+  }
+}
+
+function checkStateCue(shot, cue, path, customProps, customIds, add) {
+  const hasValue = typeof cue.value === 'string' && cue.value.length > 0;
+  if (!hasValue) {
+    add(`${path}/value`, 'INVALID_VALUE', `镜头 ${shot.id} 的 state cue 必须写 value`);
+  }
+  if (!Number.isInteger(cue.target)) {
+    return add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的 state 目标应是元素序号（从 0 开始）`);
+  }
+  const count = elementCount(shot.visual);
+  if (count === 0) {
+    return add(`${path}/do`, 'CUE_NOT_SUPPORTED', `模板 ${shot.visual.template} 没有可单独指定的元素`);
+  }
+  if (cue.target < 0 || cue.target >= count) {
+    return add(`${path}/target`, 'CUE_TARGET_RANGE', `镜头 ${shot.id} 的 cue 目标 ${cue.target} 超出元素个数 ${count}`);
+  }
+  if (!hasValue) return;
+  if (shot.visual.template === 'stage') {
+    const obj = shot.visual.data?.objects?.[cue.target];
+    const hasProp = typeof obj?.prop === 'string' && (ICON_NAMES.includes(obj.prop) || customIds.has(obj.prop));
+    if (hasProp && !propSupportsState(obj.prop, cue.value, customProps)) {
+      const supported = [...(PROP_META[obj.prop]?.states ?? []), ...COMMON_STATES, 'count:<值>'].join('、');
+      add(`${path}/value`, 'STATE_UNSUPPORTED', `镜头 ${shot.id} 的物件 ${obj.prop} 不支持状态 ${cue.value}，可用 ${supported}`);
+    }
+    return;
+  }
+  if (!COMMON_STATES.includes(cue.value) && !isCountState(cue.value)) {
+    const supported = [...COMMON_STATES, 'count:<值>'].join('、');
+    add(`${path}/value`, 'STATE_UNSUPPORTED', `模板 ${shot.visual.template} 只支持通用状态，不支持 ${cue.value}，可用 ${supported}`);
+  }
+}
+
+function checkSendCue(shot, cue, path, customProps, add) {
+  if (typeof cue.value !== 'string' || !cue.value.length) {
+    add(`${path}/value`, 'INVALID_VALUE', `镜头 ${shot.id} 的 send cue 必须写 value`);
+  } else {
+    const customDef = customProps.find((p) => p?.id === cue.value);
+    const carryableCustom = customDef ? customPropMeta(customDef).carry : false;
+    if (!SENDABLE_PROPS.includes(cue.value) && !carryableCustom) {
+      add(`${path}/value`, 'INVALID_VALUE', `镜头 ${shot.id} 的 send 物件 ${cue.value} 不可运送，可选 ${SENDABLE_PROPS.join('、')} 或可拿起的自定义道具（height ≤ 0.45）`);
+    }
+  }
+  if (shot.visual?.template === 'stage') {
+    const links = Array.isArray(shot.visual.data?.links) ? shot.visual.data.links : [];
+    if (!Number.isInteger(cue.target)) {
+      return add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的 send 目标在 stage 里应是连线序号（从 0 开始）`);
+    }
+    if (links.length === 0) {
+      return add(`${path}/do`, 'CUE_NOT_SUPPORTED', `镜头 ${shot.id} 的 stage 没有连线 links，不能用 send cue`);
+    }
+    if (cue.target < 0 || cue.target >= links.length) {
+      return add(`${path}/target`, 'CUE_TARGET_RANGE', `镜头 ${shot.id} 的 send 目标 ${cue.target} 超出连线个数 ${links.length}`);
+    }
+    return;
+  }
+  if (shot.visual?.template === 'flow') {
+    const nodes = Array.isArray(shot.visual.data?.nodes) ? shot.visual.data.nodes : [];
+    if (!Number.isInteger(cue.target)) {
+      return add(`${path}/target`, 'INVALID_VALUE', `镜头 ${shot.id} 的 send 目标在 flow 里应是箭头指向的节点序号（从 1 开始）`);
+    }
+    if (cue.target < 1 || cue.target >= nodes.length) {
+      return add(`${path}/target`, 'CUE_TARGET_RANGE', `镜头 ${shot.id} 的 send 目标 ${cue.target} 超出 flow 节点箭头范围（可选 1–${Math.max(1, nodes.length - 1)}）`);
+    }
+    return;
+  }
+  add(`${path}/do`, 'CUE_NOT_SUPPORTED', `模板 ${shot.visual.template} 没有连线或箭头，不能用 send cue（仅支持 stage 和 flow）`);
+}
+
+function checkCues(shot, at, sentences, add, customProps = []) {
+  const customIds = new Set(customProps.map((p) => p.id).filter((id) => typeof id === 'string'));
   if (shot.visual.data?.icons !== undefined) {
     const icons = shot.visual.data.icons;
     const count = elementCount(shot.visual);
@@ -387,6 +505,10 @@ function checkCues(shot, at, sentences, add) {
       }
     }
     if (!CUE_ACTIONS.includes(cue.do)) return add(`${path}/do`, 'INVALID_VALUE', `镜头 ${shot.id} 的 cue 动作 ${cue.do ?? '空'} 不存在，可选 ${CUE_ACTIONS.join('、')}`);
+    if (INTERACTION_CUES.includes(cue.do)) return checkInteractionCue(shot, cue, path, customProps, customIds, add);
+    if (cue.do === 'state') return checkStateCue(shot, cue, path, customProps, customIds, add);
+    if (cue.do === 'send') return checkSendCue(shot, cue, path, customProps, add);
+    if (cue.value !== undefined) add(`${path}/value`, 'INVALID_VALUE', `镜头 ${shot.id} 的 ${cue.do} cue 不能写 value`);
     if (HOST_CUES.includes(cue.do) && !HOST_LAYOUTS.includes(shot.layout)) {
       add(`${path}/do`, 'CUE_NEEDS_HOST', `镜头 ${shot.id} 不显示主持人，不能用 ${cue.do} cue`);
     }

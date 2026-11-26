@@ -274,13 +274,57 @@
       "properties": {
         "sentence": { "type": "integer", "minimum": 0 },
         "at": { "$ref": "#/$defs/text" },
-        "do": { "enum": ["reveal", "highlight", "expr", "gesture", "move", "prop"] },
-        "target": { "type": ["integer", "string"] }
+        "do": {
+          "enum": [
+            "reveal", "highlight", "expr", "gesture", "move", "prop",
+            "open", "carry", "push", "pull", "hold_up", "draw", "sit_on", "react",
+            "state", "send"
+          ]
+        },
+        "target": { "type": ["integer", "string"] },
+        "value": { "$ref": "#/$defs/text" }
       },
       "allOf": [
         {
-          "if": { "properties": { "do": { "enum": ["reveal", "highlight"] } } },
+          "if": { "properties": { "do": { "enum": ["state", "send"] } }, "required": ["do"] },
+          "then": { "required": ["value"] },
+          "else": { "not": { "required": ["value"] } }
+        },
+        {
+          "if": { "properties": { "do": { "enum": ["reveal", "highlight", "open", "push", "pull", "hold_up", "draw", "sit_on", "react"] } } },
           "then": { "properties": { "target": { "type": "integer", "minimum": 0 } } }
+        },
+        {
+          "if": { "properties": { "do": { "const": "carry" } } },
+          "then": { "properties": { "target": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "const": "none" }] } } }
+        },
+        {
+          "if": { "properties": { "do": { "const": "state" } } },
+          "then": {
+            "properties": {
+              "target": { "type": "integer", "minimum": 0 },
+              "value": {
+                "anyOf": [
+                  { "enum": ["normal", "active", "dim", "crossed", "stamped", "broken", "open", "closed", "full", "empty", "locked", "unlocked", "fresh", "expired", "lit", "off"] },
+                  { "type": "string", "pattern": "^count:.{1,4}$" }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "do": { "const": "send" } } },
+          "then": {
+            "properties": {
+              "target": { "type": "integer", "minimum": 0 },
+              "value": {
+                "anyOf": [
+                  { "enum": ["package", "doc", "mail", "ticket", "money", "key"] },
+                  { "type": "string", "pattern": "^c_[a-z0-9_]+$" }
+                ]
+              }
+            }
+          }
         },
         {
           "if": { "properties": { "do": { "const": "expr" } } },

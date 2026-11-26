@@ -2,7 +2,22 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkProject, estimateReport, estimateSeconds, HOST_ID, isApproved, lintScript, lintVoice, SCHEMA_FIELDS, VISUAL_LIMITS, VOICE_PRESETS } from '../skills/topic-to-video/scripts/lib/project.mjs';
+import {
+  checkProject,
+  DRAWABLE_PROPS,
+  estimateReport,
+  estimateSeconds,
+  HOST_ID,
+  INTERACTION_CUES,
+  isApproved,
+  lintScript,
+  lintVoice,
+  SCHEMA_FIELDS,
+  SENDABLE_PROPS,
+  supportedInteractions,
+  VISUAL_LIMITS,
+  VOICE_PRESETS,
+} from '../skills/topic-to-video/scripts/lib/project.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 const codes = (p) => checkProject(p).map((e) => e.code);
@@ -470,4 +485,193 @@ test('legacy project without world keeps exact checkProject and estimateSeconds 
   assert.equal(p.world, undefined);
   assert.deepEqual(checkProject(p), []);
   assert.equal(estimateSeconds(p), 4.25);
+});
+
+test('exports INTERACTION_CUES, SENDABLE_PROPS, DRAWABLE_PROPS, and supportedInteractions', () => {
+  assert.deepEqual(INTERACTION_CUES, ['open', 'carry', 'push', 'pull', 'hold_up', 'draw', 'sit_on', 'react']);
+  assert.deepEqual(SENDABLE_PROPS, ['package', 'doc', 'mail', 'ticket', 'money', 'key']);
+  assert.deepEqual(DRAWABLE_PROPS, ['whiteboard', 'clipboard', 'doc', 'book']);
+  assert.deepEqual(supportedInteractions('cup'), ['carry', 'hold_up', 'react']);
+  assert.deepEqual(supportedInteractions('fridge'), ['open', 'push', 'pull', 'react']);
+  assert.deepEqual(supportedInteractions('cloud'), ['react']);
+  assert.deepEqual(supportedInteractions('box'), ['open', 'carry', 'push', 'pull', 'hold_up', 'sit_on', 'react']);
+  assert.deepEqual(supportedInteractions('whiteboard'), ['push', 'pull', 'draw', 'react']);
+});
+
+test('stage interaction cues pass for capable props and carry none', () => {
+  const p = stageProject();
+  p.world.custom_props.push({
+    id: 'c_badge', label: '徽章', height: 0.3, layer: 'mid',
+    parts: [{ shape: 'circle', cx: 0, cy: 0, r: 0.5, fill: 'yellow' }],
+  });
+  p.shots[0].visual.data.objects = [
+    { prop: 'fridge', at: 'left' },
+    { prop: 'cup', at: 'mid-left' },
+    { prop: 'whiteboard', at: 'center' },
+    { prop: 'chair', at: 'mid-right' },
+    { prop: 'c_badge', at: 'right' },
+  ];
+  p.shots[0].visual.data.links = [{ from: 0, to: 1 }];
+  p.shots[0].cues = [
+    { sentence: 0, do: 'open', target: 0 },
+    { sentence: 0, do: 'push', target: 0 },
+    { sentence: 0, do: 'pull', target: 0 },
+    { sentence: 0, do: 'carry', target: 1 },
+    { sentence: 0, do: 'carry', target: 'none' },
+    { sentence: 0, do: 'hold_up', target: 1 },
+    { sentence: 0, do: 'draw', target: 2 },
+    { sentence: 0, do: 'sit_on', target: 3 },
+    { sentence: 0, do: 'react', target: 4 },
+    { sentence: 0, do: 'carry', target: 4 },
+    { sentence: 0, do: 'hold_up', target: 4 },
+    { sentence: 0, do: 'sit_on', target: 4 },
+  ];
+  assert.deepEqual(checkProject(p), []);
+});
+
+test('incompatible interaction cues report INTERACTION_INVALID and list supported actions', () => {
+  const checkOne = (objects, cue) => {
+    const p = stageProject();
+    p.shots[0].visual.data.links = [];
+    p.shots[0].visual.data.objects = objects;
+    p.shots[0].cues = [cue];
+    return checkProject(p);
+  };
+
+  let errs = checkOne([{ prop: 'cup', at: 'center' }], { sentence: 0, do: 'open', target: 0 });
+  assert.deepEqual(errs.map((e) => e.code), ['INTERACTION_INVALID']);
+  assert.match(errs[0].message, /carry.*hold_up.*react/);
+
+  for (const action of ['carry', 'hold_up', 'sit_on']) {
+    errs = checkOne([{ prop: 'fridge', at: 'center' }], { sentence: 0, do: action, target: 0 });
+    assert.deepEqual(errs.map((e) => e.code), ['INTERACTION_INVALID'], action);
+    assert.match(errs[0].message, /open.*push.*pull.*react/, action);
+  }
+
+  errs = checkOne([{ prop: 'cloud', at: 'center' }], { sentence: 0, do: 'push', target: 0 });
+  assert.deepEqual(errs.map((e) => e.code), ['INTERACTION_INVALID']);
+  assert.match(errs[0].message, /react/);
+
+  errs = checkOne([{ prop: 'box', at: 'center' }], { sentence: 0, do: 'draw', target: 0 });
+  assert.deepEqual(errs.map((e) => e.code), ['INTERACTION_INVALID']);
+  assert.match(errs[0].message, /open.*carry.*push.*pull.*hold_up.*sit_on.*react/);
+
+  for (const action of ['open', 'draw']) {
+    errs = checkOne([{ prop: 'c_tank', at: 'center' }], { sentence: 0, do: action, target: 0 });
+    assert.deepEqual(errs.map((e) => e.code), ['INTERACTION_INVALID'], `custom ${action}`);
+    assert.match(errs[0].message, /push.*pull.*sit_on.*react/, `custom ${action}`);
+  }
+});
+
+test('interaction cues on host-left report INTERACTION_INVALID and on full report CUE_NEEDS_HOST', () => {
+  const p = minimal();
+  p.shots[0].cues = [{ sentence: 0, do: 'open', target: 0 }];
+  p.shots[1].cues = [{ sentence: 1, do: 'react', target: 0 }];
+  assert.deepEqual(placed(p), [
+    'INTERACTION_INVALID /shots/0/cues/0/do',
+    'CUE_NEEDS_HOST /shots/1/cues/0/do',
+  ]);
+});
+
+test('state cue validates stage exclusive/common/count states and restricts non-stage elements to common states', () => {
+  const p = stageProject();
+  p.shots[0].visual.data.objects.push({ prop: 'c_tank', at: 'left' });
+  p.shots[0].cues = [
+    { sentence: 0, do: 'state', target: 0, value: 'expired' },
+    { sentence: 0, do: 'state', target: 1, value: 'crossed' },
+    { sentence: 0, do: 'state', target: 1, value: 'count:304' },
+    { sentence: 0, do: 'state', target: 2, value: 'stamped' },
+  ];
+  p.shots[1].cues = [
+    { sentence: 1, do: 'state', target: 0, value: 'crossed' },
+    { sentence: 1, do: 'state', target: 1, value: 'count:304' },
+  ];
+  assert.deepEqual(checkProject(p), []);
+
+  const badStage = stageProject();
+  badStage.shots[0].visual.data.objects.push({ prop: 'c_tank', at: 'left' });
+  badStage.shots[0].cues = [
+    { sentence: 0, do: 'state', target: 1, value: 'open' },
+    { sentence: 0, do: 'state', target: 2, value: 'open' },
+  ];
+  assert.deepEqual(placed(badStage), [
+    'STATE_UNSUPPORTED /shots/0/cues/0/value',
+    'STATE_UNSUPPORTED /shots/0/cues/1/value',
+  ]);
+
+  const badNonStage = minimal();
+  badNonStage.shots[1].cues = [{ sentence: 1, do: 'state', target: 0, value: 'open' }];
+  assert.deepEqual(placed(badNonStage), ['STATE_UNSUPPORTED /shots/1/cues/0/value']);
+
+  const badNoElem = minimal();
+  badNoElem.shots[0].cues = [{ sentence: 0, do: 'state', target: 0, value: 'crossed' }];
+  assert.deepEqual(placed(badNoElem), ['CUE_NOT_SUPPORTED /shots/0/cues/0/do']);
+});
+
+test('send cue validates target ranges on stage/flow, template support, and sendable values', () => {
+  const p = stageProject();
+  p.world.custom_props.push({
+    id: 'c_parcel', label: '包裹', height: 0.3, layer: 'mid',
+    parts: [{ shape: 'rect', x: -0.4, y: -0.4, w: 0.8, h: 0.8, fill: 'yellow' }],
+  });
+  p.shots[0].cues = [
+    { sentence: 0, do: 'send', target: 0, value: 'package' },
+    { sentence: 0, do: 'send', target: 0, value: 'c_parcel' },
+  ];
+  p.shots[1].visual = { template: 'flow', data: { nodes: ['起点', '中转', '终点'] } };
+  p.shots[1].cues = [
+    { sentence: 1, do: 'send', target: 1, value: 'mail' },
+    { sentence: 1, do: 'send', target: 2, value: 'key' },
+  ];
+  assert.deepEqual(checkProject(p), []);
+
+  const badStageRange = stageProject();
+  badStageRange.shots[0].cues = [
+    { sentence: 0, do: 'send', target: 1, value: 'package' },
+    { sentence: 0, do: 'send', target: -1, value: 'doc' },
+  ];
+  assert.deepEqual(placed(badStageRange), [
+    'CUE_TARGET_RANGE /shots/0/cues/0/target',
+    'CUE_TARGET_RANGE /shots/0/cues/1/target',
+  ]);
+
+  const noLinks = stageProject();
+  noLinks.shots[0].visual.data.links = [];
+  noLinks.shots[0].cues = [{ sentence: 0, do: 'send', target: 0, value: 'package' }];
+  assert.deepEqual(placed(noLinks), ['CUE_NOT_SUPPORTED /shots/0/cues/0/do']);
+
+  const badFlowRange = minimal();
+  badFlowRange.shots[1].visual = { template: 'flow', data: { nodes: ['起点', '中转', '终点'] } };
+  badFlowRange.shots[1].cues = [
+    { sentence: 1, do: 'send', target: 0, value: 'ticket' },
+    { sentence: 1, do: 'send', target: 3, value: 'money' },
+  ];
+  assert.deepEqual(placed(badFlowRange), [
+    'CUE_TARGET_RANGE /shots/1/cues/0/target',
+    'CUE_TARGET_RANGE /shots/1/cues/1/target',
+  ]);
+
+  const badTemplateAndValues = stageProject();
+  badTemplateAndValues.shots[0].cues = [
+    { sentence: 0, do: 'send', target: 0, value: 'fridge' },
+    { sentence: 0, do: 'send', target: 0, value: 'c_tank' },
+  ];
+  badTemplateAndValues.shots[1].cues = [{ sentence: 1, do: 'send', target: 0, value: 'package' }];
+  assert.deepEqual(placed(badTemplateAndValues), [
+    'INVALID_VALUE /shots/0/cues/0/value',
+    'INVALID_VALUE /shots/0/cues/1/value',
+    'CUE_NOT_SUPPORTED /shots/1/cues/0/do',
+  ]);
+});
+
+test('non-state/send cues reject extra value and state/send require value in checkProject', () => {
+  const p = minimal();
+  p.shots[1].cues = [
+    { sentence: 1, do: 'reveal', target: 0, value: 'active' },
+    { sentence: 1, do: 'state', target: 0 },
+  ];
+  assert.deepEqual(placed(p), [
+    'INVALID_VALUE /shots/1/cues/0/value',
+    'INVALID_VALUE /shots/1/cues/1/value',
+  ]);
 });

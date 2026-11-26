@@ -113,3 +113,7 @@
 - `size`：`sm`（0.75 倍）、`md`（1 倍，默认）、`lg`（1.3 倍）。
 - `links`：0–4 条连接两件物件（`from`、`to` 为序号，`style` 为 `solid` 或 `dashed`，可选 `label`）。
 - 自动排版：渲染器自动防重叠（≥ 40 px 间隔）并给小青留 200 px 站位；最小缩放到 0.6 倍，仍放不下报 `STAGE_CROWDED`（请减少物件或拆镜）。
+
+## 7. 同台互动与状态变化 cue
+
+`stage` 舞台支持 8 个互动 cue（`open`、`carry`、`push`、`pull`、`hold_up`、`draw`、`sit_on`、`react`），以及 `state`（改变元素状态，`value` 填状态名）和 `send`（沿连线或 `flow` 箭头运送小物件，`value` 填物件名）。
