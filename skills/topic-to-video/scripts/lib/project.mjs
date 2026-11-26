@@ -1,6 +1,7 @@
 // Cross-reference checks and planning estimates for project.json. Field types are covered by
 // schema/project.schema.json; these checks cover what a JSON Schema cannot express.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { countChars, splitSentences } from './captions.mjs';
 import { COMMON_STATES, customPropMeta, ICONS, isCountState, PROP_META, propSupportsState, validateCustomProps } from './icons.mjs';
 import { layoutStage, STAGE_SLOTS } from './stage.mjs';
@@ -54,12 +55,14 @@ export const VISUAL_LIMITS = {
 // Field names from schema/project.schema.json, kept in sync by tests/project.test.mjs. The schema rejects any
 // other field, and nothing else here reads one, so without this a misplaced field passes the self-check.
 export const SCHEMA_FIELDS = {
-  project: ['version', 'revision', 'title', 'brief', 'settings', 'voice', 'world', 'sections', 'shots', 'checkpoints', 'jobs'],
+  project: ['version', 'revision', 'title', 'brief', 'settings', 'voice', 'world', 'sound', 'sections', 'shots', 'checkpoints', 'jobs'],
   brief: ['topic', 'audience', 'promise', 'sources', 'open_questions'],
   source: ['id', 'title', 'where', 'note'],
   settings: ['ratio', 'target_seconds', 'lang', 'host', 'theme', 'sentence_gap_ms', 'fps', 'resolution', 'outfit'],
   voice: ['provider', 'model', 'voice', 'speed', 'base_url', 'api_key_env', 'command', 'preset', 'pitch'],
   world: ['metaphor', 'style', 'scene', 'custom_props'],
+  sound: ['sfx', 'music'],
+  music: ['mood', 'file', 'source', 'license'],
   section: ['id', 'title', 'text', 'pronunciation', 'source_ids'],
   shot: ['id', 'section', 'sentences', 'layout', 'scene', 'host', 'visual', 'cues', 'transition', 'note'],
   host: ['expr', 'gesture', 'at'],
@@ -122,6 +125,8 @@ export function checkShape(project) {
   ['sections', 'shots', 'checkpoints'].forEach((key) => need(Array.isArray(project[key]), `/${key}`, `${key} 应是数组`));
   if (errors.length) return errors;
   need(project.world === undefined || isObject(project.world), '/world', 'world 应是对象');
+  need(project.sound === undefined || isObject(project.sound), '/sound', 'sound 应是对象');
+  need(!isObject(project.sound) || project.sound.music === undefined || isObject(project.sound.music), '/sound/music', 'sound.music 应是对象');
   project.brief.sources.forEach((s, i) => need(isObject(s), `/brief/sources/${i}`, '来源应是对象'));
   project.sections.forEach((s, i) => need(typeof s?.text === 'string', `/sections/${i}/text`, `段落 ${s?.id ?? i} 的 text 应是字符串`));
   project.checkpoints.forEach((c, i) => need(isObject(c), `/checkpoints/${i}`, '确认记录应是对象'));
@@ -145,6 +150,68 @@ export function checkShape(project) {
 }
 
 const WORLD_METAPHOR_LIMIT = 60;
+
+// Sound (音效与配乐设计 §3): synthesized music moods, scene recommendations and user music files.
+export const MUSIC_MOODS = ['calm', 'playful', 'curious', 'upbeat'];
+export const MUSIC_BY_SCENE = { blank: 'calm', podium: 'calm', office: 'calm', kitchen: 'playful', street: 'playful', lab: 'curious', outdoor: 'upbeat', workshop: 'upbeat' };
+export const MUSIC_EXTENSIONS = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg'];
+const MUSIC_TEXT_LIMIT = 200;
+const SOUND_WHERE = '（见 providers.md 的声音一节）';
+
+/** True when `file` is a relative audio path that stays inside the project folder. */
+function isLocalMusicPath(file) {
+  if (typeof file !== 'string' || !file || file.startsWith('/') || file.startsWith('\\') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(file)) return false;
+  if (file.split(/[\\/]/).includes('..')) return false;
+  const ext = file.split('.').at(-1).toLowerCase();
+  return file.includes('.') && MUSIC_EXTENSIONS.includes(ext);
+}
+
+function checkSound(sound, add) {
+  if (sound.sfx !== undefined && !['auto', 'off'].includes(sound.sfx)) {
+    add('/sound/sfx', 'INVALID_VALUE', `sound.sfx 是 ${sound.sfx}，只能是 auto 或 off${SOUND_WHERE}`);
+  }
+  const m = sound.music;
+  if (!isObject(m)) return;
+  if (m.mood !== undefined && m.file !== undefined) {
+    add('/sound/music', 'INVALID_VALUE', `sound.music 的 mood 和 file 只能二选一${SOUND_WHERE}`);
+    return;
+  }
+  if (m.mood !== undefined && ![...MUSIC_MOODS, 'none'].includes(m.mood)) {
+    add('/sound/music/mood', 'INVALID_VALUE', `音乐情绪 ${m.mood} 不存在，可选 ${[...MUSIC_MOODS, 'none'].join('、')}${SOUND_WHERE}`);
+  }
+  if (m.file === undefined) return;
+  if (!isLocalMusicPath(m.file)) {
+    add('/sound/music/file', 'MUSIC_PATH_INVALID', `音乐文件 ${m.file} 要写成项目文件夹内的相对路径，不能是网址、绝对路径或带 ..，扩展名限 ${MUSIC_EXTENSIONS.join('、')}${SOUND_WHERE}`);
+  }
+  const blank = (v) => typeof v !== 'string' || !v.trim();
+  if (blank(m.source) || blank(m.license)) {
+    add('/sound/music', 'MUSIC_LICENSE_MISSING', `用了音乐文件就要写来源 source 和许可 license，照抄用户的原话，不替用户判断${SOUND_WHERE}`);
+  }
+  checkLimits(m.source, MUSIC_TEXT_LIMIT, '/sound/music/source', add, '音乐来源', SOUND_WHERE);
+  checkLimits(m.license, MUSIC_TEXT_LIMIT, '/sound/music/license', add, '音乐许可', SOUND_WHERE);
+}
+
+/** Effective sound settings: projects with a world default to effects and the scene's music mood; old projects stay silent. */
+export function resolveSound(project) {
+  const s = isObject(project?.sound) ? project.sound : {};
+  const hasWorld = isObject(project?.world);
+  const sfx = s.sfx !== undefined ? s.sfx === 'auto' : hasWorld;
+  const m = isObject(s.music) ? s.music : null;
+  let music = null;
+  if (m?.file) music = { kind: 'file', file: m.file, source: m.source, license: m.license };
+  else if (m?.mood && m.mood !== 'none') music = { kind: 'synth', mood: m.mood };
+  else if (!m && hasWorld) {
+    music = { kind: 'synth', mood: project.world.style === 'night' ? 'curious' : (MUSIC_BY_SCENE[project.world.scene] ?? 'calm') };
+  }
+  return { sfx, music };
+}
+
+/** Warns when the user's music file is not in the project folder yet. */
+export function lintSoundFiles(project, projectDir) {
+  const file = project?.sound?.music?.file;
+  if (!isLocalMusicPath(file) || existsSync(join(projectDir, file))) return [];
+  return [{ path: '/sound/music/file', code: 'MUSIC_FILE_MISSING', message: `音乐文件 ${file} 不在项目文件夹里，渲染前放进去${SOUND_WHERE}` }];
+}
 const STAGE_LAYERS = ['ground', 'mid', 'air'];
 const STAGE_SIZES = ['sm', 'md', 'lg'];
 const LINK_STYLES = ['solid', 'dashed'];
@@ -257,6 +324,7 @@ export function checkProject(project) {
   const add = (path, code, message) => errors.push({ path, code, message });
   checkFields(project, add);
   if (project.world !== undefined) checkWorld(project.world, add);
+  if (project.sound !== undefined) checkSound(project.sound, add);
   const preset = project.voice?.preset;
   if (preset !== undefined && !Object.hasOwn(VOICE_PRESETS, preset)) {
     add('/voice/preset', 'INVALID_VALUE', `配音人设 ${preset} 不存在，可选 ${Object.keys(VOICE_PRESETS).join('、')}（见 script.md 的配音人设一节）`);
@@ -301,6 +369,8 @@ function checkFields(project, add) {
     [project.settings, 'settings', '/settings', 'settings'],
     [project.voice, 'voice', '/voice', 'voice'],
     ...(isObject(project.world) ? [[project.world, 'world', '/world', 'world']] : []),
+    ...(isObject(project.sound) ? [[project.sound, 'sound', '/sound', 'sound']] : []),
+    ...(isObject(project.sound?.music) ? [[project.sound.music, 'music', '/sound/music', 'sound.music']] : []),
     ...project.brief.sources.map((s, i) => [s, 'source', `/brief/sources/${i}`, `来源 ${s.id ?? i}`]),
     ...project.sections.map((s, i) => [s, 'section', `/sections/${i}`, `段落 ${s.id}`]),
     ...project.shots.flatMap((shot, i) => {

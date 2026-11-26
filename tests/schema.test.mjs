@@ -170,6 +170,8 @@ const valid = {
     ];
   },
 };
+valid['sound with sfx off and a mood'] = (p) => { p.sound = { sfx: 'off', music: { mood: 'calm' } }; };
+valid['sound with a user music file'] = (p) => { p.sound = { music: { file: 'music/a.mp3', source: '用户自有', license: '用户自制' } }; };
 for (const [name, mutate] of Object.entries(valid)) {
   test(`accepts ${name}`, () => {
     const p = minimal();
@@ -264,6 +266,9 @@ const invalid = {
     p.shots[1].cues = [{ sentence: 1, do: 'send', target: 1, value: 'fridge' }];
   },
 };
+invalid['sound with an unknown sfx value'] = (p) => { p.sound = { sfx: 'loud' }; };
+invalid['sound music with both mood and file'] = (p) => { p.sound = { music: { mood: 'calm', file: 'music/a.mp3', source: 'x', license: 'y' } }; };
+invalid['sound music file outside the project'] = (p) => { p.sound = { music: { file: '../a.mp3', source: 'x', license: 'y' } }; };
 for (const [name, mutate] of Object.entries(invalid)) {
   test(`rejects ${name}`, () => {
     const p = minimal();
