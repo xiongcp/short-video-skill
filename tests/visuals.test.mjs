@@ -7,14 +7,17 @@ import { DIAGRAM_ZONES, layoutElements, renderDiagram } from '../skills/topic-to
 
 const schema = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/schema/project.schema.json'), 'utf8'));
 
-test('icons.mjs implements all 24 schema icons deterministically in light and dark themes with no <text>', () => {
-  assert.deepEqual([...ICONS].sort(), [...schema.$defs.icon.enum].sort());
-  assert.equal(ICONS.length, 24);
+test('icons.mjs implements all 60 props including all 24 schema icons deterministically in light and dark themes with no <text>', () => {
+  assert.equal(ICONS.length, 60);
+  for (const name of schema.$defs.icon.enum) {
+    assert.ok(ICONS.includes(name), `schema icon ${name} in ICONS`);
+  }
   for (const name of ICONS) {
     const a = drawIcon(name, { x: 100, y: 100, size: 48, seed: 'sh01' });
     const b = drawIcon(name, { x: 100, y: 100, size: 48, seed: 'sh01' });
     assert.equal(a, b, `${name} deterministic`);
     assert.ok(a.includes(`data-icon="${name}"`), name);
+    assert.ok(a.includes('data-state="normal"'), `${name} emits data-state`);
     assert.ok(!a.includes('<text'), `${name} has no text`);
     const dark = drawIcon(name, { x: 100, y: 100, size: 48, theme: 'dark', seed: 'sh01' });
     assert.ok(!dark.includes('#1f1f1f'), `${name} dark theme has no light ink`);
