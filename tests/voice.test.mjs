@@ -44,12 +44,23 @@ function scratch() {
 }
 
 test('resolveVoice: a preset supplies voice and speed, explicit fields win, and no preset keeps the old defaults', () => {
-  assert.deepEqual(resolveVoice({ provider: 'command', preset: 'male-sunny' }), { voice: 'zh-CN-YunxiNeural', speed: 0.9, rate: '-10%', pitch: '+0Hz' });
-  assert.deepEqual(resolveVoice({ provider: 'command', preset: 'male-sunny', voice: 'zh-CN-YunjianNeural', speed: 1.1, pitch: -3 }),
+  assert.deepEqual(resolveVoice({ provider: 'command', preset: 'male-sunny', command: EDGE }), { voice: 'zh-CN-YunxiNeural', speed: 0.9, rate: '-10%', pitch: '+0Hz' });
+  assert.deepEqual(resolveVoice({ provider: 'command', preset: 'male-sunny', command: EDGE, voice: 'zh-CN-YunjianNeural', speed: 1.1, pitch: -3 }),
     { voice: 'zh-CN-YunjianNeural', speed: 1.1, rate: '+10%', pitch: '-3Hz' });
   assert.deepEqual(resolveVoice({ provider: 'command' }), { voice: 'zh-CN-XiaoxiaoNeural', speed: 1, rate: '-4%', pitch: '+0Hz' });
   assert.throws(() => resolveVoice({ provider: 'command', preset: 'male-deep' }), /male-deep/);
   assert.deepEqual([0, 5, -3, -20].map((hz) => pitchToEdge(hz)), ['+0Hz', '+5Hz', '-3Hz', '-20Hz']);
+});
+
+test('a preset only applies to an edge-tts command, so a paid or custom voice is not re-synthesized for it', () => {
+  const openai = { provider: 'openai-compatible', base_url: 'https://api.example.com/v1', model: 'tts-1', voice: 'alloy', api_key_env: 'SVS_TTS_API_KEY' };
+  const say = { provider: 'command', voice: 'Tingting', command: 'say -v Tingting -o {out} {text}' };
+  const local = { provider: 'command', command: 'python3 my_tts.py --voice {voice} --speed {speed} --text {text} --out {out}' };
+  for (const voice of [openai, say, local, { provider: 'import' }]) {
+    assert.equal(sentenceHash('天空为什么是蓝的？', { ...voice, preset: 'male-sunny' }), sentenceHash('天空为什么是蓝的？', voice), voice.provider);
+  }
+  assert.deepEqual(resolveVoice({ ...local, preset: 'male-sunny' }), resolveVoice(local));
+  assert.throws(() => sentenceHash('天空为什么是蓝的？', { ...openai, preset: 'male-deep' }), /male-deep/);
 });
 
 test('the command gets the preset voice, rate and pitch; a new preset re-synthesizes and an unchanged run reuses the cache', async () => {

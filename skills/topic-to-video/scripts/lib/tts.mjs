@@ -21,12 +21,17 @@ export function pitchToEdge(pitch = 0) {
   return `${hz >= 0 ? '+' : ''}${hz}Hz`;
 }
 
-/** The preset voice.preset names, or null without one. An unknown name throws rather than falling back to 晓晓. */
+/**
+ * The preset voice.preset names, or null without one. An unknown name throws rather than falling back to 晓晓.
+ * A preset only applies to an edge-tts command; for any other voice it is ignored, as PRESET_UNUSED warns, so it
+ * neither changes the cache key (a paid voice would be re-synthesized for nothing) nor feeds edge voice names to it.
+ */
 function presetOf(voice) {
   if (voice.preset === undefined) return null;
   if (!Object.hasOwn(VOICE_PRESETS, voice.preset)) {
     throw new Error(`未知的配音人设 voice.preset: ${voice.preset}，可选 ${Object.keys(VOICE_PRESETS).join('、')}`);
   }
+  if (voice.provider !== 'command' || !isEdgeVoiceCommand(voice.command)) return null;
   return VOICE_PRESETS[voice.preset];
 }
 
