@@ -38,7 +38,7 @@ test('in-page anchors point at existing ids', () => {
 test('the host cheatsheet was drawn from the current rig and names every gesture, expression and prop', () => {
   const png = readFileSync(join(SITE, 'assets/host-cheatsheet.png'));
   const svg = cheatsheetSvg(manifest);
-  assert.deepEqual(pngSize(png), { width: 1800, height: 1600 });
+  assert.deepEqual(pngSize(png), { width: 1800, height: 2040 });
   assert.equal(pngText(png, 'svg-sha256'), svgHash(svg), 'rig.mjs or manifest.json changed: run npm run export-host');
   for (const name of [...Object.keys(manifest.poses), ...Object.keys(manifest.expressions), ...Object.keys(manifest.props)]) {
     assert.ok(svg.includes(`>${name}</text>`), name);

@@ -2,8 +2,8 @@
   "id": "xiaoqing",
   "name": "小青",
   "style_lock": ["手绘黑色墨线火柴人", "空心圆头，没有头发和耳朵", "椭圆形黑眼睛", "脖子上系一条青色围巾", "手脚是小椭圆"],
-  "expressions": ["explaining", "focused", "happy", "curious", "surprised", "worried", "frustrated", "proud"],
-  "gestures": ["idle", "point_right", "wave", "emphasize", "point", "think", "shrug", "present", "sit", "jump", "cheer", "tap"],
+  "expressions": ["explaining", "focused", "happy", "curious", "surprised", "worried", "frustrated", "proud", "amazed"],
+  "gestures": ["idle", "point_right", "wave", "emphasize", "point", "think", "shrug", "present", "sit", "jump", "cheer", "tap", "snap", "lean_in", "startle", "double_take", "scratch_head"],
   "props": ["pointer", "magnifier", "phone", "doc", "bulb", "question"],
   "outfits": ["none", "glasses", "hardhat", "chef_hat", "apron"],
   "prompt_lock": {

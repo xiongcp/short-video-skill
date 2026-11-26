@@ -155,6 +155,7 @@ function face(base, expr, view, blink, { mouthOpen = 0, mouthWidth = 0.5, gaze =
       case 'tall': return ellipse(cx, cy, 0.075 * k, 0.16 * k, 0, ctx.ink);
       case 'arc': return pen(ctx, `eye${i}`, [[cx - 0.1 * k, cy + 0.04 * k], [cx, cy - 0.06 * k], [cx + 0.1 * k, cy + 0.04 * k]], line);
       case 'caret': return pen(ctx, `eye${i}`, [[cx - inward * 0.08 * k, cy - 0.08 * k], [cx + inward * 0.07 * k, cy], [cx - inward * 0.08 * k, cy + 0.08 * k]], line);
+      case 'star': return `<path data-eye="star" d="${pathData(Array.from({ length: 8 }, (_, j) => step([cx, cy], -90 + j * 45, (j % 2 ? 0.06 : 0.17) * k)), true)}" fill="${ctx.ink}"/>`;
       case 'half': return `<path d="M${num(cx - 0.09 * k)} ${num(cy)}A${num(0.09 * k)} ${num(0.07 * k)} 0 0 0 ${num(cx + 0.09 * k)} ${num(cy)}Z" fill="${ctx.ink}"/>`;
       default: throw new Error(`unknown eyes ${e.eyes}`);
     }
@@ -201,30 +202,32 @@ function symbol(base, name, [cx, cy], facing) {
   const back = -facing;
   const at = (u, w) => [cx + u * R, cy + w * R];
   const line = ctx.lines.symbol;
+  const k = ctx.manifest.figure.symbol_scale ?? 1;
+  const grow = ([ax, ay], svg) => (k === 1 ? svg : `<g transform="translate(${num(ax)} ${num(ay)}) scale(${k}) translate(${num(-ax)} ${num(-ay)})">${svg}</g>`);
   switch (name) {
     case 'question': {
       const [x, y] = at(back * 1.3, -0.95);
       const s = 0.45 * R;
       const hook = [[-0.5, -0.35], [-0.35, -0.75], [0, -0.9], [0.4, -0.75], [0.5, -0.4], [0.2, -0.1], [0, 0.1], [0, 0.35]].map(([u, w]) => [x + u * s, y + w * s]);
-      return `<g data-symbol="question">${pen(ctx, 'question', hook, line)}${ellipse(x, y + 0.75 * s, 0.13 * s, 0.13 * s, 0, ctx.ink)}</g>`;
+      return grow([x, y], `<g data-symbol="question">${pen(ctx, 'question', hook, line)}${ellipse(x, y + 0.75 * s, 0.13 * s, 0.13 * s, 0, ctx.ink)}</g>`);
     }
     case 'exclaim':
-      return `<g data-symbol="exclaim">${[-125, -90, -55].map((deg, i) => pen(ctx, `exclaim${i}`, [step([cx, cy], deg, 1.25 * R), step([cx, cy], deg, 1.6 * R)], line)).join('')}</g>`;
+      return grow([cx, cy], `<g data-symbol="exclaim">${[-125, -90, -55].map((deg, i) => pen(ctx, `exclaim${i}`, [step([cx, cy], deg, 1.25 * R), step([cx, cy], deg, 1.6 * R)], line)).join('')}</g>`);
     case 'sweat': {
       const [x, y] = at(back * 1.05, -0.45);
       const s = 0.28 * R;
       const drop = `M${num(x)} ${num(y - s)}C${num(x + 0.9 * s)} ${num(y + 0.2 * s)} ${num(x + 0.6 * s)} ${num(y + s)} ${num(x)} ${num(y + s)}C${num(x - 0.6 * s)} ${num(y + s)} ${num(x - 0.9 * s)} ${num(y + 0.2 * s)} ${num(x)} ${num(y - s)}Z`;
-      return `<g data-symbol="sweat"><path d="${drop}" fill="${ctx.accent}" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[0])}"/></g>`;
+      return grow([x, y], `<g data-symbol="sweat"><path d="${drop}" fill="${ctx.accent}" stroke="${ctx.ink}" stroke-width="${num(ctx.lines.fine[0])}"/></g>`);
     }
     case 'shake':
-      return `<g data-symbol="shake">${[-1, 1].flatMap((side) => [1.25, 1.45].map((r, i) => {
+      return grow([cx, cy], `<g data-symbol="shake">${[-1, 1].flatMap((side) => [1.25, 1.45].map((r, i) => {
         const pts = [-25, -10, 5].map((deg) => step([cx, cy], side === 1 ? deg : 180 - deg, r * R));
         return pen(ctx, `shake${side}${i}`, pts, line);
-      })).join('')}</g>`;
+      })).join('')}</g>`);
     case 'sparkle': {
       const [x, y] = at(back * 1.15, -0.95);
       const star = Array.from({ length: 8 }, (_, i) => step([x, y], -90 + i * 45, (i % 2 ? 0.1 : 0.34) * R));
-      return `<g data-symbol="sparkle"><path d="${pathData(star, true)}" fill="${ctx.accent}"/></g>`;
+      return grow([x, y], `<g data-symbol="sparkle"><path d="${pathData(star, true)}" fill="${ctx.accent}"/></g>`);
     }
     default: throw new Error(`unknown symbol ${name}`);
   }

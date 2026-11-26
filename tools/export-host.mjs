@@ -22,8 +22,8 @@ const FONT = 'Hiragino Sans GB, PingFang SC, Noto Sans SC, sans-serif';
 /** Chinese captions for the cheatsheet; the names themselves come from manifest.json. */
 export const LABELS = {
   idle: '站着', point: '指向', point_right: '旧名，同 point', emphasize: '强调', think: '思考', shrug: '摊手', present: '介绍', sit: '坐下',
-  wave: '挥手', jump: '跳起', cheer: '欢呼', tap: '拍一下',
-  explaining: '讲解', focused: '专注', happy: '开心', curious: '好奇', surprised: '惊讶', worried: '担心', frustrated: '着急', proud: '得意',
+  wave: '挥手', jump: '跳起', cheer: '欢呼', tap: '拍一下', snap: '打响指', lean_in: '凑近看', startle: '吓一跳', double_take: '再看一眼', scratch_head: '挠头',
+  explaining: '讲解', focused: '专注', happy: '开心', curious: '好奇', surprised: '惊讶', worried: '担心', frustrated: '着急', proud: '得意', amazed: '恍然大悟',
   pointer: '教鞭', magnifier: '放大镜', phone: '手机', doc: '文件', bulb: '灯泡', question: '问号牌',
 };
 
@@ -64,13 +64,13 @@ export function cheatsheetSvg(manifest) {
       : scaled(0.7, drawHost(manifest, { gesture, expr: 'explaining', x: x / 0.7, ground: (top + 320) / 0.7, seed: `sheet-${gesture}` }));
     return figure + label(x, top + 352, gesture);
   }).join('');
-  const faces = Object.keys(manifest.expressions).map((expr, i) => headCrop(manifest, expr, 20 + i * 220, 910, 200, `sheet-${expr}`) + label(120 + i * 220, 1140, expr)).join('');
+  const faces = Object.keys(manifest.expressions).map((expr, i) => headCrop(manifest, expr, 18 + i * 196, 1310, 180, `sheet-${expr}`) + label(108 + i * 196, 1520, expr)).join('');
   const props = Object.entries(manifest.props).map(([prop, p], i) => {
     const x = 150 + i * 300;
     const gesture = p.hand === 'acting' ? 'point' : 'idle';
-    return scaled(0.7, drawHost(manifest, { gesture, expr: 'explaining', prop, x: x / 0.7, ground: 1500 / 0.7, seed: `sheet-${prop}` })) + label(x, 1540, prop);
+    return scaled(0.7, drawHost(manifest, { gesture, expr: 'explaining', prop, x: x / 0.7, ground: 1940 / 0.7, seed: `sheet-${prop}` })) + label(x, 1980, prop);
   }).join('');
-  return svgDoc(1800, 1600, title + gestures + faces + props);
+  return svgDoc(1800, 2040, title + gestures + faces + props);
 }
 
 /** The waving host in the site's hero frame; the page's CSS swings the left forearm and blinks the eyes. */

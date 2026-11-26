@@ -88,8 +88,8 @@ test('clear silhouette: hands stay at least 0.08 H from the torso, except think 
   }
 });
 
-test('clear silhouette: raised arms pass beside the head, not through it, except the hand on the chin in think', () => {
-  for (const gesture of POSES.filter((g) => g !== 'think')) {
+test('clear silhouette: raised arms pass beside the head, not through it, except the hand on the chin in think and on the head in scratch_head', () => {
+  for (const gesture of POSES.filter((g) => !['think', 'scratch_head'].includes(g))) {
     const { points: p, R } = stand(gesture);
     for (const s of ['l', 'r']) assert.ok(dist(p[`${s}_elbow`], p.head_center) >= 1.2 * R, `${gesture} ${s}`);
   }
