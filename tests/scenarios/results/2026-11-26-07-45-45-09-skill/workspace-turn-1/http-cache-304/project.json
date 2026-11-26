@@ -1,0 +1,444 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "浏览器缓存与 304：冰箱与超市的秘密",
+  "brief": {
+    "topic": "浏览器缓存和 304 状态码",
+    "audience": "对网络协议没有基础的普通观众",
+    "promise": "弄懂浏览器缓存就像家门口的冰箱，304 是打电话确认东西没变、直接从冰箱吃",
+    "sources": [
+      {
+        "id": "src01",
+        "title": "RFC 9111 · HTTP Caching",
+        "where": "https://www.rfc-editor.org/rfc/rfc9111.html",
+        "note": "HTTP 缓存标准"
+      }
+    ],
+    "open_questions": []
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 60,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "light",
+    "outfit": "apron"
+  },
+  "voice": {
+    "provider": "undecided",
+    "preset": "female-warm"
+  },
+  "world": {
+    "metaphor": "缓存是家里的冰箱，服务器是远处的超市，304 是打电话确认还能吃",
+    "style": "paper",
+    "scene": "kitchen",
+    "custom_props": []
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "为什么网页能秒开",
+      "text": "网页第二次打开，为什么特别快？因为里面藏着一台冰箱！想吃什么东西，伸手就能直接拿。",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s02",
+      "title": "超市买回存进冰箱",
+      "text": "第一次打开网页，就像去远处超市。跑一趟很费时，还要消耗流量。买回牛奶后，顺手在冰箱存一份。下次想喝，直接伸手开冰箱拿！",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s03",
+      "title": "打个电话与三零四",
+      "text": "要是牛奶放久了，怎么确认新鲜？浏览器不重买，而是先打电话。报上生产日期，要是商品没变。超市就会回复三零四！这声三零四，说明牛奶还新鲜！不用重新跑一趟，直接喝冰箱里的！",
+      "source_ids": ["src01"]
+    },
+    {
+      "id": "s04",
+      "title": "省下整趟跑腿",
+      "text": "一个电话免去跑腿，这就是协商！三零四状态码，传输极其高效。下次网页秒开，你就明白背后原理了。记得感谢身旁，这台默默服务的冰箱！",
+      "source_ids": ["src01"]
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "think"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "为什么网页能秒开",
+          "sub": "里面藏着一台冰箱"
+        }
+      },
+      "cues": [
+        {
+          "sentence": 0,
+          "do": "prop",
+          "target": "question"
+        },
+        {
+          "sentence": 1,
+          "do": "prop",
+          "target": "none"
+        },
+        {
+          "sentence": 1,
+          "do": "expr",
+          "target": "amazed"
+        }
+      ],
+      "note": "提出问题：网页为什么秒开，引出冰箱比喻"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [2],
+      "layout": "stage",
+      "host": {
+        "expr": "explaining",
+        "gesture": "present",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "直接拿冰箱",
+          "objects": [
+            {
+              "prop": "fridge",
+              "label": "冰箱",
+              "at": "center",
+              "state": "closed"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "open",
+          "target": 0
+        }
+      ],
+      "note": "小青打开冰箱展示：想吃什么直接伸手拿"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0, 1],
+      "layout": "stage",
+      "host": {
+        "expr": "focused",
+        "gesture": "point",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "去远处超市",
+          "objects": [
+            {
+              "prop": "shop",
+              "label": "远处超市",
+              "at": "right",
+              "state": "open"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 0,
+          "do": "react",
+          "target": 0
+        },
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "emphasize"
+        }
+      ],
+      "note": "第一次访问就像跑去远处的超市，费时耗流量"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [2, 3],
+      "layout": "stage",
+      "host": {
+        "expr": "happy",
+        "gesture": "idle",
+        "at": "center"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "顺手存冰箱",
+          "objects": [
+            {
+              "prop": "shop",
+              "label": "远处超市",
+              "at": "right"
+            },
+            {
+              "prop": "fridge",
+              "label": "冰箱",
+              "at": "mid-left",
+              "state": "closed"
+            }
+          ],
+          "links": [
+            {
+              "from": 0,
+              "to": 1,
+              "style": "dashed",
+              "label": "买回存一份"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "send",
+          "target": 0,
+          "value": "package"
+        },
+        {
+          "sentence": 2,
+          "do": "open",
+          "target": 1
+        },
+        {
+          "sentence": 3,
+          "do": "gesture",
+          "target": "tap"
+        }
+      ],
+      "note": "买回牛奶后存入冰箱，下次直接拿"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [0, 1],
+      "layout": "stage",
+      "host": {
+        "expr": "worried",
+        "gesture": "lean_in",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "打电话确认",
+          "objects": [
+            {
+              "prop": "fridge",
+              "label": "冰箱",
+              "at": "mid-right",
+              "state": "expired"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 0,
+          "do": "react",
+          "target": 0
+        },
+        {
+          "sentence": 1,
+          "do": "prop",
+          "target": "phone"
+        }
+      ],
+      "note": "牛奶放久可能过期，浏览器先打电话给超市"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [2, 3],
+      "layout": "stage",
+      "host": {
+        "expr": "explaining",
+        "gesture": "idle",
+        "at": "mid-left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "超市回复三零四",
+          "objects": [
+            {
+              "prop": "fridge",
+              "label": "冰箱",
+              "at": "left",
+              "state": "expired"
+            },
+            {
+              "prop": "shop",
+              "label": "超市",
+              "at": "right",
+              "state": "open"
+            }
+          ],
+          "links": [
+            {
+              "from": 0,
+              "to": 1,
+              "style": "dashed",
+              "label": "核对商品"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "send",
+          "target": 0,
+          "value": "doc"
+        },
+        {
+          "sentence": 3,
+          "do": "state",
+          "target": 0,
+          "value": "fresh"
+        },
+        {
+          "sentence": 3,
+          "do": "react",
+          "target": 0
+        }
+      ],
+      "note": "超市核对后确认商品没变，回复 304，冰箱变新鲜"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [4, 5],
+      "layout": "stage",
+      "host": {
+        "expr": "happy",
+        "gesture": "cheer",
+        "at": "mid-left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "牛奶还新鲜直接喝",
+          "objects": [
+            {
+              "prop": "fridge",
+              "label": "冰箱",
+              "at": "left",
+              "state": "open"
+            },
+            {
+              "prop": "cup",
+              "label": "牛奶",
+              "at": "center",
+              "state": "full"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 4,
+          "do": "prop",
+          "target": "none"
+        },
+        {
+          "sentence": 4,
+          "do": "carry",
+          "target": 1
+        },
+        {
+          "sentence": 5,
+          "do": "carry",
+          "target": "none"
+        },
+        {
+          "sentence": 5,
+          "do": "gesture",
+          "target": "emphasize"
+        }
+      ],
+      "note": "确认牛奶新鲜，小青直接从冰箱拿出牛奶喝"
+    },
+    {
+      "id": "sh08",
+      "section": "s04",
+      "sentences": [0, 1],
+      "layout": "host-left",
+      "host": {
+        "expr": "proud",
+        "gesture": "emphasize"
+      },
+      "visual": {
+        "template": "number",
+        "data": {
+          "value": "304",
+          "label": "缓存协商"
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "gesture",
+          "target": "point"
+        }
+      ],
+      "note": "总结：304 缓存协商免去整趟跑腿"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [2, 3],
+      "layout": "stage",
+      "host": {
+        "expr": "happy",
+        "gesture": "idle",
+        "at": "center"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "感谢这台冰箱",
+          "objects": [
+            {
+              "prop": "fridge",
+              "label": "服务冰箱",
+              "at": "mid-left",
+              "state": "closed"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "do": "gesture",
+          "target": "tap"
+        },
+        {
+          "sentence": 3,
+          "do": "gesture",
+          "target": "wave"
+        }
+      ],
+      "note": "呼应开头，小青拍拍冰箱并挥手致意"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}
