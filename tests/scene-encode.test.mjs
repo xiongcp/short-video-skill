@@ -533,6 +533,143 @@ test('renderProject exempts HOST_OBJECT_OVERLAP during sit_on/open/carry while c
       qaByShot: badRes.qaByShot,
     });
     assert.ok(badQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'), 'non-interacting overlap reports HOST_OBJECT_OVERLAP');
+
+    // 3. Same-shot sit_on -> distant open (non-move moving cue) must not misreport HOST_OBJECT_OVERLAP on seat exit
+    const sitExitDir = join(dir, 'sit-exit-open');
+    mkdirSync(join(sitExitDir, 'audio'), { recursive: true });
+    writeFileSync(join(sitExitDir, 'audio/s01-0.wav'), makeToneWav(5.2, 340));
+    const sitExitProj = {
+      ...minimal(),
+      world: { metaphor: '起座开门', style: 'paper', scene: 'kitchen' },
+      voice: { provider: 'import' },
+      sections: [{ id: 's01', title: '离座', text: '小青先在椅子上坐下，随后走过去打开冰箱。' }],
+      shots: [{
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'explaining', gesture: 'idle' },
+        visual: {
+          template: 'stage',
+          data: {
+            objects: [
+              { prop: 'chair', label: '椅子', at: 'left' },
+              { prop: 'fridge', label: '冰箱', at: 'right', state: 'closed' },
+            ],
+          },
+        },
+        cues: [
+          { sentence: 0, at: '坐下', do: 'sit_on', target: 0 },
+          { sentence: 0, at: '打开', do: 'open', target: 1 },
+        ],
+        note: 'sit_on followed by distant open in same shot',
+      }],
+    };
+    writeFileSync(join(sitExitDir, 'project.json'), JSON.stringify(sitExitProj, null, 2));
+    const sitExitRes = await renderProject(sitExitDir, { preview: true, workers: 1 });
+    assert.equal(sitExitRes.qaByShot.sh01.objectOverlapFrames, 0,
+      `sit_on -> distant open must not report overlap frames, got ${sitExitRes.qaByShot.sh01.objectOverlapFrames}`);
+    const sitExitPlan = sitExitRes.shotPlans[0];
+    const openCueStart = evaluateFrame(manifest, sitExitPlan, 0).hostMeta.interactionStarts.get(1);
+    const satMeta = evaluateFrame(manifest, sitExitPlan, openCueStart - 3.0).hostMeta;
+    const openedMeta = evaluateFrame(manifest, sitExitPlan, openCueStart + 0.3).hostMeta;
+    assert.equal(satMeta.interaction?.kind, 'sit_on', 'host sits on chair before walking to fridge');
+    assert.equal(openedMeta.interaction?.kind, 'open', 'host reaches and opens distant fridge');
+    const sitExitQa = await runQa(sitExitDir, {
+      videoPath: sitExitRes.videoPath,
+      expectedFps: sitExitRes.fps,
+      timeline: sitExitRes.timeline,
+      shotPlans: sitExitRes.shotPlans,
+      qaByShot: sitExitRes.qaByShot,
+    });
+    assert.equal(sitExitQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'), false);
+
+    // 4. carry -> move -> carry:none drop AND carry-swap auto-drop keep clearance from bodyBbox (0 objectOverlapFrames)
+    const dropDir = join(dir, 'carry-drop');
+    mkdirSync(join(dropDir, 'audio'), { recursive: true });
+    writeFileSync(join(dropDir, 'audio/s01-0.wav'), makeToneWav(4.6, 360));
+    const dropProj = {
+      ...minimal(),
+      world: { metaphor: '搬运与放下', style: 'paper', scene: 'street' },
+      voice: { provider: 'import' },
+      sections: [{ id: 's01', title: '搬运', text: '小青抱起大箱子走过去，然后放下继续原地讲解。' }],
+      shots: [{
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'happy', gesture: 'idle' },
+        visual: { template: 'stage', data: { objects: [{ prop: 'box', label: '大箱子', at: 'left' }] } },
+        cues: [
+          { sentence: 0, at: '抱起', do: 'carry', target: 0 },
+          { sentence: 0, at: '走过去', do: 'move', target: 'center' },
+          { sentence: 0, at: '放下', do: 'carry', target: 'none' },
+        ],
+        note: 'carry + move + drop + talk in place',
+      }],
+    };
+    writeFileSync(join(dropDir, 'project.json'), JSON.stringify(dropProj, null, 2));
+    const dropRes = await renderProject(dropDir, { preview: true, workers: 1 });
+    assert.equal(dropRes.qaByShot.sh01.objectOverlapFrames, 0,
+      `carry:none drop must leave clearance without overlap, got ${dropRes.qaByShot.sh01.objectOverlapFrames}`);
+    const afterDropFrame = evaluateFrame(manifest, dropRes.shotPlans[0], dropRes.shotPlans[0].durationSec - 0.1);
+    assert.equal(afterDropFrame.hostMeta.interacting, false, 'host finishes dropping and speaks in place');
+    assert.ok(afterDropFrame.hostMeta.interaction?.droppedSpots?.[0], 'box recorded in droppedSpots[0]');
+    const dropQa = await runQa(dropDir, {
+      videoPath: dropRes.videoPath,
+      expectedFps: dropRes.fps,
+      timeline: dropRes.timeline,
+      shotPlans: dropRes.shotPlans,
+      qaByShot: dropRes.qaByShot,
+    });
+    assert.equal(dropQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'), false);
+
+    // 5. Carry-swap auto-drop when picking up a second object leaves clearance (0 objectOverlapFrames)
+    const swapDir = join(dir, 'carry-swap');
+    mkdirSync(join(swapDir, 'audio'), { recursive: true });
+    writeFileSync(join(swapDir, 'audio/s01-0.wav'), makeToneWav(5.4, 380));
+    const swapProj = {
+      ...minimal(),
+      world: { metaphor: '换拿道具', style: 'paper', scene: 'street' },
+      voice: { provider: 'import' },
+      sections: [{ id: 's01', title: '换拿', text: '小青先抱起箱甲，再换拿包裹。' }],
+      shots: [{
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'explaining', gesture: 'idle' },
+        visual: {
+          template: 'stage',
+          data: {
+            objects: [
+              { prop: 'box', label: '箱甲', at: 'mid-left' },
+              { prop: 'package', label: '包裹', at: 'center' },
+            ],
+          },
+        },
+        cues: [
+          { sentence: 0, at: '抱起', do: 'carry', target: 0 },
+          { sentence: 0, at: '换拿', do: 'carry', target: 1 },
+        ],
+        note: 'auto-drop first box when picking up second package',
+      }],
+    };
+    writeFileSync(join(swapDir, 'project.json'), JSON.stringify(swapProj, null, 2));
+    const swapRes = await renderProject(swapDir, { preview: true, workers: 1 });
+    assert.equal(swapRes.qaByShot.sh01.objectOverlapFrames, 0,
+      `auto-drop on second carry must leave clearance without overlap, got ${swapRes.qaByShot.sh01.objectOverlapFrames}`);
+    const swapEnd = evaluateFrame(manifest, swapRes.shotPlans[0], swapRes.shotPlans[0].durationSec - 0.1);
+    assert.equal(swapEnd.hostMeta.interaction?.carriedIdx, 1, 'host ends carrying second object');
+    assert.ok(swapEnd.hostMeta.interaction?.droppedSpots?.[0], 'first object auto-dropped into droppedSpots[0]');
+    const swapQa = await runQa(swapDir, {
+      videoPath: swapRes.videoPath,
+      expectedFps: swapRes.fps,
+      timeline: swapRes.timeline,
+      shotPlans: swapRes.shotPlans,
+      qaByShot: swapRes.qaByShot,
+    });
+    assert.equal(swapQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'), false);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

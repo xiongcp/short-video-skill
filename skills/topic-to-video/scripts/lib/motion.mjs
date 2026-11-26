@@ -437,8 +437,20 @@ function computeMicroActing(t, seed, { audioFrame = null, isQuestionEnd = false,
   return { blink, breath, weightShift, nod, tilt, gaze };
 }
 
+function computeDropSpot(curX, curFacing, ground, el, headR) {
+  const w = el?.bbox?.w ?? 0;
+  const minX = 120 + w / 2;
+  const maxX = 1800 - w / 2;
+  const dropDist = Math.max(65, Math.ceil(headR + w / 2 + 16));
+  const preferred = curX + curFacing * dropDist;
+  if (preferred >= minX && preferred <= maxX) return { x: preferred, y: ground };
+  const opposite = curX - curFacing * dropDist;
+  if (opposite >= minX && opposite <= maxX) return { x: opposite, y: ground };
+  return { x: Math.max(minX, Math.min(maxX, preferred)), y: ground };
+}
+
 /** Plans walk segments (including auto-approach), interaction events, and resolved cue start times. */
-function planHostTimeline(H, elements, orderedCues, { startX, startFacing, ground, totalDur }) {
+function planHostTimeline(H, elements, orderedCues, { startX, startFacing, ground, totalDur, headR = 47 }) {
   const maxReach = 0.35 * H;
   const walkSegments = [];
   const interactionEvents = [];
@@ -450,6 +462,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
   let interBusyUntil = 0;
   let carryPickupEnd = 0;
   let simCarriedIdx = null;
+  let simSeatedIdx = null;
   const simObjDx = {};
   const simDroppedSpots = {};
 
@@ -487,6 +500,10 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       const dstX = resolveStandX(c.target, curX, shifted);
       const t0 = Math.max(rawT0, interBusyUntil);
       const seg = pushWalk(t0, dstX, c.target, c.source ?? 'move', Math.max(t0 + 0.2, nextLimit));
+      if (seg.t1 > seg.t0 && simSeatedIdx !== null) {
+        seg.exitSitIdx = simSeatedIdx;
+        simSeatedIdx = null;
+      }
       interactionStarts.set(c._idx, seg.t0);
       if (Number.isInteger(c.target) && shifted[c.target]) {
         const el = shifted[c.target];
@@ -504,7 +521,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       const actT0 = Math.max(rawT0, walkBusyUntil, carryPickupEnd);
       interactionStarts.set(c._idx, actT0);
       if (simCarriedIdx !== null) {
-        const spot = { x: clampStageX(curX + curFacing * 65), y: ground };
+        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR);
         simDroppedSpots[simCarriedIdx] = spot;
         interactionEvents.push({ kind: 'drop', t0: actT0, dur: 0, targetIdx: simCarriedIdx, dropSpot: spot, cueIdx: c._idx });
         simCarriedIdx = null;
@@ -572,6 +589,11 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
     let actT0 = walkStart;
     if (needsApproach && Math.abs(dstX - curX) >= 1) {
       const seg = pushWalk(walkStart, dstX, targetIdx, 'auto_approach', Math.max(walkStart + 0.2, nextLimit));
+      if (seg.t1 > seg.t0 && simSeatedIdx !== null) {
+        seg.exitSitIdx = simSeatedIdx;
+        simSeatedIdx = null;
+      }
+      if (c.do === 'sit_on' && seg.t1 > seg.t0) seg.enterSitIdx = targetIdx;
       actT0 = seg.t1;
     }
     interactionStarts.set(c._idx, actT0);
@@ -585,7 +607,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       const face = anchorPt[0] >= curX ? 1 : -1;
       let autoDrop = null;
       if (simCarriedIdx !== null && simCarriedIdx !== targetIdx) {
-        const spot = { x: clampStageX(curX + curFacing * 65), y: ground };
+        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR);
         simDroppedSpots[simCarriedIdx] = spot;
         autoDrop = { idx: simCarriedIdx, spot };
       }
@@ -634,6 +656,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       interactionEvents.push({ kind: 'sit_on', targetIdx, t0: actT0, dur: 0.25, fromX: curX, seat: anchorPt, facing: 1, cueIdx: c._idx });
       curX = dstX;
       curFacing = 1;
+      simSeatedIdx = targetIdx;
       interBusyUntil = actT0 + 0.25;
     }
   }
@@ -652,6 +675,7 @@ function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, star
   let focusChangedAt = -10;
   let activeInter = null;
   let seated = null;
+  let sitWalk = null;
   let carriedIdx = null;
   const droppedSpots = {};
   const objDxAtT = {};
@@ -673,6 +697,14 @@ function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, star
         walking = true;
         trotting = seg.trot;
         walkPhase = (t - seg.t0) * (seg.trot ? 2 : 1);
+        if (seg.enterSitIdx != null || seg.exitSitIdx != null) {
+          sitWalk = {
+            enterIdx: seg.enterSitIdx ?? null,
+            enterT1: seg.t1,
+            exitIdx: seg.exitSitIdx ?? null,
+            exitT0: seg.t0,
+          };
+        }
         if (Number.isInteger(seg.target)) { focusIdx = seg.target; focusChangedAt = seg.t0; }
         break;
       }
@@ -760,7 +792,7 @@ function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, star
     }
   }
 
-  return { x, facing, walking, trotting, walkPhase, focusIdx, focusChangedAt, activeInter, seated, carriedIdx, droppedSpots, objDxAtT };
+  return { x, facing, walking, trotting, walkPhase, focusIdx, focusChangedAt, activeInter, seated, sitWalk, carriedIdx, droppedSpots, objDxAtT };
 }
 
 /** Builds base body pose and pending IK descriptor for an active interaction event. */
@@ -948,16 +980,17 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     ? plan.durationSec
     : Math.max(10, ...orderedCues.map((c) => (c.timeMs ?? 0) / 1000 + 4));
 
+  const headR = (manifest.joints.head.length * H) / 2;
   const { walkSegments, interactionEvents, interactionStarts, curX, rushedMove } = planHostTimeline(
     H,
     elements,
     orderedCues,
-    { startX: start.x, startFacing: start.facing ?? 1, ground, totalDur },
+    { startX: start.x, startFacing: start.facing ?? 1, ground, totalDur, headR },
   );
 
   let {
     x, facing, walking, trotting, walkPhase, focusIdx, focusChangedAt,
-    activeInter, seated, carriedIdx, droppedSpots, objDxAtT,
+    activeInter, seated, sitWalk, carriedIdx, droppedSpots, objDxAtT,
   } = evaluateTimelineAt(walkSegments, interactionEvents, elements, {
     t,
     startX: start.x,
@@ -1383,6 +1416,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     interacting,
     interaction,
     interactionStarts,
+    sitWalk,
     endState: { x: curX, view, facing, gesture: holdGesture, expr, prop, autoSnaps },
   };
 }

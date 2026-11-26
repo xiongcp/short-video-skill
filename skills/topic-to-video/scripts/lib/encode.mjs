@@ -132,8 +132,14 @@ const MOVING_CUE_DO = new Set(['move', 'open', 'carry', 'push', 'pull', 'hold_up
 /** Exempts walking onto or stepping off a seat object when executing a `sit_on` cue targeting `idx`. */
 function isSitApproachOrExit(shotPlan, hostMeta, idx, t, box, hb) {
   if (hostMeta.view !== 'side') return false;
-  const cues = shotPlan.cues ?? [];
   const winSec = Math.max(0.8, ((box.w * 0.5 + hb.w * 0.5) / 360) * 3.0 + 0.2);
+  const sw = hostMeta.sitWalk;
+  if (sw) {
+    if (sw.exitIdx === idx && t >= sw.exitT0 && t <= sw.exitT0 + winSec) return true;
+    if (sw.enterIdx === idx && t >= sw.enterT1 - winSec && t <= sw.enterT1) return true;
+    return false;
+  }
+  const cues = shotPlan.cues ?? [];
   const cueStart = (c, ci) => hostMeta.interactionStarts?.get(ci) ?? (c.timeMs ?? 0) / 1000;
   for (let ci = 0; ci < cues.length; ci += 1) {
     const c = cues[ci];
@@ -141,7 +147,10 @@ function isSitApproachOrExit(shotPlan, hostMeta, idx, t, box, hb) {
     const sitStart = cueStart(c, ci);
     if (hostMeta.focusIdx === idx && t >= sitStart - winSec && t <= sitStart) return true;
     const nextMoves = cues
-      .map((nc, nci) => ({ nc, t0: cueStart(nc, nci) }))
+      .map((nc, nci) => ({
+        nc,
+        t0: nc.do === 'move' ? cueStart(nc, nci) : Math.max(sitStart + 0.25, (nc.timeMs ?? 0) / 1000),
+      }))
       .filter(({ nc, t0 }) => t0 > sitStart && MOVING_CUE_DO.has(nc.do) && !(nc.do === 'carry' && nc.target === 'none'))
       .sort((a, b) => a.t0 - b.t0);
     if (nextMoves.length > 0 && t >= nextMoves[0].t0 && t <= nextMoves[0].t0 + winSec) return true;
