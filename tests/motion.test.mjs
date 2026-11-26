@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { drawHost, forwardKinematics } from '../skills/topic-to-video/scripts/lib/rig.mjs';
 import {
   evaluateHostAt,
+  inferSentenceBeat,
   resolveStandX,
   simulateScarfSpring,
   solveTwoBoneIK,
@@ -98,4 +99,34 @@ test('evaluateHostAt drives move, jump arc, continuous lip-sync and deterministi
   const svg2 = drawHost(manifest, midJump);
   assert.equal(svg1, svg2);
   assert.ok(svg1.includes('data-mouth-open="1"'), 'speaking mouth rendered');
+});
+
+test('every sentence gets a distinct host action beat and speech-driven conversational arm motion', () => {
+  assert.equal(inferSentenceBeat('还要从头下载吗？', { index: 0, prevGesture: 'idle' }).gesture, 'think');
+  assert.equal(inferSentenceBeat('记住这三种动作！', { index: 1, prevGesture: 'think' }).gesture, 'emphasize');
+  assert.notEqual(
+    inferSentenceBeat('第一句讲解。', { index: 0, prevGesture: 'idle' }).gesture,
+    inferSentenceBeat('第二句继续讲。', { index: 1, prevGesture: 'present' }).gesture,
+  );
+
+  const plan = {
+    seed: 'sh05',
+    durationSec: 6,
+    startState: { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' },
+    cues: [], // no explicit gesture cues at all
+    elements: [{ index: 0, label: '缓存', bbox: { x: 700, y: 120, w: 300, h: 140 } }],
+    sentences: [
+      { index: 0, startMs: 0, endMs: 2800, text: '副本过期之后还能用吗？' },
+      { index: 1, startMs: 3100, endMs: 5800, text: '记住关键一步，先询问服务器！' },
+    ],
+  };
+  const s0 = evaluateHostAt(manifest, plan, 1.2, { open: 0.7, width: 0.5, nod: 0 });
+  const s1 = evaluateHostAt(manifest, plan, 4.2, { open: 0.7, width: 0.5, nod: 0 });
+  assert.notEqual(s0.gesture, 'idle', 'sentence 0 automatically performs an active gesture');
+  assert.notEqual(s1.gesture, s0.gesture, 'sentence 1 transitions to a distinct action beat');
+
+  // Speech-driven conversational arm motion moves forearm compared to silent pause
+  const silent = evaluateHostAt(manifest, plan, 4.2, { open: 0, width: 0.5, nod: 0 });
+  const speaking = evaluateHostAt(manifest, plan, 4.35, { open: 0.85, width: 0.5, nod: 0 });
+  assert.notEqual(silent.angles.l_elbow, speaking.angles.l_elbow, 'arm moves expressively while speaking');
 });

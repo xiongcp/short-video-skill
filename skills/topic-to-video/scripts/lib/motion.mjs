@@ -172,6 +172,29 @@ export function simulateScarfSpring(manifest, velocityFn, t) {
   });
 }
 
+const BEAT_CYCLE = ['present', 'point', 'emphasize', 'shrug'];
+
+/**
+ * Picks a purposeful conversational gesture (and optional expression hint) for a sentence that has no explicit gesture cue,
+ * ensuring every sentence carries an active, non-repeating host beat.
+ */
+export function inferSentenceBeat(text = '', { index = 0, hasVisualCue = false, prevGesture = 'idle' } = {}) {
+  const s = String(text);
+  let candidates;
+  if (/[？?][」』”’）)》】\]"']*$/.test(s) || /(?:吗|呢|为什么|怎么|还能)/.test(s)) {
+    candidates = ['think', 'shrug', 'present'];
+  } else if (/[！!][」』”’）)》】\]"']*$/.test(s) || /(?:记住|关键|直接|瞬间|省掉|省下|一定)/.test(s)) {
+    candidates = ['emphasize', 'present', 'point'];
+  } else if (hasVisualCue || /(?:看|先看|找到|并排|这边|这张图|三零四|服务器|浏览器|副本)/.test(s)) {
+    candidates = ['point', 'present', 'emphasize'];
+  } else {
+    const start = Math.abs(index) % BEAT_CYCLE.length;
+    candidates = [...BEAT_CYCLE.slice(start), ...BEAT_CYCLE.slice(0, start)];
+  }
+  const gesture = candidates.find((g) => g !== prevGesture) ?? candidates[0];
+  return { gesture };
+}
+
 /** Resolves a `move` cue target (preset spot or element index) to a ground X in [120, 1800]. */
 export function resolveStandX(target, currentX = 320, elements = []) {
   if (typeof target === 'string' && target in SPOTS) return SPOTS[target];
@@ -296,6 +319,34 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     }
   }
 
+  // Synthesize automatic per-sentence gesture beats for sentences that lack an explicit gesture cue
+  // so every spoken sentence has active, lively stickman choreography.
+  const sentences = plan.sentences ?? [];
+  const explicitGestureSentences = new Set(cues.filter((c) => c.do === 'gesture').map((c) => c.sentence));
+  const visualCueSentences = new Set(cues.filter((c) => c.do === 'reveal' || c.do === 'highlight' || c.do === 'move').map((c) => c.sentence));
+  const autoBeats = [];
+  let runningGesture = start.gesture;
+  sentences.forEach((s, si) => {
+    const sentIdx = s.index ?? si;
+    if (explicitGestureSentences.has(sentIdx)) {
+      const last = cues.filter((c) => c.do === 'gesture' && c.sentence === sentIdx).at(-1);
+      if (last) runningGesture = last.target;
+      return;
+    }
+    if (si === 0 && start.gesture !== 'idle') {
+      runningGesture = start.gesture;
+      return;
+    }
+    const beat = inferSentenceBeat(s.text, {
+      index: sentIdx,
+      hasVisualCue: visualCueSentences.has(sentIdx),
+      prevGesture: runningGesture,
+    });
+    runningGesture = beat.gesture;
+    autoBeats.push({ sentence: sentIdx, timeMs: Math.max(0, (s.startMs ?? 0) - 80), do: 'gesture', target: beat.gesture });
+  });
+  const effectiveCues = [...cues, ...autoBeats].sort((a, b) => a.timeMs - b.timeMs);
+
   // Active expression, prop, hold gesture, and one-shot gesture
   let expr = start.expr;
   let exprChangedAt = -10;
@@ -305,7 +356,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   let holdChangedAt = -10;
   let activeOnce = resolvePose(manifest, start.gesture).type === 'once' ? { gesture: start.gesture, t0: 0 } : null;
 
-  for (const c of cues) {
+  for (const c of effectiveCues) {
     const ct = c.timeMs / 1000;
     if (ct > t) break;
     if (c.do === 'expr') { expr = c.target; exprChangedAt = ct; }
@@ -420,11 +471,21 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     focusDirX: focusPt[0] >= x ? 1 : -1,
   });
 
-  // Apply subtle breathing / weight shift / nod / question tilt
+  // Apply subtle breathing / weight shift / nod / question tilt + speech-driven conversational arm beats
+  const speechEnv = !walking && lift < 0.01 ? clamp01((audioFrame?.open ?? 0) * 1.15) : 0;
+  const talkElbow = speechEnv > 0.08 ? Math.sin(t * 4.8) * 7 * speechEnv : 0;
+  const talkShoulder = speechEnv > 0.08 ? Math.sin(t * 2.4) * 4 * speechEnv : 0;
+  const talkWrist = speechEnv > 0.08 ? Math.sin(t * 4.8 - 0.6) * 8 * speechEnv : 0;
+  const talkOtherElbow = speechEnv > 0.08 ? Math.cos(t * 3.6) * 4 * speechEnv : 0;
   angles = clampAngles(manifest, {
     ...angles,
-    chest: (angles.chest ?? 0) + micro.breath * 0.8,
+    waist: (angles.waist ?? 0) + speechEnv * 1.5,
+    chest: (angles.chest ?? 0) + micro.breath * 0.8 + speechEnv * 1.0,
     head: (angles.head ?? 0) + micro.nod + micro.tilt,
+    l_shoulder: (angles.l_shoulder ?? 0) + talkShoulder,
+    l_elbow: (angles.l_elbow ?? 0) + talkElbow,
+    l_wrist: (angles.l_wrist ?? 0) + talkWrist,
+    r_elbow: (angles.r_elbow ?? 0) + talkOtherElbow,
   });
   const finalX = x + micro.weightShift;
 
