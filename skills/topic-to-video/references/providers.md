@@ -67,6 +67,7 @@ node <本 skill 目录>/scripts/render.mjs <项目文件夹>
 #   --master                   额外输出 yuv444p 高码率母版 out/master.mp4
 #   --skip-tts                 复用已有 audio/timing.json
 #   --audition [人设列表]      只试听配音人设，写入 out/audition/，不出片
+#   --audition-sound [情绪列表]  只试听音乐情绪和音效，写入 out/audition/，不出片
 ```
 
 交付物全部写在 `<项目文件夹>/out/`：`final.mp4`、`captions.srt`、`captions.ass`（保留关键词高亮）、`cover.png`、`chapters.txt`、`contact.png`、`transitions.png`、`qa.json`、`qa.md`。
@@ -75,3 +76,30 @@ node <本 skill 目录>/scripts/render.mjs <项目文件夹>
 
 - 正文与字幕自动查找系统中文黑体（macOS `Hiragino Sans GB` / `STHeiti`，Linux `Noto Sans CJK`，Windows 微软雅黑），也可用环境变量 `SVS_FONT`、`SVS_TITLE_FONT` 指定自定义字体或霞鹜文楷（LXGW WenKai，OFL 许可，下载前先告知文件大小并征得用户同意，放缓存目录，不放 skill 目录）。
 - 返修单句讲稿或单镜图解时，只重新合成或重渲染受影响的镜头，其余镜头自动命中 `cache/shots/` 缓存。
+
+## 5. 声音（`project.json` 的 `sound` 字段）
+
+L1 出片时用代码合成纸面手绘风的音效和背景音乐，不下载、不调用付费接口。`sound` 可以不写：有 `world` 时音效开、音乐取场景推荐的情绪；没有 `world` 时都不开，和以前一样只有配音。
+
+```json
+"sound": { "sfx": "auto", "music": { "mood": "playful" } }
+"sound": { "sfx": "off", "music": { "file": "music/bed.mp3", "source": "用户说的来源", "license": "用户说的许可" } }
+```
+
+| 字段 | 取值 |
+| --- | --- |
+| `sfx` | `auto`（在出现、高亮、开门、落地等动作上卡点）或 `off` |
+| `music.mood` | `calm`、`playful`、`curious`、`upbeat` 或 `none`（不要音乐）；和 `file` 二选一 |
+| `music.file` | 项目文件夹内的相对路径（mp3/wav/m4a/aac/flac/ogg），必须同时写 `source` 和 `license` |
+
+| 情绪 | 中文名 | 速度 | 推荐场景 |
+| --- | --- | --- | --- |
+| `calm` | 平静 | 72 BPM | `blank`、`podium`、`office` |
+| `playful` | 俏皮 | 100 BPM | `kitchen`、`street` |
+| `curious` | 好奇 | 84 BPM | `lab`；`night` 风格一律用它 |
+| `upbeat` | 轻快 | 112 BPM | `outdoor`、`workshop` |
+
+- 用户自己的音乐：只用用户给的文件，放进项目文件夹；`source`、`license` 照抄用户原话，不替用户判断能不能用，也不去网上找音乐。自检报错 `MUSIC_LICENSE_MISSING`（缺来源或许可）、`MUSIC_PATH_INVALID`（绝对路径、网址或 `..`）；警告 `MUSIC_FILE_MISSING`（文件还没放进来）；出片时文件几乎没声音会警告 `MUSIC_SILENT` 并按没有音乐处理。
+- 混音：配音先润色，再混入音效和音乐。音乐整体比人声低 14 dB，说话时再压低 6 dB，段落之间换气一小节。
+- QA：`MUSIC_TOO_LOUD` 是说话时音乐离人声不到 15 dB，`SFX_OVER_VOICE` 是音效离人声不到 8 dB。出现时换更安静的情绪、改用 `"mood": "none"`，或关掉音效 `"sfx": "off"`，再重新出片。
+- 试听：`node <本 skill 目录>/scripts/render.mjs <项目文件夹> --audition-sound [calm,playful]` 写出 `out/audition/music-<情绪>.wav`（每个 15 秒）和 `out/audition/sfx.wav`（全部音效依次播放），不读 `project.json`，不需要 FFmpeg。

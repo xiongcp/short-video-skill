@@ -183,3 +183,14 @@ test('storyboard.md links to world.md action card within budgets', () => {
   assert.ok(text.includes('动作卡'), 'storyboard.md mentions 动作卡');
   assert.ok(text.includes('](world.md)'), 'storyboard.md links world.md');
 });
+
+test('providers.md documents the sound field, licenses, QA codes and the sound audition; world.md and SKILL.md point to it', () => {
+  const providers = ref('providers.md');
+  assert.ok(providers.includes('## 5. 声音（`project.json` 的 `sound` 字段）'));
+  for (const word of ['"sound"', 'MUSIC_LICENSE_MISSING', 'MUSIC_PATH_INVALID', 'MUSIC_FILE_MISSING', 'MUSIC_SILENT', 'MUSIC_TOO_LOUD', 'SFX_OVER_VOICE', '--audition-sound', 'calm', 'playful', 'curious', 'upbeat']) {
+    assert.ok(providers.includes(word), word);
+  }
+  assert.match(ref('world.md'), /\]\(providers\.md\)/);
+  assert.match(readFileSync(join(SKILL, 'SKILL.md'), 'utf8'), /^ {3}- 音乐：/m);
+  assert.ok(ref('prompt-pack.md').includes('配乐建议'));
+});

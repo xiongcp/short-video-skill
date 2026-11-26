@@ -17,6 +17,7 @@
 - `style`（必填）：5 套风格包之一；`settings.theme` 仍按必填写，仅用于 L0 区分浅/深色。
 - `scene`（必填）：8 个场景之一，用作默认背景；单个 `stage` 镜头可用 `shot.scene` 切换。
 - 服装和配音不写进 `world`：按场景推荐写进 `settings.outfit` 和 `voice.preset`。
+- 音乐情绪按场景自动推荐，不用写；要改、要关或用自己的音乐见 [providers.md](providers.md) 的声音一节。
 - `分镜.md` 开头写：`视觉世界：<比喻>；风格 <style>；场景 <scene>`（须与 `world` 一致）。
 
 ## 2. 五套风格包（`style`）
