@@ -1,0 +1,16 @@
+{
+  "id": "09",
+  "title": "视觉世界与同台互动：冰箱和超市讲浏览器缓存和 304",
+  "level": "L0",
+  "fixtures": [],
+  "turns": [
+    "帮我做一个 1 分钟左右的视频，把“浏览器缓存和 304”讲成家门口的冰箱和远处超市，让小青和冰箱、超市互动起来。",
+    "方案可以，出提示词包。"
+  ],
+  "checks": [
+    "project.json 写了 world（含冰箱/超市比喻、合法 style 和 scene），且分镜.md 开头列出视觉世界",
+    "至少 60% 的出镜镜头使用 layout: \"stage\"，且至少用到 2 种批次 2 互动/状态 cue（如 open、carry、state、send、hold_up、react）",
+    "自动检查摘要 schema_errors、check_errors、derived_docs 全为空，无 NO_INTERACTION 和 ESTIMATE_OFF_TARGET",
+    "第 2 轮记录 plan 确认并产出提示词包.md，提示词里体现风格包、场景和同台互动（不含英文枚举名）；全程无付费调用"
+  ]
+}
