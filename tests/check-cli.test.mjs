@@ -38,6 +38,17 @@ test('check.mjs accepts a project after step 1, before shots and 分镜.md exist
   assert.deepEqual([status, out.errors, out.docs], [0, [], []]);
 });
 
+test('check.mjs accepts a project with world after step 1, before shots and 分镜.md exist', () => {
+  const dir = copy();
+  const project = JSON.parse(readFileSync(join(dir, 'project.json'), 'utf8'));
+  project.world = { metaphor: '缓存是家门口的冰箱', style: 'paper', scene: 'kitchen' };
+  project.shots = [];
+  writeFileSync(join(dir, 'project.json'), JSON.stringify(project));
+  rmSync(join(dir, '分镜.md'));
+  const { status, out } = run(dir);
+  assert.deepEqual([status, out.errors, out.docs], [0, [], []]);
+});
+
 test('check.mjs fails on unreadable JSON', () => {
   const dir = copy();
   writeFileSync(join(dir, 'project.json'), '{');

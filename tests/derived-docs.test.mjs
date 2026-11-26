@@ -76,4 +76,6 @@ test('checks visual world line in 分镜.md only when project.world is present',
   assert.ok(checkDerivedDocs(withWorld, script, worldBoard.replace('家门口的冰箱', '超市')).length > 0);
   // Legacy project without world does not require visual world line
   assert.deepEqual(checkDerivedDocs(project, script, board), []);
+  // Before shots exist (step 1), empty boardMd skips visual world check
+  assert.deepEqual(checkDerivedDocs({ ...withWorld, shots: [] }, script, ''), []);
 });
