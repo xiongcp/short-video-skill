@@ -361,6 +361,14 @@ test('shotCacheKey invalidates on world.style, shot.scene, or world.custom_props
   assert.notEqual(baseKey, styleKey, 'changing world.style must change shotCacheKey');
   assert.notEqual(baseKey, sceneKey, 'changing shot.scene must change shotCacheKey');
   assert.notEqual(baseKey, propKey, 'changing world.custom_props must change shotCacheKey');
+
+  const withLightWorld = {
+    ...legacy,
+    world: { metaphor: '光影', style: 'paper', scene: 'kitchen' },
+  };
+  const legacyShot1Key = shotCacheKey(legacyPlans[1]);
+  const worldShot1Key = shotCacheKey(buildShotPlans(withLightWorld, buildTimeline(withLightWorld, timing, 60), manifest)[1]);
+  assert.notEqual(legacyShot1Key, worldShot1Key, 'adding world { style: paper } to light legacy project must change shotCacheKey');
 });
 
 test('stage->stage transition fades both old and new stage-heading and stage-hl underline smoothly without ghost overlap', () => {

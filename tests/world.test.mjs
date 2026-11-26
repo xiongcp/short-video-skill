@@ -21,6 +21,12 @@ import {
   validateCustomProps,
 } from '../skills/topic-to-video/scripts/lib/icons.mjs';
 import { paperBackgroundSvg, THEME_PALETTE } from '../skills/topic-to-video/scripts/lib/templates.mjs';
+import { layoutStage } from '../skills/topic-to-video/scripts/lib/stage.mjs';
+import { resolveStandX } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { visualKeywords } from '../skills/topic-to-video/scripts/lib/match.mjs';
+import { drawHost, resolvePose } from '../skills/topic-to-video/scripts/lib/rig.mjs';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const EXPECTED_LIGHT = {
   paper: '#fbfaf6',
@@ -190,6 +196,7 @@ test('SCENE_NAMES has 8 scenes with ground line at y=930 and clear central stage
     assert.match(svgA, new RegExp(`^<g[^>]*data-scene="${name}"`));
     assert.ok(!svgA.includes('<text'), `${name} has no <text>`);
     assert.ok(svgA.includes('data-ground="930"'), `${name} marks ground line at y=930`);
+    assert.ok(Buffer.byteLength(svgA, 'utf8') <= 6144, `${name} sceneBackgroundSvg stays compact (${Buffer.byteLength(svgA, 'utf8')} B)`);
 
     // Check every path coordinate in scene output
     const pathTags = [...svgA.matchAll(/<path\b([^>]*)>/g)];
@@ -437,4 +444,34 @@ test('customPropMeta and drawCustomProp render safe hand-drawn SVG and sanitize/
   for (const [, coord] of safeSvg.matchAll(/M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)) {
     assert.ok(Number.isFinite(Number(coord)));
   }
+});
+
+test('prototype-key inputs (toString / constructor) and null world.style are safely handled across helpers', () => {
+  assert.equal(propSupportsState('toString', 'normal'), false);
+  assert.equal(propSupportsState('constructor', 'open'), false);
+  const customErrs = validateCustomProps([{ id: 'c_bad', height: 0.5, parts: [{ shape: 'toString' }, { shape: 'constructor' }] }]);
+  assert.equal(customErrs.length, 2);
+  assert.ok(customErrs.every((e) => e.code === 'CUSTOM_PROP_INVALID'));
+
+  assert.throws(() => resolveStyle('toString'), /unknown style/i);
+  assert.throws(() => resolveStyle({ world: { style: 'constructor' } }), /unknown style/i);
+  assert.equal(resolveStyle({ theme: 'dark', world: { style: null } }).name, 'night');
+  assert.equal(resolveStyle({ world: { style: null } }).name, 'paper');
+  assert.ok(paperBackgroundSvg('toString').includes(STYLE_PALETTES.paper.paper));
+
+  const staged = layoutStage({ objects: [{ prop: 'box', at: 'center', size: 'toString' }] });
+  assert.equal(staged.ok, true);
+  assert.ok(Number.isFinite(staged.elements[0].bbox.w) && Number.isFinite(staged.elements[0].bbox.h));
+  assert.equal(resolveStandX('toString', 444, []), 444);
+  assert.equal(resolveStandX('constructor', 444, []), 444);
+  assert.deepEqual(visualKeywords({ template: 'toString', data: {} }), []);
+  assert.deepEqual(visualKeywords({ template: 'constructor', data: {} }), []);
+
+  const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
+  assert.throws(() => resolvePose(manifest, 'toString'), /unknown gesture/i);
+  assert.throws(() => drawHost(manifest, { gesture: 'toString', expr: 'explaining' }), /unknown gesture/i);
+  assert.throws(() => drawHost(manifest, { gesture: 'idle', expr: 'constructor' }), /unknown expression/i);
+  assert.throws(() => drawHost(manifest, { gesture: 'idle', expr: 'explaining', prop: 'toString' }), /unknown prop/i);
+  assert.throws(() => drawHost(manifest, { gesture: 'idle', expr: 'explaining', outfit: 'constructor' }), /unknown outfit/i);
+  assert.throws(() => drawHost(manifest, { gesture: 'idle', expr: 'explaining', view: 'toString' }), /unknown view/i);
 });

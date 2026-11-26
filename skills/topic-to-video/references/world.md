@@ -1,6 +1,6 @@
 # 视觉世界与舞台（world + stage）
 
-写分镜前先定全片的 `world`，在**确认①**连同讲稿、分镜一起给用户看。没有 `world` 的旧项目按 `settings.theme`（`light` → `paper`，`dark` → `night`）配色，不能用 `stage` 版式（`check.mjs` 报 `STAGE_NEEDS_WORLD`）。
+写分镜前先定全片 `world`，在**确认①**连同讲稿、分镜给用户看。无 `world` 旧项目按 `settings.theme`（`light` → `paper`，`dark` → `night`）配色，不能用 `stage`（`check.mjs` 报 `STAGE_NEEDS_WORLD`）。
 
 ## 1. 定视觉世界（`world`）
 
@@ -13,29 +13,29 @@
 }
 ```
 
-- `metaphor`（必填，≤ 60 字）：贯穿全片的一句话比喻，决定本期的物件和舞台关系。
-- `style`（必填）：5 套风格包之一；`settings.theme` 仍按必填写，仅用于 L0 提示词包区分浅色/深色。
-- `scene`（必填）：8 个场景之一，用作全片默认背景；单个 `stage` 镜头可用 `shot.scene` 临时切换。
-- 服装和配音不写进 `world`：按场景推荐后写进 `settings.outfit` 和 `voice.preset`。
-- `分镜.md` 开头写一行：`视觉世界：<比喻>；风格 <style>；场景 <scene>`（须与 `world` 一致）。
+- `metaphor`（必填，≤ 60 字）：贯穿全片的一句话比喻，决定物件与舞台关系。
+- `style`（必填）：5 套风格包之一；`settings.theme` 仍按必填写，仅用于 L0 区分浅/深色。
+- `scene`（必填）：8 个场景之一，用作默认背景；单个 `stage` 镜头可用 `shot.scene` 切换。
+- 服装和配音不写进 `world`：按场景推荐写进 `settings.outfit` 和 `voice.preset`。
+- `分镜.md` 开头写：`视觉世界：<比喻>；风格 <style>；场景 <scene>`（须与 `world` 一致）。
 
 ## 2. 五套风格包（`style`）
 
-同一种手绘墨线画法；深色纸面自动把小青身体换成浅色墨线，青色围巾和呆毛在所有风格里保持不变。
+同一种手绘墨线；深色纸面小青自动改浅色墨线，青色围巾和呆毛始终不变。
 
 | `style` | 纸面 | 墨线 | 强调色 | 适合主题 |
 | --- | --- | --- | --- | --- |
 | `paper` | 米白手账纸 + 96 px 浅网格 | 深灰 | 青、黄、红 | 通用知识（默认） |
 | `chalkboard` | 墨绿黑板 + 淡擦痕 | 粉笔白 | 粉笔黄、粉笔红、粉笔青 | 科普、历史、课堂 |
-| `blueprint` | 深蓝底 + 48/192 px 双网格 | 浅蓝白 | 黄、橙、白 | 工程、原理、结构 |
+| `blueprint` | 深蓝底 + 48/192 px 双网格 | 浅蓝白 | 青蓝、黄、红 | 工程、原理、结构 |
 | `kraft` | 暖色牛皮纸 + 淡纤维线 | 深棕 | 砖红、墨绿、芥黄 | 生活、商业、怀旧 |
 | `night` | 深灰蓝 + 浅网格 | 浅灰白 | 青、黄、红 | 安全、宇宙、夜间话题 |
 
-语义色键（11 个，自定义道具 `fill` 也用它或 `none`）：`paper`、`grid`、`ink`、`muted`、`card`、`accent`、`yellow`、`red`、`soft_accent`、`soft_yellow`、`soft_red`。
+语义色键（11 个，自定义道具 `fill` 用它或 `none`）：`paper`、`grid`、`ink`、`muted`、`card`、`accent`、`yellow`、`red`、`soft_accent`、`soft_yellow`、`soft_red`。
 
 ## 3. 八个场景（`scene`）与推荐搭配
 
-场景画在物件后方（仅 `stage` 镜头），元素只在两侧和上方，避开中央表演区，共同踩在地面线 y = 930 上。
+场景仅画在 `stage` 后方两侧与上方，避开中央表演区，共踩地面线 y = 930。
 
 | `scene` | 背景画面 | 推荐服装（`settings.outfit`） | 推荐配音（`voice.preset`） |
 | --- | --- | --- | --- |
@@ -50,7 +50,7 @@
 
 ## 4. 60 个内置物件与状态
 
-可用于 `stage` 的 `objects[].prop`，也可用于 `bullets.icons`、`flow.icons`、`timeline`/`cycle` 的 `icon`。
+用于 `stage` 的 `objects[].prop`，及 `bullets`/`flow` 的 `icons`、`timeline`/`cycle` 的 `icon`。
 
 | 分组 | 物件名 |
 | --- | --- |
@@ -72,7 +72,7 @@
 
 ## 5. 自定义道具（`world.custom_props`）
 
-内置不够时用结构化几何图元拼接（不收任意 SVG 路径）：
+内置不够时用几何图元拼接（不收任意 SVG）：
 
 ```json
 { "id": "c_fishtank", "label": "鱼缸", "height": 0.5, "layer": "ground",
@@ -90,7 +90,7 @@
 
 ## 6. `stage` 舞台版式写法
 
-`stage` 是主力出镜版式（建议占出镜镜头 60%–80%），小青和物件站在同一条地面线上。`layout: "stage"` 与 `visual.template: "stage"` 必须同时使用，且必须写 `host`（可选 `host.at` 指定站位）。
+`stage` 为主力出镜版式（建议占出镜 60%–80%），人与物件共踩地面线。`layout` 与 `visual.template` 须同为 `stage`，且写 `host`（可选 `host.at`）。
 
 ```json
 { "id": "sh05", "section": "s02", "sentences": [0, 1], "layout": "stage",
@@ -107,12 +107,12 @@
   "note": "缓存就在手边，服务器在远处" }
 ```
 
-- `objects`：1–5 个（序号 0..n-1 是 `reveal`、`highlight`、`move` 的 `target`）；`label` ≤ 8 字，参与口播关键词检查。`heading` 可选，≤ 14 字。
-- `at`：5 个语义槽位 `left`、`mid-left`、`center`、`mid-right`、`right`（x 240/600/960/1320/1680），或 `0.08–0.92` 比例。
-- `layer`：`ground`（贴地面）、`mid`（放在同槽位落地物件顶面，没有时在胸口高度 y 762）、`air`（高空 y ≤ 470）。缺省用物件自带默认值。
-- `size`：`sm`（0.75 倍）、`md`（1 倍，默认）、`lg`（1.3 倍）。
-- `links`：0–4 条连接两件物件（`from`、`to` 为序号，`style` 为 `solid` 或 `dashed`，可选 `label`）。
-- 自动排版：渲染器自动防重叠（≥ 40 px 间隔）并给小青留 200 px 站位；最小缩放到 0.6 倍，仍放不下报 `STAGE_CROWDED`（请减少物件或拆镜）。
+- `objects`：1–5 个（序号 0..n-1 供 cue 填 `target`）；`label` ≤ 8 字，参与关键词检查。`heading` 可选，≤ 14 字。
+- `at`：5 个槽位 `left`、`mid-left`、`center`、`mid-right`、`right`（x 240/600/960/1320/1680），或 `0.08–0.92` 比例。
+- `layer`：`ground`（贴地）、`mid`（叠同槽地面物顶面，否则 y 762）、`air`（高空 y ≤ 470）。缺省用物件默认值。
+- `size`：`sm`（0.75×）、`md`（1×，默认）、`lg`（1.3×）。
+- `links`：0–4 条连接两物件（`from`、`to` 为序号，`style` 为 `solid` 或 `dashed`，可选 `label`）。
+- 自动排版：自动防重叠（≥ 40 px）并留 200 px 站位；最小缩至 0.6 倍，仍挤报 `STAGE_CROWDED`。
 
 ## 7. 同台互动、状态与动作卡
 

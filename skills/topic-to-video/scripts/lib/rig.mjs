@@ -28,7 +28,9 @@ export function clampAngles(manifest, angles = {}) {
 /** A gesture's pose from manifest.poses, following an alias such as point_right → point; walk is the key pose of
  *  manifest.motions.walk (the walk itself is procedural, S2). */
 export function resolvePose(manifest, gesture) {
-  const pose = manifest.poses[gesture] ?? manifest.motions[gesture]?.key;
+  const hasPose = typeof gesture === 'string' && manifest.poses && Object.hasOwn(manifest.poses, gesture);
+  const hasMotion = typeof gesture === 'string' && manifest.motions && Object.hasOwn(manifest.motions, gesture);
+  const pose = hasPose ? manifest.poses[gesture] : (hasMotion ? manifest.motions[gesture]?.key : undefined);
   if (!pose) throw new Error(`unknown gesture ${gesture}`);
   return pose.alias ? resolvePose(manifest, pose.alias) : pose;
 }
@@ -37,8 +39,10 @@ export function resolvePose(manifest, gesture) {
  *  and, when the other hand holds a prop, that arm's angles from manifest.props. */
 export function poseAngles(manifest, gesture, prop, view) {
   const pose = resolvePose(manifest, gesture);
-  const angles = { ...pose.angles, ...(pose.view_angles?.[view ?? pose.view] ?? {}) };
-  const held = prop ? manifest.props[prop] : undefined;
+  const viewKey = view ?? pose.view;
+  const viewOverrides = typeof viewKey === 'string' && pose.view_angles && Object.hasOwn(pose.view_angles, viewKey) ? pose.view_angles[viewKey] : {};
+  const angles = { ...pose.angles, ...viewOverrides };
+  const held = typeof prop === 'string' && manifest.props && Object.hasOwn(manifest.props, prop) ? manifest.props[prop] : undefined;
   if (held?.hand === 'other') for (const [joint, deg] of Object.entries(held.arm)) angles[`${OTHER}_${joint}`] = deg;
   return angles;
 }
@@ -121,6 +125,7 @@ export function forwardKinematics(manifest, angles, { view = 'front', facing = 1
 
 /** Where a held prop goes: its grip point sits on the hand's center and the prop turns with the hand. */
 export function propTransform(manifest, fk, prop) {
+  if (typeof prop !== 'string' || !manifest.props || !Object.hasOwn(manifest.props, prop)) throw new Error(`unknown prop ${prop}`);
   const side = manifest.props[prop].hand === 'acting' ? ACTING : OTHER;
   const [x, y] = mid(fk.points[`${side}_wrist`], fk.points[`${side}_hand`]);
   const [gx, gy] = manifest.props[prop].grip.map((v) => v * fk.H);
@@ -162,12 +167,14 @@ export function scarfShape(manifest, fk, tailAngles = null) {
  */
 export function ahogePoints(manifest, { expr, fromExpr = expr, mix = 1, bend = 0, outfit = 'none' }) {
   const a = manifest.ahoge;
-  const shape = (e) => resample(a.shapes[a.by_expr[e]], a.count);
+  const shapeKey = (e) => (typeof e === 'string' && Object.hasOwn(a.by_expr, e) ? a.by_expr[e] : undefined);
+  const shape = (e) => resample(a.shapes[shapeKey(e)], a.count);
   const [from, to] = [shape(fromExpr), shape(expr)];
   const k = Math.max(0, Math.min(1, mix));
   const pts = to.map(([u, v], i) => [from[i][0] + (u - from[i][0]) * k, from[i][1] + (v - from[i][1]) * k]);
   const [ru, rv] = pts[0];
-  const lift = (manifest.outfits?.[outfit]?.crown ?? rv) - rv;
+  const outfitSpec = typeof outfit === 'string' && manifest.outfits && Object.hasOwn(manifest.outfits, outfit) ? manifest.outfits[outfit] : undefined;
+  const lift = (outfitSpec?.crown ?? rv) - rv;
   return pts.map(([u, v], i) => {
     const deg = (bend * i) / (pts.length - 1);
     const [c, sn] = [Math.cos(deg * RAD), Math.sin(deg * RAD)];
@@ -393,8 +400,8 @@ export function drawHost(manifest, state) {
     outfit = 'none', ahoge = null, headStretch = 0, spark = 0,
   } = state;
   const prop = state.prop === 'none' ? undefined : state.prop; // the prop cue's none puts the prop down
-  if (!manifest.expressions[expr]) throw new Error(`unknown expression ${expr}`);
-  if (prop && !manifest.props[prop]) throw new Error(`unknown prop ${prop}`);
+  if (typeof expr !== 'string' || !manifest.expressions || !Object.hasOwn(manifest.expressions, expr)) throw new Error(`unknown expression ${expr}`);
+  if (prop !== undefined && (typeof prop !== 'string' || !manifest.props || !Object.hasOwn(manifest.props, prop))) throw new Error(`unknown prop ${prop}`);
   let resolvedStyle;
   try {
     resolvedStyle = resolveStyle(style ?? theme);
@@ -404,10 +411,10 @@ export function drawHost(manifest, state) {
   }
   const bodyInk = manifest.ink.body[resolvedStyle.palette.isDark ? 'dark' : 'light'];
   if (!bodyInk) throw new Error(`unknown theme ${theme}`);
-  if (outfit !== 'none' && !manifest.outfits?.[outfit]) throw new Error(`unknown outfit ${outfit}`);
+  if (outfit !== 'none' && (typeof outfit !== 'string' || !manifest.outfits || !Object.hasOwn(manifest.outfits, outfit))) throw new Error(`unknown outfit ${outfit}`);
   const pose = resolvePose(manifest, gesture);
   const view = state.view ?? pose.view;
-  if (!manifest.views[view]) throw new Error(`unknown view ${view}`);
+  if (typeof view !== 'string' || !manifest.views || !Object.hasOwn(manifest.views, view)) throw new Error(`unknown view ${view}`);
   const fk = forwardKinematics(manifest, angles ?? poseAngles(manifest, gesture, prop, view), { view, facing, x, ground, lift: lift ?? pose.lift ?? 0, seatY });
   const { points: p, dirs, H, R } = fk;
   const defaultLines = { face: [0.008, 0.011], symbol: [0.009, 0.013], prop: [0.012, 0.016], fine: [0.0075, 0.01], scarf: manifest.ink.width };
@@ -422,7 +429,9 @@ export function drawHost(manifest, state) {
   const origin = (pt) => `style="transform-origin:${num(pt[0])}px ${num(pt[1])}px"`;
   const drawHand = (s) => {
     const type = hands?.[s] ?? pose.hands?.[s] ?? (pose.finger && s === ACTING ? 'point' : 'fist');
-    const spec = manifest.figure.hands?.[type] ?? { size: manifest.figure.hand };
+    const spec = (typeof type === 'string' && manifest.figure.hands && Object.hasOwn(manifest.figure.hands, type))
+      ? manifest.figure.hands[type]
+      : { size: manifest.figure.hand };
     const [hw, hh] = spec.size.map((v) => (v * H) / 2);
     const center = mid(p[`${s}_wrist`], p[`${s}_hand`]);
     const dir = dirs[`${s}_hand`];

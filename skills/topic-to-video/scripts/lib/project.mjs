@@ -25,7 +25,8 @@ const LIST_FIELD = { bullets: 'items', flow: 'nodes', bars: 'items', timeline: '
 /** Elements a reveal, highlight or move cue can address: list items, flow nodes, bars, timeline/cycle items, stage objects, or the two compare columns. */
 function elementCount(visual) {
   if (visual.template === 'compare') return 2;
-  const field = LIST_FIELD[visual.template];
+  const tpl = visual?.template;
+  const field = typeof tpl === 'string' && Object.hasOwn(LIST_FIELD, tpl) ? LIST_FIELD[tpl] : undefined;
   return field && Array.isArray(visual.data?.[field]) ? visual.data[field].length : 0;
 }
 
@@ -127,7 +128,8 @@ export function checkShape(project) {
   project.shots.forEach((shot, i) => {
     need(Array.isArray(shot?.sentences) && shot.sentences.every(Number.isInteger), `/shots/${i}/sentences`, `镜头 ${shot?.id ?? i} 的 sentences 应是整数数组`);
     need(isObject(shot?.visual), `/shots/${i}/visual`, `镜头 ${shot?.id ?? i} 缺少 visual`);
-    const field = LIST_FIELD[shot?.visual?.template];
+    const tpl = shot?.visual?.template;
+    const field = typeof tpl === 'string' && Object.hasOwn(LIST_FIELD, tpl) ? LIST_FIELD[tpl] : undefined;
     if (field) need(Array.isArray(shot.visual.data?.[field]), `/shots/${i}/visual/data/${field}`, `镜头 ${shot.id ?? i} 的 visual.data.${field} 应是数组`);
     if (shot?.visual?.template === 'stage' && Array.isArray(shot.visual.data?.objects)) {
       need(shot.visual.data.objects.every(isObject), `/shots/${i}/visual/data/objects`, `镜头 ${shot.id ?? i} 的 stage.objects 应是对象数组`);
@@ -192,7 +194,7 @@ function checkStageShots(project, add) {
     if (isStageLayout && !isObject(shot.host)) {
       add(`${at}/host`, 'STAGE_LAYOUT_MISMATCH', `镜头 ${shot.id} 是 stage 版式，必须写 host（见 world.md）`);
     }
-    if (shot.host?.at !== undefined && !isStageAt(shot.host.at)) {
+    if (isObject(shot.host) && shot.host.at !== undefined && !isStageAt(shot.host.at)) {
       add(`${at}/host/at`, 'INVALID_VALUE', `镜头 ${shot.id} 的 host.at ${shot.host.at} 不合法，写槽位（${Object.keys(STAGE_SLOTS).join('、')}）或 0.08–0.92 的比例`);
     }
 
@@ -209,8 +211,8 @@ function checkStageShots(project, add) {
         stageValidForLayout = false;
         add(`${at}/visual/data/objects/${k}/prop`, 'UNKNOWN_ICON', `镜头 ${shot.id} 的物件 ${obj.prop ?? '空'} 不在内置 ${ICON_NAMES.length} 个物件或 world.custom_props 里`);
       }
-      if (obj.at !== undefined && !isStageAt(obj.at)) {
-        add(`${at}/visual/data/objects/${k}/at`, 'INVALID_VALUE', `镜头 ${shot.id} 的物件站位 ${obj.at} 不合法，写槽位（${Object.keys(STAGE_SLOTS).join('、')}）或 0.08–0.92 的比例`);
+      if (!isStageAt(obj.at)) {
+        add(`${at}/visual/data/objects/${k}/at`, 'INVALID_VALUE', `镜头 ${shot.id} 的物件站位 ${obj.at ?? '空'} 不合法，写槽位（${Object.keys(STAGE_SLOTS).join('、')}）或 0.08–0.92 的比例`);
       }
       if (obj.layer !== undefined && !STAGE_LAYERS.includes(obj.layer)) {
         add(`${at}/visual/data/objects/${k}/layer`, 'INVALID_VALUE', `镜头 ${shot.id} 的高度层 ${obj.layer} 不合法，可选 ${STAGE_LAYERS.join('、')}`);
@@ -219,7 +221,8 @@ function checkStageShots(project, add) {
         add(`${at}/visual/data/objects/${k}/size`, 'INVALID_VALUE', `镜头 ${shot.id} 的尺寸 ${obj.size} 不合法，可选 ${STAGE_SIZES.join('、')}`);
       }
       if (obj.state !== undefined && hasProp && !propSupportsState(obj.prop, obj.state, customProps)) {
-        const supported = [...(PROP_META[obj.prop]?.states ?? []), ...COMMON_STATES, 'count:<值>'].join('、');
+        const metaStates = Object.hasOwn(PROP_META, obj.prop) ? PROP_META[obj.prop].states : [];
+        const supported = [...metaStates, ...COMMON_STATES, 'count:<值>'].join('、');
         add(`${at}/visual/data/objects/${k}/state`, 'STATE_UNSUPPORTED', `镜头 ${shot.id} 的物件 ${obj.prop} 不支持状态 ${obj.state}，可用 ${supported}`);
       }
     });
@@ -267,8 +270,12 @@ export function checkProject(project) {
   }
   checkLimits(project.title, TITLE_LIMIT, '/title', add, '项目标题', '（见 script.md）');
   project.sections.forEach((s, i) => checkLimits(s.title, SECTION_TITLE_LIMIT, `/sections/${i}/title`, add, `段落 ${s.id} 的标题`, '（见 script.md）'));
-  project.shots.forEach((shot, i) => checkLimits(shot.visual.data, VISUAL_LIMITS[shot.visual.template], `/shots/${i}/visual/data`, add,
-    `镜头 ${shot.id} 的 ${shot.visual.template} 图解`, '（见 storyboard.md 的图解模板表）'));
+  project.shots.forEach((shot, i) => {
+    const tpl = shot.visual.template;
+    const limit = typeof tpl === 'string' && Object.hasOwn(VISUAL_LIMITS, tpl) ? VISUAL_LIMITS[tpl] : undefined;
+    checkLimits(shot.visual.data, limit, `/shots/${i}/visual/data`, add,
+      `镜头 ${shot.id} 的 ${tpl} 图解`, '（见 storyboard.md 的图解模板表）');
+  });
   duplicates(project.sections.map((s) => s.id)).forEach((id) => add('/sections', 'DUPLICATE_ID', `段落 ${id} 重复`));
   duplicates(project.shots.map((s) => s.id)).forEach((id) => add('/shots', 'DUPLICATE_ID', `镜头 ${id} 重复`));
   const sources = new Set(project.brief.sources.map((s) => s.id));
@@ -361,7 +368,7 @@ const SPOTS = ['left', 'center', 'right'];
 /** Lists the stage interaction cues supported by `propId` at `layer` (defaults to the prop's natural layer). */
 export function supportedInteractions(propId, layer, customProps = []) {
   if (typeof propId !== 'string') return [];
-  const builtin = PROP_META[propId];
+  const builtin = Object.hasOwn(PROP_META, propId) ? PROP_META[propId] : null;
   const customDef = !builtin && Array.isArray(customProps) ? customProps.find((p) => p?.id === propId) : null;
   if (!builtin && !customDef) return [];
   const meta = builtin ?? customPropMeta(customDef);
@@ -424,7 +431,8 @@ function checkStateCue(shot, cue, path, customProps, customIds, add) {
     const obj = shot.visual.data?.objects?.[cue.target];
     const hasProp = typeof obj?.prop === 'string' && (ICON_NAMES.includes(obj.prop) || customIds.has(obj.prop));
     if (hasProp && !propSupportsState(obj.prop, cue.value, customProps)) {
-      const supported = [...(PROP_META[obj.prop]?.states ?? []), ...COMMON_STATES, 'count:<值>'].join('、');
+      const metaStates = Object.hasOwn(PROP_META, obj.prop) ? PROP_META[obj.prop].states : [];
+      const supported = [...metaStates, ...COMMON_STATES, 'count:<值>'].join('、');
       add(`${path}/value`, 'STATE_UNSUPPORTED', `镜头 ${shot.id} 的物件 ${obj.prop} 不支持状态 ${cue.value}，可用 ${supported}`);
     }
     return;

@@ -675,3 +675,26 @@ test('non-state/send cues reject extra value and state/send require value in che
     'INVALID_VALUE /shots/1/cues/1/value',
   ]);
 });
+
+test('checkStageShots guards non-object shot.host and catches missing stage object at', () => {
+  const p = stageProject();
+  p.shots[0].host = 'left';
+  p.shots[0].visual.data.objects[0].at = undefined;
+  const errs = placed(p);
+  assert.ok(errs.includes('STAGE_LAYOUT_MISMATCH /shots/0/host'));
+  assert.ok(!errs.includes('INVALID_VALUE /shots/0/host/at'), 'non-object host must not hit String.prototype.at');
+  assert.ok(errs.includes('INVALID_VALUE /shots/0/visual/data/objects/0/at'), 'missing obj.at is caught offline');
+});
+
+test('prototype-key strings (toString / constructor) do not crash or leak Object.prototype in project checks', () => {
+  assert.deepEqual(supportedInteractions('toString'), []);
+  assert.deepEqual(supportedInteractions('constructor'), []);
+
+  const p = stageProject();
+  p.shots[0].host = { expr: 'toString', gesture: 'constructor', at: 'toString' };
+  p.shots[0].visual.data.objects[0] = { prop: 'toString', at: 'constructor', layer: 'toString', size: 'constructor', state: 'toString' };
+  p.shots[1].visual = { template: 'toString', data: {} };
+  const errs = checkProject(p);
+  assert.ok(errs.length > 0);
+  assert.ok(errs.every((e) => typeof e.code === 'string' && typeof e.message === 'string'));
+});

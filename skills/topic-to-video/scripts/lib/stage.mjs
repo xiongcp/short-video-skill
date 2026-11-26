@@ -316,7 +316,8 @@ export function layoutStage(visualData, { hostAt, prevHostX = 320, customProps =
   const specs = rawObjects.map((obj, index) => {
     const { meta, customDef } = resolveProp(obj.prop, customProps);
     const layer = ['ground', 'mid', 'air'].includes(obj.layer) ? obj.layer : meta.layer;
-    const sizeMult = SIZE_MULTIPLIERS[obj.size ?? 'md'] ?? 1;
+    const sizeKey = obj.size ?? 'md';
+    const sizeMult = typeof sizeKey === 'string' && Object.hasOwn(SIZE_MULTIPLIERS, sizeKey) ? SIZE_MULTIPLIERS[sizeKey] : 1;
     const label = typeof obj.label === 'string' ? obj.label : (customDef?.label ?? '');
     return {
       index,
@@ -471,8 +472,8 @@ function simResolveStandX(target, currentX, elements) {
       const { left, right } = el.standSpots;
       const isClear = (sx) => !elements.some((other) => {
         const b = other?.bbox;
-        if (!b || b.y >= GROUND_Y - 1e-6 || b.y + b.h <= 530 + 1e-6) return false;
-        return sx - 47 < b.x + b.w && sx + 47 > b.x;
+        if (!b || b.y >= GROUND_Y - 1e-6 || b.y + b.h <= 490 + 1e-6) return false;
+        return sx - 50 < b.x + b.w && sx + 50 > b.x;
       });
       const leftOk = Number.isFinite(left) && isClear(left);
       const rightOk = Number.isFinite(right) && isClear(right);
@@ -839,6 +840,19 @@ function drawStageLink(x1, y1, x2, y2, mx, my, { index, style = 'solid', seed, c
   return `<g data-link="${index}" data-link-style="${style === 'dashed' ? 'dashed' : 'solid'}"${opAttr}>${shaftSvg}${headSvg}</g>`;
 }
 
+const MAX_ICON_CACHE = 512;
+const staticIconCache = new Map();
+
+function cachedStaticIcon(key, render) {
+  if (staticIconCache.has(key)) return staticIconCache.get(key);
+  const svg = render();
+  if (staticIconCache.size >= MAX_ICON_CACHE) {
+    staticIconCache.delete(staticIconCache.keys().next().value);
+  }
+  staticIconCache.set(key, svg);
+  return svg;
+}
+
 /**
  * Renders a `stage` shot frame into layered pure vector SVG (`backVectorSvg`, `frontVectorSvg`, `vectorSvg`)
  * plus cached CJK `textItems` (heading, smart object labels, link labels, and `count:*` badge digits).
@@ -969,27 +983,35 @@ export function renderStage(visualData, {
     const prevState = st.prevState ?? effState;
     const sp = clamp01(st.stateProgress ?? 1);
     const customDef = customById.get(el.prop);
-    const drawPropState = (stateName, prog) => (customDef
-      ? drawCustomProp(customDef, {
-          x: cx,
-          y: cy,
-          width: b.w,
-          height: b.h,
-          style: styleName,
-          seed: `${seed}:obj${i}`,
-          state: stateName,
-          stateProgress: prog,
-        })
-      : drawIcon(el.prop, {
-          x: cx,
-          y: cy,
-          width: b.w,
-          height: b.h,
-          style: styleName,
-          seed: `${seed}:obj${i}`,
-          state: stateName,
-          stateProgress: prog,
-        }));
+    const drawPropState = (stateName, prog) => {
+      const render = () => (customDef
+        ? drawCustomProp(customDef, {
+            x: cx,
+            y: cy,
+            width: b.w,
+            height: b.h,
+            style: styleName,
+            seed: `${seed}:obj${i}`,
+            state: stateName,
+            stateProgress: prog,
+          })
+        : drawIcon(el.prop, {
+            x: cx,
+            y: cy,
+            width: b.w,
+            height: b.h,
+            style: styleName,
+            seed: `${seed}:obj${i}`,
+            state: stateName,
+            stateProgress: prog,
+          }));
+      if (prog === 1) {
+        const customHash = customDef ? JSON.stringify(customDef) : '';
+        const key = `${el.prop}|${cx}|${cy}|${b.w}|${b.h}|${styleName}|${seed}:obj${i}|${stateName}|${customHash}`;
+        return cachedStaticIcon(key, render);
+      }
+      return render();
+    };
 
     let iconSvg;
     if (sp < 0.999 && prevState !== effState) {

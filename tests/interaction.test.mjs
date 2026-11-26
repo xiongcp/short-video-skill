@@ -10,7 +10,7 @@ import {
 } from '../skills/topic-to-video/scripts/lib/stage.mjs';
 import { layoutElements, renderDiagram } from '../skills/topic-to-video/scripts/lib/templates.mjs';
 import { drawHost, forwardKinematics } from '../skills/topic-to-video/scripts/lib/rig.mjs';
-import { evaluateHostAt, inferSentenceBeat } from '../skills/topic-to-video/scripts/lib/motion.mjs';
+import { evaluateHostAt, inferSentenceBeat, resolveStandX } from '../skills/topic-to-video/scripts/lib/motion.mjs';
 import { buildShotPlans, evaluateFrame, SCENE_VERSION } from '../skills/topic-to-video/scripts/lib/scene.mjs';
 import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
 import { GROUND_Y } from '../skills/topic-to-video/scripts/lib/world.mjs';
@@ -1170,4 +1170,115 @@ test('12. evaluateFrame wires SCENE_VERSION=5, stage back/host/front layering wi
   assert.ok(item1Mid.y > item1End.y + 3, `reveal dy not clobbered (${item1Mid.y} > ${item1End.y})`);
   assert.ok(bulletRevealEnd.vectorSvg.includes('data-state="crossed"'), 'bullets state cue emits data-state="crossed"');
   assert.ok(bulletRevealEnd.vectorSvg.includes('data-overlay="crossed"'), 'bullets state cue emits crossed overlay');
+});
+
+test('13. wide-object approach stays on the clear near side without crossing the object', () => {
+  // Host at left x=240 opening a center fridge (handle at [0.78, 0.50]) stays on standSpots.left without crossing fridge
+  const leftPlan = makeHostStagePlan(
+    { objects: [{ prop: 'fridge', label: '冰箱', at: 'center', state: 'closed' }] },
+    [{ sentence: 0, do: 'open', target: 0, timeMs: 300 }],
+    { hostX: 240, durationSec: 6, startOverrides: { x: 240 } },
+  );
+  const fridgeBox = leftPlan.elements[0].bbox;
+  const openStart = evaluateHostAt(manifest, leftPlan, 0.1).interactionStarts.get(0);
+  const preOpen = evaluateHostAt(manifest, leftPlan, openStart - 0.02);
+  const peakOpen = evaluateHostAt(manifest, leftPlan, openStart + 0.3);
+  const postOpen = evaluateHostAt(manifest, leftPlan, openStart + 0.65);
+
+  assert.ok(preOpen.x <= fridgeBox.x, `host approached left side (${preOpen.x} <= ${fridgeBox.x})`);
+  assert.ok(Math.abs(postOpen.x - leftPlan.elements[0].standSpots.left) <= 3, `host stayed at standSpots.left (${postOpen.x} vs ${leftPlan.elements[0].standSpots.left})`);
+  for (let t = 0; t <= 4; t += 0.05) {
+    const s = evaluateHostAt(manifest, leftPlan, t);
+    if (!s.interacting) {
+      assert.equal(s.x < fridgeBox.x + fridgeBox.w, true, `host never crossed past fridge at t=${t.toFixed(2)} (x=${s.x})`);
+      assert.equal(s.bodyBbox.x + s.bodyBbox.w <= fridgeBox.x + 1, true, `bodyBbox stays clear on left at t=${t.toFixed(2)}`);
+    }
+  }
+  assert.ok(dist(fkOf(peakOpen).points.l_hand, leftPlan.elements[0].anchors.handle) <= 2,
+    `stepInX during open still reaches handle err=${dist(fkOf(peakOpen).points.l_hand, leftPlan.elements[0].anchors.handle).toFixed(2)}`);
+
+  // Symmetric: host at right x=1600 pushing/opening a center box (handle at [0.15, 0.52]) stays on right side
+  const rightPlan = makeHostStagePlan(
+    { objects: [{ prop: 'box', label: '箱子', at: 'center', state: 'closed' }] },
+    [{ sentence: 0, do: 'open', target: 0, timeMs: 300 }],
+    { hostX: 1600, durationSec: 6, startOverrides: { x: 1600 } },
+  );
+  const boxBox = rightPlan.elements[0].bbox;
+  const rOpenStart = evaluateHostAt(manifest, rightPlan, 0.1).interactionStarts.get(0);
+  const rPost = evaluateHostAt(manifest, rightPlan, rOpenStart + 0.65);
+  assert.ok(Math.abs(rPost.x - rightPlan.elements[0].standSpots.right) <= 3, `right host stayed at standSpots.right (${rPost.x} vs ${rightPlan.elements[0].standSpots.right})`);
+  assert.ok(rPost.x >= boxBox.x + boxBox.w);
+});
+
+test('14. computeDropSpot avoids overlapping fridge and other floor objects while clearing bodyBbox', () => {
+  // Drop package while standing beside and facing left fridge -> must drop clear of BOTH fridge and bodyBbox
+  const dropPlan = makeHostStagePlan(
+    {
+      objects: [
+        { prop: 'fridge', label: '冰箱', at: 'left', state: 'open' },
+        { prop: 'package', label: '包裹', at: 'center' },
+      ],
+    },
+    [
+      { sentence: 0, do: 'carry', target: 1, timeMs: 200 },
+      { sentence: 0, do: 'move', target: 0, timeMs: 1200 },
+      { sentence: 0, do: 'carry', target: 'none', timeMs: 3600 },
+    ],
+    { hostX: 600, durationSec: 6, startOverrides: { x: 600 } },
+  );
+  const afterDrop = evaluateHostAt(manifest, dropPlan, 4.2);
+  const dropSpot = afterDrop.interaction?.droppedSpots?.[1];
+  assert.ok(dropSpot, 'records droppedSpots[1]');
+  const dropStage = evaluateStageObjects(dropPlan, 4.2, afterDrop);
+  const fridgeBox = dropPlan.elements[0].bbox;
+  const pkgEl = dropPlan.elements[1];
+  const pkgDropBox = {
+    x: pkgEl.bbox.x + dropStage.objectStates[1].dx,
+    y: pkgEl.bbox.y + dropStage.objectStates[1].dy,
+    w: pkgEl.bbox.w,
+    h: pkgEl.bbox.h,
+  };
+  const hb = afterDrop.bodyBbox;
+  const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  assert.equal(overlaps(pkgDropBox, fridgeBox), false, `dropped package ${JSON.stringify(pkgDropBox)} overlaps fridge ${JSON.stringify(fridgeBox)}`);
+  assert.equal(overlaps(pkgDropBox, hb), false, `dropped package ${JSON.stringify(pkgDropBox)} overlaps host bodyBbox ${JSON.stringify(hb)}`);
+
+  // Bidirectional scan when both preferred and opposite drop spots are blocked by adjacent ground objects
+  const boxedInPlan = makeHostStagePlan(
+    {
+      objects: [
+        { prop: 'box', label: '左箱', at: 0.25 },
+        { prop: 'package', label: '包裹', at: 'center' },
+        { prop: 'fridge', label: '右冰箱', at: 0.45 },
+      ],
+    },
+    [
+      { sentence: 0, do: 'carry', target: 1, timeMs: 200 },
+      { sentence: 0, do: 'move', target: 2, timeMs: 1200 },
+      { sentence: 0, do: 'carry', target: 'none', timeMs: 3500 },
+    ],
+    { hostX: 1300, durationSec: 6, startOverrides: { x: 1300 } },
+  );
+  const boxedAfter = evaluateHostAt(manifest, boxedInPlan, 4.2);
+  const boxedStage = evaluateStageObjects(boxedInPlan, 4.2, boxedAfter);
+  const boxedPkgEl = boxedInPlan.elements[1];
+  const boxedDrop = {
+    x: boxedPkgEl.bbox.x + boxedStage.objectStates[1].dx,
+    y: boxedPkgEl.bbox.y + boxedStage.objectStates[1].dy,
+    w: boxedPkgEl.bbox.w,
+    h: boxedPkgEl.bbox.h,
+  };
+  for (const idx of [0, 2]) {
+    assert.equal(overlaps(boxedDrop, boxedInPlan.elements[idx].bbox), false, `bidirectional scan cleared element ${idx}`);
+  }
+  assert.equal(overlaps(boxedDrop, boxedAfter.bodyBbox), false, 'bidirectional scan cleared bodyBbox');
+});
+
+test('15. stand spot clearance uses 50px half-width and y+h > 490 vertical threshold', () => {
+  // Element 0 at center: standSpots.left = 890. Blocker on left ends at 842 (gap 48px < 50px), and its bottom is 510 (in 490..530)
+  const elements = [
+    { index: 0, prop: 'box', bbox: { x: 960, y: 762, w: 168, h: 168 }, standSpots: { left: 890, right: 1198 } },
+    { index: 1, prop: 'window', bbox: { x: 700, y: 310, w: 142, h: 200 }, standSpots: { left: 630, right: 912 } },
+  ];
+  assert.equal(resolveStandX(0, 320, elements), 1198, 'left standSpot blocked by 48px grazing object at y+h=510');
 });

@@ -1,6 +1,6 @@
 // Visual style packs and 8 hand-drawn stage scenes (个性化路线图, S1/S2).
 // Pure vector SVG helpers without <text> or <filter>, keeping the central stage clear.
-import { circlePoints, inkStroke, markerFill, num } from './ink.mjs';
+import { chaikin, circlePoints, inkStroke, markerFill, num, pathData, random } from './ink.mjs';
 
 export const GROUND_Y = 930;
 export const STYLE_NAMES = ['paper', 'chalkboard', 'blueprint', 'kraft', 'night'];
@@ -98,13 +98,13 @@ export const STYLE_PALETTES = {
 export function resolveStyle(input) {
   if (input == null) return { name: 'paper', palette: STYLE_PALETTES.paper };
   if (typeof input === 'object') {
-    if (input.world?.style !== undefined) return resolveStyle(input.world.style);
+    if (input.world?.style != null) return resolveStyle(input.world.style);
     const name = input.theme === 'dark' ? 'night' : 'paper';
     return { name, palette: STYLE_PALETTES[name] };
   }
   if (typeof input === 'string') {
     const mapped = input === 'light' ? 'paper' : input === 'dark' ? 'night' : input;
-    if (STYLE_PALETTES[mapped]) return { name: mapped, palette: STYLE_PALETTES[mapped] };
+    if (Object.hasOwn(STYLE_PALETTES, mapped)) return { name: mapped, palette: STYLE_PALETTES[mapped] };
   }
   throw new Error(`unknown style: ${String(input)}`);
 }
@@ -160,7 +160,7 @@ function kraftFibers(pal, width, height, [px, py]) {
 
 /** Pure vector style background (no <text>, no <filter>). */
 export function styleBackgroundSvg(styleName, width = 1920, height = 1080, parallax = [0, 0]) {
-  const pal = STYLE_PALETTES[styleName];
+  const pal = typeof styleName === 'string' && Object.hasOwn(STYLE_PALETTES, styleName) ? STYLE_PALETTES[styleName] : null;
   if (!pal) throw new Error(`unknown style: ${styleName}`);
   const base = `<rect width="${width}" height="${height}" fill="${pal.paper}"/>`;
   switch (styleName) {
@@ -193,8 +193,47 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
   const pt = (x, y) => [sx(x), sy(y)];
   const poly = (pts) => pts.map(([x, y]) => pt(x, y));
 
-  const inkPath = (pts, key, { widthRange = [2.8, 4.2], wobble = 1.8, taper = 'both', smooth = 0 } = {}) =>
-    `<path d="${inkStroke(poly(pts), { seed: `${seed}:${sceneName}:${key}`, width: widthRange, wobble, taper, smooth }).d}" fill="${pal.ink}"/>`;
+  const wobbleStroke = (rawPts, { keySeed, widthRange = [2.8, 4.2], wobble = 1.8, smooth = 0, subdivide = true, extra = '' }) => {
+    const src = smooth > 0 ? chaikin(rawPts, smooth) : rawPts;
+    let pts = src;
+    if (subdivide && src.length >= 2) {
+      pts = [src[0]];
+      for (let i = 0; i < src.length - 1; i += 1) {
+        const [ax, ay] = src[i];
+        const [bx, by] = src[i + 1];
+        const segLen = Math.hypot(bx - ax, by - ay);
+        const steps = src.length === 2 ? 5 : Math.max(2, Math.min(4, Math.ceil(segLen / 90)));
+        for (let k = 1; k <= steps; k += 1) {
+          const u = k / steps;
+          pts.push([ax + (bx - ax) * u, ay + (by - ay) * u]);
+        }
+      }
+    }
+    let total = 0;
+    for (let i = 1; i < pts.length; i += 1) {
+      total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    }
+    const amp = Math.min(wobble, 0.02 * total);
+    const rnd = random(keySeed);
+    const phase = [rnd() * 2 * Math.PI, rnd() * 2 * Math.PI];
+    const cycles = [0.5 + rnd(), 1.5 + rnd()];
+    const sw = widthRange[0] + (widthRange[1] - widthRange[0]) * rnd();
+    const n = pts.length;
+    const wobbled = pts.map(([px, py], i) => {
+      const a = pts[Math.max(0, i - 1)];
+      const b = pts[Math.min(n - 1, i + 1)];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+      const nx = -(b[1] - a[1]) / len;
+      const ny = (b[0] - a[0]) / len;
+      const t = n > 1 ? i / (n - 1) : 0;
+      const drift = amp * (0.6 * Math.sin(2 * Math.PI * cycles[0] * t + phase[0]) + 0.4 * Math.sin(2 * Math.PI * cycles[1] * t + phase[1]));
+      return [px + nx * drift, py + ny * drift];
+    });
+    return `<path${extra} d="${pathData(wobbled, false)}" stroke-width="${num(sw)}"/>`;
+  };
+
+  const inkPath = (pts, key, { widthRange = [2.8, 4.2], wobble = 1.8, smooth = 0 } = {}) =>
+    wobbleStroke(poly(pts), { keySeed: `${seed}:${sceneName}:${key}`, widthRange, wobble, smooth, subdivide: true });
 
   const box = (x, y, w, h, key, over = 3) => [
     inkPath([[x - over, y], [x + w + over, y]], `${key}:t`),
@@ -204,12 +243,12 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
   ].join('');
 
   const circle = (cx, cy, r, key, widthRange = [2.8, 4]) => {
-    const pts = circlePoints(sx(cx), sy(cy), r * Math.min(kx, ky), { seed: `${seed}:${sceneName}:${key}`, overdraw: 0.3, count: 32 });
-    return `<path d="${inkStroke(pts, { seed: `${seed}:${sceneName}:${key}:s`, width: widthRange, wobble: 1.5 }).d}" fill="${pal.ink}"/>`;
+    const pts = circlePoints(sx(cx), sy(cy), r * Math.min(kx, ky), { seed: `${seed}:${sceneName}:${key}`, overdraw: 0.3, count: 18 });
+    return wobbleStroke(pts, { keySeed: `${seed}:${sceneName}:${key}:s`, widthRange, wobble: 1.5, subdivide: false });
   };
 
   const soft = (pts, key, fill) =>
-    `<path d="${markerFill(poly(pts), { seed: `${seed}:${sceneName}:${key}:m`, shift: 4 })}" fill="${fill}" opacity="0.45"/>`;
+    `<path d="${markerFill(poly(pts), { seed: `${seed}:${sceneName}:${key}:m`, shift: 4 })}" fill="${fill}" stroke="none" fill-opacity="0.12"/>`;
 
   const parts = [];
   switch (sceneName) {
@@ -357,7 +396,13 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       break;
   }
 
-  const bg = parts.length ? `<g opacity="0.26">${parts.join('')}</g>` : '';
-  const groundLine = `<path data-ground="${num(ground)}" opacity="0.36" d="${inkStroke([[sx(40), ground], [sx(1880), ground]], { seed: `${seed}:${sceneName}:ground`, width: [2.5, 4], wobble: 1.2, taper: 'both' }).d}" fill="${pal.ink}"/>`;
-  return `<g data-scene="${sceneName}">${bg}${groundLine}</g>`;
+  const bg = parts.length ? `<g stroke-opacity="0.26">${parts.join('')}</g>` : '';
+  const groundLine = wobbleStroke([[sx(40), ground], [sx(1880), ground]], {
+    keySeed: `${seed}:${sceneName}:ground`,
+    widthRange: [2.5, 4],
+    wobble: 1.2,
+    subdivide: true,
+    extra: ` data-ground="${num(ground)}" stroke-opacity="0.36"`,
+  });
+  return `<g data-scene="${sceneName}" fill="none" stroke="${pal.ink}" stroke-linecap="round" stroke-linejoin="round">${bg}${groundLine}</g>`;
 }

@@ -129,7 +129,7 @@ const clampCoord = (v) => {
 
 export function propSupportsState(propId, state, customProps = []) {
   if (typeof propId !== 'string' || typeof state !== 'string') return false;
-  const builtin = PROP_META[propId];
+  const builtin = Object.hasOwn(PROP_META, propId) ? PROP_META[propId] : null;
   if (builtin) {
     return COMMON_STATES.includes(state) || isCountState(state) || builtin.states.includes(state);
   }
@@ -145,7 +145,7 @@ function resolvePalette(style, theme) {
     const { palette } = resolveStyle(style);
     return { ...palette, teal: palette.soft_accent };
   }
-  return LEGACY_COLORS[theme] ?? LEGACY_COLORS.light;
+  return typeof theme === 'string' && Object.hasOwn(LEGACY_COLORS, theme) ? LEGACY_COLORS[theme] : LEGACY_COLORS.light;
 }
 
 function computeStrokeParams(boxW, boxH, isCompact) {
@@ -1132,7 +1132,7 @@ export function validateCustomProps(customProps) {
         fail(pp, 'part must be an object');
         return;
       }
-      if (typeof part.shape !== 'string' || !PART_KEYS[part.shape]) {
+      if (typeof part.shape !== 'string' || !Object.hasOwn(PART_KEYS, part.shape)) {
         fail(`${pp}.shape`, `unknown shape "${String(part.shape)}"`);
         return;
       }

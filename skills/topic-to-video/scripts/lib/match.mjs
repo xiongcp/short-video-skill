@@ -49,7 +49,7 @@ const list = (value) => (Array.isArray(value) ? value : []);
 /** On-screen words of a visual; title cards summarize, so they are left out. */
 export function visualKeywords(visual) {
   const d = visual?.data ?? {};
-  const pick = {
+  const pickers = {
     bullets: () => list(d.items),
     flow: () => list(d.nodes),
     compare: () => [d.left?.label, ...list(d.left?.rows), d.right?.label, ...list(d.right?.rows)],
@@ -58,7 +58,9 @@ export function visualKeywords(visual) {
     stage: () => [d.heading, ...list(d.objects).map((obj) => obj?.label)],
     timeline: () => list(d.items).flatMap((item) => [item?.time, item?.label]),
     cycle: () => list(d.items).map((item) => item?.label),
-  }[visual?.template];
+  };
+  const tpl = visual?.template;
+  const pick = typeof tpl === 'string' && Object.hasOwn(pickers, tpl) ? pickers[tpl] : undefined;
   return (pick?.() ?? []).filter((t) => typeof t === 'string' || typeof t === 'number').map(String);
 }
 

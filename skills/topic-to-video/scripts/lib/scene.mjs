@@ -12,6 +12,52 @@ import { GROUND_Y, resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from '
 
 export const SCENE_VERSION = 5;
 
+const MAX_SCENE_BG_CACHE = 64;
+const sceneBgCache = new Map();
+const evalPlanCache = new WeakMap();
+
+function getCachedSceneBg(sceneName, styleName, seed, ground) {
+  const key = `${sceneName}|${styleName}|${seed}|${ground}`;
+  if (sceneBgCache.has(key)) return sceneBgCache.get(key);
+  const svg = sceneBackgroundSvg(sceneName, { style: styleName, seed, ground });
+  if (sceneBgCache.size >= MAX_SCENE_BG_CACHE) {
+    sceneBgCache.delete(sceneBgCache.keys().next().value);
+  }
+  sceneBgCache.set(key, svg);
+  return svg;
+}
+
+function getCachedEvalPlan(shotPlan, styleName, duration) {
+  const prev = evalPlanCache.get(shotPlan);
+  if (
+    prev
+    && prev.style === styleName
+    && prev.durationSec === duration
+    && prev.startState === shotPlan.startState
+    && prev.cues === shotPlan.cues
+    && prev.elements === shotPlan.elements
+    && prev.sentences === shotPlan.sentences
+    && prev.outfit === shotPlan.outfit
+    && prev.theme === shotPlan.theme
+  ) {
+    return prev;
+  }
+  const ep = {
+    seed: shotPlan.id,
+    theme: shotPlan.theme,
+    style: styleName,
+    outfit: shotPlan.outfit,
+    ground: GROUND_Y,
+    durationSec: duration,
+    startState: shotPlan.startState,
+    cues: shotPlan.cues,
+    elements: shotPlan.elements,
+    sentences: shotPlan.sentences,
+  };
+  if (typeof shotPlan === 'object' && shotPlan !== null) evalPlanCache.set(shotPlan, ep);
+  return ep;
+}
+
 const isHostLayout = (layout) => layout === 'host-left' || layout === 'stage';
 
 const lerpBox = (a, b, t) => ({
@@ -189,6 +235,7 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     shot: shotPlan.shot,
     durationSec: Number(shotPlan.durationSec.toFixed(4)),
     frameCount: shotPlan.frameCount,
+    hasWorld: Boolean(shotPlan.hasWorld),
     theme: shotPlan.theme,
     style: shotPlan.style,
     scene: shotPlan.scene ?? null,
@@ -360,18 +407,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   let isFastMotion = false;
 
   if (isHostLayout(shotPlan.shot.layout)) {
-    const evalPlan = {
-      seed: shotPlan.id,
-      theme: shotPlan.theme,
-      style: styleName,
-      outfit: shotPlan.outfit,
-      ground: GROUND_Y,
-      durationSec: duration,
-      startState: shotPlan.startState,
-      cues: shotPlan.cues,
-      elements: shotPlan.elements,
-      sentences: shotPlan.sentences,
-    };
+    const evalPlan = getCachedEvalPlan(shotPlan, styleName, duration);
     const hostState = evaluateHostAt(manifest, evalPlan, t, audioFrame);
     hostMeta = hostState;
     if (inTr && (tr.layoutSwitch === 'full->host-left' || tr.layoutSwitch === 'full->stage')) {
@@ -503,7 +539,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
 
   const isStage = shotPlan.shot.layout === 'stage';
   const sceneBg = isStage
-    ? sceneBackgroundSvg(shotPlan.scene ?? 'blank', { style: styleName, seed: shotPlan.id, ground: GROUND_Y })
+    ? getCachedSceneBg(shotPlan.scene ?? 'blank', styleName, shotPlan.id, GROUND_Y)
     : '';
   const diag = isStage
     ? renderStage(shotPlan.shot.visual, {

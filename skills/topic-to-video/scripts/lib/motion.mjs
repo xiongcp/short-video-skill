@@ -64,7 +64,7 @@ export function tweenPoseAngles(manifest, fromAngles, toAngles, elapsed, {
   for (const j of JOINTS) {
     const a = fromAngles[j] ?? 0;
     const b = toAngles[j] ?? 0;
-    const delay = STAGGER_SEC[j] ?? 0;
+    const delay = Object.hasOwn(STAGGER_SEC, j) ? STAGGER_SEC[j] : 0;
     const localT = elapsed - delay;
     if (localT <= 0) {
       out[j] = a;
@@ -315,8 +315,8 @@ const clampStageX = (v) => Math.max(120, Math.min(1800, v));
 function isSpotClearOfOthers(sx, elements) {
   return !elements.some((other) => {
     const b = other?.bbox;
-    if (!b || b.y >= 930 - 1e-6 || b.y + b.h <= 530 + 1e-6) return false;
-    return sx - 47 < b.x + b.w && sx + 47 > b.x;
+    if (!b || b.y >= 930 - 1e-6 || b.y + b.h <= 490 + 1e-6) return false;
+    return sx - 50 < b.x + b.w && sx + 50 > b.x;
   });
 }
 
@@ -362,6 +362,10 @@ function resolveInteractionStandX(targetIdx, currentX, elements, anchorX, maxRea
   const { left, right } = el.standSpots;
   const leftClear = Number.isFinite(left) && isSpotClearOfOthers(left, elements);
   const rightClear = Number.isFinite(right) && isSpotClearOfOthers(right, elements);
+  if (el.bbox) {
+    if (currentX <= el.bbox.x && leftClear) return clampStageX(Math.round(left));
+    if (currentX >= el.bbox.x + el.bbox.w && rightClear) return clampStageX(Math.round(right));
+  }
   const leftReach = leftClear && Math.abs(left - anchorX) <= maxReach * 0.92;
   const rightReach = rightClear && Math.abs(right - anchorX) <= maxReach * 0.92;
   if (leftReach && !rightReach) return clampStageX(Math.round(left));
@@ -383,19 +387,14 @@ function objectStateAt(elements, cues, interactionStarts, targetIdx, t) {
 
 /** Resolves a `move` cue target (preset spot or element index) to a ground X in [120, 1800]. */
 export function resolveStandX(target, currentX = 320, elements = []) {
-  if (typeof target === 'string' && target in SPOTS) return SPOTS[target];
+  if (typeof target === 'string' && Object.hasOwn(SPOTS, target)) return SPOTS[target];
   if (Number.isInteger(target)) {
     const el = elements[target];
     if (!el) return currentX;
     if (el.standSpots) {
       const { left, right } = el.standSpots;
-      const isClear = (sx) => !elements.some((other) => {
-        const b = other?.bbox;
-        if (!b || b.y >= 930 - 1e-6 || b.y + b.h <= 530 + 1e-6) return false;
-        return sx - 47 < b.x + b.w && sx + 47 > b.x;
-      });
-      const leftOk = Number.isFinite(left) && isClear(left);
-      const rightOk = Number.isFinite(right) && isClear(right);
+      const leftOk = Number.isFinite(left) && isSpotClearOfOthers(left, elements);
+      const rightOk = Number.isFinite(right) && isSpotClearOfOthers(right, elements);
       let chosen;
       if (leftOk && !rightOk) chosen = left;
       else if (rightOk && !leftOk) chosen = right;
@@ -437,15 +436,46 @@ function computeMicroActing(t, seed, { audioFrame = null, isQuestionEnd = false,
   return { blink, breath, weightShift, nod, tilt, gaze };
 }
 
-function computeDropSpot(curX, curFacing, ground, el, headR) {
+function computeDropSpot(curX, curFacing, ground, el, headR, obstacles = []) {
   const w = el?.bbox?.w ?? 0;
+  const h = el?.bbox?.h ?? 0;
   const minX = 120 + w / 2;
   const maxX = 1800 - w / 2;
+  if (minX > maxX) return { x: 960, y: ground };
+  const dropTop = ground - h;
+  const blockers = (obstacles ?? [])
+    .map((o) => o?.bbox)
+    .filter((b) => b && b.y < ground - 1e-6 && b.y + b.h > dropTop + 1e-6);
+
+  const isClear = (candX, pad = 4) => {
+    if (candX < minX || candX > maxX) return false;
+    const x0 = candX - w / 2 - pad;
+    const x1 = candX + w / 2 + pad;
+    return !blockers.some((b) => x0 < b.x + b.w && x1 > b.x);
+  };
+
   const dropDist = Math.max(65, Math.ceil(headR + w / 2 + 16));
+  const minHostDist = Math.ceil(headR + w / 2 + 12);
   const preferred = curX + curFacing * dropDist;
-  if (preferred >= minX && preferred <= maxX) return { x: preferred, y: ground };
   const opposite = curX - curFacing * dropDist;
-  if (opposite >= minX && opposite <= maxX) return { x: opposite, y: ground };
+  if (isClear(preferred)) return { x: preferred, y: ground };
+  if (isClear(opposite)) return { x: opposite, y: ground };
+
+  const maxSpan = Math.max(curX - minX, maxX - curX);
+  for (const pad of [4, 0]) {
+    for (let d = minHostDist; d <= maxSpan + 8; d += 8) {
+      const candA = curX + curFacing * d;
+      if (isClear(candA, pad)) return { x: candA, y: ground };
+      const candB = curX - curFacing * d;
+      if (isClear(candB, pad)) return { x: candB, y: ground };
+    }
+  }
+  for (let d = 0; d <= maxSpan + 8; d += 8) {
+    const candA = curX + curFacing * d;
+    if (isClear(candA, 0)) return { x: candA, y: ground };
+    const candB = curX - curFacing * d;
+    if (isClear(candB, 0)) return { x: candB, y: ground };
+  }
   return { x: Math.max(minX, Math.min(maxX, preferred)), y: ground };
 }
 
@@ -521,7 +551,9 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       const actT0 = Math.max(rawT0, walkBusyUntil, carryPickupEnd);
       interactionStarts.set(c._idx, actT0);
       if (simCarriedIdx !== null) {
-        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR);
+        const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
+        const others = shifted.filter((_, idx) => idx !== simCarriedIdx);
+        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR, others);
         simDroppedSpots[simCarriedIdx] = spot;
         interactionEvents.push({ kind: 'drop', t0: actT0, dur: 0, targetIdx: simCarriedIdx, dropSpot: spot, cueIdx: c._idx });
         simCarriedIdx = null;
@@ -607,7 +639,8 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       const face = anchorPt[0] >= curX ? 1 : -1;
       let autoDrop = null;
       if (simCarriedIdx !== null && simCarriedIdx !== targetIdx) {
-        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR);
+        const others = shifted.filter((_, idx) => idx !== simCarriedIdx && idx !== targetIdx);
+        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR, others);
         simDroppedSpots[simCarriedIdx] = spot;
         autoDrop = { idx: simCarriedIdx, spot };
       }
@@ -960,18 +993,30 @@ function applyInteractionIK(manifest, ikOp, angles, { view, facing, x, ground, l
   return angles;
 }
 
-/**
- * Evaluates full host state at time `t` inside a `host-left` or `stage` shot.
- * Returns state directly consumable by `drawHost(manifest, state)` plus QA metadata and live stage interaction state.
- */
-export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
+const hostPlanCache = new WeakMap();
+
+function getCachedHostPlan(manifest, plan) {
   const H = manifest.height_px;
   const ground = plan.ground ?? 930;
   const start = plan.startState ?? { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
   const cues = plan.cues ?? [];
   const elements = plan.elements ?? [];
-  const theme = plan.theme ?? 'light';
-  const style = plan.style;
+  const sentences = plan.sentences ?? [];
+  const seed = plan.seed ?? 'sh01';
+  const prev = hostPlanCache.get(plan);
+  if (
+    prev
+    && prev.manifest === manifest
+    && prev.cues === cues
+    && prev.elements === elements
+    && prev.start === start
+    && prev.sentences === sentences
+    && prev.durationSec === plan.durationSec
+    && prev.ground === ground
+    && prev.seed === seed
+  ) {
+    return prev;
+  }
 
   const orderedCues = cues
     .map((c, idx) => ({ ...c, _idx: idx }))
@@ -987,6 +1032,89 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     orderedCues,
     { startX: start.x, startFacing: start.facing ?? 1, ground, totalDur, headR },
   );
+
+  const explicitActionSentences = new Set(
+    cues.filter((c) => c.do === 'gesture' || INTERACTION_DO.has(c.do)).map((c) => c.sentence),
+  );
+  const visualCueSentences = new Set(cues.filter((c) => c.do === 'reveal' || c.do === 'highlight' || c.do === 'move').map((c) => c.sentence));
+  const autoBeats = [];
+  let autoSnaps = start.autoSnaps ?? 0;
+  let runningGesture = resolvePose(manifest, start.gesture).type === 'once' ? 'idle' : start.gesture;
+  sentences.forEach((s, si) => {
+    const sentIdx = s.index ?? si;
+    if (explicitActionSentences.has(sentIdx)) {
+      const last = cues.filter((c) => c.do === 'gesture' && c.sentence === sentIdx).at(-1);
+      if (last && resolvePose(manifest, last.target).type !== 'once') runningGesture = last.target;
+      return;
+    }
+    if (si === 0 && start.gesture !== 'idle') {
+      if (resolvePose(manifest, start.gesture).type !== 'once') runningGesture = start.gesture;
+      return;
+    }
+    const beat = inferSentenceBeat(s.text, {
+      index: sentIdx,
+      hasVisualCue: visualCueSentences.has(sentIdx),
+      prevGesture: runningGesture,
+      autoSnaps,
+    });
+    if (beat.gesture === 'snap') autoSnaps += 1;
+    if (resolvePose(manifest, beat.gesture).type !== 'once') runningGesture = beat.gesture;
+    autoBeats.push({ sentence: sentIdx, timeMs: Math.max(0, (s.startMs ?? 0) - 80), do: 'gesture', target: beat.gesture });
+  });
+  const effectiveCues = [...cues, ...autoBeats].sort((a, b) => (a.timeMs ?? 0) - (b.timeMs ?? 0));
+
+  const afterWalk = (ct) => {
+    const seg = walkSegments.find((s) => s.t1 > s.t0 && ct >= s.t0 - 1e-6 && ct < s.t1);
+    return seg ? seg.t1 : ct;
+  };
+  const propTimeline = [
+    ...effectiveCues.filter((c) => c.do === 'prop').map((c) => ({ t: (c.timeMs ?? 0) / 1000, prop: c.target })),
+    ...interactionEvents.filter((ev) => ev.kind === 'carry').map((ev) => ({ t: ev.t0, prop: 'none' })),
+  ].sort((a, b) => a.t - b.t);
+
+  const cueTimes = [
+    0,
+    ...effectiveCues.filter((c) => c.do === 'gesture' || c.do === 'move' || INTERACTION_DO.has(c.do)).map((c) => (c.timeMs ?? 0) / 1000),
+    plan.durationSec ?? Infinity,
+  ].sort((a, b) => a - b);
+  const quiet = cueTimes.slice(1).map((end, i) => [cueTimes[i], end]).filter(([a, b]) => b > a);
+  const fidgets = fidgetSchedule(quiet, seed)
+    .filter((f) => !walkSegments.some((seg) => f.t0 < seg.t1 && f.t0 + 0.8 > seg.t0))
+    .filter((f) => !interactionEvents.some((ev) => f.t0 < ev.t0 + ev.dur && f.t0 + 0.8 > ev.t0));
+
+  const kickOf = (g, t0) => ({ t0: g === 'double_take' ? t0 + 0.35 * (resolvePose(manifest, g).seconds ?? 1) : t0, amp: g === 'startle' ? -1 : 1 });
+  const kicks = [
+    ...(['jump', 'startle', 'double_take'].includes(start.gesture) ? [kickOf(start.gesture, 0)] : []),
+    ...effectiveCues.filter((c) => c.do === 'gesture' && ['jump', 'startle', 'double_take'].includes(c.target)).map((c) => kickOf(c.target, afterWalk(c.timeMs / 1000))),
+    ...effectiveCues.filter((c) => c.do === 'expr' && ['surprised', 'amazed'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: -0.7 })),
+    ...fidgets.filter((f) => f.kind === 'flick').map((f) => ({ t0: f.t0, amp: 0.6 })),
+  ];
+
+  const entry = {
+    manifest, cues, elements, start, sentences, durationSec: plan.durationSec, ground, seed,
+    orderedCues, walkSegments, interactionEvents, interactionStarts, curX, rushedMove,
+    autoSnaps, effectiveCues, afterWalk, propTimeline, fidgets, kicks,
+  };
+  if (typeof plan === 'object' && plan !== null) hostPlanCache.set(plan, entry);
+  return entry;
+}
+
+/**
+ * Evaluates full host state at time `t` inside a `host-left` or `stage` shot.
+ * Returns state directly consumable by `drawHost(manifest, state)` plus QA metadata and live stage interaction state.
+ */
+export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
+  const H = manifest.height_px;
+  const ground = plan.ground ?? 930;
+  const start = plan.startState ?? { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
+  const cues = plan.cues ?? [];
+  const elements = plan.elements ?? [];
+  const theme = plan.theme ?? 'light';
+  const style = plan.style;
+  const {
+    orderedCues, walkSegments, interactionEvents, interactionStarts, curX, rushedMove,
+    autoSnaps, effectiveCues, afterWalk, propTimeline, fidgets, kicks,
+  } = getCachedHostPlan(manifest, plan);
 
   let {
     x, facing, walking, trotting, walkPhase, focusIdx, focusChangedAt,
@@ -1020,39 +1148,6 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     }
   }
 
-  // Synthesize automatic per-sentence gesture beats for sentences that lack an explicit gesture or interaction cue
-  // so every spoken sentence has active, lively stickman choreography while skipping repeated hold gestures (§6.4).
-  const sentences = plan.sentences ?? [];
-  const explicitActionSentences = new Set(
-    cues.filter((c) => c.do === 'gesture' || INTERACTION_DO.has(c.do)).map((c) => c.sentence),
-  );
-  const visualCueSentences = new Set(cues.filter((c) => c.do === 'reveal' || c.do === 'highlight' || c.do === 'move').map((c) => c.sentence));
-  const autoBeats = [];
-  let autoSnaps = start.autoSnaps ?? 0;
-  let runningGesture = resolvePose(manifest, start.gesture).type === 'once' ? 'idle' : start.gesture;
-  sentences.forEach((s, si) => {
-    const sentIdx = s.index ?? si;
-    if (explicitActionSentences.has(sentIdx)) {
-      const last = cues.filter((c) => c.do === 'gesture' && c.sentence === sentIdx).at(-1);
-      if (last && resolvePose(manifest, last.target).type !== 'once') runningGesture = last.target;
-      return;
-    }
-    if (si === 0 && start.gesture !== 'idle') {
-      if (resolvePose(manifest, start.gesture).type !== 'once') runningGesture = start.gesture;
-      return;
-    }
-    const beat = inferSentenceBeat(s.text, {
-      index: sentIdx,
-      hasVisualCue: visualCueSentences.has(sentIdx),
-      prevGesture: runningGesture,
-      autoSnaps,
-    });
-    if (beat.gesture === 'snap') autoSnaps += 1;
-    if (resolvePose(manifest, beat.gesture).type !== 'once') runningGesture = beat.gesture;
-    autoBeats.push({ sentence: sentIdx, timeMs: Math.max(0, (s.startMs ?? 0) - 80), do: 'gesture', target: beat.gesture });
-  });
-  const effectiveCues = [...cues, ...autoBeats].sort((a, b) => (a.timeMs ?? 0) - (b.timeMs ?? 0));
-
   // Active expression, prop (auto-dropped by carry), hold gesture, and one-shot gesture
   let expr = start.expr;
   let prevExpr = start.expr;
@@ -1063,15 +1158,6 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   let holdChangedAt = -10;
   let activeOnce = resolvePose(manifest, start.gesture).type === 'once' ? { gesture: start.gesture, t0: 0 } : null;
 
-  const afterWalk = (ct) => {
-    const seg = walkSegments.find((s) => s.t1 > s.t0 && ct >= s.t0 - 1e-6 && ct < s.t1);
-    return seg ? seg.t1 : ct;
-  };
-
-  const propTimeline = [
-    ...effectiveCues.filter((c) => c.do === 'prop').map((c) => ({ t: (c.timeMs ?? 0) / 1000, prop: c.target })),
-    ...interactionEvents.filter((ev) => ev.kind === 'carry').map((ev) => ({ t: ev.t0, prop: 'none' })),
-  ].sort((a, b) => a.t - b.t);
   for (const pe of propTimeline) {
     if (pe.t > t) break;
     prop = pe.prop;
@@ -1097,16 +1183,6 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     ? (focusEl.anchors?.front ?? [focusEl.bbox.x + focusEl.bbox.w / 2, focusEl.bbox.y + focusEl.bbox.h + 20])
     : [1240, 320];
 
-  // Quiet stretches between gesture, move, and interaction cues, and the fidgets in them (§4.3)
-  const cueTimes = [
-    0,
-    ...effectiveCues.filter((c) => c.do === 'gesture' || c.do === 'move' || INTERACTION_DO.has(c.do)).map((c) => (c.timeMs ?? 0) / 1000),
-    plan.durationSec ?? Infinity,
-  ].sort((a, b) => a - b);
-  const quiet = cueTimes.slice(1).map((end, i) => [cueTimes[i], end]).filter(([a, b]) => b > a);
-  const fidgets = fidgetSchedule(quiet, plan.seed ?? 'sh01')
-    .filter((f) => !walkSegments.some((seg) => f.t0 < seg.t1 && f.t0 + 0.8 > seg.t0))
-    .filter((f) => !interactionEvents.some((ev) => f.t0 < ev.t0 + ev.dur && f.t0 + 0.8 > ev.t0));
   const fidget = fidgets.find((f) => t >= f.t0 && t < f.t0 + 0.8) ?? null;
   const fidgetEnv = fidget ? Math.sin(((t - fidget.t0) / 0.8) * Math.PI) : 0;
 
@@ -1332,20 +1408,13 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   });
 
   // 呆毛: morph to the new expression's shape, spring on walks, kicks and flicks (§3.1, §4.3, §4.4)
-  const kickOf = (g, t0) => ({ t0: g === 'double_take' ? t0 + 0.35 * (resolvePose(manifest, g).seconds ?? 1) : t0, amp: g === 'startle' ? -1 : 1 });
-  const kicks = [
-    ...(['jump', 'startle', 'double_take'].includes(start.gesture) ? [kickOf(start.gesture, 0)] : []),
-    ...effectiveCues.filter((c) => c.do === 'gesture' && ['jump', 'startle', 'double_take'].includes(c.target)).map((c) => kickOf(c.target, afterWalk(c.timeMs / 1000))),
-    ...effectiveCues.filter((c) => c.do === 'expr' && ['surprised', 'amazed'].includes(c.target)).map((c) => ({ t0: c.timeMs / 1000, amp: -0.7 })),
-    ...fidgets.filter((f) => f.kind === 'flick').map((f) => ({ t0: f.t0, amp: 0.6 })),
-  ];
   const kick = manifest.ahoge.spring.kick;
   const bend = simulateAhogeSpring(manifest, (ts) => {
     const k = kicks.find((kk) => ts >= kk.t0 && ts < kk.t0 + 0.08);
     return k ? k.amp * kick : Math.max(-kick, Math.min(kick, -Math.abs(velAt(ts)) * 0.06));
   }, t);
   const ahoge = { fromExpr: prevExpr, mix: easeInOutCubic(clamp01((t - exprChangedAt) / manifest.ahoge.morph_seconds)), bend };
-  const squash = manifest.expressions[expr].squash ?? 0;
+  const squash = (manifest.expressions && Object.hasOwn(manifest.expressions, expr) ? manifest.expressions[expr].squash : 0) ?? 0;
   const headStretch = t - exprChangedAt >= 0 && t - exprChangedAt < 0.3 ? squash * (1 - easeOutCubic((t - exprChangedAt) / 0.3)) : 0;
 
   // Deterministic scarf spring (velocity sampled from walk segments)

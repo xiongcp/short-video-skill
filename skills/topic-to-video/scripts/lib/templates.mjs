@@ -18,7 +18,7 @@ export const THEME_PALETTE = {
 
 /** Paper background with subtle wide grid (no fine grain texture, avoiding H.264 mosquito noise). */
 export function paperBackgroundSvg(theme = 'light', width = 1920, height = 1080, parallax = [0, 0]) {
-  const style = theme === 'dark' ? 'night' : STYLE_PALETTES[theme] ? theme : 'paper';
+  const style = theme === 'dark' ? 'night' : (typeof theme === 'string' && Object.hasOwn(STYLE_PALETTES, theme)) ? theme : 'paper';
   return styleBackgroundSvg(style, width, height, parallax);
 }
 
