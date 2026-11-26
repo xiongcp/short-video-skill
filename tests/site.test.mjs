@@ -12,9 +12,10 @@ const html = existsSync(page) ? readFileSync(page, 'utf8') : '';
 const attrs = (name) => [...html.matchAll(new RegExp(`\\s${name}="([^"]*)"`, 'g'))].map((m) => m[1]);
 const manifest = JSON.parse(readFileSync(join(ROOT, 'skills/topic-to-video/assets/host/manifest.json'), 'utf8'));
 
-test('site page is Chinese and says L1 is still in development', () => {
+test('site page is Chinese and describes L0 and L1 availability', () => {
   assert.match(html, /<html lang="zh-CN">/);
-  assert.ok(html.includes('开发中'));
+  assert.ok(html.includes('L0 文本包'));
+  assert.ok(html.includes('L1 本地成片'));
 });
 
 test('site local links and images resolve relative to site/', () => {
@@ -62,6 +63,6 @@ test('Pages workflow publishes the site folder', () => {
   assert.match(yml, /actions\/deploy-pages@v\d+/);
 });
 
-test('site does not describe L1 lip sync as a current capability', () => {
-  assert.ok(!html.includes('口型随音量开合'));
+test('site documents cross-agent install paths for agy, Claude Code and Codex', () => {
+  assert.ok(html.includes('Claude Code') && html.includes('Codex') && html.includes('agy'));
 });

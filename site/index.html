@@ -125,18 +125,18 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
     <div>
       <div class="eyebrow">AGENT SKILL · 中文知识解说视频</div>
       <h1><span class="nb">说一个主题，</span><span class="nb">拿到能直接出片的</span><span class="nb">讲稿、分镜和提示词包</span></h1>
-      <p class="lead">topic-to-video 是给 Codex、Claude Code 等 Agent 用的轻量 skill。它把主题、资料或现成讲稿整理成中文知识解说视频方案，请你确认后，再交出逐镜提示词包，交给即梦、可灵、Vidu、海螺、Veo 等模型生成。</p>
+      <p class="lead">topic-to-video 是给 agy、Claude Code、Codex 等 Agent 用的轻量 skill。它把主题、资料或讲稿做成中文知识解说视频方案：既能交付外部模型提示词包（L0），也能直接用本地矢量渲染器与免费神经配音合成 1080p60/4K 成片（L1）。</p>
       <div class="actions">
         <a class="btn primary" href="#install">安装 skill</a>
         <a class="btn ghost" href="https://github.com/xiongcp/short-video-skill">在 GitHub 查看</a>
       </div>
-      <div class="status"><span class="pill ok">L0 文本包 · 可用 · 零依赖</span><span class="pill dev">L1 本地成片 · 开发中</span></div>
+      <div class="status"><span class="pill ok">L0 文本包 · 可用 · 零依赖</span><span class="pill ok">L1 本地成片 · 1080p60/4K · 可用</span></div>
     </div>
     <div class="frame" role="img" aria-label="成片画面示意：火柴人小青在左下方挥手打招呼，上方流程图依次出现浏览器、本地副本、显示图标，底部字幕的关键词与图解同步高亮">
       <div class="host"><!-- host:hero --><svg viewBox="0 0 320 480" aria-hidden="true"><g data-host="xiaoqing" data-gesture="wave" data-expr="happy" data-view="front"><path data-part="scarf_tail0" d="M154.9 166.23L146.08 191.2L134 214.56L133.56 205.52L126.23 211.01L136.2 187.33L143.59 162.48Z" fill="#20a5a3"/><path data-part="scarf_tail0_edge" d="M155.07 166.37L146.17 191.16L134.24 214.65L133.67 205.53L126.28 210.9L136.5 187.33L143.66 162.67Z" fill="none" stroke="#1f1f1f" stroke-width="3" stroke-linejoin="round"/><path data-part="scarf_tail1" d="M153.83 167.27L141.82 185.02L125.92 200.07L128.47 191.03L119.69 193.79L133.53 178.61L143.72 160.84Z" fill="#20a5a3"/><path data-part="scarf_tail1_edge" d="M154.46 167.7L142.31 185.56L126.56 200.33L129.08 191.55L120.32 194.13L134.16 179.1L144.28 161.34Z" fill="none" stroke="#1f1f1f" stroke-width="3" stroke-linejoin="round"/><path data-part="spine" d="M164.65 274.39L164.59 268.19L164.35 261.99L164.06 255.79L163.88 249.59L163.96 243.41L164.39 237.25L165.11 231.1L165.96 224.97L166.8 218.83L167.43 212.71L167.85 206.58L168.01 200.43L168.14 194.29L168.28 188.08L168.55 181.89L168.97 175.7L169.49 169.52L169.95 163.34L170.24 157.15L170.24 150.93A4.4 4.4 0 0 0 161.46 150.32L160.96 156.5L160.19 162.66L159.26 168.81L158.32 174.96L157.51 181.11L156.92 187.29L156.51 193.47L156.19 199.71L155.9 205.95L155.44 212.17L154.85 218.4L154.13 224.62L153.46 230.86L153 237.1L152.89 243.36L153.2 249.59L153.81 255.79L154.56 261.99L155.29 268.19L155.85 274.39A4.4 4.4 0 0 0 164.65 274.39Z" fill="#1f1f1f"/><g data-limb="r_leg"><path data-part="r_leg" d="M155.25 273.38L153.5 279.21L151.77 285.04L150.11 290.88L148.53 296.75L147.08 302.64L145.76 308.56L144.56 314.5L143.48 320.47L142.47 326.5L141.57 332.59L140.77 338.64L139.94 344.66L139.03 350.71L138.17 356.78L137.26 362.79L136.28 368.78L135.24 374.82L134.34 380.88L133.45 386.88L132.6 392.91L131.84 399L131.28 405.09L130.8 411.13L130.39 417.19L130.01 423.24L129.64 429.3L129.24 435.36L128.78 441.41L128.24 447.45L127.61 453.48A4.4 4.4 0 0 0 136.36 454.4L137.33 448.4L138.19 442.4L138.97 436.38L139.68 430.36L140.35 424.33L141.01 418.3L141.69 412.28L142.4 406.25L143.16 400.29L144.07 394.38L145.07 388.42L146.08 382.43L147.05 376.54L148.12 370.66L149.11 364.67L149.99 358.7L150.78 352.77L151.58 346.82L152.29 340.78L152.94 334.77L153.62 328.79L154.41 322.8L155.26 316.78L156.2 310.78L157.25 304.8L158.41 298.85L159.68 292.92L161.03 287.01L162.44 281.11L163.86 275.21A4.4 4.4 0 0 0 155.25 273.38Z" fill="#1f1f1f"/><ellipse cx="121.02" cy="452.79" rx="10.5" ry="5" transform="rotate(186 121.02 452.79)" fill="#1f1f1f"/></g><g data-limb="l_leg"><path data-part="l_leg" d="M156.37 274.9L156.68 280.98L156.94 287.07L157.2 293.16L157.5 299.24L157.86 305.32L158.33 311.38L158.93 317.42L159.68 323.44L160.56 329.43L161.55 335.38L162.63 341.35L163.8 347.31L165 353.25L166.16 359.2L167.28 365.16L168.33 371.15L169.28 377.12L170.07 383.12L170.75 389.15L171.34 395.18L171.82 401.21L172.21 407.25L172.58 413.31L172.96 419.37L173.39 425.43L173.89 431.48L174.48 437.51L175.16 443.54L175.95 449.56L176.82 455.57A4.4 4.4 0 0 0 185.57 454.65L185.03 448.6L184.58 442.55L184.21 436.49L183.93 430.42L183.73 424.34L183.59 418.26L183.46 412.17L183.33 406.08L183.14 399.98L182.83 393.88L182.4 387.82L181.84 381.78L181.13 375.72L180.22 369.69L179.19 363.7L178.05 357.72L176.83 351.73L175.54 345.76L174.26 339.81L173.02 333.85L171.84 327.87L170.75 321.89L169.77 315.9L168.91 309.89L168.16 303.87L167.5 297.84L166.9 291.8L166.32 285.75L165.72 279.71L165.08 273.67A4.4 4.4 0 0 0 156.37 274.9Z" fill="#1f1f1f"/><ellipse cx="192.65" cy="453.9" rx="10.5" ry="5" transform="rotate(-6 192.65 453.9)" fill="#1f1f1f"/></g><g data-part="scarf"><path data-part="scarf_ring" d="M138.68 161.17L143.58 165.7L149.62 169.87L156.31 172.15L163.77 174.11L171.29 172.41L178.16 170.45L184.29 166.16L188.65 160.95A4.4 4.4 0 0 0 182.79 154.39L178.29 158.13L173.89 160.25L168.44 161.01L163.77 162.11L159.16 160.75L153.88 159.67L149.59 157.67L144.55 154.61A4.4 4.4 0 0 0 138.68 161.17Z" fill="#20a5a3"/></g><g data-joint="head" style="transform-origin:164.88px 150.56px"><path data-part="head" d="M203.69 76.61L207.22 81.13L209.99 85.74L212.2 90.65L213.79 95.81L214.73 101.16L214.99 106.6L214.53 112.06L213.34 117.44L211.42 122.62L208.81 127.5L205.54 131.98L201.68 135.97L197.3 139.38L192.49 142.15L187.37 144.22L182.03 145.59L176.6 146.22L171.15 146.1L165.78 145.28L160.58 143.79L155.63 141.69L150.99 139.01L146.73 135.79L142.89 132.08L139.53 127.93L136.71 123.4L134.48 118.55L132.88 113.44L131.95 108.16L131.72 102.79L132.21 97.43L133.42 92.19L135.33 87.15L137.9 82.44L141.11 78.17L144.88 74.36L149.1 71.1L153.69 68.43L158.57 66.39L163.65 64.98L168.84 64.21L174.07 64.07L179.28 64.55L184.39 65.64L189.36 67.32L194.12 69.58L198.61 72.41L202.76 75.77L206.5 79.65L209.76 84.01L212.59 89.06A4.4 4.4 0 0 0 220.54 85.29L217.62 79.62L213.89 74.17L209.52 69.25L204.59 64.92L199.18 61.22L193.37 58.21L187.24 55.91L180.87 54.36L174.34 53.59L167.73 53.61L161.15 54.46L154.68 56.14L148.45 58.65L142.56 61.97L137.13 66.06L132.27 70.87L128.07 76.34L124.69 82.37L122.17 88.8L120.55 95.52L119.85 102.4L120.08 109.31L121.22 116.12L123.24 122.72L126.1 129L129.73 134.85L134.07 140.2L139.05 144.96L144.58 149.06L150.59 152.45L157 155.05L163.69 156.83L170.58 157.75L177.57 157.75L184.51 156.78L191.24 154.9L197.65 152.12L203.63 148.49L209.04 144.09L213.77 138.98L217.75 133.29L220.89 127.14L223.14 120.64L224.49 113.94L224.93 107.17L224.48 100.45L223.18 93.89L221.07 87.59L218.23 81.64L214.69 76.12L210.67 71.24A4.4 4.4 0 0 0 203.69 76.61Z" fill="#1f1f1f"/><g data-face="happy" transform="translate(173.04 104.27) rotate(10) scale(1 1)"><g data-face-part="eyes" style="transform-origin:0px -0.94px"><path data-part="eye0" d="M-18.68 2.38L-16.93 0.91L-15.04 -0.43L-13.8 -1.3L-14.38 -1.35L-13.12 -0.47L-11.31 0.94L-9.56 2.41A1.6 1.6 0 0 0 -7.29 0.15L-8.68 -1.69L-10.2 -3.39L-12.42 -5.26L-15.75 -5.21L-17.96 -3.35L-19.56 -1.73L-20.94 0.11A1.6 1.6 0 0 0 -18.68 2.38Z" fill="#1f1f1f"/><path data-part="eye1" d="M9.57 2.42L11.52 1.15L13.25 -0.34L14.14 -1.82L13.98 -1.66L14.94 -0.32L16.77 1.06L18.55 2.51A1.6 1.6 0 0 0 20.81 0.25L19.4 -1.57L17.86 -3.25L15.93 -5.57L12.19 -5.73L10.33 -3.26L8.89 -1.48L7.3 0.16A1.6 1.6 0 0 0 9.57 2.42Z" fill="#1f1f1f"/></g><path data-part="brow0" d="M-20.93 -19.42L-18.75 -19.62L-16.58 -19.86L-14.74 -20.52L-13.1 -20.87L-11.21 -20.85L-9.06 -21.21L-6.91 -21.38A1.6 1.6 0 0 0 -6.74 -24.58L-8.86 -24.92L-10.99 -24.98L-13.35 -25.23L-15.8 -24.76L-17.89 -23.78L-19.93 -23.15L-21.95 -22.46A1.6 1.6 0 0 0 -20.93 -19.42Z" fill="#1f1f1f"/><path data-part="brow1" d="M6.92 -21.17L9.07 -21.04L11.22 -20.76L13.09 -20.66L14.77 -20.66L16.75 -20.36L18.78 -19.7L20.82 -19.08A1.6 1.6 0 0 0 21.83 -22.11L19.96 -23.23L18.06 -24.28L15.84 -24.9L13.34 -25.02L11 -24.89L8.87 -24.75L6.75 -24.37A1.6 1.6 0 0 0 6.92 -21.17Z" fill="#1f1f1f"/><path d="M-11.28 19.74L11.28 19.74Q11.28 34.4 0 34.4Q-11.28 34.4 -11.28 19.74Z" fill="#1f1f1f"/></g></g><g data-limb="r_arm"><path data-part="r_upper_arm" d="M160.37 165.42L158.44 171.52L155.97 177.44L153.09 183.24L150.32 189.07L148.06 195.06L146.21 201.19L144.27 207.29L141.92 213.26L139.37 219.16L137.11 225.15A6 6 0 0 0 148.53 228.86L150.74 222.85L153.19 216.92L155.35 210.89L157.04 204.71L158.59 198.48L160.48 192.37L162.84 186.41L165.28 180.47L167.28 174.39L168.74 168.14A4.4 4.4 0 0 0 160.37 165.42Z" fill="#1f1f1f"/><g data-joint="r_elbow" style="transform-origin:143.99px 227.39px"><path data-part="r_forearm" d="M139 224.51L135.9 230.42L132.68 236.25L128.76 241.69L124.81 247.11L121.84 253.09L119.63 259.51L117.02 265.7L113.67 271.47L110.35 277.25A4.4 4.4 0 0 0 117.97 281.65L121.78 276.15L125.59 270.65L128.64 264.71L131.25 258.52L134.56 252.73L138.79 247.48L142.91 242.16L146.25 236.39L149.39 230.51A6 6 0 0 0 139 224.51Z" fill="#1f1f1f"/><g data-hand="fist"><ellipse cx="109.99" cy="286.28" rx="10" ry="8" transform="rotate(120 109.99 286.28)" fill="#1f1f1f"/></g></g></g><g data-limb="l_arm"><path data-part="l_upper_arm" d="M164.54 170.52L170.87 169.5L177.09 168L183.38 166.82L189.82 166.39L196.29 166.12L202.63 165.22L208.87 163.77L215.16 162.58L221.57 162L227.97 161.4A6 6 0 0 0 225.68 149.62L219.28 150.26L212.9 150.95L206.65 152.33L200.46 154.04L194.18 155.26L187.78 155.91L181.43 156.76L175.23 158.39L169.09 160.37L162.87 161.88A4.4 4.4 0 0 0 164.54 170.52Z" fill="#1f1f1f"/><g data-joint="l_elbow" style="transform-origin:226.59px 154.31px"><path data-part="l_forearm" d="M231.39 155.5L233.77 149.23L236.25 142.98L237.84 136.5L238.58 129.81L239.35 123.14L240.78 116.62L242.65 110.22L244.36 103.77L245.69 97.23A4.4 4.4 0 0 0 237.15 95.1L235.28 101.51L233.05 107.82L230.69 114.1L228.82 120.51L227.66 127.09L226.61 133.7L224.8 140.12L222.17 146.34L219.75 152.6A6 6 0 0 0 231.39 155.5Z" fill="#1f1f1f"/><g data-hand="open"><ellipse cx="243.04" cy="88.33" rx="12" ry="6" transform="rotate(-76 243.04 88.33)" fill="#1f1f1f"/><path data-part="l_thumb" d="M244.31 87.71L243.44 85.46L242.59 83.21L241.93 80.86L240.75 78.77L239.25 76.83L238.16 74.69L237.05 72.56A1.5 1.5 0 0 0 234.35 73.88L235.07 76.19L235.85 78.48L237.18 80.51L238.36 82.6L239.19 84.87L240.35 86.97L241.61 89.03A1.5 1.5 0 0 0 244.31 87.71Z" fill="#1f1f1f"/></g></g></g></g></svg><!-- /host:hero --></div>
       <div class="diagram"><span class="node n1">浏览器</span><i class="arrow a1"></i><span class="node n2">本地副本</span><i class="arrow a2"></i><span class="node n3">显示图标</span></div>
       <p class="caption"><span>第二趟，浏览器直接拿<em>本地副本</em>来用。</span></p>
-      <span class="badge">示意 · L1 开发中</span>
+      <span class="badge">矢量渲染 · 1080p60</span>
     </div>
   </div>
 </section>
@@ -161,9 +161,9 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
       <div class="card"><h3>L0 文本包 <span class="pill ok">可用</span></h3>
         <ul><li><code>project.json</code>：唯一的数据源</li><li><code>讲稿.md</code>：配音稿</li><li><code>分镜.md</code>：每镜的版式、主持人、图解和 cue</li><li><code>提示词包.md</code>：逐镜的外部模型提示词</li></ul>
         <p class="note">不需要 FFmpeg，也不调用付费服务。</p></div>
-      <div class="card"><h3>L1 本地成片 <span class="pill dev">开发中</span></h3>
-        <ul><li>1080p60 成片，火柴人"小青"出镜讲解，能走到图解元素旁边</li><li>按句字幕，关键词与图解同步着色</li><li>封面、B 站章节时间戳</li><li>QA 报告：规格、响度、音画同步、跳变与卡顿</li></ul>
-        <p class="note">需要 Node、FFmpeg 和一个 npm 包。</p></div>
+      <div class="card"><h3>L1 本地成片 <span class="pill ok">可用</span></h3>
+        <ul><li>1080p60（可选 1440p/4K）成片，火柴人"小青"逐句出镜讲解与走位</li><li>支持 <code>edge-tts</code> 神经配音与自然标点停顿，分句字幕关键词同步着色</li><li>封面、B 站章节时间戳、<code>.srt</code>/<code>.ass</code> 字幕与可选 <code>yuv444p</code> 母版</li><li>自动 QA：BT.709 色彩、响度、音画同步、跳变、卡顿与遮挡检查</li></ul>
+        <p class="note">需要 Node ≥ 20、FFmpeg 与 1 个 npm 包；缺项自动退回 L0。</p></div>
     </div>
   </div>
 </section>
@@ -173,14 +173,14 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
     <h2>主持人"小青"</h2>
     <p class="lead">原创手绘火柴人：黑色墨线，空心圆头，椭圆眼睛，脖子上系一条青色围巾。全身 17 个关节由代码画出，每个镜头都是同一个人。</p>
     <p>分镜按名字选 12 个动作、8 种表情和 6 件手持道具；表情自带问号、汗滴、闪光这类符号。在 <code>host-left</code> 镜头里，小青能走到某个图解元素旁边，指它、看它、拍它。</p>
-    <p><span class="pill dev">L1 开发中</span> 走路、跳跃、补间、口型和眨眼随本地成片一起做；现在的 L0 提示词包把参考图交给外部模型，让每个镜头画出同一个人。</p>
+    <p><span class="pill ok">L1 已支持</span> 两节逆解、走路、跳跃、错峰补间、逐句自动动作编排、语流微动、围巾弹簧与连续口型均已在本地渲染器实现；L0 提示词包同样附带参考图给外部模型使用。</p>
     <figure class="cheatsheet"><img src="assets/host-cheatsheet.png" alt="小青速查图：12 个动作、8 种表情和 6 件道具，每格写着英文名和中文说明" width="1800" height="1600" loading="lazy"></figure>
   </div>
 </section>
 
 <section id="quality">
   <div class="wrap">
-    <h2>出片质量 <span class="pill dev">设计中</span></h2>
+    <h2>出片质量 <span class="pill ok">已实现</span></h2>
     <p class="lead">L1 渲染器按这份设计实现：<a href="https://github.com/xiongcp/short-video-skill/blob/main/docs/lite/%E5%87%BA%E7%89%87%E8%B4%A8%E9%87%8F%E8%AE%BE%E8%AE%A1.md">出片质量设计</a>。</p>
     <div class="grid">
       <div class="card"><h3>60fps</h3><p>默认 1080p60，可选 30fps。动画按连续时间计算，与帧率无关。</p></div>
@@ -213,8 +213,10 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
     <h2>安装</h2>
     <p class="lead">把 <code>skills/topic-to-video/</code> 整个目录复制到 Agent 的 skills 目录。</p>
 <pre><code>git clone https://github.com/xiongcp/short-video-skill.git
-cp -R short-video-skill/skills/topic-to-video ~/.claude/skills/   # Claude Code
-cp -R short-video-skill/skills/topic-to-video ~/.agents/skills/   # Codex</code></pre>
+cp -R short-video-skill/skills/topic-to-video ~/.claude/skills/               # Claude Code
+cp -R short-video-skill/skills/topic-to-video ~/.agents/skills/               # Codex
+cp -R short-video-skill/skills/topic-to-video ~/.gemini/antigravity/skills/   # agy
+npm install --prefix ~/.claude/skills/topic-to-video/scripts                  # 可选：启用 L1 本地渲染</code></pre>
     <p>然后在 Agent 里说：<b>"用 topic-to-video 把'为什么缓存能让网页变快'做成 2 分钟的解说视频。"</b></p>
     <p class="note">项目级安装也可以：Claude Code 用 <code>.claude/skills/</code>，Codex 用 <code>.agents/skills/</code>。安装路径会在发布前实测后更新。</p>
   </div>
@@ -238,10 +240,10 @@ cp -R short-video-skill/skills/topic-to-video ~/.agents/skills/   # Codex</code>
       <li><b>P0</b><span>旧版工作室归档，仓库瘦身为单一 skill</span><span class="pill ok">完成</span></li>
       <li><b>P1</b><span>L0 文本包与场景评测</span><span class="pill ok">完成</span></li>
       <li><b>设计</b><span>出片质量：人物、帧率、匹配度、平滑动画</span><span class="pill ok">完成</span></li>
-      <li><b>S1</b><span>火柴人主持人"小青"：骨架、表情、道具与速查图</span><span class="pill ok">完成</span></li>
-      <li><b>P2b</b><span>本地渲染器：60fps、关键词对齐、并行渲染</span><span class="pill dev">待开始</span></li>
-      <li><b>P3</b><span>转场、样片、返修与 QA</span><span class="pill dev">待开始</span></li>
-      <li><b>P4</b><span>安装实测与发布</span><span class="pill dev">待开始</span></li>
+      <li><b>S1 / M1</b><span>火柴人主持人"小青"：骨架、精修造型、3 种手型、V 形缺口围巾与评审工具</span><span class="pill ok">完成</span></li>
+      <li><b>M2–M4</b><span>本地渲染器：1080p60/4K、24 手绘图标、6 套模板、全身逆解与逐句动作、本地神经配音</span><span class="pill ok">完成</span></li>
+      <li><b>M5</b><span>同元素补间转场、选择性运动模糊、BT.709/跳变/卡顿/同步/遮挡 QA 与交付物</span><span class="pill ok">完成</span></li>
+      <li><b>M6–M7</b><span>跨 Agent（agy/Claude Code/Codex）统一入口与同题对标验收</span><span class="pill dev">进行中</span></li>
     </ul>
   </div>
 </section>

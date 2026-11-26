@@ -64,78 +64,134 @@
       "note": "预告接下来要对比两趟访问"
     },
     {
-      "id": "sh03", "section": "s02", "sentences": [0, 1], "layout": "full",
-      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器"] } },
-      "cues": [{ "sentence": 1, "do": "reveal", "target": 1 }],
+      "id": "sh03", "section": "s02", "sentences": [0, 1], "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "present" },
+      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器"], "icons": ["browser", "server"] } },
+      "cues": [
+        { "sentence": 0, "do": "gesture", "target": "point" },
+        { "sentence": 1, "do": "reveal", "target": 1 },
+        { "sentence": 1, "do": "gesture", "target": "present" }
+      ],
       "note": "认识两个端点：浏览器和服务器"
     },
     {
-      "id": "sh04", "section": "s02", "sentences": [2], "layout": "full",
-      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器", "屏幕"] } },
-      "cues": [{ "sentence": 2, "do": "highlight", "target": 2 }],
+      "id": "sh04", "section": "s02", "sentences": [2], "layout": "host-left",
+      "host": { "expr": "focused", "gesture": "point" },
+      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "服务器", "屏幕"], "icons": ["browser", "server", "image"] } },
+      "cues": [
+        { "sentence": 2, "at": "屏幕", "do": "highlight", "target": 2 },
+        { "sentence": 2, "at": "屏幕", "do": "gesture", "target": "emphasize" },
+        { "sentence": 2, "at": "屏幕", "do": "expr", "target": "happy" }
+      ],
       "note": "请求去、图片回，屏幕上才出现图标"
     },
     {
       "id": "sh05", "section": "s02", "sentences": [3, 4], "layout": "host-left",
       "host": { "expr": "explaining", "gesture": "point" },
-      "visual": { "template": "bullets", "data": { "items": ["响应允许缓存", "把内容留下", "之后的请求能用"] } },
-      "cues": [{ "sentence": 4, "do": "reveal", "target": 2 }],
+      "visual": { "template": "bullets", "data": { "items": ["响应允许缓存", "把内容留下", "之后的请求能用"], "icons": ["check", "cache", "globe"] } },
+      "cues": [
+        { "sentence": 4, "do": "reveal", "target": 2 },
+        { "sentence": 4, "do": "gesture", "target": "emphasize" },
+        { "sentence": 4, "do": "prop", "target": "bulb" }
+      ],
       "note": "保存副本是有条件的"
     },
     {
-      "id": "sh06", "section": "s03", "sentences": [0, 1], "layout": "full",
-      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "本地副本"] } },
-      "cues": [{ "sentence": 1, "do": "reveal", "target": 1 }],
+      "id": "sh06", "section": "s03", "sentences": [0, 1], "layout": "host-left",
+      "host": { "expr": "curious", "gesture": "present" },
+      "visual": { "template": "flow", "data": { "nodes": ["浏览器", "本地副本"], "icons": ["browser", "cache"] } },
+      "cues": [
+        { "sentence": 0, "do": "prop", "target": "magnifier" },
+        { "sentence": 1, "at": "副本", "do": "reveal", "target": 1 },
+        { "sentence": 1, "at": "副本", "do": "gesture", "target": "point" }
+      ],
       "note": "第二趟先在浏览器这边找副本"
     },
     {
-      "id": "sh07", "section": "s03", "sentences": [2, 3], "layout": "full",
-      "visual": { "template": "bullets", "data": { "items": ["找到匹配副本", "允许复用", "仍在新鲜期"] } },
-      "cues": [{ "sentence": 3, "do": "reveal", "target": 1 }, { "sentence": 3, "do": "reveal", "target": 2 }],
+      "id": "sh07", "section": "s03", "sentences": [2, 3], "layout": "host-left",
+      "host": { "expr": "focused", "gesture": "think" },
+      "visual": { "template": "bullets", "data": { "items": ["找到匹配副本", "允许复用", "仍在新鲜期"], "icons": ["search", "check", "clock"] } },
+      "cues": [
+        { "sentence": 2, "do": "prop", "target": "none" },
+        { "sentence": 3, "do": "reveal", "target": 1 },
+        { "sentence": 3, "at": "新鲜期", "do": "reveal", "target": 2 },
+        { "sentence": 3, "at": "新鲜期", "do": "gesture", "target": "emphasize" }
+      ],
       "note": "找到副本之后还要满足条件"
     },
     {
       "id": "sh08", "section": "s03", "sentences": [4, 5], "layout": "full",
-      "visual": { "template": "flow", "data": { "nodes": ["打开页面", "本地副本", "显示图标"] } },
-      "cues": [{ "sentence": 4, "do": "highlight", "target": 1 }, { "sentence": 5, "do": "highlight", "target": 2 }],
+      "visual": { "template": "flow", "data": { "nodes": ["打开页面", "本地副本", "显示图标"], "icons": ["browser", "cache", "image"] } },
+      "cues": [
+        { "sentence": 4, "at": "本地", "do": "highlight", "target": 1 },
+        { "sentence": 5, "at": "省掉", "do": "highlight", "target": 2 }
+      ],
       "note": "第二趟止于浏览器，省掉去服务器的路"
     },
     {
       "id": "sh09", "section": "s03", "sentences": [6, 7], "layout": "host-left",
       "host": { "expr": "explaining", "gesture": "present" },
       "visual": { "template": "compare", "data": { "left": { "label": "第一趟", "rows": ["去服务器", "等待返回", "传输图片"] }, "right": { "label": "第二趟", "rows": ["本地直接用"] } } },
-      "cues": [{ "sentence": 7, "do": "move", "target": 1 }, { "sentence": 7, "do": "highlight", "target": 1 }],
+      "cues": [
+        { "sentence": 7, "do": "move", "target": 1 },
+        { "sentence": 7, "do": "highlight", "target": 1 },
+        { "sentence": 7, "do": "expr", "target": "happy" },
+        { "sentence": 7, "do": "gesture", "target": "tap" }
+      ],
       "note": "两趟并排，看出省下了什么"
     },
     {
       "id": "sh10", "section": "s04", "sentences": [0, 1], "layout": "host-left",
-      "host": { "expr": "focused", "gesture": "idle" },
+      "host": { "expr": "focused", "gesture": "think" },
       "visual": { "template": "title", "data": { "heading": "副本过期了", "sub": "还能用吗？" } },
-      "cues": [{ "sentence": 1, "do": "expr", "target": "curious" }],
+      "cues": [
+        { "sentence": 1, "do": "expr", "target": "curious" },
+        { "sentence": 1, "do": "gesture", "target": "shrug" },
+        { "sentence": 1, "do": "prop", "target": "question" }
+      ],
       "note": "时间推进，副本过期带来新问题"
     },
     {
-      "id": "sh11", "section": "s04", "sentences": [2, 3, 4], "layout": "full",
-      "visual": { "template": "flow", "data": { "nodes": ["验证信息", "询问服务器", "返回304"] } },
-      "cues": [{ "sentence": 3, "do": "reveal", "target": 1 }, { "sentence": 4, "do": "reveal", "target": 2 }],
+      "id": "sh11", "section": "s04", "sentences": [2, 3, 4], "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "point" },
+      "visual": { "template": "flow", "data": { "nodes": ["验证信息", "询问服务器", "返回304"], "icons": ["key", "server", "check"] } },
+      "cues": [
+        { "sentence": 2, "do": "prop", "target": "none" },
+        { "sentence": 3, "at": "询问", "do": "reveal", "target": 1 },
+        { "sentence": 3, "at": "询问", "do": "gesture", "target": "present" },
+        { "sentence": 4, "at": "三零四", "do": "reveal", "target": 2 },
+        { "sentence": 4, "at": "三零四", "do": "gesture", "target": "emphasize" },
+        { "sentence": 4, "at": "三零四", "do": "expr", "target": "happy" }
+      ],
       "note": "过期后可以先问一句，没变就继续用"
     },
     {
       "id": "sh12", "section": "s04", "sentences": [5, 6], "layout": "full",
       "visual": { "template": "compare", "data": { "left": { "label": "没变", "rows": ["返回304", "继续用旧内容"] }, "right": { "label": "已更新", "rows": ["传回新正文", "替换旧内容"] } } },
-      "cues": [{ "sentence": 5, "do": "highlight", "target": 1 }, { "sentence": 6, "do": "highlight", "target": 0 }],
+      "cues": [
+        { "sentence": 5, "at": "更新", "do": "highlight", "target": 1 },
+        { "sentence": 6, "do": "highlight", "target": 0 }
+      ],
       "note": "两种结果都联系服务器，传输量不同"
     },
     {
-      "id": "sh13", "section": "s05", "sentences": [0, 1], "layout": "full",
-      "visual": { "template": "bullets", "data": { "items": ["直接用", "先问一句", "换新内容"] } },
-      "cues": [{ "sentence": 1, "do": "reveal", "target": 0 }, { "sentence": 1, "do": "reveal", "target": 1 }, { "sentence": 1, "do": "reveal", "target": 2 }],
+      "id": "sh13", "section": "s05", "sentences": [0, 1], "layout": "host-left",
+      "host": { "expr": "explaining", "gesture": "present" },
+      "visual": { "template": "bullets", "data": { "items": ["直接用", "先问一句", "换新内容"], "icons": ["cache", "server", "doc"] } },
+      "cues": [
+        { "sentence": 1, "at": "直接用", "do": "reveal", "target": 0 },
+        { "sentence": 1, "at": "直接用", "do": "gesture", "target": "point" },
+        { "sentence": 1, "at": "先问一句", "do": "reveal", "target": 1 },
+        { "sentence": 1, "at": "替换", "do": "reveal", "target": 2 },
+        { "sentence": 1, "at": "替换", "do": "gesture", "target": "emphasize" }
+      ],
       "note": "总结三种动作"
     },
     {
       "id": "sh14", "section": "s05", "sentences": [2], "layout": "host-left",
       "host": { "expr": "proud", "gesture": "emphasize" },
       "visual": { "template": "title", "data": { "heading": "省掉了哪段路？" } },
+      "cues": [{ "sentence": 2, "at": "说清", "do": "gesture", "target": "cheer" }],
       "note": "回扣开头的图标，留下可复述的结论"
     }
   ],

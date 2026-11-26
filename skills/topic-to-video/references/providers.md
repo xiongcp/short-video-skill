@@ -20,15 +20,17 @@ node <本 skill 目录>/scripts/doctor.mjs
 
 | 方案 | `voice` 配置示例 | 词级时间 | 适用场景 |
 | --- | --- | --- | --- |
-| **edge-tts**（推荐，微软免费神经语音） | `{"provider":"command","voice":"zh-CN-XiaoxiaoNeural","command":"edge-tts --voice {voice} --text {text} --write-media {out} --write-subtitles {sub}"}` | 实测（VTT） | 中文自然度高、自带时间戳；商用前自行核对微软条款 |
+| **edge-tts**（推荐，微软免费神经语音） | `{"provider":"command","voice":"zh-CN-XiaoxiaoNeural","speed":0.96,"command":"edge-tts --voice {voice} --rate={rate} --text {text} --write-media {out} --write-subtitles {sub}"}` | 实测（SRT/VTT） | 自然度高、支持断句语速微调；无全局安装时可用 `uvx --from edge-tts edge-tts ...` |
 | **macOS `say`**（离线零依赖） | `{"provider":"command","voice":"Tingting","command":"say -v Tingting -o {out} {text}"}` | 估算 | macOS 本机离线快速试片 |
 | **本地开源 TTS**（Kokoro / CosyVoice 等） | `{"provider":"command","command":"python3 my_tts.py --text {text} --out {out}"}` | 估算或自出 VTT | 完全本地私有语音 |
 | **导入录音**（`import`） | `{"provider":"import"}` | 估算 | 把按句录音 `audio/s01-0.wav` 或整段录音 `audio/full.wav`（按静音切句）放入项目 |
 | **OpenAI 兼容接口** | `{"provider":"openai-compatible","base_url":"https://...","model":"tts-1","voice":"alloy","api_key_env":"SVS_TTS_API_KEY"}` | 估算 | 使用云端付费 TTS（调用前先报价并获确认） |
 
-占位符：`{text}` 读音替换后的单句文本、`{out}` 输出音频路径、`{sub}` 字幕时间戳输出路径、`{voice}` 音色名、`{speed}` 语速。命令按参数数组直接执行，不经过 shell 拼接。
+占位符：`{text}` 读音替换后的单句文本、`{out}` 输出音频路径、`{sub}` 字幕时间戳输出路径、`{voice}` 音色名、`{speed}` 语速倍率、`{rate}` `edge-tts` 语速格式（如 `0.96` → `-4%`）。命令按参数数组直接执行，不经过 shell 拼接。
 
-安装 `edge-tts`（需经用户同意）：`pipx install edge-tts` 或 `python3 -m pip install --user edge-tts`。中文常用音色：`zh-CN-XiaoxiaoNeural`（女声讲解）、`zh-CN-YunxiNeural`（男声科普）、`zh-CN-XiaoyiNeural`（轻快女声）。
+韵律与音质处理（自动完成）：合成后自动裁掉首尾死静音并加 20ms 淡入淡出防爆音；按标点自动插入自然呼吸停顿（陈述句 250ms、问句/感叹句 +160ms、段落切换 +350ms）；混音经 `highpass 80Hz` + 轻压缩 + 双遍 `loudnorm`（-16 LUFS）；字幕按逗号分句同步显示。
+
+中文常用神经音色：`zh-CN-XiaoxiaoNeural`（晓晓，亲和讲解）、`zh-CN-YunxiNeural`（云希，活泼男声）、`zh-CN-YunjianNeural`（云健，沉稳科普）、`zh-CN-XiaoyiNeural`（晓伊，轻快女声）。
 
 ## 3. 本地渲染命令（agy / Claude Code / Codex 通用）
 
