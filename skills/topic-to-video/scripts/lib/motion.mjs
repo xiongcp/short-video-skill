@@ -513,8 +513,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
     }
 
     if (c.do === 'react') {
-      const activeWalk = walkSegments.find((s) => s.t1 > s.t0 && rawT0 >= s.t0 - 1e-6 && rawT0 < s.t1);
-      const actT0 = activeWalk ? activeWalk.t1 : rawT0;
+      const actT0 = Math.max(rawT0, walkBusyUntil, interBusyUntil);
       interactionStarts.set(c._idx, actT0);
       const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
       const el = shifted[c.target];

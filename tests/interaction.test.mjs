@@ -972,3 +972,59 @@ test('10. micro-cooperation turns head on reveal, nods on highlight/state, and s
   assert.notEqual(duringS2.gesture, 'present', 'auto-beat on stage shot skips repeating prior hold gesture');
   assert.equal(inferSentenceBeat('继续往下看。', { index: 2, prevGesture: 'present' }).gesture !== 'present', true);
 });
+
+test('11. react after auto_approach + open waits for both walk and full 0.6s open without interrupting either', () => {
+  const plan = makeHostStagePlan(
+    { objects: [{ prop: 'fridge', label: '冰箱', at: 'mid-right', state: 'closed' }] },
+    [
+      { sentence: 0, do: 'open', target: 0, timeMs: 500 },
+      { sentence: 0, do: 'react', target: 0, timeMs: 1800 },
+    ],
+    { hostX: 240, durationSec: 10, startOverrides: { x: 240 } },
+  );
+
+  const probe = evaluateHostAt(manifest, plan, 0.5);
+  const openStart = probe.interactionStarts.get(0);
+  const reactStart = probe.interactionStarts.get(1);
+  assert.ok(openStart > 2.5, `open waits for auto-approach arrival (${openStart})`);
+  assert.ok(reactStart >= openStart + 0.6 - 1e-6, `reactStart=${reactStart} must wait until full 0.6s open finishes (${openStart + 0.6})`);
+
+  // Walking before openStart
+  const midWalk = evaluateHostAt(manifest, plan, 1.8);
+  assert.equal(midWalk.view, 'side');
+  assert.equal(midWalk.interacting, false);
+
+  // Full 0.6s open runs uninterrupted
+  const openEarly = evaluateHostAt(manifest, plan, openStart + 0.15);
+  const openPeak = evaluateHostAt(manifest, plan, openStart + 0.3);
+  const openLate = evaluateHostAt(manifest, plan, openStart + 0.55);
+  for (const s of [openEarly, openPeak, openLate]) {
+    assert.equal(s.interacting, true);
+    assert.equal(s.interaction?.kind, 'open');
+  }
+  assert.ok(dist(fkOf(openPeak).points.l_hand, plan.elements[0].anchors.handle) <= 2);
+
+  // Then react plays for full 0.8s without cutting open short
+  const reactMid = evaluateHostAt(manifest, plan, reactStart + 0.4);
+  assert.equal(reactMid.interacting, true);
+  assert.equal(reactMid.interaction?.kind, 'react');
+  const afterReact = evaluateHostAt(manifest, plan, reactStart + 0.85);
+  assert.equal(afterReact.interacting, false);
+
+  // Also when react raw timeMs lands mid-open (between openStart and openStart + 0.6)
+  const midOpenReactMs = Math.round((openStart + 0.3) * 1000);
+  const midOpenPlan = makeHostStagePlan(
+    { objects: [{ prop: 'fridge', label: '冰箱', at: 'mid-right', state: 'closed' }] },
+    [
+      { sentence: 0, do: 'open', target: 0, timeMs: 500 },
+      { sentence: 0, do: 'react', target: 0, timeMs: midOpenReactMs },
+    ],
+    { hostX: 240, durationSec: 10, startOverrides: { x: 240 } },
+  );
+  const midOpenStarts = evaluateHostAt(manifest, midOpenPlan, 0.5).interactionStarts;
+  const o0 = midOpenStarts.get(0);
+  const r0 = midOpenStarts.get(1);
+  assert.ok(r0 >= o0 + 0.6 - 1e-6, `mid-open react (${r0}) waits for open end (${o0 + 0.6})`);
+  assert.equal(evaluateHostAt(manifest, midOpenPlan, o0 + 0.45).interaction?.kind, 'open');
+  assert.equal(evaluateHostAt(manifest, midOpenPlan, r0 + 0.4).interaction?.kind, 'react');
+});
