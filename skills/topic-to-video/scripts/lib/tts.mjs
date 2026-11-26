@@ -6,12 +6,42 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from '
 import { extname, join } from 'node:path';
 import { splitSentences } from './captions.mjs';
 import { makeWavBuffer, readWavPcm, trimSilenceWithFade } from './mouth.mjs';
+import { VOICE_PRESETS } from './project.mjs';
 import { detectSpeechBounds, estimateWords, parseSubtitles, splitRecordingBySilence } from './timing.mjs';
 
 /** Converts numeric speed (e.g. 0.96 -> "-4%", 1.08 -> "+8%") to edge-tts --rate format. */
 export function speedToEdgeRate(speed = 1) {
   const pct = Math.round((Number(speed) - 1) * 100);
   return `${pct >= 0 ? '+' : ''}${pct}%`;
+}
+
+/** Converts a pitch offset in Hz (e.g. 0 -> "+0Hz", -3 -> "-3Hz") to edge-tts --pitch format. */
+export function pitchToEdge(pitch = 0) {
+  const hz = Math.round(Number(pitch));
+  return `${hz >= 0 ? '+' : ''}${hz}Hz`;
+}
+
+/** The preset voice.preset names, or null without one. An unknown name throws rather than falling back to 晓晓. */
+function presetOf(voice) {
+  if (voice.preset === undefined) return null;
+  if (!Object.hasOwn(VOICE_PRESETS, voice.preset)) {
+    throw new Error(`未知的配音人设 voice.preset: ${voice.preset}，可选 ${Object.keys(VOICE_PRESETS).join('、')}`);
+  }
+  return VOICE_PRESETS[voice.preset];
+}
+
+/**
+ * What {voice}, {speed}, {rate} and {pitch} stand for (声音人设设计 §4). A preset supplies the voice and speed unless
+ * voice.voice or voice.speed is set; without a preset {voice} is 晓晓, {speed} is 1 and {rate} is -4%, as before.
+ */
+export function resolveVoice(voice) {
+  const preset = presetOf(voice);
+  return {
+    voice: voice.voice ?? preset?.voice ?? 'zh-CN-XiaoxiaoNeural',
+    speed: voice.speed ?? preset?.speed ?? 1,
+    rate: speedToEdgeRate(voice.speed ?? preset?.speed ?? 0.96),
+    pitch: pitchToEdge(voice.pitch ?? 0),
+  };
 }
 
 /** Applies section.pronunciation term -> reading substitutions to spoken text only (keeps display text untouched). */
@@ -81,13 +111,15 @@ function runCommandTts(voice, text, wavOut, subOut, { ffmpeg = 'ffmpeg' } = {}) 
   const isEdge = /edge[-_]?tts/i.test(tokens[0]) || tokens.some((t) => /edge_tts/i.test(t));
   const isSay = tokens[0] === 'say' || tokens[0].endsWith('/say');
   const rawOut = isEdge ? wavOut.replace(/\.wav$/, '.mp3') : isSay ? wavOut.replace(/\.wav$/, '.aiff') : wavOut;
+  const resolved = resolveVoice(voice);
   const vars = {
     '{text}': text,
     '{out}': rawOut,
     '{sub}': subOut,
-    '{voice}': voice.voice ?? 'zh-CN-XiaoxiaoNeural',
-    '{speed}': String(voice.speed ?? 1),
-    '{rate}': speedToEdgeRate(voice.speed ?? 0.96),
+    '{voice}': resolved.voice,
+    '{speed}': String(resolved.speed),
+    '{rate}': resolved.rate,
+    '{pitch}': resolved.pitch,
   };
   const args = tokens.slice(1).map((tok) => Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(k, v), tok));
   const res = spawnSync(tokens[0], args, { encoding: 'utf8' });
@@ -117,15 +149,19 @@ function runCommandTts(voice, text, wavOut, subOut, { ffmpeg = 'ffmpeg' } = {}) 
   }
 }
 
-function sentenceHash(spokenText, voice) {
-  return createHash('sha256').update(JSON.stringify({
+/** Cache key of one sentence's audio. Without a preset or a pitch it is the key older projects stored, so they reuse it. */
+export function sentenceHash(spokenText, voice) {
+  const preset = presetOf(voice);
+  const key = {
     spokenText,
     provider: voice.provider,
-    voice: voice.voice ?? '',
+    voice: voice.voice ?? preset?.voice ?? '',
     model: voice.model ?? '',
-    speed: voice.speed ?? 1,
+    speed: voice.speed ?? preset?.speed ?? 1,
     command: voice.command ?? '',
-  })).digest('hex');
+  };
+  if ((voice.pitch ?? 0) !== 0) key.pitch = voice.pitch;
+  return createHash('sha256').update(JSON.stringify(key)).digest('hex');
 }
 
 /**
