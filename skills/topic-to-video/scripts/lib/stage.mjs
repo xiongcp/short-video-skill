@@ -1,7 +1,7 @@
 // Semantic stage auto-layout and pure-vector renderer for `layout: "stage"` (画面与同台互动设计 §4.2, §5.1–§5.4).
 // Pure deterministic functions without <text>, sharing geometry with project.mjs and scene.mjs.
-import { clamp01 } from './ease.mjs';
-import { customPropMeta, drawCustomProp, drawIcon, isCountState, PROP_META } from './icons.mjs';
+import { clamp01, easeOutBack, lerp } from './ease.mjs';
+import { COMMON_STATES, customPropMeta, drawCustomProp, drawIcon, isCountState, PROP_META } from './icons.mjs';
 import { inkStroke, num, resample } from './ink.mjs';
 import { GROUND_Y, resolveStyle } from './world.mjs';
 
@@ -31,6 +31,9 @@ export const STAGE_BOUNDS = {
 
 const HOST_MIN_X = 200;
 const HOST_MAX_X = 1720;
+const HOST_MOVING_DO = new Set(['move', 'open', 'carry', 'push', 'pull', 'hold_up', 'draw', 'sit_on']);
+const escAttr = (s) => String(s).replace(/[&"<>]/g, (c) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' }[c]));
+const isOverlayState = (s) => COMMON_STATES.includes(s) || isCountState(s);
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const boxesOverlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -424,11 +427,363 @@ function wrapTransform(bbox, st, inner) {
   const cx = bbox.x + bbox.w / 2;
   const cy = bbox.y + bbox.h / 2;
   const pulse = st.highlight > 0 && st.highlight < 1 ? 1 + 0.06 * Math.sin(Math.PI * clamp01(st.highlight)) : 1;
-  const sc = (st.scale ?? 1) * pulse;
+  const bumpScale = st.bump ? 1 + 0.08 * st.bump : 1;
+  const sc = (st.scale ?? 1) * pulse * bumpScale;
   const rot = st.tapShake ? st.tapShake * 2 : 0;
   const op = clamp01(st.opacity ?? 1);
   if (op <= 0.005) return '';
   return `<g opacity="${num(op)}" transform="translate(${num(cx + (st.dx ?? 0))} ${num(cy + (st.dy ?? 0))}) rotate(${num(rot)}) scale(${num(sc)}) translate(${num(-cx)} ${num(-cy)})">${inner}</g>`;
+}
+
+function resolveCueStart(cue, cueIdx, interactionStarts) {
+  if (interactionStarts instanceof Map) {
+    if (interactionStarts.has(cueIdx)) return interactionStarts.get(cueIdx);
+    if (interactionStarts.has(String(cueIdx))) return interactionStarts.get(String(cueIdx));
+    if (interactionStarts.has(cue)) return interactionStarts.get(cue);
+    if (cue?.id !== undefined && interactionStarts.has(cue.id)) return interactionStarts.get(cue.id);
+    const k1 = `${cueIdx}:${cue?.do}`;
+    if (interactionStarts.has(k1)) return interactionStarts.get(k1);
+    const k2 = `${cue?.do}:${cue?.target}:${cue?.timeMs ?? ''}`;
+    if (interactionStarts.has(k2)) return interactionStarts.get(k2);
+  } else if (interactionStarts && typeof interactionStarts === 'object') {
+    if (Object.hasOwn(interactionStarts, cueIdx)) return interactionStarts[cueIdx];
+    if (Object.hasOwn(interactionStarts, String(cueIdx))) return interactionStarts[String(cueIdx)];
+    if (cue?.id !== undefined && Object.hasOwn(interactionStarts, cue.id)) return interactionStarts[cue.id];
+    const k1 = `${cueIdx}:${cue?.do}`;
+    if (Object.hasOwn(interactionStarts, k1)) return interactionStarts[k1];
+    const k2 = `${cue?.do}:${cue?.target}:${cue?.timeMs ?? ''}`;
+    if (Object.hasOwn(interactionStarts, k2)) return interactionStarts[k2];
+  }
+  return cue?.timeMs != null ? cue.timeMs / 1000 : (cue?.t0 ?? 0);
+}
+
+function simResolveStandX(target, currentX, elements) {
+  if (typeof target === 'string') {
+    if (target === 'left') return 320;
+    if (target === 'center') return 960;
+    if (target === 'right') return 1600;
+    return currentX;
+  }
+  if (Number.isInteger(target)) {
+    const el = elements[target];
+    if (!el) return currentX;
+    if (el.standSpots) {
+      const { left, right } = el.standSpots;
+      const isClear = (sx) => !elements.some((other) => {
+        const b = other?.bbox;
+        if (!b || b.y >= GROUND_Y - 1e-6 || b.y + b.h <= 530 + 1e-6) return false;
+        return sx - 47 < b.x + b.w && sx + 47 > b.x;
+      });
+      const leftOk = Number.isFinite(left) && isClear(left);
+      const rightOk = Number.isFinite(right) && isClear(right);
+      if (leftOk && !rightOk) return left;
+      if (rightOk && !leftOk) return right;
+      return Math.abs(currentX - left) <= Math.abs(currentX - right) ? left : right;
+    }
+    const cx = el.bbox.x + el.bbox.w / 2;
+    return currentX <= cx ? el.bbox.x - 60 : el.bbox.x + el.bbox.w + 60;
+  }
+  return currentX;
+}
+
+/**
+ * Draws a mini hand-drawn prop (~48 px) at parameter `u` along the quadratic Bezier matching
+ * `stage` links or `flow` arrows (when `bend` is provided). Returns `''` outside `(0, 1)`.
+ */
+export function renderSendPacket(fromPt, toPt, propName, u, {
+  style = 'paper',
+  seed = 'send',
+  customProps = [],
+  bend,
+} = {}) {
+  if (!Array.isArray(fromPt) || !Array.isArray(toPt) || !propName) return '';
+  if (!Number.isFinite(u) || u <= 0 || u >= 1) return '';
+  const [x1, y1] = fromPt;
+  const [x2, y2] = toPt;
+  let mx;
+  let my;
+  if (Array.isArray(bend) && bend.length >= 2) {
+    mx = (x1 + x2) / 2 + bend[0];
+    my = (y1 + y2) / 2 + bend[1];
+  } else {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dist = Math.hypot(dx, dy) || 1;
+    const bendAmt = Math.min(44, dist * 0.12);
+    mx = (x1 + x2) / 2 + (dy / dist) * bendAmt;
+    my = (y1 + y2) / 2 - (dx / dist) * bendAmt;
+  }
+  const inv = 1 - u;
+  const px = inv * inv * x1 + 2 * inv * u * mx + u * u * x2;
+  const py = inv * inv * y1 + 2 * inv * u * my + u * u * y2;
+
+  const customDef = !Object.hasOwn(PROP_META, propName) && Array.isArray(customProps)
+    ? customProps.find((p) => p?.id === propName)
+    : null;
+  const iconSvg = customDef
+    ? drawCustomProp(customDef, { x: px, y: py, width: 48, height: 48, style, seed: `${seed}:${propName}` })
+    : drawIcon(propName, { x: px, y: py, size: 48, style, seed: `${seed}:${propName}` });
+  return `<g data-send-packet="${escAttr(propName)}">${iconSvg}</g>`;
+}
+
+/**
+ * Evaluates dynamic runtime states for stage objects (and `flow` nodes/sends) at time `t` seconds.
+ * Combines `state`, `open`, `push`/`pull`, `draw`, and `send` cues with live `hostMeta` interactions.
+ */
+export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
+  const rawVisual = shotPlan?.shot?.visual;
+  const rawData = unwrapVisualData(rawVisual?.data ?? shotPlan);
+  const customProps = shotPlan?.customProps ?? [];
+  const isStage = shotPlan?.shot?.layout === 'stage'
+    || rawVisual?.template === 'stage'
+    || Boolean(shotPlan?.stageLayout)
+    || Array.isArray(rawData?.objects);
+
+  let elements = Array.isArray(shotPlan?.elements) ? shotPlan.elements : null;
+  let links = shotPlan?.stageLayout?.links ?? null;
+  if (isStage && (!elements || !links)) {
+    const laid = shotPlan?.stageLayout ?? layoutStage(rawData, {
+      hostAt: shotPlan?.shot?.host?.at,
+      prevHostX: shotPlan?.startState?.x ?? 320,
+      customProps,
+    });
+    elements = elements ?? laid.elements;
+    links = links ?? laid.links;
+  }
+  elements = elements ?? [];
+  links = links ?? [];
+
+  const rawObjects = Array.isArray(rawData?.objects) ? rawData.objects : [];
+  const rawCues = Array.isArray(shotPlan?.cues)
+    ? shotPlan.cues
+    : (Array.isArray(shotPlan?.shot?.cues) ? shotPlan.shot.cues : []);
+
+  const interactionStarts = hostMeta?.interactionStarts;
+  const resolvedCues = rawCues
+    .map((cue, cueIdx) => ({
+      cue,
+      cueIdx,
+      t0: resolveCueStart(cue, cueIdx, interactionStarts),
+    }))
+    .sort((a, b) => a.t0 - b.t0 || a.cueIdx - b.cueIdx);
+
+  // Track simulated host X before each cue so push/pull directions remain consistent across later moves
+  let simHostX = shotPlan?.startState?.x ?? shotPlan?.stageLayout?.hostX ?? 320;
+  const hostXBeforeCue = new Map();
+  for (const entry of resolvedCues) {
+    hostXBeforeCue.set(entry.cueIdx, simHostX);
+    if (HOST_MOVING_DO.has(entry.cue.do) && !(entry.cue.do === 'carry' && entry.cue.target === 'none')) {
+      simHostX = simResolveStandX(entry.cue.target, simHostX, elements);
+    }
+  }
+
+  let fastMotion = false;
+  const inter = hostMeta?.interaction ?? null;
+
+  const objectStates = elements.map((el, i) => {
+    const initialState = el?.state ?? rawObjects[i]?.state ?? 'normal';
+    let state = initialState;
+    let prevState = initialState;
+    let stateProgress = 1;
+
+    // 1. State and open transitions
+    for (const entry of resolvedCues) {
+      if (entry.t0 > t) break;
+      if (entry.cue.target !== i) continue;
+      if (entry.cue.do !== 'state' && entry.cue.do !== 'open') continue;
+      const nextState = entry.cue.do === 'open' ? 'open' : entry.cue.value;
+      if (!nextState) continue;
+      const dur = entry.cue.do === 'open' ? 0.6 : 0.3;
+      prevState = state;
+      state = nextState;
+      const dt = t - entry.t0;
+      if (prevState !== state && dt < dur) {
+        stateProgress = clamp01(dt / dur);
+        fastMotion = true;
+      } else {
+        stateProgress = 1;
+      }
+    }
+
+    // 2. Draw progress (1.0 s progressive character reveal)
+    const drawCues = resolvedCues.filter((entry) => entry.cue.do === 'draw' && entry.cue.target === i);
+    let drawProgress = 1;
+    if (drawCues.length > 0) {
+      const started = drawCues.filter((entry) => entry.t0 <= t);
+      if (started.length === 0) {
+        drawProgress = 0;
+      } else {
+        const lastDraw = started.at(-1);
+        const dt = t - lastDraw.t0;
+        if (dt < 1.0) {
+          drawProgress = clamp01(dt / 1.0);
+          fastMotion = true;
+        } else {
+          drawProgress = 1;
+        }
+      }
+    }
+
+    // 3. Push / pull horizontal displacement (0.7 s with easeOutBack overshoot, clamped to [120, 1800])
+    const bbox = el.bbox ?? { x: 0, y: 0, w: 0, h: 0 };
+    const minDx = STAGE_BOUNDS.minX - bbox.x;
+    const maxDx = STAGE_BOUNDS.maxX - (bbox.x + bbox.w);
+    const computePushPullDx = (sinceTime) => {
+      let curDx = 0;
+      for (const entry of resolvedCues) {
+        if (entry.t0 > t || entry.t0 < sinceTime) continue;
+        if (entry.cue.target !== i || (entry.cue.do !== 'push' && entry.cue.do !== 'pull')) continue;
+        const laterHostMove = resolvedCues.some((other) => (
+          other.cueIdx !== entry.cueIdx
+          && other.t0 > entry.t0
+          && other.t0 <= t
+          && HOST_MOVING_DO.has(other.cue.do)
+          && !(other.cue.do === 'carry' && other.cue.target === 'none')
+        ));
+        const hostX = !laterHostMove && Number.isFinite(hostMeta?.x)
+          ? hostMeta.x
+          : (hostXBeforeCue.get(entry.cueIdx) ?? 320);
+        const preObjCx = bbox.x + bbox.w / 2 + curDx;
+        const awayDir = preObjCx >= hostX ? 1 : -1;
+        const dir = entry.cue.do === 'push' ? awayDir : -awayDir;
+        const targetDx = clamp(curDx + dir * 160, minDx, maxDx);
+        const dt = t - entry.t0;
+        if (dt < 0.7) {
+          const u = clamp01(dt / 0.7);
+          curDx = clamp(lerp(curDx, targetDx, easeOutBack(u)), minDx, maxDx);
+          fastMotion = true;
+        } else {
+          curDx = targetDx;
+        }
+      }
+      return curDx;
+    };
+
+    let dx = computePushPullDx(-Infinity);
+    let dy = 0;
+    let liftY = 0;
+    let carried = false;
+    let heldUp = false;
+    let inFront = false;
+
+    // 4. Dropped spots / active carry / active hold_up
+    const isHeldUpNow = inter?.kind === 'hold_up' && inter?.targetIdx === i;
+    const isCarriedNow = inter?.carriedIdx === i;
+
+    if (isHeldUpNow) {
+      const pos = inter.handPos ?? inter.carriedPos;
+      if (Array.isArray(pos) && pos.length >= 2 && Number.isFinite(pos[0]) && Number.isFinite(pos[1])) {
+        dx = pos[0] - (bbox.x + bbox.w / 2);
+        dy = pos[1] - (bbox.y + bbox.h);
+      }
+      heldUp = true;
+      carried = isCarriedNow;
+      inFront = true;
+      liftY = -dy;
+      fastMotion = true;
+    } else if (isCarriedNow) {
+      const pos = inter.carriedPos ?? inter.handPos;
+      if (Array.isArray(pos) && pos.length >= 2 && Number.isFinite(pos[0]) && Number.isFinite(pos[1])) {
+        const handle = el.anchors?.handle ?? [bbox.x + bbox.w * 0.2, bbox.y + bbox.h * 0.5];
+        dx = pos[0] - handle[0];
+        dy = pos[1] - handle[1];
+      }
+      carried = true;
+      inFront = true;
+      liftY = -dy;
+      fastMotion = true;
+    } else if (inter?.droppedSpots && Object.hasOwn(inter.droppedSpots, i) && inter.droppedSpots[i]) {
+      const spot = inter.droppedSpots[i];
+      const sx = Array.isArray(spot) ? spot[0] : spot.x;
+      const sy = Array.isArray(spot) ? spot[1] : spot.y;
+      const lastDropCue = resolvedCues
+        .filter((e) => e.t0 <= t && e.cue.do === 'carry' && e.cue.target === 'none')
+        .at(-1);
+      const postDropDx = lastDropCue ? computePushPullDx(lastDropCue.t0) : 0;
+      if (Number.isFinite(sx)) {
+        dx = clamp(sx - (bbox.x + bbox.w / 2) + postDropDx, minDx, maxDx);
+      }
+      if (Number.isFinite(sy)) {
+        dy = sy - (bbox.y + bbox.h);
+      }
+    }
+
+    return {
+      state,
+      prevState,
+      stateProgress,
+      dx,
+      dy,
+      liftY,
+      carried,
+      heldUp,
+      inFront,
+      drawProgress,
+      bump: 0,
+    };
+  });
+
+  // 5. Send packet trajectories (0.8 s) and destination arrival bump (0.3 s)
+  const sends = [];
+  for (const entry of resolvedCues) {
+    if (entry.cue.do !== 'send') continue;
+    const dt = t - entry.t0;
+    if (dt < 0 || dt > 1.1) continue;
+
+    let sendIndex;
+    let targetIdx;
+    let fromPt;
+    let toPt;
+    let bend;
+
+    if (isStage) {
+      const lnk = links[entry.cue.target];
+      if (!lnk) continue;
+      sendIndex = lnk.index ?? entry.cue.target;
+      targetIdx = lnk.to;
+      const fromSt = objectStates[lnk.from];
+      const toSt = objectStates[lnk.to];
+      fromPt = [lnk.fromPt[0] + (fromSt?.dx ?? 0), lnk.fromPt[1] + (fromSt?.dy ?? 0)];
+      toPt = [lnk.toPt[0] + (toSt?.dx ?? 0), lnk.toPt[1] + (toSt?.dy ?? 0)];
+    } else {
+      const dstIdx = entry.cue.target;
+      if (!Number.isInteger(dstIdx) || dstIdx < 1 || dstIdx >= elements.length) continue;
+      sendIndex = dstIdx;
+      targetIdx = dstIdx;
+      const prevB = elements[dstIdx - 1].bbox;
+      const currB = elements[dstIdx].bbox;
+      fromPt = [
+        prevB.x + prevB.w + 8 + (objectStates[dstIdx - 1]?.dx ?? 0),
+        prevB.y + prevB.h / 2 + (objectStates[dstIdx - 1]?.dy ?? 0),
+      ];
+      toPt = [
+        currB.x - 8 + (objectStates[dstIdx]?.dx ?? 0),
+        currB.y + currB.h / 2 + (objectStates[dstIdx]?.dy ?? 0),
+      ];
+      bend = [0, -14];
+    }
+
+    const u = dt / 0.8;
+    if (u > 0 && u < 1) {
+      sends.push({
+        index: sendIndex,
+        prop: entry.cue.value,
+        fromPt,
+        toPt,
+        u,
+        targetIdx,
+        ...(bend ? { bend } : {}),
+      });
+      fastMotion = true;
+    } else if (dt >= 0.8 && dt <= 1.1 && objectStates[targetIdx]) {
+      const bu = clamp01((dt - 0.8) / 0.3);
+      const bVal = Math.sin(bu * Math.PI);
+      objectStates[targetIdx].bump = Math.max(objectStates[targetIdx].bump, bVal);
+      if (bVal > 1e-4) fastMotion = true;
+    }
+  }
+
+  return { objectStates, sends, fastMotion };
 }
 
 function drawStageLink(x1, y1, x2, y2, mx, my, { index, style = 'solid', seed, color, progress = 1, opacity = 1 }) {
@@ -483,6 +838,8 @@ export function renderStage(visualData, {
   t = 1,
   duration = 4,
   elementStates = [],
+  sends = [],
+  headingOpacity = 1,
   customProps = [],
   layoutResult,
 } = {}) {
@@ -501,6 +858,8 @@ export function renderStage(visualData, {
     arrowProgress: 1,
     tapShake: 0,
     stateProgress: 1,
+    drawProgress: 1,
+    bump: 0,
     inFront: false,
     ...elementStates[i],
   });
@@ -509,10 +868,12 @@ export function renderStage(visualData, {
   const frontVectors = [];
   const textItems = [];
 
-  if (data.heading) {
+  const headOp = clamp01(headingOpacity);
+  if (data.heading && headOp > 0.005) {
     const halfUl = clamp([...String(data.heading)].length * 24, 110, 320);
+    const hlOpAttr = headOp < 0.999 ? ` opacity="${num(headOp)}"` : '';
     backVectors.push(
-      `<path d="${inkStroke([[960 - halfUl, 130], [960 + halfUl, 130]], { seed: `${seed}:stage-hl`, width: [5, 7], wobble: 2 }).d}" fill="${pal.accent}"/>`,
+      `<path${hlOpAttr} d="${inkStroke([[960 - halfUl, 130], [960 + halfUl, 130]], { seed: `${seed}:stage-hl`, width: [5, 7], wobble: 2 }).d}" fill="${pal.accent}"/>`,
     );
     textItems.push({
       key: 'stage-heading',
@@ -523,7 +884,7 @@ export function renderStage(visualData, {
       color: pal.ink,
       align: 'middle',
       weight: 'bold',
-      opacity: 1,
+      opacity: headOp,
       isTitle: true,
     });
   }
@@ -594,8 +955,10 @@ export function renderStage(visualData, {
     const cx = b.x + b.w / 2;
     const cy = b.y + b.h / 2;
     const effState = st.state ?? el.state ?? 'normal';
+    const prevState = st.prevState ?? effState;
+    const sp = clamp01(st.stateProgress ?? 1);
     const customDef = customById.get(el.prop);
-    const iconSvg = customDef
+    const drawPropState = (stateName, prog) => (customDef
       ? drawCustomProp(customDef, {
           x: cx,
           y: cy,
@@ -603,8 +966,8 @@ export function renderStage(visualData, {
           height: b.h,
           style: styleName,
           seed: `${seed}:obj${i}`,
-          state: effState,
-          stateProgress: st.stateProgress ?? 1,
+          state: stateName,
+          stateProgress: prog,
         })
       : drawIcon(el.prop, {
           x: cx,
@@ -613,9 +976,29 @@ export function renderStage(visualData, {
           height: b.h,
           style: styleName,
           seed: `${seed}:obj${i}`,
-          state: effState,
-          stateProgress: st.stateProgress ?? 1,
-        });
+          state: stateName,
+          stateProgress: prog,
+        }));
+
+    let iconSvg;
+    if (sp < 0.999 && prevState !== effState) {
+      if (isCountState(prevState) && isCountState(effState)) {
+        iconSvg = drawPropState(effState, 1);
+      } else if (isOverlayState(prevState) && isOverlayState(effState)) {
+        if (prevState === 'dim' && effState === 'normal') {
+          iconSvg = `<g opacity="${num(lerp(0.45, 1, sp))}">${drawPropState('normal', 1)}</g>`;
+        } else if (prevState === 'normal') {
+          iconSvg = drawPropState(effState, sp);
+        } else {
+          iconSvg = `<g opacity="${num(1 - sp)}">${drawPropState(prevState, 1)}</g><g opacity="${num(sp)}">${drawPropState(effState, sp)}</g>`;
+        }
+      } else {
+        iconSvg = `<g opacity="${num(1 - sp)}">${drawPropState(prevState, 1)}</g><g opacity="${num(sp)}">${drawPropState(effState, sp)}</g>`;
+      }
+    } else {
+      iconSvg = drawPropState(effState, sp);
+    }
+
     const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.red, progress: st.highlight }) : '';
     const wrapped = wrapTransform(b, st, iconSvg + hl);
     if (wrapped) {
@@ -624,23 +1007,33 @@ export function renderStage(visualData, {
     }
 
     if (el.label) {
-      const yAbove = bEff.y - 24;
-      const halfW = Math.max(36, ([...el.label].length * 36) / 2);
-      const aboveBox = { x: bEff.x + bEff.w / 2 - halfW, y: yAbove - 18, w: halfW * 2, h: 36 };
-      const conflicts = yAbove < STAGE_BOUNDS.airTopMin
-        || effectiveBoxes.some((other, j) => j !== i && other.visible && boxesOverlap(aboveBox, other.shifted));
-      textItems.push({
-        key: `stage-label-${i}`,
-        text: el.label,
-        x: bEff.x + bEff.w / 2,
-        y: conflicts ? bEff.y + bEff.h * 0.55 : yAbove,
-        fontSize: 36,
-        color: pal.ink,
-        stroke: pal.paper,
-        align: 'middle',
-        weight: 'bold',
-        opacity: op,
-      });
+      const dp = clamp01(st.drawProgress ?? 1);
+      if (dp > 0) {
+        const chars = [...el.label];
+        const maxPartial = chars.length > 1 ? chars.length - 1 : 1;
+        const shownLabel = dp >= 0.999
+          ? el.label
+          : chars.slice(0, Math.min(maxPartial, Math.max(1, Math.ceil(dp * chars.length)))).join('');
+        if (shownLabel) {
+          const yAbove = bEff.y - 24;
+          const halfW = Math.max(36, (chars.length * 36) / 2);
+          const aboveBox = { x: bEff.x + bEff.w / 2 - halfW, y: yAbove - 18, w: halfW * 2, h: 36 };
+          const conflicts = yAbove < STAGE_BOUNDS.airTopMin
+            || effectiveBoxes.some((other, j) => j !== i && other.visible && boxesOverlap(aboveBox, other.shifted));
+          textItems.push({
+            key: `stage-label-${i}`,
+            text: shownLabel,
+            x: bEff.x + bEff.w / 2,
+            y: conflicts ? bEff.y + bEff.h * 0.55 : yAbove,
+            fontSize: 36,
+            color: pal.ink,
+            stroke: pal.paper,
+            align: 'middle',
+            weight: 'bold',
+            opacity: op,
+          });
+        }
+      }
     }
 
     if (isCountState(effState)) {
@@ -648,24 +1041,53 @@ export function renderStage(visualData, {
       const rad = Math.max(16, Math.min(28, Math.min(b.w, b.h) * 0.24));
       const bxLocal = b.x + b.w - rad * 0.25;
       const byLocal = b.y + rad * 0.25;
-      const sc = st.scale ?? 1;
+      const pulse = st.highlight > 0 && st.highlight < 1 ? 1 + 0.06 * Math.sin(Math.PI * clamp01(st.highlight)) : 1;
+      const bumpScale = st.bump ? 1 + 0.08 * st.bump : 1;
+      const flipScale = isCountState(prevState) && prevState !== effState && sp < 1 ? 1 + 0.12 * Math.sin(Math.PI * sp) : 1;
+      const sc = (st.scale ?? 1) * pulse * bumpScale * flipScale;
       const bx = cx + (bxLocal - cx) * sc + (st.dx ?? 0);
       const by = cy + (byLocal - cy) * sc + (st.dy ?? 0);
-      const len = [...digits].length;
+      const showPrevDigits = isCountState(prevState) && prevState !== effState && sp < 0.5;
+      const shownDigits = showPrevDigits ? prevState.slice(6) : digits;
+      const len = [...shownDigits].length;
       const fontSize = Math.max(16, Math.round(rad * (len >= 3 ? 0.85 : len === 2 ? 1.05 : 1.2) * sc));
+      const countOp = prevState !== effState && sp < 1 && !isCountState(prevState) ? op * sp : op;
       textItems.push({
         key: `stage-count-${i}`,
-        text: digits,
+        text: shownDigits,
         x: bx,
         y: by,
         fontSize,
         color: pal.isDark ? pal.paper : pal.card,
         align: 'middle',
         weight: 'bold',
-        opacity: op,
+        opacity: countOp,
       });
     }
   });
+
+  if (Array.isArray(sends)) {
+    sends.forEach((s, idx) => {
+      if (!s || !s.prop) return;
+      const lnk = Number.isInteger(s.index) ? layout.links[s.index] : null;
+      let fromPt = s.fromPt;
+      let toPt = s.toPt;
+      if (lnk) {
+        const fromSt = getState(lnk.from);
+        const toSt = getState(lnk.to);
+        if (Math.min(clamp01(fromSt.opacity), clamp01(toSt.opacity)) <= 0.005) return;
+        if (!fromPt) fromPt = [lnk.fromPt[0] + (fromSt.dx ?? 0), lnk.fromPt[1] + (fromSt.dy ?? 0)];
+        if (!toPt) toPt = [lnk.toPt[0] + (toSt.dx ?? 0), lnk.toPt[1] + (toSt.dy ?? 0)];
+      }
+      const pktSvg = renderSendPacket(fromPt, toPt, s.prop, s.u, {
+        style: styleName,
+        seed: `${seed}:send:${s.index ?? idx}`,
+        customProps,
+        bend: s.bend,
+      });
+      if (pktSvg) frontVectors.push(pktSvg);
+    });
+  }
 
   const backVectorSvg = backVectors.join('');
   const frontVectorSvg = frontVectors.join('');

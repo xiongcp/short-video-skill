@@ -1,8 +1,9 @@
 // Eight hand-drawn explainer diagram templates (火柴人主持人设计 §3.5-3.6, 出片质量设计 §6.2, §7.1, 个性化路线图 S).
 // Returns pure vectorSvg (no <text>, fast resvg) + textItems (cached CJK layer) + elements with bboxes.
-import { clamp01, easeOutCubic } from './ease.mjs';
-import { drawIcon } from './icons.mjs';
+import { clamp01, easeOutCubic, lerp } from './ease.mjs';
+import { drawIcon, drawStateOverlay, isCountState } from './icons.mjs';
 import { circlePoints, inkStroke, markerFill, num, resample } from './ink.mjs';
+import { renderSendPacket } from './stage.mjs';
 import { resolveStyle, STYLE_PALETTES, styleBackgroundSvg } from './world.mjs';
 
 export const DIAGRAM_ZONES = {
@@ -218,7 +219,7 @@ function formatAnimatedNumber(valueStr, t) {
 
 /**
  * Renders one diagram template into pure `vectorSvg` + cached `textItems` + `elements`.
- * `elementStates[i]` may specify `{ opacity, scale, dy, highlight, arrowProgress, tapShake, overrideBbox }`.
+ * `elementStates[i]` may specify `{ opacity, scale, dx, dy, highlight, arrowProgress, tapShake, overrideBbox, state, prevState, stateProgress, bump }`.
  */
 export function renderDiagram(visual, {
   layout = 'full',
@@ -228,6 +229,8 @@ export function renderDiagram(visual, {
   t = 1,
   duration = 4,
   elementStates = [],
+  sends = [],
+  customProps = [],
   zoneOverride = null,
 } = {}) {
   const { name: styleName, palette: pal } = resolveStyle(style ?? theme);
@@ -237,16 +240,67 @@ export function renderDiagram(visual, {
   const vectors = [];
   const textItems = [];
   const d = visual.data;
-  const getState = (i) => ({ opacity: 1, scale: 1, dy: 0, highlight: 0, arrowProgress: 1, tapShake: 0, ...elementStates[i] });
+  const escAttr = (s) => String(s).replace(/[&"<>]/g, (c) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' }[c]));
+  const getState = (i) => ({
+    opacity: 1,
+    scale: 1,
+    dx: 0,
+    dy: 0,
+    highlight: 0,
+    arrowProgress: 1,
+    tapShake: 0,
+    state: 'normal',
+    prevState: 'normal',
+    stateProgress: 1,
+    bump: 0,
+    ...elementStates[i],
+  });
+  const applyElementState = (bbox, st, i, keyPrefix) => {
+    const effState = st.state ?? 'normal';
+    const prevState = st.prevState ?? effState;
+    const sp = clamp01(st.stateProgress ?? 1);
+    let { opacity: stateOp, overlaySvg } = drawStateOverlay(effState, bbox, pal, `${seed}:el${i}`, sp);
+    if (prevState === 'dim' && effState === 'normal' && sp < 1) {
+      stateOp = lerp(0.45, 1, sp);
+    }
+    const effSt = { ...st, opacity: clamp01(st.opacity ?? 1) * stateOp };
+    if (isCountState(effState) && effSt.opacity > 0.005) {
+      const digits = effState.slice(6);
+      const cx = bbox.x + bbox.w / 2;
+      const cy = bbox.y + bbox.h / 2;
+      const rad = Math.max(16, Math.min(28, Math.min(bbox.w, bbox.h) * 0.24));
+      const bxLocal = bbox.x + bbox.w - rad * 0.25;
+      const byLocal = bbox.y + rad * 0.25;
+      const pulse = effSt.highlight > 0 && effSt.highlight < 1 ? 1 + 0.06 * Math.sin(Math.PI * clamp01(effSt.highlight)) : 1;
+      const bumpScale = effSt.bump ? 1 + 0.08 * effSt.bump : 1;
+      const sc = (effSt.scale ?? 1) * pulse * bumpScale;
+      const len = [...digits].length;
+      const countOp = prevState !== effState && sp < 1 && !isCountState(prevState) ? effSt.opacity * sp : effSt.opacity;
+      textItems.push({
+        key: `${keyPrefix}-count-${i}`,
+        text: digits,
+        x: cx + (bxLocal - cx) * sc + (effSt.dx ?? 0),
+        y: cy + (byLocal - cy) * sc + (effSt.dy ?? 0),
+        fontSize: Math.max(16, Math.round(rad * (len >= 3 ? 0.85 : len === 2 ? 1.05 : 1.2) * sc)),
+        color: pal.isDark ? pal.paper : pal.card,
+        align: 'middle',
+        weight: 'bold',
+        opacity: countOp,
+      });
+    }
+    return { effSt, overlaySvg };
+  };
   const wrapTransform = (bbox, st, inner) => {
     const cx = bbox.x + bbox.w / 2;
     const cy = bbox.y + bbox.h / 2;
     const pulse = st.highlight > 0 && st.highlight < 1 ? 1 + 0.06 * Math.sin(Math.PI * clamp01(st.highlight)) : 1;
-    const sc = (st.scale ?? 1) * pulse;
+    const bumpScale = st.bump ? 1 + 0.08 * st.bump : 1;
+    const sc = (st.scale ?? 1) * pulse * bumpScale;
     const rot = st.tapShake ? st.tapShake * 2 : 0;
     const op = clamp01(st.opacity ?? 1);
     if (op <= 0.005) return '';
-    return `<g opacity="${num(op)}" transform="translate(${num(cx)} ${num(cy + (st.dy ?? 0))}) rotate(${num(rot)}) scale(${num(sc)}) translate(${num(-cx)} ${num(-cy)})">${inner}</g>`;
+    const stateAttr = st.state && st.state !== 'normal' ? ` data-state="${escAttr(st.state)}"` : '';
+    return `<g${stateAttr} opacity="${num(op)}" transform="translate(${num(cx + (st.dx ?? 0))} ${num(cy + (st.dy ?? 0))}) rotate(${num(rot)}) scale(${num(sc)}) translate(${num(-cx)} ${num(-cy)})">${inner}</g>`;
   };
 
   switch (visual.template) {
@@ -254,6 +308,7 @@ export function renderDiagram(visual, {
       const el = elements[0];
       const st = getState(0);
       const b = st.overrideBbox ?? el.bbox;
+      const { effSt, overlaySvg } = applyElementState(b, st, 0, 'title');
       const chars = [...d.heading];
       const shownCount = Math.max(1, Math.min(chars.length, Math.ceil((t / Math.max(0.25, Math.min(0.5, chars.length * 0.03))) * chars.length)));
       const heading = chars.slice(0, shownCount).join('');
@@ -261,26 +316,26 @@ export function renderDiagram(visual, {
       const cy = b.y + b.h / 2 + (d.sub ? -24 : 8);
       const card = handCard(b, { seed: `${seed}:title`, fill: pal.softYellow, ink: pal.ink });
       const underline = `<path d="${inkStroke([[cx - Math.min(b.w * 0.36, 320), cy + 44], [cx + Math.min(b.w * 0.36, 320), cy + 44]], { seed: `${seed}:title-ul`, width: [6, 8], wobble: 2.5 }).d}" fill="${pal.teal}"/>`;
-      vectors.push(wrapTransform(b, st, card + underline));
+      vectors.push(wrapTransform(b, effSt, card + underline + overlaySvg));
       textItems.push({
         key: 'title-heading',
         text: heading,
-        x: cx,
-        y: cy,
+        x: cx + (effSt.dx ?? 0),
+        y: cy + (effSt.dy ?? 0),
         fontSize: layout === 'host-left' ? 68 : 88,
         color: pal.ink,
         align: 'middle',
         weight: 'bold',
-        opacity: st.opacity,
+        opacity: effSt.opacity,
         isTitle: true,
       });
       if (d.sub) {
-        const subOp = clamp01((t - 0.2) / 0.35) * st.opacity;
+        const subOp = clamp01((t - 0.2) / 0.35) * effSt.opacity;
         textItems.push({
           key: 'title-sub',
           text: d.sub,
-          x: cx,
-          y: cy + 92,
+          x: cx + (effSt.dx ?? 0),
+          y: cy + 92 + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 40 : 48,
           color: pal.muted,
           align: 'middle',
@@ -296,23 +351,24 @@ export function renderDiagram(visual, {
         const st = getState(i);
         const b = st.overrideBbox ?? el.bbox;
         if (st.opacity <= 0.005) return;
+        const { effSt, overlaySvg } = applyElementState(b, st, i, 'bullet');
         const iconName = d.icons?.[i];
-        const card = handCard(b, { seed: `${seed}:b${i}`, fill: st.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
+        const card = handCard(b, { seed: `${seed}:b${i}`, fill: effSt.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
         const iconSvg = iconName
           ? drawIcon(iconName, { x: b.x + 48, y: b.y + b.h / 2, size: Math.min(54, b.h * 0.58), ...iconStyleOpts, seed: `${seed}:bi${i}` })
           : `<path d="${inkStroke(circlePoints(b.x + 40, b.y + b.h / 2, 11, { seed: `${seed}:bd${i}`, overdraw: 0.2, count: 16 }), { seed: `${seed}:bd${i}`, width: [4, 5], wobble: 0.8 }).d}" fill="${pal.teal}"/>`;
-        const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.teal, progress: st.highlight }) : '';
-        vectors.push(wrapTransform(b, st, card + iconSvg + hl));
+        const hl = effSt.highlight > 0 ? handHighlight(b, i, { seed, color: pal.teal, progress: effSt.highlight }) : '';
+        vectors.push(wrapTransform(b, effSt, card + iconSvg + hl + overlaySvg));
         textItems.push({
           key: `bullet-${i}`,
           text: el.label,
-          x: b.x + (iconName ? 94 : 72),
-          y: b.y + b.h / 2 + (st.dy ?? 0),
+          x: b.x + (iconName ? 94 : 72) + (effSt.dx ?? 0),
+          y: b.y + b.h / 2 + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 38 : 48,
           color: pal.ink,
           align: 'start',
-          weight: st.highlight > 0 ? 'bold' : 'normal',
-          opacity: st.opacity,
+          weight: effSt.highlight > 0 ? 'bold' : 'normal',
+          opacity: effSt.opacity,
         });
       });
       break;
@@ -324,34 +380,68 @@ export function renderDiagram(visual, {
         const st = getState(i);
         const b = st.overrideBbox ?? el.bbox;
         if (st.opacity <= 0.005) return;
+        const { effSt, overlaySvg } = applyElementState(b, st, i, 'flow');
         const iconName = d.icons?.[i];
-        const card = handCard(b, { seed: `${seed}:f${i}`, fill: st.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
+        const card = handCard(b, { seed: `${seed}:f${i}`, fill: effSt.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
         const iconSvg = iconName
           ? drawIcon(iconName, { x: b.x + b.w / 2, y: b.y + b.h * 0.34, size: Math.min(64, b.h * 0.36), ...iconStyleOpts, seed: `${seed}:fi${i}` })
           : '';
-        const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.red, progress: st.highlight }) : '';
-        vectors.push(wrapTransform(b, st, card + iconSvg + hl));
+        const hl = effSt.highlight > 0 ? handHighlight(b, i, { seed, color: pal.red, progress: effSt.highlight }) : '';
+        vectors.push(wrapTransform(b, effSt, card + iconSvg + hl + overlaySvg));
         textItems.push({
           key: `flow-${i}`,
           text: el.label,
-          x: b.x + b.w / 2,
-          y: b.y + (iconName ? b.h * 0.75 : b.h / 2) + (st.dy ?? 0),
+          x: b.x + b.w / 2 + (effSt.dx ?? 0),
+          y: b.y + (iconName ? b.h * 0.75 : b.h / 2) + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 38 : 46,
           color: pal.ink,
           align: 'middle',
           weight: 'bold',
-          opacity: st.opacity,
+          opacity: effSt.opacity,
         });
         if (i > 0) {
-          const prevB = getState(i - 1).overrideBbox ?? elements[i - 1].bbox;
-          const arrow = handArrow(prevB.x + prevB.w + 8, prevB.y + prevB.h / 2, b.x - 8, b.y + b.h / 2, {
-            seed: `${seed}:arr${i}`,
-            color: st.highlight > 0 ? pal.red : pal.teal,
-            progress: st.arrowProgress * st.opacity,
-          });
+          const prevSt = getState(i - 1);
+          const prevB = prevSt.overrideBbox ?? elements[i - 1].bbox;
+          const arrow = handArrow(
+            prevB.x + prevB.w + 8 + (prevSt.dx ?? 0),
+            prevB.y + prevB.h / 2 + (prevSt.dy ?? 0),
+            b.x - 8 + (st.dx ?? 0),
+            b.y + b.h / 2 + (st.dy ?? 0),
+            {
+              seed: `${seed}:arr${i}`,
+              color: st.highlight > 0 ? pal.red : pal.teal,
+              progress: st.arrowProgress * st.opacity,
+            },
+          );
           if (arrow) vectors.push(arrow);
         }
       });
+      if (Array.isArray(sends)) {
+        sends.forEach((s, idx) => {
+          if (!s || !s.prop) return;
+          const targetIdx = s.targetIdx ?? s.index;
+          if (!Number.isInteger(targetIdx) || targetIdx < 1 || targetIdx >= elements.length) return;
+          const prevSt = getState(targetIdx - 1);
+          const currSt = getState(targetIdx);
+          if (Math.min(clamp01(prevSt.opacity), clamp01(currSt.opacity)) <= 0.005) return;
+          const prevB = prevSt.overrideBbox ?? elements[targetIdx - 1].bbox;
+          const currB = currSt.overrideBbox ?? elements[targetIdx].bbox;
+          const hasOverride = Boolean(zoneOverride || prevSt.overrideBbox || currSt.overrideBbox);
+          const fromPt = !hasOverride && Array.isArray(s.fromPt)
+            ? s.fromPt
+            : [prevB.x + prevB.w + 8 + (prevSt.dx ?? 0), prevB.y + prevB.h / 2 + (prevSt.dy ?? 0)];
+          const toPt = !hasOverride && Array.isArray(s.toPt)
+            ? s.toPt
+            : [currB.x - 8 + (currSt.dx ?? 0), currB.y + currB.h / 2 + (currSt.dy ?? 0)];
+          const pktSvg = renderSendPacket(fromPt, toPt, s.prop, s.u, {
+            style: styleName,
+            seed: `${seed}:send:${s.index ?? idx}`,
+            customProps,
+            bend: s.bend ?? [0, -14],
+          });
+          if (pktSvg) vectors.push(pktSvg);
+        });
+      }
       break;
     }
 
@@ -362,34 +452,35 @@ export function renderDiagram(visual, {
         const st = getState(i);
         const b = st.overrideBbox ?? el.bbox;
         if (st.opacity <= 0.005) return;
+        const { effSt, overlaySvg } = applyElementState(b, st, i, 'compare');
         const headerH = Math.min(84, b.h * 0.28);
         const card = handCard(b, { seed: `${seed}:c${i}`, fill: pal.card, ink: pal.ink });
         const header = `<path d="${markerFill([[b.x + 4, b.y + 4], [b.x + b.w - 4, b.y + 4], [b.x + b.w - 4, b.y + headerH], [b.x + 4, b.y + headerH]], { seed: `${seed}:ch${i}`, shift: 3 })}" fill="${headerFills[i]}"/>`
           + `<path d="${inkStroke([[b.x, b.y + headerH], [b.x + b.w, b.y + headerH]], { seed: `${seed}:cs${i}`, width: [3.5, 5], wobble: 1.5 }).d}" fill="${pal.ink}"/>`;
-        const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.teal, progress: st.highlight }) : '';
-        vectors.push(wrapTransform(b, st, card + header + hl));
+        const hl = effSt.highlight > 0 ? handHighlight(b, i, { seed, color: pal.teal, progress: effSt.highlight }) : '';
+        vectors.push(wrapTransform(b, effSt, card + header + hl + overlaySvg));
         textItems.push({
           key: `compare-label-${i}`,
           text: cols[i].label,
-          x: b.x + b.w / 2,
-          y: b.y + headerH / 2 + (st.dy ?? 0),
+          x: b.x + b.w / 2 + (effSt.dx ?? 0),
+          y: b.y + headerH / 2 + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 40 : 48,
           color: pal.ink,
           align: 'middle',
           weight: 'bold',
-          opacity: st.opacity,
+          opacity: effSt.opacity,
         });
         const rowH = (b.h - headerH - 20) / Math.max(1, cols[i].rows.length);
         cols[i].rows.forEach((row, r) => {
           textItems.push({
             key: `compare-${i}-row-${r}`,
             text: row,
-            x: b.x + b.w / 2,
-            y: b.y + headerH + 10 + rowH * (r + 0.5) + (st.dy ?? 0),
+            x: b.x + b.w / 2 + (effSt.dx ?? 0),
+            y: b.y + headerH + 10 + rowH * (r + 0.5) + (effSt.dy ?? 0),
             fontSize: layout === 'host-left' ? 34 : 42,
             color: pal.ink,
             align: 'middle',
-            opacity: st.opacity,
+            opacity: effSt.opacity,
           });
         });
       });
@@ -400,34 +491,35 @@ export function renderDiagram(visual, {
       const el = elements[0];
       const st = getState(0);
       const b = st.overrideBbox ?? el.bbox;
+      const { effSt, overlaySvg } = applyElementState(b, st, 0, 'number');
       const cx = b.x + b.w / 2;
       const cy = b.y + b.h / 2;
       const card = handCard(b, { seed: `${seed}:num`, fill: pal.softTeal, ink: pal.ink });
       const ring = `<path d="${inkStroke(circlePoints(cx, cy - 34, Math.min(b.w, b.h) * 0.34, { seed: `${seed}:num-ring`, overdraw: 0.3, count: 40 }), { seed: `${seed}:num-ring`, width: [5, 7], wobble: 2.5 }).d}" fill="${pal.teal}"/>`;
-      vectors.push(wrapTransform(b, st, card + ring));
+      vectors.push(wrapTransform(b, effSt, card + ring + overlaySvg));
       textItems.push({
         key: 'number-value',
         text: formatAnimatedNumber(d.value, t),
-        x: cx,
-        y: cy - 30,
+        x: cx + (effSt.dx ?? 0),
+        y: cy - 30 + (effSt.dy ?? 0),
         fontSize: layout === 'host-left' ? 116 : 164,
         color: pal.teal,
         stroke: pal.textStroke,
         align: 'middle',
         weight: 'bold',
-        opacity: st.opacity,
+        opacity: effSt.opacity,
         isTitle: true,
       });
       textItems.push({
         key: 'number-label',
         text: d.label,
-        x: cx,
-        y: cy + (layout === 'host-left' ? 105 : 145),
+        x: cx + (effSt.dx ?? 0),
+        y: cy + (layout === 'host-left' ? 105 : 145) + (effSt.dy ?? 0),
         fontSize: layout === 'host-left' ? 42 : 52,
         color: pal.ink,
         align: 'middle',
         weight: 'bold',
-        opacity: st.opacity,
+        opacity: effSt.opacity,
       });
       break;
     }
@@ -447,30 +539,31 @@ export function renderDiagram(visual, {
         const grow = easeOutCubic(clamp01((t - i * 0.08) / 0.6));
         const barH = Math.max(10, (d.items[i].value / maxVal) * maxBarH * grow);
         const barRect = { x: b.x + 8, y: baseLineY - barH, w: b.w - 16, h: barH };
+        const { effSt, overlaySvg } = applyElementState(barRect, st, i, 'bar');
         const bar = handCard(barRect, { seed: `${seed}:bar${i}`, fill: fills[i % fills.length], ink: pal.ink, strokeWidth: [3.5, 5], overshoot: 3 });
-        const hl = st.highlight > 0 ? handHighlight(barRect, i, { seed, color: pal.red, progress: st.highlight }) : '';
-        vectors.push(wrapTransform(barRect, st, bar + hl));
+        const hl = effSt.highlight > 0 ? handHighlight(barRect, i, { seed, color: pal.red, progress: effSt.highlight }) : '';
+        vectors.push(wrapTransform(barRect, effSt, bar + hl + overlaySvg));
         const valStr = `${d.items[i].value}${d.unit ?? ''}`;
         textItems.push({
           key: `bar-val-${i}`,
           text: valStr,
-          x: b.x + b.w / 2,
-          y: barRect.y - 24,
+          x: b.x + b.w / 2 + (effSt.dx ?? 0),
+          y: barRect.y - 24 + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 32 : 38,
           color: pal.ink,
           align: 'middle',
           weight: 'bold',
-          opacity: st.opacity * clamp01(grow * 2),
+          opacity: effSt.opacity * clamp01(grow * 2),
         });
         textItems.push({
           key: `bar-label-${i}`,
           text: el.label,
-          x: b.x + b.w / 2,
-          y: baseLineY + 34,
+          x: b.x + b.w / 2 + (effSt.dx ?? 0),
+          y: baseLineY + 34 + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 32 : 38,
           color: pal.ink,
           align: 'middle',
-          opacity: st.opacity,
+          opacity: effSt.opacity,
         });
       });
       break;
@@ -486,44 +579,45 @@ export function renderDiagram(visual, {
         const st = getState(i);
         const b = st.overrideBbox ?? el.bbox;
         if (st.opacity <= 0.005) return;
+        const { effSt, overlaySvg } = applyElementState(b, st, i, 'timeline');
         const item = d.items[i];
         const isTop = i % 2 === 0;
         const cx = b.x + b.w / 2;
         const stemY = isTop ? b.y + b.h : b.y;
         const stem = `<path d="${inkStroke([[cx, axisY], [cx, stemY]], { seed: `${seed}:tls${i}`, width: [3.5, 5], wobble: 1.2 }).d}" fill="${pal.ink}"/>`;
         const dotPts = circlePoints(cx, axisY, 10, { seed: `${seed}:tld${i}`, overdraw: 0.25, count: 18 });
-        const dot = `<g opacity="${num(clamp01(st.opacity))}">`
-          + `<path d="${markerFill(dotPts, { seed: `${seed}:tldf${i}`, shift: 2 })}" fill="${st.highlight > 0 ? pal.yellow : pal.softTeal}"/>`
+        const dot = `<g opacity="${num(clamp01(effSt.opacity))}">`
+          + `<path d="${markerFill(dotPts, { seed: `${seed}:tldf${i}`, shift: 2 })}" fill="${effSt.highlight > 0 ? pal.yellow : pal.softTeal}"/>`
           + `<path d="${inkStroke(dotPts, { seed: `${seed}:tlds${i}`, width: [4, 5], wobble: 0.9 }).d}" fill="${pal.ink}"/>`
           + '</g>';
-        const card = handCard(b, { seed: `${seed}:tlc${i}`, fill: st.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
+        const card = handCard(b, { seed: `${seed}:tlc${i}`, fill: effSt.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
         const iconSvg = item.icon
           ? drawIcon(item.icon, { x: b.x + 34, y: b.y + 36, size: Math.min(40, b.h * 0.28), ...iconStyleOpts, seed: `${seed}:tli${i}` })
           : '';
-        const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.teal, progress: st.highlight }) : '';
-        vectors.push(dot + wrapTransform(b, st, stem + card + iconSvg + hl));
+        const hl = effSt.highlight > 0 ? handHighlight(b, i, { seed, color: pal.teal, progress: effSt.highlight }) : '';
+        vectors.push(dot + wrapTransform(b, effSt, stem + card + iconSvg + hl + overlaySvg));
 
         textItems.push({
           key: `timeline-time-${i}`,
           text: item.time,
-          x: item.icon ? b.x + 62 : cx,
-          y: b.y + 36 + (st.dy ?? 0),
+          x: (item.icon ? b.x + 62 : cx) + (effSt.dx ?? 0),
+          y: b.y + 36 + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 28 : 34,
           color: pal.teal,
           align: item.icon ? 'start' : 'middle',
           weight: 'bold',
-          opacity: st.opacity,
+          opacity: effSt.opacity,
         });
         textItems.push({
           key: `timeline-label-${i}`,
           text: item.label,
-          x: cx,
-          y: b.y + b.h * 0.68 + (st.dy ?? 0),
+          x: cx + (effSt.dx ?? 0),
+          y: b.y + b.h * 0.68 + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 32 : 38,
           color: pal.ink,
           align: 'middle',
-          weight: st.highlight > 0 ? 'bold' : 'normal',
-          opacity: st.opacity,
+          weight: effSt.highlight > 0 ? 'bold' : 'normal',
+          opacity: effSt.opacity,
         });
       });
       break;
@@ -536,23 +630,24 @@ export function renderDiagram(visual, {
         const st = getState(i);
         const b = st.overrideBbox ?? el.bbox;
         if (st.opacity <= 0.005) return;
+        const { effSt, overlaySvg } = applyElementState(b, st, i, 'cycle');
         const item = d.items[i];
-        const card = handRoundedCard(b, { seed: `${seed}:cyc${i}`, fill: st.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
+        const card = handRoundedCard(b, { seed: `${seed}:cyc${i}`, fill: effSt.highlight > 0 ? pal.softYellow : fills[i % fills.length], ink: pal.ink });
         const iconSvg = item.icon
           ? drawIcon(item.icon, { x: b.x + 40, y: b.y + b.h / 2, size: Math.min(48, b.h * 0.56), ...iconStyleOpts, seed: `${seed}:cyci${i}` })
           : '';
-        const hl = st.highlight > 0 ? handHighlight(b, i, { seed, color: pal.red, progress: st.highlight }) : '';
-        vectors.push(wrapTransform(b, st, card + iconSvg + hl));
+        const hl = effSt.highlight > 0 ? handHighlight(b, i, { seed, color: pal.red, progress: effSt.highlight }) : '';
+        vectors.push(wrapTransform(b, effSt, card + iconSvg + hl + overlaySvg));
         textItems.push({
           key: `cycle-${i}`,
           text: item.label,
-          x: item.icon ? b.x + 74 : b.x + b.w / 2,
-          y: b.y + b.h / 2 + (st.dy ?? 0),
+          x: (item.icon ? b.x + 74 : b.x + b.w / 2) + (effSt.dx ?? 0),
+          y: b.y + b.h / 2 + (effSt.dy ?? 0),
           fontSize: layout === 'host-left' ? 34 : 42,
           color: pal.ink,
           align: item.icon ? 'start' : 'middle',
           weight: 'bold',
-          opacity: st.opacity,
+          opacity: effSt.opacity,
         });
 
         const prevIdx = (i - 1 + n) % n;
