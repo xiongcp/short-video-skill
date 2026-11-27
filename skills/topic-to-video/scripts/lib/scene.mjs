@@ -3,10 +3,10 @@
 // (出片质量设计 §4.1, §7.1-7.2, 火柴人主持人设计 §7.4-7.5, 超越路线图 §5.3).
 import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
-import { FRAMES, frameFor, isPortrait, textOutsideSafe } from './frame.mjs';
-import { evaluateHostAt, walkFrame } from './motion.mjs';
+import { FRAMES, frameFor, isPortrait, textBox, textOutsideSafe } from './frame.mjs';
+import { evaluateHostAt, hostEventTimeline, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
-import { evaluateStageObjects, layoutStage, renderStage } from './stage.mjs';
+import { chooseLinkLabelT, evaluateStageObjects, layoutStage, linkControlPoint, renderStage } from './stage.mjs';
 import { layoutElements, renderDiagram } from './templates.mjs';
 import { resolveCueTiming, splitClauses, subtitlePages } from './timing.mjs';
 import { resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
@@ -213,7 +213,7 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
     };
 
     if (isHost) {
-      const endEval = evaluateHostAt(manifest, {
+      const hostPlan = {
         seed: shot.id,
         theme,
         style,
@@ -225,7 +225,9 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
         cues,
         elements,
         sentences: relSentences,
-      }, tl.durationSec);
+      };
+      const endEval = evaluateHostAt(manifest, hostPlan, tl.durationSec);
+      if (isStage) placeLinkLabels(stageLayout, manifest, hostPlan, [startState.x, endEval.endState.x], frame);
       plan.endHostState = endEval.endState;
       plan.endHostMeta = endEval;
       lastHostEnd = endEval.endState;
@@ -241,7 +243,35 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
   return plans;
 }
 
+/**
+ * Moves each stage link label along its curve so it clears every spot the host stands or walks through in this shot
+ * (body half-width 70 px, one body height above the ground). Stored as stageLayout.links[i].labelT.
+ */
+function placeLinkLabels(stageLayout, manifest, hostPlan, extraXs, frame) {
+  const labelled = stageLayout.links.filter((lnk) => lnk.label && lnk.from !== lnk.to);
+  if (!labelled.length) return;
+  const ev = hostEventTimeline(manifest, hostPlan);
+  const xs = [...extraXs, ...ev.walks.flatMap((w) => [w.fromX, w.toX]), ...ev.interactions.map((it) => it.x)];
+  const span = { x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, y0: frame.ground - manifest.height_px, y1: frame.ground };
+  for (const lnk of labelled) {
+    const m = linkControlPoint(lnk.fromPt[0], lnk.fromPt[1], lnk.toPt[0], lnk.toPt[1]);
+    const { w } = textBox({ text: lnk.label, fontSize: 30, x: 0, y: 0 });
+    lnk.labelT = chooseLinkLabelT({ p1: lnk.fromPt, m, p2: lnk.toPt }, { w, h: 34 }, span);
+  }
+}
+
 /** Deterministic cache key for one shot — intentionally excludes absolute frame offsets (出片质量设计 §4.1). */
+/** Whether any visible stage link label in `textItems` overlaps the host's body box (QA LINK_LABEL_OVER_HOST). */
+export function linkLabelsOverHost(textItems, hb) {
+  return textItems.some((it) => {
+    if (!it.key?.startsWith('stage-link-') || (it.opacity ?? 1) <= 0.02) return false;
+    const b = textBox(it);
+    return b.x < hb.x + hb.w && b.x + b.w > hb.x && b.y < hb.y + hb.h && b.y + b.h > hb.y;
+  });
+}
+
+const labelTs = (shotPlan) => (shotPlan.stageLayout?.links ?? []).map((lnk) => lnk.labelT ?? 0.5);
+
 export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, motionBlur = false, rigVersion = 2 } = {}) {
   return createHash('sha256').update(JSON.stringify({
     v: SCENE_VERSION,
@@ -268,6 +298,7 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     motionBlur,
     ...(shotPlan.frame && shotPlan.frame.ratio !== '16:9' ? { ratio: shotPlan.frame.ratio } : {}),
     ...(shotPlan.draft ? { draft: true } : {}),
+    ...(labelTs(shotPlan).some((t) => t !== 0.5) ? { labelTs: labelTs(shotPlan) } : {}),
   })).digest('hex').slice(0, 16);
 }
 

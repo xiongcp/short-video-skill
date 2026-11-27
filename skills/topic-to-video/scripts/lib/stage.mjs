@@ -304,6 +304,31 @@ function buildAttempt(specs, scale, preferredHostX, hostHeight, geo = LANDSCAPE)
   };
 }
 
+const bezier = (a, m, b, t) => (1 - t) ** 2 * a + 2 * (1 - t) * t * m + t ** 2 * b;
+const LABEL_TS = [0.5, 0.35, 0.65, 0.22, 0.78];
+
+/** Bend control point of a stage link, the same curve renderStage draws. */
+export function linkControlPoint(x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const dist = Math.hypot(dx, dy) || 1;
+  const bendAmt = Math.min(44, dist * 0.12);
+  return [(x1 + x2) / 2 + (dy / dist) * bendAmt, (y1 + y2) / 2 - (dx / dist) * bendAmt];
+}
+
+/**
+ * Where along a link its label sits: the first of t = 0.5, 0.35, 0.65, 0.22, 0.78 whose label box (centred 20 px above
+ * the curve) clears the host's span for the shot; 0.5 when none does, and QA then warns LINK_LABEL_OVER_HOST.
+ */
+export function chooseLinkLabelT({ p1, m, p2 }, { w, h }, host) {
+  const clear = (t) => {
+    const x = bezier(p1[0], m[0], p2[0], t);
+    const y = bezier(p1[1], m[1], p2[1], t) - 20;
+    return x + w / 2 < host.x0 || x - w / 2 > host.x1 || y + h / 2 < host.y0 || y - h / 2 > host.y1;
+  };
+  return LABEL_TS.find(clear) ?? 0.5;
+}
+
 /**
  * Deterministic semantic stage layout: resolves slots/ratios, spreads same-layer overlaps >= 40 px,
  * stacks `mid` objects onto same-slot `ground` objects, reserves a 200 px host corridor, and auto-scales down to 0.6.
@@ -941,12 +966,7 @@ export function renderStage(visualData, {
     const y1 = lnk.fromPt[1] + (fromSt.dy ?? 0);
     const x2 = lnk.toPt[0] + (toSt.dx ?? 0);
     const y2 = lnk.toPt[1] + (toSt.dy ?? 0);
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const dist = Math.hypot(dx, dy) || 1;
-    const bendAmt = Math.min(44, dist * 0.12);
-    const mx = (x1 + x2) / 2 + (dy / dist) * bendAmt;
-    const my = (y1 + y2) / 2 - (dx / dist) * bendAmt;
+    const [mx, my] = linkControlPoint(x1, y1, x2, y2);
 
     const linkSvg = drawStageLink(x1, y1, x2, y2, mx, my, {
       index: lnk.index,
@@ -959,8 +979,9 @@ export function renderStage(visualData, {
     if (linkSvg) backVectors.push(linkSvg);
 
     if (lnk.label) {
-      const midX = 0.25 * x1 + 0.5 * mx + 0.25 * x2;
-      const midY = 0.25 * y1 + 0.5 * my + 0.25 * y2;
+      const lt = lnk.labelT ?? 0.5;
+      const midX = bezier(x1, mx, x2, lt);
+      const midY = bezier(y1, my, y2, lt);
       textItems.push({
         key: `stage-link-${lnk.index}`,
         text: lnk.label,

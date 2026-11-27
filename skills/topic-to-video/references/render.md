@@ -77,6 +77,7 @@ node <本 skill 目录>/scripts/render.mjs <项目文件夹>
   - `SYNC_DRIFT`、`FREEZE_DETECTED`、`UNPLANNED_JUMP`：重出一次；还在就如实告诉用户。
   - `HOST_OCCLUSION`、`HOST_OBJECT_OVERLAP`、`STAGE_CROWDED`、`SAFE_ZONE_TEXT`：改分镜（换槽位、减物件或拆镜头），再出片。
   - `MUSIC_TOO_LOUD`、`SFX_OVER_VOICE`：见 providers.md 的声音一节。
+- `warnings` 里的 `LINK_LABEL_OVER_HOST` 是连线标签压在小青身上：换物件槽位、缩短标签或让小青站到另一边，再出片。
   - `COLOR_NOT_BT709`、`FPS_MISMATCH`、`SIZE_MISMATCH` 等规格问题：多半出在 FFmpeg 版本或参数上，原样报告。
 - `manual_review` 里标 `not_checked` 的人工项（审美、配音自然度、口型抽查、混音）照实告诉用户，请用户看一遍；竖屏的“真机遮挡”见 providers.md 的竖屏一节。
 

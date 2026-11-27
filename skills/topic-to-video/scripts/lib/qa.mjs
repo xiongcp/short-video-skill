@@ -294,6 +294,9 @@ export async function runQa(projectDir, {
     if ((meta?.objectOverlapFrames ?? 0) > 0) {
       issues.push({ code: 'HOST_OBJECT_OVERLAP', shotId, frames: meta.objectOverlapFrames, message: `镜头 ${shotId} 有 ${meta.objectOverlapFrames} 帧出现主持人身体与舞台物件重叠` });
     }
+    if ((meta?.labelOverHostFrames ?? 0) > 0) {
+      warnings.push({ code: 'LINK_LABEL_OVER_HOST', shotId, frames: meta.labelOverHostFrames, message: `镜头 ${shotId} 有 ${meta.labelOverHostFrames} 帧连线标签压在主持人身上；可换物件槽位或缩短标签` });
+    }
   }
   issues.push(...layoutIssues);
 

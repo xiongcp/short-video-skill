@@ -87,9 +87,10 @@ test('runQa catches BT.601 color, host occlusion and rushed moves, and passes a 
       expectedFps: rendered.fps,
       timeline: rendered.timeline,
       shotPlans: rendered.shotPlans,
-      qaByShot: { sh01: { rushedMove: true, occludedFrames: 5 } },
+      qaByShot: { sh01: { rushedMove: true, occludedFrames: 5, labelOverHostFrames: 4 } },
     });
     const codes = badQa.issues.map((i) => i.code);
+    assert.ok(badQa.warnings.some((w) => w.code === 'LINK_LABEL_OVER_HOST' && w.shotId === 'sh01' && w.frames === 4));
     assert.ok(codes.includes('COLOR_NOT_BT709'), `expected COLOR_NOT_BT709 in ${codes}`);
     assert.ok(codes.includes('HOST_OCCLUSION'), `expected HOST_OCCLUSION in ${codes}`);
     assert.ok(codes.includes('RUSHED_MOVE'), `expected RUSHED_MOVE in ${codes}`);

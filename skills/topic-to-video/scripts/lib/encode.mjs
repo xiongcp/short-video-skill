@@ -12,7 +12,7 @@ import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from './mouth.mjs';
 import { buildSoundtrack, makeStereoWavBuffer } from './music.mjs';
 import { isDraft, resolveSound } from './project.mjs';
 import { analyzeMixLevels } from './qa.mjs';
-import { buildShotPlans, evaluateFrame, portraitLayoutIssues, shotCacheKey } from './scene.mjs';
+import { buildShotPlans, evaluateFrame, linkLabelsOverHost, portraitLayoutIssues, shotCacheKey } from './scene.mjs';
 import { buildTimeline } from './timebase.mjs';
 import { subtitlePages } from './timing.mjs';
 import { synthesizeProject } from './tts.mjs';
@@ -129,7 +129,7 @@ function renderSingleRgba(Resvg, rasterText, manifest, shotPlan, t, audioFrame, 
     const bmp = rasterText(item);
     alphaBlit(out, width, height, bmp.pixels, bmp.width, bmp.height, item.x * scale - bmp.anchorX, item.y * scale - bmp.anchorY, item.opacity ?? 1);
   }
-  return { rgba: out, isFastMotion: frame.isFastMotion, hostMeta: frame.hostMeta, objectBoxes: frame.objectBoxes };
+  return { rgba: out, isFastMotion: frame.isFastMotion, hostMeta: frame.hostMeta, objectBoxes: frame.objectBoxes, textItems: frame.textItems };
 }
 
 const MOVING_CUE_DO = new Set(['move', 'open', 'carry', 'push', 'pull', 'hold_up', 'draw', 'sit_on']);
@@ -208,7 +208,7 @@ async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width,
 
   const frameCount = shotPlan.frameCount;
   const accum = motionBlur ? new Uint16Array(width * height * 4) : null;
-  const qaEvents = { rushedMove: false, occludedFrames: 0, objectOverlapFrames: 0 };
+  const qaEvents = { rushedMove: false, occludedFrames: 0, objectOverlapFrames: 0, labelOverHostFrames: 0 };
   const firstRevealSec = shotPlan.elements.map((_, idx) => {
     const times = shotPlan.cues.filter((c) => c.do === 'reveal' && c.target === idx).map((c) => c.timeMs / 1000);
     return times.length ? Math.min(...times) : -Infinity;
@@ -235,6 +235,7 @@ async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width,
           ));
           if (overlapsObj) qaEvents.objectOverlapFrames += 1;
         }
+        if (linkLabelsOverHost(main.textItems, hb)) qaEvents.labelOverHostFrames += 1;
       } else {
         const overlapsOther = shotPlan.elements.some((el, idx) => idx !== main.hostMeta.focusIdx
           && hb.x < el.bbox.x + el.bbox.w && hb.x + hb.w > el.bbox.x

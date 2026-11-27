@@ -207,7 +207,7 @@ test('SKILL.md makes L1 the default when doctor says it can render and links ren
 test('render.md documents every render error code, the voice fix and the QA follow-up', () => {
   const render = read('references/render.md');
   for (const code of ERROR_CODES) assert.ok(render.includes(`\`${code}\``), code);
-  for (const word of ['recommended_voice', 'preset', '--sample', 'qa.md', 'not_checked', 'npm install --prefix', '退出码 2']) assert.ok(render.includes(word), word);
+  for (const word of ['recommended_voice', 'preset', '--sample', 'qa.md', 'not_checked', 'npm install --prefix', '退出码 2', 'LINK_LABEL_OVER_HOST']) assert.ok(render.includes(word), word);
 });
 
 test('the description says the skill renders a video locally', () => {
