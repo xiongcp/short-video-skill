@@ -2,7 +2,7 @@
 // selective 4x subframe motion blur, FFmpeg H.264 BT.709 / yuv444p master encoding, 2-pass loudnorm,
 // and deliverables (.srt, .ass, cover.png, chapters.txt) (出片质量设计 §8, 超越路线图 §5.2-5.3).
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { cpus } from 'node:os';
 import { join, resolve } from 'node:path';
 import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads';
@@ -200,11 +200,16 @@ async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width,
 
   const proc = spawn(ffmpeg, args, { stdio: ['pipe', 'ignore', 'pipe'] });
   let stderr = '';
+  let stdinClosed = false;
+  proc.stdin.on('error', () => { stdinClosed = true; });
+  proc.stdin.on('close', () => { stdinClosed = true; });
   proc.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
   const done = new Promise((resolve, reject) => {
     proc.on('error', reject);
     proc.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg shot ${shotPlan.id} failed (${code}): ${stderr}`))));
   });
+  // Observed via `await done` below; attach a noop handler so an early exit during the frame loop is not an unhandledRejection.
+  done.catch(() => {});
 
   const frameCount = shotPlan.frameCount;
   const accum = motionBlur ? new Uint16Array(width * height * 4) : null;
@@ -215,6 +220,7 @@ async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width,
   });
 
   for (let f = 0; f < frameCount; f += 1) {
+    if (stdinClosed) break;
     const t = f / fps;
     const af = audioFrames[Math.min(audioFrames.length - 1, f)] ?? { open: 0, width: 0.5, nod: 0 };
     const main = renderSingleRgba(Resvg, rasterText, manifest, shotPlan, t, af, width, height);
@@ -258,11 +264,22 @@ async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width,
     }
 
     applySubtleDither(finalRgba, width, height);
+    if (stdinClosed) break;
     if (!proc.stdin.write(finalRgba)) {
-      await new Promise((r) => proc.stdin.once('drain', r));
+      await new Promise((r) => {
+        const finish = () => {
+          proc.stdin.off('drain', finish);
+          proc.stdin.off('error', finish);
+          proc.stdin.off('close', finish);
+          r();
+        };
+        proc.stdin.once('drain', finish);
+        proc.stdin.once('error', finish);
+        proc.stdin.once('close', finish);
+      });
     }
   }
-  proc.stdin.end();
+  if (!stdinClosed) proc.stdin.end();
   await done;
   return qaEvents;
 }
@@ -428,7 +445,7 @@ export function twoPassLoudnorm(inWav, outM4a, { ffmpeg = 'ffmpeg', polish = tru
   if (p2.error || p2.status !== 0) throw new Error(`ffmpeg loudnorm failed: ${p2.stderr || p2.error?.message}`);
 }
 
-async function runPool(jobs, concurrency) {
+async function runPool(jobs, concurrency, onDone) {
   const results = [];
   let next = 0;
   const runOne = async () => {
@@ -446,6 +463,7 @@ async function runPool(jobs, concurrency) {
           w.on('exit', (code) => { if (code !== 0) reject(new Error(`worker exited ${code}`)); });
         });
       }
+      onDone?.(job, results[idx]);
     }
   };
   await Promise.all(Array.from({ length: Math.max(1, Math.min(concurrency, jobs.length)) }, runOne));
@@ -511,23 +529,32 @@ export async function renderProject(rawProjectDir, opts = {}) {
   for (const plan of selectedPlans) {
     const key = shotCacheKey(plan, { fps, width, height, motionBlur, rigVersion: manifest.rig_version });
     const mp4 = join(cacheDir, `${plan.id}-${key}.mp4`);
+    const qaFile = mp4.replace(/\.mp4$/, '.qa.json');
     shotMp4s.push(mp4);
-    if (existsSync(mp4) && !opts.force) {
+    let cachedQa = null;
+    if (existsSync(mp4) && existsSync(qaFile) && !opts.force) {
+      try {
+        const parsed = JSON.parse(readFileSync(qaFile, 'utf8'));
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) cachedQa = parsed;
+      } catch {
+        cachedQa = null;
+      }
+    }
+    if (cachedQa) {
       cacheHits.push(plan.id);
-      // The shot's per-frame QA counts are cached beside it, so a re-render still reports them.
-      const qaFile = mp4.replace(/\.mp4$/, '.qa.json');
-      if (existsSync(qaFile)) qaByShot[plan.id] = JSON.parse(readFileSync(qaFile, 'utf8'));
+      // The shot's per-frame QA counts are cached beside it; video-only caches without .qa.json miss and re-render.
+      qaByShot[plan.id] = cachedQa;
     } else {
+      rmSync(qaFile, { force: true });
       jobs.push({ projectDir, manifest, shotPlan: plan, outPath: mp4, width, height, fps, crf, preset, motionBlur, ffmpeg });
     }
   }
 
   const workerCount = opts.workers ?? Math.max(1, Math.min(cpus().length - 1, 8));
   if (jobs.length) {
-    const metaList = await runPool(jobs, workerCount);
-    jobs.forEach((j, i) => {
-      qaByShot[j.shotPlan.id] = metaList[i];
-      writeFileSync(j.outPath.replace(/\.mp4$/, '.qa.json'), `${JSON.stringify(metaList[i])}\n`);
+    await runPool(jobs, workerCount, (j, meta) => {
+      qaByShot[j.shotPlan.id] = meta;
+      writeFileSync(j.outPath.replace(/\.mp4$/, '.qa.json'), `${JSON.stringify(meta)}\n`);
     });
   }
 

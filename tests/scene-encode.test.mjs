@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
@@ -736,6 +736,94 @@ test('a world project renders a stereo 48 kHz mix with the synthesized music bed
     assert.equal(a.sample_rate, '48000');
     assert.match(res.audio.musicSource, /^synth:/);
     assert.equal(res.audio.voiceMissing, false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a cached shot without a .qa.json sidecar misses the cache, and each shot writes its .qa.json as soon as it finishes', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'svs-cache-qa-'));
+  try {
+    const makeTone = (sec, hz) => {
+      const sr = 48000;
+      const samples = new Int16Array(Math.round(sr * sec));
+      for (let i = 1000; i < samples.length - 1000; i += 1) samples[i] = Math.round(8000 * Math.sin((2 * Math.PI * hz * i) / sr));
+      return makeWavBuffer(samples, sr);
+    };
+
+    // 1. Video-only cache (old cache without .qa.json, or corrupted .qa.json) must miss cache and re-run QA
+    const oldDir = join(dir, 'missing-qa');
+    mkdirSync(join(oldDir, 'audio'), { recursive: true });
+    writeFileSync(join(oldDir, 'audio/s01-0.wav'), makeTone(0.4, 340));
+    const overlapProj = {
+      ...minimal(),
+      world: { metaphor: '旧缓存', style: 'paper', scene: 'street' },
+      voice: { provider: 'import' },
+      sections: [{ id: 's01', title: '重叠', text: '小青直接走到屏幕正中间。' }],
+      shots: [{
+        id: 'sh01',
+        section: 's01',
+        sentences: [0],
+        layout: 'stage',
+        host: { expr: 'explaining', gesture: 'idle' },
+        visual: { template: 'stage', data: { objects: [{ prop: 'box', label: '箱子', at: 'center' }] } },
+        cues: [{ sentence: 0, do: 'move', target: 'center', timeMs: 0 }],
+        note: 'overlap for cache QA check',
+      }],
+    };
+    writeFileSync(join(oldDir, 'project.json'), JSON.stringify(overlapProj, null, 2));
+    const first = await renderProject(oldDir, { preview: true, workers: 1 });
+    assert.equal(first.shotsRendered, 1);
+    assert.ok(first.qaByShot.sh01.objectOverlapFrames > 0);
+    const cacheDir = join(oldDir, 'cache/shots');
+    const qaFiles = readdirSync(cacheDir).filter((f) => f.endsWith('.qa.json'));
+    assert.equal(qaFiles.length, 1);
+
+    // Delete .qa.json to mimic a pre-QA cache from an earlier version
+    rmSync(join(cacheDir, qaFiles[0]));
+    const afterMissing = await renderProject(oldDir, { preview: true, workers: 1 });
+    assert.equal(afterMissing.shotsCached, 0, 'video-only cache without .qa.json must miss');
+    assert.equal(afterMissing.shotsRendered, 1);
+    assert.ok(existsSync(join(cacheDir, qaFiles[0])), '.qa.json is recreated');
+    assert.equal(afterMissing.qaByShot.sh01.objectOverlapFrames, first.qaByShot.sh01.objectOverlapFrames);
+
+    // Corrupt .qa.json must also miss cache
+    writeFileSync(join(cacheDir, qaFiles[0]), '{broken');
+    const afterCorrupt = await renderProject(oldDir, { preview: true, workers: 1 });
+    assert.equal(afterCorrupt.shotsCached, 0, 'corrupt .qa.json must miss');
+    assert.equal(afterCorrupt.shotsRendered, 1);
+    assert.equal(afterCorrupt.qaByShot.sh01.objectOverlapFrames, first.qaByShot.sh01.objectOverlapFrames);
+
+    // 2. Interrupted mid-render: sh01 writes its .qa.json as soon as it finishes, before sh02 fails
+    const midDir = join(dir, 'mid-interrupt');
+    mkdirSync(join(midDir, 'audio'), { recursive: true });
+    const p2 = minimal();
+    p2.voice = { provider: 'import' };
+    writeFileSync(join(midDir, 'audio/s01-0.wav'), makeTone(0.3, 300));
+    writeFileSync(join(midDir, 'audio/s01-1.wav'), makeTone(0.3, 420));
+    writeFileSync(join(midDir, 'project.json'), JSON.stringify(p2, null, 2));
+
+    const failSecond = join(dir, 'fail-sh02.sh');
+    writeFileSync(failSecond, '#!/bin/sh\ncase "$*" in\n  *sh02-*) echo "simulated abort on sh02" >&2; exit 1 ;;\nesac\nexec ffmpeg "$@"\n');
+    chmodSync(failSecond, 0o755);
+
+    await assert.rejects(() => renderProject(midDir, { preview: true, workers: 1, ffmpeg: failSecond }), /sh02/);
+    const midCache = join(midDir, 'cache/shots');
+    const sh01Mp4 = readdirSync(midCache).find((f) => f.startsWith('sh01-') && f.endsWith('.mp4'));
+    const sh01Qa = readdirSync(midCache).find((f) => f.startsWith('sh01-') && f.endsWith('.qa.json'));
+    assert.ok(sh01Mp4, 'sh01 mp4 exists after sh02 fails');
+    assert.ok(sh01Qa, 'sh01 .qa.json must already be written before sh02 fails');
+
+    // Resuming hits sh01 cache WITH its QA data and only renders sh02
+    const resumed = await renderProject(midDir, { preview: true, workers: 1 });
+    assert.equal(resumed.shotsCached, 1);
+    assert.equal(resumed.shotsRendered, 1);
+    assert.ok(resumed.qaByShot.sh01 && typeof resumed.qaByShot.sh01.occludedFrames === 'number');
+    assert.ok(resumed.qaByShot.sh02 && typeof resumed.qaByShot.sh02.occludedFrames === 'number');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
