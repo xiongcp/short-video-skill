@@ -41,6 +41,25 @@ export function recommendVoice({ edgeTts = false, uvx = false, say = false } = {
   return { provider: 'import' };
 }
 
+const SCRIPTS_DIR = fileURLToPath(new URL('.', import.meta.url));
+const HINTS = {
+  ffmpeg: { darwin: 'brew install ffmpeg', linux: 'sudo apt-get install -y ffmpeg', win32: 'winget install --id Gyan.FFmpeg' },
+  'cjk-font': { darwin: '系统自带；或设置 SVS_FONT 指向中文字体文件', linux: 'sudo apt-get install -y fonts-noto-cjk', win32: '系统自带微软雅黑；或设置 SVS_FONT' },
+  tts: { darwin: 'brew install uv（之后自动用 uvx --from edge-tts），或 pipx install edge-tts；edge-tts 需要联网', linux: 'pipx install edge-tts（或安装 uv）；edge-tts 需要联网', win32: 'winget install --id astral-sh.uv，或 pipx install edge-tts；edge-tts 需要联网' },
+};
+
+/** One install command or tip per missing item, for the platform the doctor runs on. */
+export function installHints(items, platform) {
+  const out = {};
+  for (const item of items) {
+    if (item === 'ffprobe') out.ffprobe = '随 FFmpeg 一起安装';
+    else if (item === '@resvg/resvg-js') out[item] = `npm install --prefix ${SCRIPTS_DIR}`;
+    else if (item === 'node>=20') out[item] = '安装 Node 22 LTS 或更新版本：https://nodejs.org';
+    else if (HINTS[item]) out[item] = HINTS[item][platform] ?? HINTS[item].linux;
+  }
+  return out;
+}
+
 function checkCmd(bin, args = ['--version']) {
   const res = spawnSync(bin, args, { encoding: 'utf8' });
   if (res.error || res.status !== 0) return { ok: false, path: null };
@@ -48,22 +67,29 @@ function checkCmd(bin, args = ['--version']) {
   return { ok: true, detail: firstLine };
 }
 
-export async function runDoctor({ ffmpeg = process.env.FFMPEG || 'ffmpeg', ffprobe = process.env.FFPROBE || 'ffprobe' } = {}) {
+export async function runDoctor({
+  ffmpeg = process.env.FFMPEG || 'ffmpeg',
+  ffprobe = process.env.FFPROBE || 'ffprobe',
+  probe = checkCmd,
+  fontCandidates = FONT_CANDIDATES,
+  platform = process.platform,
+  importResvg = () => import('@resvg/resvg-js'),
+} = {}) {
   const nodeMajor = Number(process.versions.node.split('.')[0]);
   const nodeOk = nodeMajor >= 20;
-  const ffmpegCheck = checkCmd(ffmpeg, ['-version']);
-  const ffprobeCheck = checkCmd(ffprobe, ['-version']);
+  const ffmpegCheck = probe(ffmpeg, ['-version']);
+  const ffprobeCheck = probe(ffprobe, ['-version']);
   let resvgOk = false;
   try {
-    await import('@resvg/resvg-js');
+    await importResvg();
     resvgOk = true;
   } catch {
     resvgOk = false;
   }
-  const edgeTts = checkCmd('edge-tts', ['--version']);
-  const uvxCheck = checkCmd('uvx', ['--version']);
-  const macSay = process.platform === 'darwin' ? checkCmd('say', ['-v', '?']) : { ok: false };
-  const font = findCjkFont();
+  const edgeTts = probe('edge-tts', ['--version']);
+  const uvxCheck = probe('uvx', ['--version']);
+  const macSay = platform === 'darwin' ? probe('say', ['-v', '?']) : { ok: false };
+  const font = findCjkFont(fontCandidates);
 
   const checks = {
     node: { ok: nodeOk, version: process.versions.node },
@@ -79,16 +105,20 @@ export async function runDoctor({ ffmpeg = process.env.FFMPEG || 'ffmpeg', ffpro
   if (!ffmpegCheck.ok) missing.push('ffmpeg');
   if (!ffprobeCheck.ok) missing.push('ffprobe');
   if (!resvgOk) missing.push('@resvg/resvg-js');
+  if (!font) missing.push('cjk-font');
 
   const l1_ready = missing.length === 0;
+  const tts_ready = edgeTts.ok || uvxCheck.ok || macSay.ok;
   const recommended_voice = recommendVoice({ edgeTts: edgeTts.ok, uvx: uvxCheck.ok, say: macSay.ok });
 
   return {
     ok: true,
     l0_ready: true,
     l1_ready,
+    tts_ready,
     checks,
     missing,
+    hints: installHints([...missing, ...(tts_ready ? [] : ['tts'])], platform),
     recommended_voice,
     fallback: l1_ready ? null : `缺少 ${missing.join('、')}，自动退回 L0 文本包（讲稿、分镜、提示词包）`,
   };

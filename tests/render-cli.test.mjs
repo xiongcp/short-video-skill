@@ -36,6 +36,7 @@ test('without FFmpeg it falls back to L0 with exit code 2 and the missing items'
   assert.equal(r.status, 2);
   assert.equal(r.json.fallback, 'L0');
   assert.ok(r.json.missing.includes('ffmpeg'));
+  assert.ok(r.json.hints.ffmpeg);
 });
 
 test('an undecided voice reports VOICE_UNDECIDED with a voice block that keeps the preset', { skip: !doctor.l1_ready }, () => {

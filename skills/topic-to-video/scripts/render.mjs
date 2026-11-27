@@ -103,7 +103,7 @@ async function main() {
     return;
   }
   if (!doc.l1_ready) {
-    console.log(JSON.stringify({ ok: false, fallback: 'L0', missing: doc.missing, message: doc.fallback }, null, 2));
+    console.log(JSON.stringify({ ok: false, fallback: 'L0', missing: doc.missing, hints: doc.hints, message: doc.fallback }, null, 2));
     process.exitCode = 2;
     return;
   }
