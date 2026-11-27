@@ -12,12 +12,15 @@ import { layoutElements, renderDiagram } from './templates.mjs';
 import { captionPages, resolveCueTiming } from './timing.mjs';
 import { resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
 
-export const SCENE_VERSION = 5;
+export const SCENE_VERSION = 6;
 
 const LANDSCAPE = FRAMES['16:9'];
 const MAX_SCENE_BG_CACHE = 64;
 const sceneBgCache = new Map();
 const evalPlanCache = new WeakMap();
+// 先退后进: the share of a transition the old shot takes to leave (字幕与转场设计 §5.2).
+const EXIT_SHARE = 0.45;
+const fadeLayer = (svg, op) => (op >= 0.999 ? svg : op <= 0.005 ? '' : `<g opacity="${op.toFixed(3)}">${svg}</g>`);
 
 function getCachedSceneBg(sceneName, styleName, seed, frame) {
   const key = `${sceneName}|${styleName}|${seed}|${frame.ground}|${frame.ratio}`;
@@ -166,7 +169,7 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
           shared,
         };
       } else {
-        transition = { kind: 'crossfade', durationSec: 0.3, layoutSwitch: null, shared: [] };
+        transition = { kind: 'crossfade', durationSec: 0.4, layoutSwitch: null, shared: [] };
       }
     }
 
@@ -586,51 +589,43 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   const prevTextItems = [];
   let headingOpacity = 1;
 
-  if (inTr && tr.kind === 'morph') {
+  let exitOp = 1;
+  let enterOp = 1;
+  if (inTr) {
+    // 先退后进 (字幕与转场设计 §5.2): old-only content leaves in the first 45%, new-only content enters in the rest,
+    // shared elements move from their old box to the new one over the whole transition.
+    exitOp = 1 - easeInOutCubic(clamp01(trU / EXIT_SHARE));
+    enterOp = easeOutCubic(clamp01((trU - EXIT_SHARE) / (1 - EXIT_SHARE)));
     const sharedByNext = new Map(tr.shared.map((s) => [s.nextIndex, s.prevIndex]));
-    const sharedPrevSet = new Set(tr.shared.map((s) => s.prevIndex));
-    const u = easeInOutCubic(trU);
-    headingOpacity = u;
-    const hasShared = tr.shared.length > 0;
+    const sharedPrev = new Set(tr.shared.map((s) => s.prevIndex));
+    const move = easeInOutCubic(trU);
+    headingOpacity = enterOp;
     states.forEach((st, ni) => {
       if (sharedByNext.has(ni)) {
-        const pi = sharedByNext.get(ni);
-        st.overrideBbox = lerpBox(shotPlan.prevShot.elements[pi].bbox, shotPlan.elements[ni].bbox, u);
-      } else if (hasShared) {
-        // New-only elements fade in during [0.15s, duration]
-        const fade = clamp01((t - 0.15) / Math.max(0.1, tr.durationSec - 0.15));
-        st.opacity *= fade;
+        st.overrideBbox = lerpBox(shotPlan.prevShot.elements[sharedByNext.get(ni)].bbox, shotPlan.elements[ni].bbox, move);
       } else {
-        st.opacity *= u;
+        st.opacity *= enterOp;
+        st.scale = (st.scale ?? 1) * lerp(0.96, 1, enterOp);
       }
     });
-    // Old-only elements: cross-dissolve smoothly when nothing is morphing; clear early when shared elements morph.
-    if (!hasShared || t < 0.2) {
-      const fadeOut = hasShared ? 1 - easeOutCubic(t / 0.2) : 1 - u;
+    if (exitOp > 0.005) {
       const prevStates = shotPlan.prevShot.elements.map((_, pi) => ({
-        opacity: sharedPrevSet.has(pi) ? 0 : fadeOut,
-        scale: lerp(hasShared ? 0.92 : 0.96, 1, fadeOut),
+        opacity: sharedPrev.has(pi) ? 0 : exitOp,
+        scale: lerp(0.96, 1, exitOp),
       }));
-      const prevRes = renderPrevLayer(shotPlan, prevStates, fadeOut);
+      const prevRes = renderPrevLayer(shotPlan, prevStates, exitOp);
       prevDiagSvg = prevRes.vectorSvg;
       prevTextItems.push(...prevRes.textItems);
     }
     isFastMotion = true;
-  } else if (inTr && tr.kind === 'crossfade') {
-    const u = easeInOutCubic(trU);
-    headingOpacity = u;
-    states.forEach((st) => { st.opacity *= u; });
-    const prevStates = shotPlan.prevShot.elements.map(() => ({ opacity: 1 - u }));
-    const prevRes = renderPrevLayer(shotPlan, prevStates, 1 - u);
-    prevDiagSvg = prevRes.vectorSvg;
-    prevTextItems.push(...prevRes.textItems);
-    isFastMotion = true;
   }
 
   const isStage = shotPlan.shot.layout === 'stage';
-  const sceneBg = isStage
-    ? getCachedSceneBg(shotPlan.scene ?? 'blank', styleName, shotPlan.id, frame)
-    : '';
+  // The scene follows the content: a new scene enters with it, the old one leaves with it; the same scene stays.
+  const prevStage = inTr && shotPlan.prevShot.shot.layout === 'stage';
+  const sameScene = isStage && prevStage && shotPlan.prevShot.scene === shotPlan.scene;
+  const sceneBg = (prevStage && !sameScene ? fadeLayer(getCachedSceneBg(shotPlan.prevShot.scene ?? 'blank', styleName, shotPlan.prevShot.id, frame), exitOp) : '')
+    + (isStage ? fadeLayer(getCachedSceneBg(shotPlan.scene ?? 'blank', styleName, shotPlan.id, frame), sameScene ? 1 : enterOp) : '');
   const diag = isStage
     ? renderStage(shotPlan.shot.visual, {
         style: styleName,

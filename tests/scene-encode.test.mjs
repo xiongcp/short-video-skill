@@ -176,22 +176,6 @@ test('a newer highlight or reveal fades out the previous highlight circle instea
   assert.doesNotMatch(later, /data-highlight="0"/, 'earlier highlight clears once focus moves');
 });
 
-test('a host-left morph with no shared elements cross-dissolves without a mid-transition blank gap', () => {
-  const p = minimal();
-  p.shots[1].layout = 'host-left';
-  p.shots[1].host = { expr: 'explaining', gesture: 'point' };
-  p.shots[1].cues = [];
-  const timing = {
-    's01-0': { file: 'audio/s01-0.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'a' },
-    's01-1': { file: 'audio/s01-1.wav', duration_ms: 1500, speech: [50, 1400], source: 'estimate', words: [], sha256: 'b' },
-  };
-  const plans = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
-  const mid = evaluateFrame(manifest, plans[1], 0.18);
-  const textOpacities = mid.textItems.filter((ti) => !ti.key?.startsWith('sub-')).map((ti) => ti.opacity);
-  const maxOp = Math.max(0, ...textOpacities);
-  assert.ok(maxOp >= 0.4, `mid-transition diagram faded to near-blank (maxOpacity=${maxOp.toFixed(3)})`);
-});
-
 test('host-left diagram bottom leaves vertical room above the host 呆毛', () => {
   const p = minimal();
   p.shots[0].visual = { template: 'compare', data: { left: { label: '甲', rows: ['一'] }, right: { label: '乙', rows: ['二'] } } };
@@ -243,7 +227,7 @@ test('stage shot renders style background, scene layer, props, host in exact lay
   };
   const timing = { 's01-0': { file: 'audio/s01-0.wav', duration_ms: 2000, speech: [50, 1900], source: 'estimate', words: [], sha256: 'st1' } };
   const [plan] = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
-  assert.equal(SCENE_VERSION, 5);
+  assert.equal(SCENE_VERSION, 6);
   assert.equal(plan.style, 'chalkboard');
   assert.equal(plan.scene, 'kitchen');
   assert.equal(plan.customProps.length, 1);
@@ -373,30 +357,14 @@ test('shotCacheKey invalidates on world.style, shot.scene, or world.custom_props
   assert.notEqual(legacyShot1Key, worldShot1Key, 'adding world { style: paper } to light legacy project must change shotCacheKey');
 });
 
-test('stage->stage transition fades both old and new stage-heading and stage-hl underline smoothly without ghost overlap', () => {
+test('stage->stage transition lets the old heading and underline leave before the new ones enter (字幕与转场设计 §5.2)', () => {
   const p = {
     ...minimal(),
     world: { metaphor: '阶段转换', style: 'paper', scene: 'kitchen' },
     sections: [{ id: 's01', title: '转场', text: '先看第一幕。再看第二幕。' }],
     shots: [
-      {
-        id: 'sh01',
-        section: 's01',
-        sentences: [0],
-        layout: 'stage',
-        host: { expr: 'explaining', gesture: 'idle' },
-        visual: { template: 'stage', data: { heading: '第一幕', objects: [{ prop: 'fridge', label: '冰箱', at: 'center' }] } },
-        note: 'stage 1',
-      },
-      {
-        id: 'sh02',
-        section: 's01',
-        sentences: [1],
-        layout: 'stage',
-        host: { expr: 'happy', gesture: 'idle' },
-        visual: { template: 'stage', data: { heading: '第二幕', objects: [{ prop: 'box', label: '箱子', at: 'center' }] } },
-        note: 'stage 2',
-      },
+      { id: 'sh01', section: 's01', sentences: [0], layout: 'stage', host: { expr: 'explaining', gesture: 'idle' }, visual: { template: 'stage', data: { heading: '第一幕', objects: [{ prop: 'fridge', label: '冰箱', at: 'center' }] } }, note: 'stage 1' },
+      { id: 'sh02', section: 's01', sentences: [1], layout: 'stage', host: { expr: 'happy', gesture: 'idle' }, visual: { template: 'stage', data: { heading: '第二幕', objects: [{ prop: 'box', label: '箱子', at: 'center' }] } }, note: 'stage 2' },
     ],
   };
   const timing = {
@@ -406,27 +374,22 @@ test('stage->stage transition fades both old and new stage-heading and stage-hl 
   const plans = buildShotPlans(p, buildTimeline(p, timing, 60), manifest);
   assert.equal(plans[1].transition.kind, 'morph');
   assert.equal(plans[1].transition.durationSec, 0.4);
+  const heading = (t, text) => evaluateFrame(manifest, plans[1], t).textItems.find((ti) => ti.key === 'stage-heading' && ti.text === text && (ti.opacity ?? 1) > 0.02);
+  const underlines = (t) => [...evaluateFrame(manifest, plans[1], t).vectorSvg.matchAll(/<path[^>]*opacity="([\d.]+)"[^>]*fill="#20a5a3"/g)].map((m) => Number(m[1])).filter((op) => op > 0.02);
 
-  const mid = evaluateFrame(manifest, plans[1], 0.15);
-  const oldHeading = mid.textItems.find((ti) => ti.key === 'stage-heading' && ti.text === '第一幕');
-  const newHeading = mid.textItems.find((ti) => ti.key === 'stage-heading' && ti.text === '第二幕');
-  assert.ok(oldHeading && newHeading, 'both headings present mid-crossfade');
-  assert.ok(oldHeading.opacity > 0.1 && oldHeading.opacity < 0.9, `old heading opacity=${oldHeading.opacity}`);
-  assert.ok(newHeading.opacity > 0.1 && newHeading.opacity < 0.9, `new heading opacity=${newHeading.opacity}`);
-  assert.ok(oldHeading.opacity + newHeading.opacity <= 1.05, `no double full-opacity overlap (${oldHeading.opacity} + ${newHeading.opacity})`);
+  // 0.08 s is 20% into the transition: only the old heading and its underline, fading out.
+  const leaving = heading(0.08, '第一幕');
+  assert.ok(leaving && leaving.opacity < 0.95, `old heading opacity ${leaving?.opacity}`);
+  assert.equal(heading(0.08, '第二幕'), undefined, 'the new heading waits for the old one to leave');
+  assert.equal(underlines(0.08).length, 1, JSON.stringify(underlines(0.08)));
+  // 0.3 s is 75% in: only the new heading and its underline, fading in.
+  assert.equal(heading(0.3, '第一幕'), undefined, 'the old heading has left');
+  const entering = heading(0.3, '第二幕');
+  assert.ok(entering && entering.opacity < 1, `new heading opacity ${entering?.opacity}`);
+  assert.equal(underlines(0.3).length, 1, JSON.stringify(underlines(0.3)));
 
-  // Both stage-hl underline paths in vectorSvg carry explicit fading opacity attributes (not full opacity 1)
-  const pathOps = [...mid.vectorSvg.matchAll(/<path[^>]*opacity="([\d.]+)"[^>]*fill="#20a5a3"/g)].map((m) => Number(m[1]));
-  assert.ok(pathOps.length >= 2, `expected both stage-hl paths to carry opacity attrs during transition, got ${JSON.stringify(pathOps)}`);
-  for (const op of pathOps) {
-    assert.ok(op > 0.05 && op < 0.95, `expected fading stage-hl opacity, got ${op}`);
-  }
-
-  const after = evaluateFrame(manifest, plans[1], 0.5);
-  const afterOld = after.textItems.find((ti) => ti.key === 'stage-heading' && ti.text === '第一幕');
-  const afterNew = after.textItems.find((ti) => ti.key === 'stage-heading' && ti.text === '第二幕');
-  assert.equal(afterOld, undefined, 'old heading clears after transition');
-  assert.equal(afterNew?.opacity, 1, 'new heading settles to opacity 1');
+  assert.equal(heading(0.5, '第一幕'), undefined);
+  assert.equal(heading(0.5, '第二幕')?.opacity, 1, 'the new heading settles to opacity 1');
 });
 
 test('renderProject exempts HOST_OBJECT_OVERLAP during sit_on/open/carry while catching non-interacting stage overlaps', async (t) => {
