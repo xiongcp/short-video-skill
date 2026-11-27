@@ -6,8 +6,7 @@
 // Falls back cleanly to L0 guidance when FFmpeg or @resvg/resvg-js is unavailable; --audition needs only FFmpeg and edge-tts or uvx.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { runDoctor } from './doctor.mjs';
+import { isCliEntry, runDoctor } from './doctor.mjs';
 import { renderProject } from './lib/encode.mjs';
 import { auditionSound } from './lib/music.mjs';
 import { checkProject } from './lib/project.mjs';
@@ -153,4 +152,4 @@ async function main() {
   }, null, 2));
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) await main();
+if (isCliEntry(import.meta.url)) await main();

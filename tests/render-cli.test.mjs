@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -88,4 +88,18 @@ spawnSync(process.env.FFMPEG || 'ffmpeg', ['-y', '-loglevel', 'error', '-f', 'la
   assert.match(r.json.message, /失败：Cannot connect to host speech\.platform\.bing\.com。edge-tts/);
   const timing = JSON.parse(readFileSync(join(dir, 'audio/timing.json'), 'utf8'));
   assert.ok(timing['s01-0']);
+});
+
+test('render.mjs runs when invoked through a symlinked skill directory', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'svs-render-link-'));
+  try {
+    const link = join(dir, 'topic-to-video');
+    symlinkSync(join(ROOT, 'skills/topic-to-video'), link, process.platform === 'win32' ? 'junction' : 'dir');
+    const res = spawnSync(process.execPath, [join(link, 'scripts/render.mjs'), join(dir, 'missing-proj')], { encoding: 'utf8' });
+    assert.equal(res.status, doctor.l1_ready ? 1 : 2);
+    const report = JSON.parse(res.stdout);
+    assert.equal(report.ok, false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
