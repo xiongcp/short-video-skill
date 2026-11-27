@@ -543,6 +543,10 @@ test('renderProject exempts HOST_OBJECT_OVERLAP during sit_on/open/carry while c
       qaByShot: badRes.qaByShot,
     });
     assert.ok(badQa.issues.some((i) => i.code === 'HOST_OBJECT_OVERLAP'), 'non-interacting overlap reports HOST_OBJECT_OVERLAP');
+    // A re-render that hits the shot cache keeps the shot's QA counts, so the overlap is still reported.
+    const againRes = await renderProject(badDir, { preview: true, workers: 1 });
+    assert.equal(againRes.shotsCached, 1);
+    assert.deepEqual(againRes.qaByShot.sh01, badRes.qaByShot.sh01);
 
     // 3. Same-shot sit_on -> distant open (non-move moving cue) must not misreport HOST_OBJECT_OVERLAP on seat exit
     const sitExitDir = join(dir, 'sit-exit-open');

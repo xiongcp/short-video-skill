@@ -514,6 +514,9 @@ export async function renderProject(rawProjectDir, opts = {}) {
     shotMp4s.push(mp4);
     if (existsSync(mp4) && !opts.force) {
       cacheHits.push(plan.id);
+      // The shot's per-frame QA counts are cached beside it, so a re-render still reports them.
+      const qaFile = mp4.replace(/\.mp4$/, '.qa.json');
+      if (existsSync(qaFile)) qaByShot[plan.id] = JSON.parse(readFileSync(qaFile, 'utf8'));
     } else {
       jobs.push({ projectDir, manifest, shotPlan: plan, outPath: mp4, width, height, fps, crf, preset, motionBlur, ffmpeg });
     }
@@ -522,7 +525,10 @@ export async function renderProject(rawProjectDir, opts = {}) {
   const workerCount = opts.workers ?? Math.max(1, Math.min(cpus().length - 1, 8));
   if (jobs.length) {
     const metaList = await runPool(jobs, workerCount);
-    jobs.forEach((j, i) => { qaByShot[j.shotPlan.id] = metaList[i]; });
+    jobs.forEach((j, i) => {
+      qaByShot[j.shotPlan.id] = metaList[i];
+      writeFileSync(j.outPath.replace(/\.mp4$/, '.qa.json'), `${JSON.stringify(metaList[i])}\n`);
+    });
   }
 
   // Concat video streams losslessly
