@@ -184,7 +184,7 @@ test('reports an unknown source', () => {
 });
 
 test('estimates seconds from spoken characters and sentence gaps', () => {
-  assert.equal(estimateSeconds(minimal()), 15 / 4 + 2 * 0.25);
+  assert.equal(estimateSeconds(minimal()).toFixed(6), (15 / 4.5 + 2 * 0.25).toFixed(6));
 });
 
 test('warns about long sentences and off-target estimates', () => {
@@ -274,7 +274,7 @@ test('SCHEMA_FIELDS matches the field names in the schema', () => {
 
 test('estimateReport gives rounded seconds per section, per shot and in total', () => {
   assert.deepEqual(estimateReport(minimal()), {
-    total_seconds: 4.3,
+    total_seconds: 3.8,
     sections: [{ id: 's01', seconds: 4 }],
     shots: [{ id: 'sh01', seconds: 2, starts: [0] }, { id: 'sh02', seconds: 2, starts: [0] }],
   });
@@ -283,8 +283,8 @@ test('estimateReport gives rounded seconds per section, per shot and in total', 
 test('estimateReport lists where each sentence of a shot starts', () => {
   const p = minimal();
   p.shots = [{ ...p.shots[0], sentences: [0, 1] }];
-  // 天空为什么是蓝的？ is 8 characters: 8 / 4 + 0.25 = 2.25 seconds before the second sentence
-  assert.deepEqual(estimateReport(p).shots, [{ id: 'sh01', seconds: 4, starts: [0, 2.3] }]);
+  // 天空为什么是蓝的？ is 8 characters: 8 / 4.5 + 0.25 = 2.03 seconds before the second sentence
+  assert.deepEqual(estimateReport(p).shots, [{ id: 'sh01', seconds: 4, starts: [0, 2] }]);
 });
 
 test('a project without shots yet skips the coverage check', () => {
@@ -295,7 +295,7 @@ test('a project without shots yet skips the coverage check', () => {
 
 test('warns about absolute claims only when the brief has no sources', () => {
   const p = minimal();
-  p.settings.target_seconds = 5;
+  p.settings.target_seconds = 4;
   p.sections[0].text = '天空为什么总是蓝的？所有阳光都会散射。';
   assert.deepEqual(lintScript(p).map((w) => `${w.code} ${w.path}`), ['ABSOLUTE_CLAIM /sections/0/text', 'ABSOLUTE_CLAIM /sections/0/text']);
   assert.match(lintScript(p)[0].message, /s01 第 0 句.*“总是”/);
@@ -489,7 +489,7 @@ test('legacy project without world keeps exact checkProject and estimateSeconds 
   const p = minimal();
   assert.equal(p.world, undefined);
   assert.deepEqual(checkProject(p), []);
-  assert.equal(estimateSeconds(p), 4.25);
+  assert.equal(estimateSeconds(p).toFixed(6), (15 / 4.5 + 2 * 0.25).toFixed(6));
 });
 
 test('exports INTERACTION_CUES, SENDABLE_PROPS, DRAWABLE_PROPS, and supportedInteractions', () => {

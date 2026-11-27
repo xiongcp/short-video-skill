@@ -170,10 +170,10 @@ test('one focus per sentence: the same element, a preset spot or different sente
   assert.deepEqual(lintStoryboard(p), []);
 });
 
-// Sentence 1 has 19 chars: 19 / 4 + 0.25 = 5.0 seconds.
+// Sentence 1 has 21 chars: 21 / 4.5 + 0.25 = 4.9 seconds, shown as 5.
 const fiveSecondShot = () => {
   const p = minimal();
-  p.sections[0].text = '天空为什么是蓝的？阳光穿过空气时蓝光被散射得更多一些。';
+  p.sections[0].text = '天空为什么是蓝的？阳光穿过厚厚的空气时蓝光被散射得更多一些。';
   p.shots[1] = { ...p.shots[1], sentences: [1], visual: { template: 'bullets', data: { items: ['阳光', '散射'] } }, cues: [] };
   return p;
 };
@@ -199,7 +199,7 @@ test('a cue splits a shot into stretches of at most 4 seconds', () => {
   ];
   assert.deepEqual(codes(p), ['STATIC_STRETCH /shots/0']);
   p.shots[0].cues = [{ sentence: 1, do: 'reveal', target: 1 }];
-  assert.deepEqual(estimateReport(p).shots[0].starts, [0, 2.5]);
+  assert.deepEqual(estimateReport(p).shots[0].starts, [0, 2.3]);
   assert.deepEqual(lintStoryboard(p), []);
 });
 
@@ -209,7 +209,7 @@ test('a cue with an at keyword counts from that word, so one long sentence can c
   assert.deepEqual(lintStoryboard(p), []);
   p.shots[1].cues = [{ sentence: 1, do: 'reveal', target: 1, at: '一些' }];
   assert.deepEqual(codes(p), ['STATIC_STRETCH /shots/1']);
-  assert.match(lintStoryboard(p)[0].message, /sh02 在 0–4\.2 秒之间/);
+  assert.match(lintStoryboard(p)[0].message, /sh02 在 0–4\.3 秒之间/);
 });
 
 test('EMPTY_START warns when every element of a full shot waits for a reveal that comes after the first second', () => {
@@ -221,7 +221,7 @@ test('EMPTY_START warns when every element of a full shot waits for a reveal tha
       cues: [{ sentence: 1, do: 'reveal', target: 0, at: '红光' }, { sentence: 1, do: 'reveal', target: 1, at: '蓝光' }], note: '红长蓝短' },
   ];
   assert.deepEqual(lintStoryboard(p), [], 'the first reveal lands at the shot start');
-  p.sections[0].text = '不同颜色的光波长不一样。说到颜色，红光长，蓝光短。';
+  p.sections[0].text = '不同颜色的光波长不一样。说到颜色的区别，红光长，蓝光短。';
   assert.deepEqual(codes(p), ['EMPTY_START /shots/1']);
   assert.match(lintStoryboard(p).find((w) => w.code === 'EMPTY_START').message, /sh02 开头约 1\.\d 秒画面是空的/);
   p.shots[1].cues = [{ sentence: 1, do: 'reveal', target: 1, at: '蓝光' }];
@@ -231,8 +231,8 @@ test('EMPTY_START warns when every element of a full shot waits for a reveal tha
 test('does not raise STATIC_STRETCH on an exact 4.0-second stretch despite floating-point drift', () => {
   const p = minimal();
   p.settings.sentence_gap_ms = 200;
-  // With 200 ms gaps: 13 (3.45s), 15 (3.95s), 15 (3.95s), 4 (1.2s) chars put starts at [0, 3.5, 7.4, 11.4]; 11.4 - 7.4 is 4.000000000000001 in IEEE-754.
-  p.sections[0].text = '阳光穿过大气层时先遇到空气。蓝光的波长很短容易向四周散射掉。红光波长很长能继续笔直地穿过去。天空蓝了。';
+  // With 200 ms gaps: 12 (2.87s), 17 (3.98s), 17 (3.98s), 4 (1.09s) chars put starts at [0, 2.9, 6.8, 10.8]; 10.8 - 6.8 is 4.000000000000001 in IEEE-754.
+  p.sections[0].text = '阳光穿过大气层先遇到空气。蓝光的波长很短所以容易向四周散射掉。红光的波长很长就能继续笔直地穿过去。天空蓝了。';
   p.shots = [{
     ...p.shots[0],
     sentences: [0, 1, 2, 3],
@@ -243,7 +243,7 @@ test('does not raise STATIC_STRETCH on an exact 4.0-second stretch despite float
       { sentence: 3, do: 'reveal', target: 2 },
     ],
   }];
-  assert.deepEqual(estimateReport(p).shots[0].starts, [0, 3.5, 7.4, 11.4]);
+  assert.deepEqual(estimateReport(p).shots[0].starts, [0, 2.9, 6.8, 10.8]);
   assert.deepEqual(lintStoryboard(p), []);
 });
 

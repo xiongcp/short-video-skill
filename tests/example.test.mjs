@@ -23,7 +23,7 @@ test('example script and storyboard follow all rules with zero warnings', () => 
   assert.deepEqual(lintScript(project), []);
   assert.deepEqual(lintStoryboard(project), []);
   assert.deepEqual(lintVoice(project), []);
-  assert.equal(Math.round(estimateSeconds(project)), 70);
+  assert.equal(Math.round(estimateSeconds(project)), 63);
 });
 
 test('example documents (including prompt pack) mirror project.json', () => {

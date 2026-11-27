@@ -17,6 +17,9 @@ const schema = JSON.parse(readFileSync(join(SKILL, 'schema/project.schema.json')
 test('script.md states the same planning constants as project.mjs', () => {
   const text = ref('script.md');
   assert.ok(text.includes(`每秒 ${CHARS_PER_SECOND} 个字`));
+  // Calibrated on the launch acceptance run: edge-tts 晓晓 read 4.6 chars/s, macOS say 4.0 (tests/scenarios/results/launch-summary.md).
+  assert.equal(CHARS_PER_SECOND, 4.5);
+  assert.ok(text.includes('120 秒大约是 480–520 字'));
   assert.ok(text.includes(`${DEFAULT_SENTENCE_GAP_MS / 1000} 秒停顿`));
   assert.ok(text.includes(`每句不超过 ${MAX_SENTENCE_CHARS} 字`));
   assert.ok(text.includes('±10%'));

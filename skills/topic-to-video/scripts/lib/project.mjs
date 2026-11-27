@@ -12,7 +12,7 @@ const PROFILE = JSON.parse(readFileSync(new URL('../../assets/host/profile.json'
 /** The only host this skill draws; settings.host must name it (assets/host/profile.json). */
 export const HOST_ID = PROFILE.id;
 
-export const CHARS_PER_SECOND = 4;
+export const CHARS_PER_SECOND = 4.5;
 export const DEFAULT_SENTENCE_GAP_MS = 250;
 export const MAX_SENTENCE_CHARS = 30;
 export const HOST_LAYOUTS = ['host-left', 'stage'];
