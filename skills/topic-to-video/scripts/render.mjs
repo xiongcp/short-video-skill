@@ -1,6 +1,6 @@
 // Unified cross-agent render CLI (agy / Claude Code / Codex):
 //   node <skill>/scripts/render.mjs <projectDir> [--preview] [--sample sh08-sh09]
-//     [--resolution 1080p|1440p|2160p] [--fps 60|30] [--master] [--motion-blur] [--skip-tts] [--no-qa]
+//     [--ratio 16:9|9:16] [--resolution 1080p|1440p|2160p] [--fps 60|30] [--master] [--motion-blur] [--skip-tts] [--no-qa]
 //   node <skill>/scripts/render.mjs <projectDir> --audition [male,female-warm,...]   voice presets into out/audition/
 //   node <skill>/scripts/render.mjs <projectDir> --audition-sound [calm,playful,...]  music moods and effects into out/audition/
 // Falls back cleanly to L0 guidance when FFmpeg or @resvg/resvg-js is unavailable; --audition needs only FFmpeg and edge-tts or uvx.
@@ -28,6 +28,7 @@ export function parseArgs(argv) {
     else if (a === '--force') opts.force = true;
     else if (a === '--no-qa') opts.noQa = true;
     else if (a === '--sample') opts.sample = argv[++i];
+    else if (a === '--ratio') opts.ratio = argv[++i];
     else if (a === '--resolution') opts.resolution = argv[++i];
     else if (a === '--fps') opts.fps = Number(argv[++i]);
     else if (a === '--preset') opts.preset = argv[++i];
@@ -81,11 +82,15 @@ async function main() {
       const { runQa } = await import('./lib/qa.mjs');
       qa = await runQa(opts.projectDir, {
         videoPath: result.videoPath,
+        outDir: result.outDir,
+        frame: result.frame,
+        expectedSize: { width: result.width, height: result.height },
         expectedFps: result.fps,
         timeline: result.timeline,
         shotPlans: result.shotPlans,
         qaByShot: result.qaByShot,
         audio: result.audio,
+        layoutIssues: result.layoutIssues,
       });
     } catch (err) {
       qa = { skipped: true, reason: err.message };
@@ -96,6 +101,7 @@ async function main() {
     video: result.videoPath,
     master: result.masterPath,
     resolution: `${result.width}x${result.height}`,
+    ratio: result.frame.ratio,
     fps: result.fps,
     shots_rendered: result.shotsRendered,
     shots_cached: result.shotsCached,

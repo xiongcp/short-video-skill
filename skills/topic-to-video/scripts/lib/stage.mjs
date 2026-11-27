@@ -1,41 +1,31 @@
 // Semantic stage auto-layout and pure-vector renderer for `layout: "stage"` (画面与同台互动设计 §4.2, §5.1–§5.4).
 // Pure deterministic functions without <text>, sharing geometry with project.mjs and scene.mjs.
 import { clamp01, easeOutBack, lerp } from './ease.mjs';
+import { FRAMES, flowArrowEnds, isPortrait, textBox } from './frame.mjs';
 import { COMMON_STATES, customPropMeta, drawCustomProp, drawIcon, isCountState, PROP_META } from './icons.mjs';
 import { inkStroke, num, resample } from './ink.mjs';
-import { GROUND_Y, resolveStyle } from './world.mjs';
+import { resolveStyle } from './world.mjs';
 
-export const STAGE_SLOTS = {
-  left: 240,
-  'mid-left': 600,
-  center: 960,
-  'mid-right': 1320,
-  right: 1680,
-};
+export const STAGE_SLOTS = FRAMES['16:9'].stage.slots;
+export const STAGE_BOUNDS = FRAMES['16:9'].stage.bounds;
 
 export const SIZE_MULTIPLIERS = { sm: 0.75, md: 1, lg: 1.3 };
 
-export const STAGE_BOUNDS = {
-  minX: 120,
-  maxX: 1800,
-  titleTop: 48,
-  titleBottom: 150,
-  airTopMin: 160,
-  airBottomMax: 470,
-  midDefaultBottom: 762,
-  subtitleSafeY: 950,
-  gap: 40,
-  hostClearWidth: 200,
-  minScale: 0.6,
-};
-
-const HOST_MIN_X = 200;
-const HOST_MAX_X = 1720;
+const LANDSCAPE = FRAMES['16:9'];
 const HOST_MOVING_DO = new Set(['move', 'open', 'carry', 'push', 'pull', 'hold_up', 'draw', 'sit_on']);
 const escAttr = (s) => String(s).replace(/[&"<>]/g, (c) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' }[c]));
 const isOverlayState = (s) => COMMON_STATES.includes(s) || isCountState(s);
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const clampPortraitTextX = (x, text, fontSize, frame) => {
+  if (!isPortrait(frame)) return x;
+  const cx = frame.center[0];
+  const s = frame.textSafe;
+  const halfW = textBox({ text, x: 0, y: 0, fontSize }).w / 2;
+  const lo = cx + (s.x + halfW - cx) / 1.03;
+  const hi = cx + (s.x + s.w - halfW - cx) / 1.03;
+  return lo > hi ? cx : clamp(x, lo, hi);
+};
 const boxesOverlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 const boxesOverlapStrict = (a, b) => (
   a.x < b.x + b.w - 1e-6
@@ -51,20 +41,20 @@ function unwrapVisualData(visualData) {
   return visualData ?? {};
 }
 
-function resolveAtX(at, fallback = STAGE_SLOTS.center) {
-  if (typeof at === 'string' && Object.hasOwn(STAGE_SLOTS, at)) return STAGE_SLOTS[at];
-  if (typeof at === 'number' && Number.isFinite(at)) return at * 1920;
-  return fallback;
+function resolveAtX(at, fallback, geo = LANDSCAPE) {
+  if (typeof at === 'string' && Object.hasOwn(geo.stage.slots, at)) return geo.stage.slots[at];
+  if (typeof at === 'number' && Number.isFinite(at)) return at * geo.width;
+  return fallback ?? geo.stage.slots.center;
 }
 
-function resolveHostPreferredX(hostAt, prevHostX) {
+function resolveHostPreferredX(hostAt, prevHostX, geo = LANDSCAPE) {
   if (hostAt !== undefined && hostAt !== null) {
-    if (typeof hostAt === 'string' && Object.hasOwn(STAGE_SLOTS, hostAt)) return STAGE_SLOTS[hostAt];
+    if (typeof hostAt === 'string' && Object.hasOwn(geo.stage.slots, hostAt)) return geo.stage.slots[hostAt];
     if (typeof hostAt === 'number' && Number.isFinite(hostAt)) {
-      return hostAt > 2 ? hostAt : hostAt * 1920;
+      return hostAt > 2 ? hostAt : hostAt * geo.width;
     }
   }
-  return Number.isFinite(prevHostX) ? prevHostX : 320;
+  return Number.isFinite(prevHostX) ? prevHostX : geo.hostHome;
 }
 
 function resolveProp(propId, customProps) {
@@ -136,13 +126,14 @@ function spreadLayer(items, minX, maxX, gap) {
   return { ok: true, positions };
 }
 
-function findHostX(groundRects, preferredX) {
-  const halfClear = STAGE_BOUNDS.hostClearWidth / 2;
+function findHostX(groundRects, preferredX, geo = LANDSCAPE) {
+  const B = geo.stage.bounds;
+  const halfClear = B.hostClearWidth / 2;
   const forbidden = groundRects
     .map((g) => [g.x - halfClear, g.x + g.w + halfClear])
     .sort((a, b) => a[0] - b[0]);
 
-  let intervals = [[HOST_MIN_X, HOST_MAX_X]];
+  let intervals = [[geo.stage.hostMinX, geo.stage.hostMaxX]];
   for (const [f0, f1] of forbidden) {
     const next = [];
     for (const [a, b] of intervals) {
@@ -157,7 +148,7 @@ function findHostX(groundRects, preferredX) {
   }
   if (intervals.length === 0) return null;
 
-  const pref = clamp(preferredX, HOST_MIN_X, HOST_MAX_X);
+  const pref = clamp(preferredX, geo.stage.hostMinX, geo.stage.hostMaxX);
   let bestX = null;
   let bestDist = Infinity;
   for (const [a, b] of intervals) {
@@ -202,7 +193,9 @@ function no2DOverlap(boxes) {
   return true;
 }
 
-function buildAttempt(specs, scale, preferredHostX, hostHeight) {
+function buildAttempt(specs, scale, preferredHostX, hostHeight, geo = LANDSCAPE) {
+  const B = geo.stage.bounds;
+  const G = geo.ground;
   const scaled = specs.map((sp) => {
     const h = hostHeight * sp.meta.height * sp.sizeMult * scale;
     const w = h * sp.meta.aspect;
@@ -212,10 +205,10 @@ function buildAttempt(specs, scale, preferredHostX, hostHeight) {
   const byLayer = { ground: [], mid: [], air: [] };
   for (const item of scaled) byLayer[item.layer].push(item);
 
-  const initGroundSpread = spreadLayer(byLayer.ground, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
+  const initGroundSpread = spreadLayer(byLayer.ground, B.minX, B.maxX, B.gap);
   const initGroundRects = byLayer.ground.map((g) => {
     const x = initGroundSpread.positions.get(g.index);
-    return { index: g.index, x, y: GROUND_Y - g.h, w: g.w, h: g.h };
+    return { index: g.index, x, y: G - g.h, w: g.w, h: g.h };
   });
 
   const stackedBySupporter = new Map();
@@ -233,62 +226,81 @@ function buildAttempt(specs, scale, preferredHostX, hostHeight) {
 
   // Freestanding mid shares the lower stage height band with ground objects
   const lowerItems = [...byLayer.ground, ...freestandingMid];
-  const lowerSpread = spreadLayer(lowerItems, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
-  const airSpread = spreadLayer(byLayer.air, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
+  const airSpread = spreadLayer(byLayer.air, B.minX, B.maxX, B.gap);
+  const airMidY = (B.airTopMin + B.airBottomMax) / 2;
+  const hostTop = G - hostHeight;
+  const clampedPref = clamp(preferredHostX, geo.stage.hostMinX, geo.stage.hostMaxX);
 
-  const xMap = new Map([...lowerSpread.positions, ...airSpread.positions]);
-  const groundRects = byLayer.ground.map((g) => {
-    const x = xMap.get(g.index);
-    return { index: g.index, x, y: GROUND_Y - g.h, w: g.w, h: g.h };
-  });
-  const groundByIndex = new Map(groundRects.map((g) => [g.index, g]));
+  const evaluateLower = (lowerSpread) => {
+    const xMap = new Map([...lowerSpread.positions, ...airSpread.positions]);
+    const groundRects = byLayer.ground.map((g) => {
+      const x = xMap.get(g.index);
+      return { index: g.index, x, y: G - g.h, w: g.w, h: g.h };
+    });
+    const groundByIndex = new Map(groundRects.map((g) => [g.index, g]));
 
-  let stackedOk = true;
-  for (const [supIdx, group] of stackedBySupporter.entries()) {
-    const sup = groundByIndex.get(supIdx);
-    const supCx = sup.x + sup.w / 2;
-    const shiftedGroup = group.map((m) => ({ ...m, targetX: supCx + m.offsetFromSupporter }));
-    const groupSpread = spreadLayer(shiftedGroup, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX, STAGE_BOUNDS.gap);
-    if (!groupSpread.ok) stackedOk = false;
-    for (const [idx, x] of groupSpread.positions.entries()) xMap.set(idx, x);
+    let stackedOk = true;
+    for (const [supIdx, group] of stackedBySupporter.entries()) {
+      const sup = groundByIndex.get(supIdx);
+      const supCx = sup.x + sup.w / 2;
+      const shiftedGroup = group.map((m) => ({ ...m, targetX: supCx + m.offsetFromSupporter }));
+      const groupSpread = spreadLayer(shiftedGroup, B.minX, B.maxX, B.gap);
+      if (!groupSpread.ok) stackedOk = false;
+      for (const [idx, x] of groupSpread.positions.entries()) xMap.set(idx, x);
+    }
+
+    const boxes = scaled.map((item) => {
+      const x = xMap.get(item.index);
+      let y;
+      if (item.layer === 'ground') {
+        y = G - item.h;
+      } else if (item.layer === 'air') {
+        y = airMidY - item.h / 2;
+      } else {
+        const cx = x + item.w / 2;
+        const supporter = groundRects.find((g) => cx >= g.x - 1e-6 && cx <= g.x + g.w + 1e-6);
+        y = supporter ? supporter.y - item.h : B.midDefaultBottom - item.h;
+      }
+      return { x, y, w: item.w, h: item.h };
+    });
+
+    // Host 200px corridor avoids all objects vertically intersecting [G - hostHeight, G]
+    const hostBlockingRects = boxes.filter((b) => b.y < G - 1e-6 && b.y + b.h > hostTop + 1e-6);
+    const hostX = findHostX(hostBlockingRects, preferredHostX, geo);
+
+    const layersFit = initGroundSpread.ok && lowerSpread.ok && airSpread.ok && stackedOk;
+    const boundsOk = scaled.every((item, i) => {
+      const b = boxes[i];
+      if (b.x < B.minX - 1e-6 || b.x + b.w > B.maxX + 1e-6) return false;
+      if (b.y < B.airTopMin - 1e-6 || b.y + b.h > G + 1e-6) return false;
+      if (item.layer === 'air' && b.y + b.h > B.airBottomMax + 1e-6) return false;
+      return true;
+    });
+    const spacingOk = sameLayerGapOk(scaled, boxes, B.gap) && no2DOverlap(boxes);
+
+    return {
+      ok: layersFit && boundsOk && spacingOk && hostX !== null,
+      hostX,
+      boxes,
+    };
+  };
+
+  let best = evaluateLower(spreadLayer(lowerItems, B.minX, B.maxX, B.gap));
+  if (isPortrait(geo) && lowerItems.length > 0 && (best.hostX === null || Math.abs(best.hostX - clampedPref) > B.hostClearWidth / 2)) {
+    const corridor = { index: -1, w: Math.max(0, B.hostClearWidth - 2 * B.gap), targetX: clampedPref };
+    const candSpread = spreadLayer([...lowerItems, corridor], B.minX, B.maxX, B.gap);
+    candSpread.positions.delete(-1);
+    const cand = evaluateLower(candSpread);
+    if (cand.ok && (!best.ok || Math.abs(cand.hostX - clampedPref) < Math.abs(best.hostX - clampedPref) - 1e-6)) {
+      best = cand;
+    }
   }
 
-  const airMidY = (STAGE_BOUNDS.airTopMin + STAGE_BOUNDS.airBottomMax) / 2;
-  const boxes = scaled.map((item) => {
-    const x = xMap.get(item.index);
-    let y;
-    if (item.layer === 'ground') {
-      y = GROUND_Y - item.h;
-    } else if (item.layer === 'air') {
-      y = airMidY - item.h / 2;
-    } else {
-      const cx = x + item.w / 2;
-      const supporter = groundRects.find((g) => cx >= g.x - 1e-6 && cx <= g.x + g.w + 1e-6);
-      y = supporter ? supporter.y - item.h : STAGE_BOUNDS.midDefaultBottom - item.h;
-    }
-    return { x, y, w: item.w, h: item.h };
-  });
-
-  // Host 200px corridor avoids all objects vertically intersecting [GROUND_Y - hostHeight, GROUND_Y]
-  const hostTop = GROUND_Y - hostHeight;
-  const hostBlockingRects = boxes.filter((b) => b.y < GROUND_Y - 1e-6 && b.y + b.h > hostTop + 1e-6);
-  const hostX = findHostX(hostBlockingRects, preferredHostX);
-
-  const layersFit = initGroundSpread.ok && lowerSpread.ok && airSpread.ok && stackedOk;
-  const boundsOk = scaled.every((item, i) => {
-    const b = boxes[i];
-    if (b.x < STAGE_BOUNDS.minX - 1e-6 || b.x + b.w > STAGE_BOUNDS.maxX + 1e-6) return false;
-    if (b.y < STAGE_BOUNDS.airTopMin - 1e-6 || b.y + b.h > GROUND_Y + 1e-6) return false;
-    if (item.layer === 'air' && b.y + b.h > STAGE_BOUNDS.airBottomMax + 1e-6) return false;
-    return true;
-  });
-  const spacingOk = sameLayerGapOk(scaled, boxes, STAGE_BOUNDS.gap) && no2DOverlap(boxes);
-
   return {
-    ok: layersFit && boundsOk && spacingOk && hostX !== null,
+    ok: best.ok,
     scale,
-    hostX: hostX ?? clamp(preferredHostX, HOST_MIN_X, HOST_MAX_X),
-    boxes,
+    hostX: best.hostX ?? clampedPref,
+    boxes: best.boxes,
   };
 }
 
@@ -296,18 +308,18 @@ function buildAttempt(specs, scale, preferredHostX, hostHeight) {
  * Deterministic semantic stage layout: resolves slots/ratios, spreads same-layer overlaps >= 40 px,
  * stacks `mid` objects onto same-slot `ground` objects, reserves a 200 px host corridor, and auto-scales down to 0.6.
  */
-export function layoutStage(visualData, { hostAt, prevHostX = 320, customProps = [], hostHeight = 400 } = {}) {
+export function layoutStage(visualData, { hostAt, customProps = [], hostHeight = 400, frame = LANDSCAPE, prevHostX = frame.hostHome } = {}) {
   const data = unwrapVisualData(visualData);
   const rawObjects = Array.isArray(data.objects) ? data.objects : [];
   const rawLinks = Array.isArray(data.links) ? data.links : [];
-  const preferredHostX = resolveHostPreferredX(hostAt, prevHostX);
+  const preferredHostX = resolveHostPreferredX(hostAt, prevHostX, frame);
 
   if (rawObjects.length === 0) {
     return {
       ok: true,
       crowded: false,
       scale: 1,
-      hostX: clamp(preferredHostX, HOST_MIN_X, HOST_MAX_X),
+      hostX: clamp(preferredHostX, frame.stage.hostMinX, frame.stage.hostMaxX),
       elements: [],
       links: [],
     };
@@ -327,14 +339,14 @@ export function layoutStage(visualData, { hostAt, prevHostX = 320, customProps =
       state: obj.state ?? 'normal',
       meta,
       sizeMult,
-      targetX: resolveAtX(obj.at, STAGE_SLOTS.center),
+      targetX: resolveAtX(obj.at, frame.stage.slots.center, frame),
     };
   });
 
   let chosen = null;
   for (let step = 0; step <= 8; step += 1) {
     const s = Math.round((1 - step * 0.05) * 100) / 100;
-    const attempt = buildAttempt(specs, s, preferredHostX, hostHeight);
+    const attempt = buildAttempt(specs, s, preferredHostX, hostHeight, frame);
     chosen = attempt;
     if (attempt.ok) break;
   }
@@ -354,8 +366,8 @@ export function layoutStage(visualData, { hostAt, prevHostX = 320, customProps =
       bbox,
       anchors,
       standSpots: {
-        left: clamp(bbox.x - 70, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX),
-        right: clamp(bbox.x + bbox.w + 70, STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX),
+        left: clamp(bbox.x - 70, frame.stage.bounds.minX, frame.stage.bounds.maxX),
+        right: clamp(bbox.x + bbox.w + 70, frame.stage.bounds.minX, frame.stage.bounds.maxX),
       },
     };
   });
@@ -364,7 +376,7 @@ export function layoutStage(visualData, { hostAt, prevHostX = 320, customProps =
     const fromEl = elements[lnk.from];
     const toEl = elements[lnk.to];
     if (!fromEl || !toEl || lnk.from === lnk.to) {
-      const pt = fromEl ? [fromEl.bbox.x + fromEl.bbox.w / 2, fromEl.bbox.y + fromEl.bbox.h / 2] : [960, 540];
+      const pt = fromEl ? [fromEl.bbox.x + fromEl.bbox.w / 2, fromEl.bbox.y + fromEl.bbox.h / 2] : [...frame.center];
       return {
         index,
         from: lnk.from,
@@ -458,11 +470,11 @@ function resolveCueStart(cue, cueIdx, interactionStarts) {
   return cue?.timeMs != null ? cue.timeMs / 1000 : (cue?.t0 ?? 0);
 }
 
-function simResolveStandX(target, currentX, elements) {
+function simResolveStandX(target, currentX, elements, geo = LANDSCAPE) {
   if (typeof target === 'string') {
-    if (target === 'left') return 320;
-    if (target === 'center') return 960;
-    if (target === 'right') return 1600;
+    if (target === 'left') return geo.spots.left;
+    if (target === 'center') return geo.spots.center;
+    if (target === 'right') return geo.spots.right;
     return currentX;
   }
   if (Number.isInteger(target)) {
@@ -472,7 +484,7 @@ function simResolveStandX(target, currentX, elements) {
       const { left, right } = el.standSpots;
       const isClear = (sx) => !elements.some((other) => {
         const b = other?.bbox;
-        if (!b || b.y >= GROUND_Y - 1e-6 || b.y + b.h <= 490 + 1e-6) return false;
+        if (!b || b.y >= geo.ground - 1e-6 || b.y + b.h <= geo.ground - 440 + 1e-6) return false;
         return sx - 50 < b.x + b.w && sx + 50 > b.x;
       });
       const leftOk = Number.isFinite(left) && isClear(left);
@@ -481,11 +493,11 @@ function simResolveStandX(target, currentX, elements) {
       if (leftOk && !rightOk) chosen = left;
       else if (rightOk && !leftOk) chosen = right;
       else chosen = Math.abs(currentX - left) <= Math.abs(currentX - right) ? left : right;
-      return clamp(Math.round(chosen), STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX);
+      return clamp(Math.round(chosen), geo.stage.bounds.minX, geo.stage.bounds.maxX);
     }
     const cx = el.bbox.x + el.bbox.w / 2;
     const chosen = currentX <= cx ? el.bbox.x - 60 : el.bbox.x + el.bbox.w + 60;
-    return clamp(Math.round(chosen), STAGE_BOUNDS.minX, STAGE_BOUNDS.maxX);
+    return clamp(Math.round(chosen), geo.stage.bounds.minX, geo.stage.bounds.maxX);
   }
   return currentX;
 }
@@ -536,6 +548,7 @@ export function renderSendPacket(fromPt, toPt, propName, u, {
  */
 export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
   const rawVisual = shotPlan?.shot?.visual;
+  const geo = shotPlan?.frame ?? LANDSCAPE;
   const rawData = unwrapVisualData(rawVisual?.data ?? shotPlan);
   const customProps = shotPlan?.customProps ?? [];
   const isStage = shotPlan?.shot?.layout === 'stage'
@@ -548,8 +561,9 @@ export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
   if (isStage && (!elements || !links)) {
     const laid = shotPlan?.stageLayout ?? layoutStage(rawData, {
       hostAt: shotPlan?.shot?.host?.at,
-      prevHostX: shotPlan?.startState?.x ?? 320,
+      prevHostX: shotPlan?.startState?.x ?? geo.hostHome,
       customProps,
+      frame: geo,
     });
     elements = elements ?? laid.elements;
     links = links ?? laid.links;
@@ -572,11 +586,11 @@ export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
     .sort((a, b) => a.t0 - b.t0 || a.cueIdx - b.cueIdx);
 
   // Track simulated host X at each cue (after auto-approach) so push/pull directions remain consistent across later walks
-  let simHostX = shotPlan?.startState?.x ?? shotPlan?.stageLayout?.hostX ?? 320;
+  let simHostX = shotPlan?.startState?.x ?? shotPlan?.stageLayout?.hostX ?? geo.hostHome;
   const hostXAtCue = new Map();
   for (const entry of resolvedCues) {
     if (HOST_MOVING_DO.has(entry.cue.do) && !(entry.cue.do === 'carry' && entry.cue.target === 'none')) {
-      simHostX = simResolveStandX(entry.cue.target, simHostX, elements);
+      simHostX = simResolveStandX(entry.cue.target, simHostX, elements, geo);
     }
     hostXAtCue.set(entry.cueIdx, simHostX);
   }
@@ -628,10 +642,10 @@ export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
       }
     }
 
-    // 3. Push / pull horizontal displacement (0.7 s with easeOutBack overshoot, clamped to [120, 1800])
+    // 3. Push / pull horizontal displacement (0.7 s with easeOutBack overshoot, clamped to stage bounds)
     const bbox = el.bbox ?? { x: 0, y: 0, w: 0, h: 0 };
-    const minDx = STAGE_BOUNDS.minX - bbox.x;
-    const maxDx = STAGE_BOUNDS.maxX - (bbox.x + bbox.w);
+    const minDx = geo.stage.bounds.minX - bbox.x;
+    const maxDx = geo.stage.bounds.maxX - (bbox.x + bbox.w);
     const computePushPullDx = (sinceTime) => {
       const walkStartOf = (c) => (c.cue?.timeMs != null ? Math.min(c.t0, c.cue.timeMs / 1000) : c.t0);
       let curDx = 0;
@@ -655,7 +669,7 @@ export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
           ? inter.standX
           : (!laterHostMove && Number.isFinite(hostMeta?.x)
             ? hostMeta.x
-            : (hostXAtCue.get(entry.cueIdx) ?? 320));
+            : (hostXAtCue.get(entry.cueIdx) ?? geo.hostHome));
         const preObjCx = bbox.x + bbox.w / 2 + curDx;
         const awayDir = preObjCx >= hostX ? 1 : -1;
         const dir = entry.cue.do === 'push' ? awayDir : -awayDir;
@@ -764,15 +778,15 @@ export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
       targetIdx = dstIdx;
       const prevB = elements[dstIdx - 1].bbox;
       const currB = elements[dstIdx].bbox;
-      fromPt = [
-        prevB.x + prevB.w + 8 + (objectStates[dstIdx - 1]?.dx ?? 0),
-        prevB.y + prevB.h / 2 + (objectStates[dstIdx - 1]?.dy ?? 0),
-      ];
-      toPt = [
-        currB.x - 8 + (objectStates[dstIdx]?.dx ?? 0),
-        currB.y + currB.h / 2 + (objectStates[dstIdx]?.dy ?? 0),
-      ];
-      bend = [0, -14];
+      const prevSt = objectStates[dstIdx - 1];
+      const currSt = objectStates[dstIdx];
+      const ends = flowArrowEnds(
+        { x: prevB.x + (prevSt?.dx ?? 0), y: prevB.y + (prevSt?.dy ?? 0), w: prevB.w, h: prevB.h },
+        { x: currB.x + (currSt?.dx ?? 0), y: currB.y + (currSt?.dy ?? 0), w: currB.w, h: currB.h },
+      );
+      fromPt = ends.from;
+      toPt = ends.to;
+      bend = ends.bend;
     }
 
     const u = dt / 0.8;
@@ -867,12 +881,13 @@ export function renderStage(visualData, {
   headingOpacity = 1,
   customProps = [],
   layoutResult,
+  frame = LANDSCAPE,
 } = {}) {
   void t;
   void duration;
   const data = unwrapVisualData(visualData);
   const { name: styleName, palette: pal } = resolveStyle(style);
-  const layout = layoutResult ?? layoutStage(data, { customProps });
+  const layout = layoutResult ?? layoutStage(data, { customProps, frame });
   const customById = new Map((Array.isArray(customProps) ? customProps : []).filter((p) => p?.id).map((p) => [p.id, p]));
   const getState = (i) => ({
     opacity: 1,
@@ -895,17 +910,18 @@ export function renderStage(visualData, {
 
   const headOp = clamp01(headingOpacity);
   if (data.heading && headOp > 0.005) {
+    const hd = frame.stage.heading;
     const halfUl = clamp([...String(data.heading)].length * 24, 110, 320);
     const hlOpAttr = headOp < 0.999 ? ` opacity="${num(headOp)}"` : '';
     backVectors.push(
-      `<path${hlOpAttr} d="${inkStroke([[960 - halfUl, 130], [960 + halfUl, 130]], { seed: `${seed}:stage-hl`, width: [5, 7], wobble: 2 }).d}" fill="${pal.accent}"/>`,
+      `<path${hlOpAttr} d="${inkStroke([[hd.x - halfUl, hd.underlineY], [hd.x + halfUl, hd.underlineY]], { seed: `${seed}:stage-hl`, width: [5, 7], wobble: 2 }).d}" fill="${pal.accent}"/>`,
     );
     textItems.push({
       key: 'stage-heading',
       text: data.heading,
-      x: 960,
-      y: 92,
-      fontSize: 52,
+      x: hd.x,
+      y: hd.y,
+      fontSize: hd.fontSize,
       color: pal.ink,
       align: 'middle',
       weight: 'bold',
@@ -948,8 +964,8 @@ export function renderStage(visualData, {
       textItems.push({
         key: `stage-link-${lnk.index}`,
         text: lnk.label,
-        x: midX,
-        y: clamp(midY - 20, STAGE_BOUNDS.airTopMin + 16, GROUND_Y - 24),
+        x: clampPortraitTextX(midX, lnk.label, 30, frame),
+        y: clamp(midY - 20, frame.stage.bounds.airTopMin + 16, frame.ground - 24),
         fontSize: 30,
         color: pal.muted,
         stroke: pal.paper,
@@ -1048,15 +1064,16 @@ export function renderStage(visualData, {
           ? el.label
           : chars.slice(0, Math.min(maxPartial, Math.max(1, Math.ceil(dp * chars.length)))).join('');
         if (shownLabel) {
+          const labelX = clampPortraitTextX(bEff.x + bEff.w / 2, el.label, 36, frame);
           const yAbove = bEff.y - 24;
           const halfW = Math.max(36, (chars.length * 36) / 2);
-          const aboveBox = { x: bEff.x + bEff.w / 2 - halfW, y: yAbove - 18, w: halfW * 2, h: 36 };
-          const conflicts = yAbove < STAGE_BOUNDS.airTopMin
+          const aboveBox = { x: labelX - halfW, y: yAbove - 18, w: halfW * 2, h: 36 };
+          const conflicts = yAbove < frame.stage.bounds.airTopMin
             || effectiveBoxes.some((other, j) => j !== i && other.visible && boxesOverlap(aboveBox, other.shifted));
           textItems.push({
             key: `stage-label-${i}`,
             text: shownLabel,
-            x: bEff.x + bEff.w / 2,
+            x: labelX,
             y: conflicts ? bEff.y + bEff.h * 0.55 : yAbove,
             fontSize: 36,
             color: pal.ink,

@@ -369,10 +369,10 @@ export function thinSoundEvents(events, { minGapMs = 500, stepGuardMs = 120 } = 
 
 export const TIER_LEVELS_DB = { step: { speech: -26, gap: -26 }, normal: { speech: -14, gap: -10 }, accent: { speech: -12, gap: -8 } };
 
-/** Equal-power pan scaled so the centre is unity on both channels; x is a 1920-wide screen coordinate. */
-export function panGains(x) {
+/** Equal-power pan scaled so the centre is unity on both channels; x is a screen coordinate on a `frameWidth`-wide frame. */
+export function panGains(x, frameWidth = 1920) {
   if (x === null || x === undefined || !Number.isFinite(x)) return [1, 1];
-  const pan = Math.max(-0.3, Math.min(0.3, (x / 1920 - 0.5) * 0.6));
+  const pan = Math.max(-0.3, Math.min(0.3, (x / frameWidth - 0.5) * 0.6));
   const theta = ((pan + 1) * Math.PI) / 4;
   return [Math.SQRT2 * Math.cos(theta), Math.SQRT2 * Math.sin(theta)];
 }
@@ -420,7 +420,7 @@ function overlapsIntervals(intervals, a, b) {
 }
 
 /** Mixes thinned events into a stereo effects stem of `totalSamples`, each scaled so its loudest 100 ms sits at V + tier offset. */
-export function renderSfxStem(events, totalSamples, { voiceRefDb, intervals = [], seed = 'sfx' } = {}) {
+export function renderSfxStem(events, totalSamples, { voiceRefDb, intervals = [], seed = 'sfx', frameWidth = 1920 } = {}) {
   const left = new Float32Array(totalSamples);
   const right = new Float32Array(totalSamples);
   const counts = {};
@@ -433,7 +433,7 @@ export function renderSfxStem(events, totalSamples, { voiceRefDb, intervals = []
     const ref = loudestWindowRms(buf);
     if (ref <= 0) return;
     const g = 10 ** ((voiceRefDb + offsetDb) / 20) / ref;
-    const [gl, gr] = panGains(ev.x);
+    const [gl, gr] = panGains(ev.x, frameWidth);
     const len = Math.min(buf.length, totalSamples - start);
     const fadeFrom = len < buf.length ? Math.max(0, len - FADE_SAMPLES) : len;
     for (let k = 0; k < len; k += 1) {

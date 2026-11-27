@@ -3,23 +3,25 @@
 // (出片质量设计 §4.1, §7.1-7.2, 火柴人主持人设计 §7.4-7.5, 超越路线图 §5.3).
 import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
+import { FRAMES, frameFor, isPortrait, textOutsideSafe } from './frame.mjs';
 import { evaluateHostAt, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
 import { evaluateStageObjects, layoutStage, renderStage } from './stage.mjs';
-import { DIAGRAM_ZONES, layoutElements, renderDiagram } from './templates.mjs';
-import { resolveCueTiming, splitClauses } from './timing.mjs';
-import { GROUND_Y, resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
+import { layoutElements, renderDiagram } from './templates.mjs';
+import { resolveCueTiming, splitClauses, subtitlePages } from './timing.mjs';
+import { resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
 
 export const SCENE_VERSION = 5;
 
+const LANDSCAPE = FRAMES['16:9'];
 const MAX_SCENE_BG_CACHE = 64;
 const sceneBgCache = new Map();
 const evalPlanCache = new WeakMap();
 
-function getCachedSceneBg(sceneName, styleName, seed, ground) {
-  const key = `${sceneName}|${styleName}|${seed}|${ground}`;
+function getCachedSceneBg(sceneName, styleName, seed, frame) {
+  const key = `${sceneName}|${styleName}|${seed}|${frame.ground}|${frame.ratio}`;
   if (sceneBgCache.has(key)) return sceneBgCache.get(key);
-  const svg = sceneBackgroundSvg(sceneName, { style: styleName, seed, ground });
+  const svg = sceneBackgroundSvg(sceneName, { style: styleName, seed, ground: frame.ground, width: frame.width, height: frame.height, frame });
   if (sceneBgCache.size >= MAX_SCENE_BG_CACHE) {
     sceneBgCache.delete(sceneBgCache.keys().next().value);
   }
@@ -28,6 +30,7 @@ function getCachedSceneBg(sceneName, styleName, seed, ground) {
 }
 
 function getCachedEvalPlan(shotPlan, styleName, duration) {
+  const frame = shotPlan.frame ?? LANDSCAPE;
   const prev = evalPlanCache.get(shotPlan);
   if (
     prev
@@ -39,6 +42,7 @@ function getCachedEvalPlan(shotPlan, styleName, duration) {
     && prev.sentences === shotPlan.sentences
     && prev.outfit === shotPlan.outfit
     && prev.theme === shotPlan.theme
+    && prev.frame === frame
   ) {
     return prev;
   }
@@ -47,7 +51,8 @@ function getCachedEvalPlan(shotPlan, styleName, duration) {
     theme: shotPlan.theme,
     style: styleName,
     outfit: shotPlan.outfit,
-    ground: GROUND_Y,
+    ground: frame.ground,
+    frame,
     durationSec: duration,
     startState: shotPlan.startState,
     cues: shotPlan.cues,
@@ -92,14 +97,14 @@ function matchSharedElements(prevElems, nextElems) {
  * Builds self-contained per-shot plans with chained host continuity and transition metadata.
  * Every shot plan carries only its own data plus `prevShot` summary (no absolute frame numbers).
  */
-export function buildShotPlans(project, timeline, manifest) {
+export function buildShotPlans(project, timeline, manifest, { frame = frameFor(project.settings?.ratio) } = {}) {
   const theme = project.settings?.theme ?? 'light';
   const hasWorld = Boolean(project.world);
   const style = resolveStyle(project.world?.style ?? theme).name;
   const defaultScene = project.world?.scene ?? 'blank';
   const customProps = project.world?.custom_props ?? [];
   const outfit = project.settings?.outfit ?? 'none';
-  let lastHostEnd = { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none', autoSnaps: 0 };
+  let lastHostEnd = { x: frame.hostHome, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none', autoSnaps: 0 };
   let prevPlan = null;
   const plans = [];
 
@@ -114,15 +119,16 @@ export function buildShotPlans(project, timeline, manifest) {
     const stageLayout = isStage
       ? layoutStage(shot.visual.data, {
           hostAt: shot.host?.at,
-          prevHostX: reenteringFromFull ? 320 : lastHostEnd.x,
+          prevHostX: reenteringFromFull ? frame.hostHome : lastHostEnd.x,
           customProps,
           hostHeight: manifest.height_px,
+          frame,
         })
       : null;
-    const elements = isStage ? stageLayout.elements : layoutElements(shot.visual, shot.layout);
+    const elements = isStage ? stageLayout.elements : layoutElements(shot.visual, shot.layout, null, frame);
     const startState = isHost
       ? {
-          x: isStage ? stageLayout.hostX : (reenteringFromFull ? 320 : lastHostEnd.x),
+          x: isStage ? stageLayout.hostX : (reenteringFromFull ? frame.hostHome : lastHostEnd.x),
           view: reenteringFromFull ? 'three_quarter' : lastHostEnd.view,
           facing: reenteringFromFull ? 1 : lastHostEnd.facing,
           gesture: shot.host?.gesture ?? lastHostEnd.gesture,
@@ -137,7 +143,7 @@ export function buildShotPlans(project, timeline, manifest) {
     if (
       shot.layout === 'host-left'
       && prevPlan?.shot.layout === 'host-left'
-      && Math.abs(startState.x - 320) > 80
+      && Math.abs(startState.x - frame.hostHome) > 80
       && !cues.some((c) => c.do === 'move' && c.timeMs <= 500)
     ) {
       cues.unshift({ sentence: shot.sentences[0], do: 'move', target: 'left', timeMs: 0, source: 'auto_return' });
@@ -173,6 +179,7 @@ export function buildShotPlans(project, timeline, manifest) {
       index: i,
       id: shot.id,
       shot,
+      frame,
       hasWorld,
       theme,
       style,
@@ -191,6 +198,7 @@ export function buildShotPlans(project, timeline, manifest) {
       prevShot: prevPlan ? {
         id: prevPlan.id,
         shot: prevPlan.shot,
+        frame: prevPlan.frame,
         hasWorld: prevPlan.hasWorld,
         style: prevPlan.style,
         scene: prevPlan.scene,
@@ -210,7 +218,8 @@ export function buildShotPlans(project, timeline, manifest) {
         theme,
         style,
         outfit,
-        ground: GROUND_Y,
+        ground: frame.ground,
+        frame,
         durationSec: tl.durationSec,
         startState,
         cues,
@@ -257,6 +266,7 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     width,
     height,
     motionBlur,
+    ...(shotPlan.frame && shotPlan.frame.ratio !== '16:9' ? { ratio: shotPlan.frame.ratio } : {}),
   })).digest('hex').slice(0, 16);
 }
 
@@ -343,9 +353,9 @@ function subtitleAt(shotPlan, t, pal) {
     key: `sub-${sent.key}-${display}-${activeAnchor ?? ''}`,
     text: display,
     highlightWord: activeAnchor && display.includes(activeAnchor) ? activeAnchor : null,
-    x: 960,
-    y: 1012,
-    fontSize: 44, // >= 40 px clarity requirement (超越路线图 §5.2)
+    x: (shotPlan.frame ?? LANDSCAPE).subtitle.x,
+    y: (shotPlan.frame ?? LANDSCAPE).subtitle.y,
+    fontSize: (shotPlan.frame ?? LANDSCAPE).subtitle.fontSize, // >= 40 px clarity requirement (超越路线图 §5.2)
     color: pal.ink,
     highlightColor: pal.teal,
     stroke: pal.paper,
@@ -355,8 +365,56 @@ function subtitleAt(shotPlan, t, pal) {
   };
 }
 
+/** Subtitle text items for one moment: the landscape single line, or a portrait page of up to two lines. */
+function subtitleItems(shotPlan, t, pal) {
+  const frame = shotPlan.frame ?? LANDSCAPE;
+  if (!isPortrait(frame)) {
+    const sub = subtitleAt(shotPlan, t, pal);
+    return sub ? [sub] : [];
+  }
+  const ms = t * 1000;
+  const sent = shotPlan.sentences.find((s) => ms >= s.startMs && ms <= s.endMs + 120);
+  if (!sent || !sent.text) return [];
+  const activeAnchor = shotPlan.cues
+    .filter((c) => c.sentence === sent.index && c.at && ms >= c.anchorMs - 50)
+    .at(-1)?.at;
+  const S = frame.subtitle;
+  const pages = subtitlePages(sent.text, { maxChars: S.maxChars, maxLines: S.maxLines });
+  if (!pages.length) return [];
+  const sizes = pages.map((pg) => [...pg.join('')].length);
+  const total = sizes.reduce((a, b) => a + b, 0);
+  const sp0 = sent.startMs + (sent.speech?.[0] ?? 0);
+  const sp1 = sent.startMs + (sent.speech?.[1] ?? (sent.endMs - sent.startMs));
+  const frac = clamp01((ms - sp0) / Math.max(1, sp1 - sp0));
+  let acc = 0;
+  let page = pages.at(-1);
+  for (let i = 0; i < pages.length; i += 1) {
+    acc += sizes[i];
+    if (frac <= acc / total) {
+      page = pages[i];
+      break;
+    }
+  }
+  const y0 = S.y - ((page.length - 1) * S.lineHeight) / 2;
+  return page.map((line, i) => ({
+    key: `sub-${sent.key}-${i}-${line}-${activeAnchor ?? ''}`,
+    text: line,
+    highlightWord: activeAnchor && line.includes(activeAnchor) ? activeAnchor : null,
+    x: S.x,
+    y: y0 + i * S.lineHeight,
+    fontSize: S.fontSize,
+    color: pal.ink,
+    highlightColor: pal.teal,
+    stroke: pal.paper,
+    align: 'middle',
+    weight: 'bold',
+    opacity: 1,
+  }));
+}
+
 function renderPrevLayer(shotPlan, prevStates, fadeOut) {
   const prev = shotPlan.prevShot;
+  const frame = shotPlan.frame ?? LANDSCAPE;
   const { objectStates: prevObjStates } = evaluateStageObjects(prev, prev.durationSec, prev.endHostMeta ?? null);
   const mergedPrevStates = prevStates.map((st, pi) => {
     const obj = prevObjStates[pi];
@@ -372,6 +430,7 @@ function renderPrevLayer(shotPlan, prevStates, fadeOut) {
         headingOpacity: fadeOut,
         customProps: prev.customProps ?? shotPlan.customProps ?? [],
         layoutResult: prev.stageLayout,
+        frame,
       })
     : renderDiagram(prev.shot.visual, {
         layout: prev.shot.layout,
@@ -382,6 +441,7 @@ function renderPrevLayer(shotPlan, prevStates, fadeOut) {
         duration: prev.durationSec,
         elementStates: mergedPrevStates,
         customProps: prev.customProps ?? shotPlan.customProps ?? [],
+        frame,
       });
   return {
     vectorSvg: res.vectorSvg,
@@ -394,6 +454,8 @@ function renderPrevLayer(shotPlan, prevStates, fadeOut) {
  * Returns `{ vectorSvg, textItems, isFastMotion, hostMeta }` ready for layered resvg rendering.
  */
 export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
+  const frame = shotPlan.frame ?? LANDSCAPE;
+  const [cx, cy] = frame.center;
   const resolvedStyle = resolveStyle(shotPlan.style ?? shotPlan.theme);
   const styleName = resolvedStyle.name;
   const pal = resolvedStyle.palette;
@@ -419,7 +481,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
       // Trot in from left edge during [0, 0.6s]
       const u = easeOutCubic(trU);
       const enterX = lerp(-120, hostState.x, u);
-      const wf = walkFrame(manifest, t * 2, { x: enterX, ground: GROUND_Y, facing: 1, trot: true });
+      const wf = walkFrame(manifest, t * 2, { x: enterX, ground: frame.ground, facing: 1, trot: true });
       hostSvg = drawHost(manifest, {
         ...hostState,
         x: enterX,
@@ -438,7 +500,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     const prevHost = shotPlan.prevShot.endHostState;
     const u = easeInOutCubic(trU);
     const exitX = lerp(prevHost.x, -140, u);
-    const wf = walkFrame(manifest, t * 2, { x: exitX, ground: GROUND_Y, facing: -1, trot: true });
+    const wf = walkFrame(manifest, t * 2, { x: exitX, ground: frame.ground, facing: -1, trot: true });
     hostSvg = drawHost(manifest, {
       gesture: 'idle',
       expr: prevHost.expr ?? 'explaining',
@@ -446,7 +508,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
       view: 'side',
       facing: -1,
       x: exitX,
-      ground: GROUND_Y,
+      ground: frame.ground,
       theme: shotPlan.theme,
       style: styleName,
       outfit: shotPlan.outfit,
@@ -460,8 +522,8 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   // Diagram zone interpolation during layout switch (only between host-left and full)
   let zoneOverride = null;
   if (inTr && tr.layoutSwitch) {
-    const zFrom = DIAGRAM_ZONES[shotPlan.prevShot.shot.layout];
-    const zTo = DIAGRAM_ZONES[shotPlan.shot.layout];
+    const zFrom = frame.zones[shotPlan.prevShot.shot.layout];
+    const zTo = frame.zones[shotPlan.shot.layout];
     if (zFrom && zTo) zoneOverride = lerpBox(zFrom, zTo, easeInOutCubic(trU));
     isFastMotion = true;
   }
@@ -469,7 +531,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   // Element states with reveal / highlight / tap shake + stage/diagram interactions & morph overrides
   const camScaleStr = camScale.toFixed(4);
   const camZoom = Number(camScaleStr);
-  const unscalePt = (pt) => (Array.isArray(pt) ? [960 + (pt[0] - 960) / camZoom, 540 + (pt[1] - 540) / camZoom] : pt);
+  const unscalePt = (pt) => (Array.isArray(pt) ? [cx + (pt[0] - cx) / camZoom, cy + (pt[1] - cy) / camZoom] : pt);
   // Inverse-scale live hand coords so frontVectorSvg inside camOpen tracks unscaled hostSvg l_hand pixel-tight
   const objHostMeta = hostMeta?.interaction
     ? {
@@ -544,7 +606,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
 
   const isStage = shotPlan.shot.layout === 'stage';
   const sceneBg = isStage
-    ? getCachedSceneBg(shotPlan.scene ?? 'blank', styleName, shotPlan.id, GROUND_Y)
+    ? getCachedSceneBg(shotPlan.scene ?? 'blank', styleName, shotPlan.id, frame)
     : '';
   const diag = isStage
     ? renderStage(shotPlan.shot.visual, {
@@ -557,6 +619,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
         headingOpacity,
         customProps: shotPlan.customProps ?? [],
         layoutResult: shotPlan.stageLayout,
+        frame,
       })
     : renderDiagram(shotPlan.shot.visual, {
         layout: shotPlan.shot.layout,
@@ -569,14 +632,15 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
         sends,
         customProps: shotPlan.customProps ?? [],
         zoneOverride,
+        frame,
       });
 
   // Camera transform around center (960, 540) for scene and diagram/stage layers
-  const camOpen = `<g transform="translate(960 540) scale(${camScaleStr}) translate(-960 -540)">`;
+  const camOpen = `<g transform="translate(${cx} ${cy}) scale(${camScaleStr}) translate(${-cx} ${-cy})">`;
   const backLayer = isStage ? diag.backVectorSvg : diag.vectorSvg;
   const frontLayer = isStage && diag.frontVectorSvg ? `${camOpen}${diag.frontVectorSvg}</g>` : '';
-  const vectorSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">`
-    + styleBackgroundSvg(styleName, 1920, 1080, bgParallax)
+  const vectorSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${frame.width}" height="${frame.height}" viewBox="0 0 ${frame.width} ${frame.height}">`
+    + styleBackgroundSvg(styleName, frame.width, frame.height, bgParallax)
     + camOpen + sceneBg + prevDiagSvg + backLayer + '</g>'
     + hostSvg
     + frontLayer
@@ -585,11 +649,10 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   // Apply gentle camera scale to diagram/stage text items (not subtitle)
   const scaledText = [...prevTextItems, ...diag.textItems].map((ti) => ({
     ...ti,
-    x: 960 + (ti.x - 960) * camScale,
-    y: 540 + (ti.y - 540) * camScale,
+    x: cx + (ti.x - cx) * camScale,
+    y: cy + (ti.y - cy) * camScale,
   }));
-  const sub = subtitleAt(shotPlan, t, pal);
-  if (sub) scaledText.push(sub);
+  scaledText.push(...subtitleItems(shotPlan, t, pal));
 
   const objectBoxes = isStage
     ? shotPlan.elements.map((el, i) => {
@@ -601,4 +664,30 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     : null;
 
   return { vectorSvg, textItems: scaledText, isFastMotion, hostMeta, objectBoxes };
+}
+
+/** Portrait-only layout problems (竖屏设计 §7.1): crowded stages and text leaving the safe box on sampled frames. */
+export function portraitLayoutIssues(manifest, plans, { fps = 60, step = 6 } = {}) {
+  const issues = [];
+  for (const plan of plans) {
+    const frame = plan.frame ?? LANDSCAPE;
+    if (!isPortrait(frame)) continue;
+    if (plan.stageLayout?.crowded) {
+      issues.push({ code: 'STAGE_CROWDED', shotId: plan.id, message: `竖屏镜头 ${plan.id} 的同台物件缩到 0.6 倍仍排不下；减少物件或拆成两个镜头` });
+    }
+    let frames = 0;
+    const keys = new Set();
+    for (let f = 0; f < plan.frameCount; f += step) {
+      const out = textOutsideSafe(evaluateFrame(manifest, plan, f / fps).textItems, frame);
+      if (out.length) {
+        frames += 1;
+        out.forEach((k) => keys.add(k));
+      }
+    }
+    if (frames) {
+      const list = [...keys];
+      issues.push({ code: 'SAFE_ZONE_TEXT', shotId: plan.id, frames, keys: list.slice(0, 5), message: `竖屏镜头 ${plan.id} 有 ${frames} 个抽样帧的文字超出安全框（${list.slice(0, 3).join('、')}）` });
+    }
+  }
+  return issues;
 }

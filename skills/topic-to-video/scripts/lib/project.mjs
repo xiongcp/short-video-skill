@@ -3,6 +3,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { countChars, splitSentences } from './captions.mjs';
+import { FRAMES } from './frame.mjs';
 import { COMMON_STATES, customPropMeta, ICONS, isCountState, PROP_META, propSupportsState, validateCustomProps } from './icons.mjs';
 import { layoutStage, STAGE_SLOTS } from './stage.mjs';
 import { SCENE_NAMES, STYLE_NAMES } from './world.mjs';
@@ -239,7 +240,9 @@ function checkWorld(world, add) {
 function checkStageShots(project, add) {
   const customProps = Array.isArray(project.world?.custom_props) ? project.world.custom_props.filter(isObject) : [];
   const customIds = new Set(customProps.map((p) => p.id).filter((id) => typeof id === 'string'));
-  let prevHostX = 320;
+  const ratio = project.settings?.ratio;
+  const frame = typeof ratio === 'string' && Object.hasOwn(FRAMES, ratio) ? FRAMES[ratio] : FRAMES['16:9'];
+  let prevHostX = frame.hostHome;
 
   project.shots.forEach((shot, i) => {
     const at = `/shots/${i}`;
@@ -266,7 +269,7 @@ function checkStageShots(project, add) {
     }
 
     if (!isStageTemplate) {
-      if (shot.layout === 'full') prevHostX = 320;
+      if (shot.layout === 'full') prevHostX = frame.hostHome;
       return;
     }
 
@@ -307,9 +310,10 @@ function checkStageShots(project, add) {
     });
 
     if (isStageLayout && stageValidForLayout && objects.length > 0) {
-      const staged = layoutStage(shot.visual.data, { hostAt: shot.host?.at, prevHostX, customProps });
+      const staged = layoutStage(shot.visual.data, { hostAt: shot.host?.at, prevHostX, customProps, frame });
       if (staged.crowded) {
-        add(`${at}/visual/data/objects`, 'STAGE_CROWDED', `镜头 ${shot.id} 的舞台太挤，缩到 0.6 倍仍放不下全部物件和主持人；减少物件或拆成两个镜头（见 world.md）`);
+        const where = frame.ratio === '9:16' ? '竖屏舞台' : '舞台';
+        add(`${at}/visual/data/objects`, 'STAGE_CROWDED', `镜头 ${shot.id} 的${where}太挤，缩到 0.6 倍仍放不下全部物件和主持人；减少物件或拆成两个镜头（见 world.md）`);
       }
       prevHostX = staged.hostX;
     }

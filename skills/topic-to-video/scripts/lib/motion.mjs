@@ -2,12 +2,12 @@
 // procedural walk/trot/jump/wave/cheer/tap, automatic micro-acting, fixed-step 1/240s scarf spring
 // and standing spot solver (火柴人主持人设计 §5–§7).
 import { clamp01, easeInOutCubic, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
+import { FRAMES } from './frame.mjs';
 import { random } from './ink.mjs';
 import { ACTING, ahogePoints, clampAngles, forwardKinematics, JOINTS, poseAngles, resolvePose } from './rig.mjs';
 
 const RAD = Math.PI / 180;
 const DEG = 180 / Math.PI;
-const SPOTS = { left: 320, center: 960, right: 1600 };
 
 const STAGGER_SEC = {
   pelvis: 0, waist: 0, chest: 0, l_hip: 0, r_hip: 0, l_knee: 0.02, r_knee: 0.02, l_ankle: 0.04, r_ankle: 0.04,
@@ -310,17 +310,18 @@ const SIT_ON_ANGLES = {
   l_hip: 82, l_knee: 90, l_ankle: 0,
   r_hip: 78, r_knee: 84, r_ankle: 4,
 };
-const clampStageX = (v) => Math.max(120, Math.min(1800, v));
+const LANDSCAPE = FRAMES['16:9'];
+const clampX = (v, geo = LANDSCAPE) => Math.max(geo.walk.minX, Math.min(geo.walk.maxX, v));
 
-function isSpotClearOfOthers(sx, elements) {
+function isSpotClearOfOthers(sx, elements, geo = LANDSCAPE) {
   return !elements.some((other) => {
     const b = other?.bbox;
-    if (!b || b.y >= 930 - 1e-6 || b.y + b.h <= 490 + 1e-6) return false;
+    if (!b || b.y >= geo.ground - 1e-6 || b.y + b.h <= geo.ground - 440 + 1e-6) return false;
     return sx - 50 < b.x + b.w && sx + 50 > b.x;
   });
 }
 
-function applyObjectShift(elements, objDx, droppedSpots) {
+function applyObjectShift(elements, objDx, droppedSpots, geo = LANDSCAPE) {
   return elements.map((el, i) => {
     if (!el?.bbox) return el;
     const spot = droppedSpots[i];
@@ -335,8 +336,8 @@ function applyObjectShift(elements, objDx, droppedSpots) {
         bbox,
         anchors,
         standSpots: {
-          left: clampStageX(bbox.x - 70),
-          right: clampStageX(bbox.x + bbox.w + 70),
+          left: clampX(bbox.x - 70, geo),
+          right: clampX(bbox.x + bbox.w + 70, geo),
         },
       };
     }
@@ -350,27 +351,27 @@ function applyObjectShift(elements, objDx, droppedSpots) {
       bbox,
       anchors,
       standSpots: el.standSpots
-        ? { left: clampStageX(el.standSpots.left + dx), right: clampStageX(el.standSpots.right + dx) }
+        ? { left: clampX(el.standSpots.left + dx, geo), right: clampX(el.standSpots.right + dx, geo) }
         : undefined,
     };
   });
 }
 
-function resolveInteractionStandX(targetIdx, currentX, elements, anchorX, maxReach) {
+function resolveInteractionStandX(targetIdx, currentX, elements, anchorX, maxReach, geo = LANDSCAPE) {
   const el = elements[targetIdx];
-  if (!el?.standSpots) return resolveStandX(targetIdx, currentX, elements);
+  if (!el?.standSpots) return resolveStandX(targetIdx, currentX, elements, geo);
   const { left, right } = el.standSpots;
-  const leftClear = Number.isFinite(left) && isSpotClearOfOthers(left, elements);
-  const rightClear = Number.isFinite(right) && isSpotClearOfOthers(right, elements);
+  const leftClear = Number.isFinite(left) && isSpotClearOfOthers(left, elements, geo);
+  const rightClear = Number.isFinite(right) && isSpotClearOfOthers(right, elements, geo);
   if (el.bbox) {
-    if (currentX <= el.bbox.x && leftClear) return clampStageX(Math.round(left));
-    if (currentX >= el.bbox.x + el.bbox.w && rightClear) return clampStageX(Math.round(right));
+    if (currentX <= el.bbox.x && leftClear) return clampX(Math.round(left), geo);
+    if (currentX >= el.bbox.x + el.bbox.w && rightClear) return clampX(Math.round(right), geo);
   }
   const leftReach = leftClear && Math.abs(left - anchorX) <= maxReach * 0.92;
   const rightReach = rightClear && Math.abs(right - anchorX) <= maxReach * 0.92;
-  if (leftReach && !rightReach) return clampStageX(Math.round(left));
-  if (rightReach && !leftReach) return clampStageX(Math.round(right));
-  return resolveStandX(targetIdx, currentX, elements);
+  if (leftReach && !rightReach) return clampX(Math.round(left), geo);
+  if (rightReach && !leftReach) return clampX(Math.round(right), geo);
+  return resolveStandX(targetIdx, currentX, elements, geo);
 }
 
 function objectStateAt(elements, cues, interactionStarts, targetIdx, t) {
@@ -385,28 +386,28 @@ function objectStateAt(elements, cues, interactionStarts, targetIdx, t) {
   return state;
 }
 
-/** Resolves a `move` cue target (preset spot or element index) to a ground X in [120, 1800]. */
-export function resolveStandX(target, currentX = 320, elements = []) {
-  if (typeof target === 'string' && Object.hasOwn(SPOTS, target)) return SPOTS[target];
+/** Resolves a `move` cue target (preset spot or element index) to a ground X inside walk bounds. */
+export function resolveStandX(target, currentX = 320, elements = [], geo = LANDSCAPE) {
+  if (typeof target === 'string' && Object.hasOwn(geo.spots, target)) return geo.spots[target];
   if (Number.isInteger(target)) {
     const el = elements[target];
     if (!el) return currentX;
     if (el.standSpots) {
       const { left, right } = el.standSpots;
-      const leftOk = Number.isFinite(left) && isSpotClearOfOthers(left, elements);
-      const rightOk = Number.isFinite(right) && isSpotClearOfOthers(right, elements);
+      const leftOk = Number.isFinite(left) && isSpotClearOfOthers(left, elements, geo);
+      const rightOk = Number.isFinite(right) && isSpotClearOfOthers(right, elements, geo);
       let chosen;
       if (leftOk && !rightOk) chosen = left;
       else if (rightOk && !leftOk) chosen = right;
       else chosen = Math.abs(currentX - left) <= Math.abs(currentX - right) ? left : right;
-      return Math.max(120, Math.min(1800, Math.round(chosen)));
+      return clampX(Math.round(chosen), geo);
     }
     const { x, w } = el.bbox;
     const leftSpot = x - 60;
     const rightSpot = x + w + 60;
     const chosen = currentX < x ? leftSpot : currentX > x + w ? rightSpot
       : (Math.abs(currentX - leftSpot) <= Math.abs(currentX - rightSpot) ? leftSpot : rightSpot);
-    return Math.max(120, Math.min(1800, Math.round(chosen)));
+    return clampX(Math.round(chosen), geo);
   }
   return currentX;
 }
@@ -436,12 +437,12 @@ function computeMicroActing(t, seed, { audioFrame = null, isQuestionEnd = false,
   return { blink, breath, weightShift, nod, tilt, gaze };
 }
 
-function computeDropSpot(curX, curFacing, ground, el, headR, obstacles = []) {
+function computeDropSpot(curX, curFacing, ground, el, headR, obstacles = [], geo = LANDSCAPE) {
   const w = el?.bbox?.w ?? 0;
   const h = el?.bbox?.h ?? 0;
-  const minX = 120 + w / 2;
-  const maxX = 1800 - w / 2;
-  if (minX > maxX) return { x: 960, y: ground };
+  const minX = geo.walk.minX + w / 2;
+  const maxX = geo.walk.maxX - w / 2;
+  if (minX > maxX) return { x: geo.center[0], y: ground };
   const dropTop = ground - h;
   const blockers = (obstacles ?? [])
     .map((o) => o?.bbox)
@@ -480,7 +481,7 @@ function computeDropSpot(curX, curFacing, ground, el, headR, obstacles = []) {
 }
 
 /** Plans walk segments (including auto-approach), interaction events, and resolved cue start times. */
-function planHostTimeline(H, elements, orderedCues, { startX, startFacing, ground, totalDur, headR = 47 }) {
+function planHostTimeline(H, elements, orderedCues, { startX, startFacing, ground, totalDur, headR = 47, geo = LANDSCAPE }) {
   const maxReach = 0.35 * H;
   const walkSegments = [];
   const interactionEvents = [];
@@ -526,8 +527,8 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
     const nextLimit = nextMoving ? (nextMoving.timeMs ?? 0) / 1000 : totalDur;
 
     if (c.do === 'move') {
-      const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
-      const dstX = resolveStandX(c.target, curX, shifted);
+      const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots, geo);
+      const dstX = resolveStandX(c.target, curX, shifted, geo);
       const t0 = Math.max(rawT0, interBusyUntil);
       const seg = pushWalk(t0, dstX, c.target, c.source ?? 'move', Math.max(t0 + 0.2, nextLimit));
       if (seg.t1 > seg.t0 && simSeatedIdx !== null) {
@@ -551,9 +552,9 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       const actT0 = Math.max(rawT0, walkBusyUntil, carryPickupEnd);
       interactionStarts.set(c._idx, actT0);
       if (simCarriedIdx !== null) {
-        const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
+        const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots, geo);
         const others = shifted.filter((_, idx) => idx !== simCarriedIdx);
-        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR, others);
+        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR, others, geo);
         simDroppedSpots[simCarriedIdx] = spot;
         interactionEvents.push({ kind: 'drop', t0: actT0, dur: 0, targetIdx: simCarriedIdx, dropSpot: spot, cueIdx: c._idx });
         simCarriedIdx = null;
@@ -564,7 +565,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
     if (c.do === 'react') {
       const actT0 = Math.max(rawT0, walkBusyUntil, interBusyUntil);
       interactionStarts.set(c._idx, actT0);
-      const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
+      const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots, geo);
       const el = shifted[c.target];
       const targetX = el ? el.bbox.x + el.bbox.w / 2 : curX;
       curFacing = targetX >= curX ? 1 : -1;
@@ -573,7 +574,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       continue;
     }
 
-    const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots);
+    const shifted = applyObjectShift(elements, simObjDx, simDroppedSpots, geo);
     const targetIdx = c.target;
     const el = shifted[targetIdx];
     const elCx = el ? el.bbox.x + el.bbox.w / 2 : curX;
@@ -584,28 +585,28 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
     if (el) {
       if (c.do === 'open' || c.do === 'carry') {
         anchorPt = el.anchors?.handle ?? [el.bbox.x + el.bbox.w * 0.2, elCy];
-        dstX = resolveInteractionStandX(targetIdx, curX, shifted, anchorPt[0], maxReach);
+        dstX = resolveInteractionStandX(targetIdx, curX, shifted, anchorPt[0], maxReach, geo);
       } else if (c.do === 'push') {
-        dstX = resolveStandX(targetIdx, curX, shifted);
+        dstX = resolveStandX(targetIdx, curX, shifted, geo);
         const pushSide = dstX <= elCx ? -1 : 1;
         const hy = (el.anchors?.handle ?? el.anchors?.front)?.[1] ?? elCy;
         anchorPt = [pushSide === -1 ? el.bbox.x : el.bbox.x + el.bbox.w, hy];
       } else if (c.do === 'pull') {
-        dstX = resolveStandX(targetIdx, curX, shifted);
+        dstX = resolveStandX(targetIdx, curX, shifted, geo);
         const pushSide = dstX <= elCx ? -1 : 1;
         const handle = el.anchors?.handle ?? [elCx, elCy];
         anchorPt = Math.abs(dstX - handle[0]) <= maxReach * 0.92
           ? handle
           : [pushSide === -1 ? el.bbox.x : el.bbox.x + el.bbox.w, handle[1]];
       } else if (c.do === 'hold_up') {
-        dstX = resolveStandX(targetIdx, curX, shifted);
+        dstX = resolveStandX(targetIdx, curX, shifted, geo);
         anchorPt = el.anchors?.handle ?? el.anchors?.front ?? [elCx, elCy];
       } else if (c.do === 'draw') {
-        dstX = resolveStandX(targetIdx, curX, shifted);
+        dstX = resolveStandX(targetIdx, curX, shifted, geo);
         anchorPt = el.anchors?.front ?? [elCx, elCy];
       } else if (c.do === 'sit_on') {
         anchorPt = el.anchors?.seat ?? [elCx, el.bbox.y + el.bbox.h * 0.5];
-        dstX = clampStageX(Math.round(anchorPt[0]));
+        dstX = clampX(Math.round(anchorPt[0]), geo);
       }
     }
 
@@ -640,7 +641,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
       let autoDrop = null;
       if (simCarriedIdx !== null && simCarriedIdx !== targetIdx) {
         const others = shifted.filter((_, idx) => idx !== simCarriedIdx && idx !== targetIdx);
-        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR, others);
+        const spot = computeDropSpot(curX, curFacing, ground, elements[simCarriedIdx], headR, others, geo);
         simDroppedSpots[simCarriedIdx] = spot;
         autoDrop = { idx: simCarriedIdx, spot };
       }
@@ -653,8 +654,8 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
     } else if (c.do === 'push' || c.do === 'pull') {
       const origEl = elements[targetIdx];
       const curObjDx = simObjDx[targetIdx] ?? 0;
-      const minDx = origEl ? 120 - origEl.bbox.x : -160;
-      const maxDx = origEl ? 1800 - (origEl.bbox.x + origEl.bbox.w) : 160;
+      const minDx = origEl ? geo.walk.minX - origEl.bbox.x : -160;
+      const maxDx = origEl ? geo.walk.maxX - (origEl.bbox.x + origEl.bbox.w) : 160;
       const preObjCx = origEl ? origEl.bbox.x + origEl.bbox.w / 2 + curObjDx : anchorPt[0];
       const awayDir = preObjCx >= curX ? 1 : -1;
       const moveDir = c.do === 'push' ? awayDir : -awayDir;
@@ -666,7 +667,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
           ? Math.max(curX, Math.min(preObjCx - 4, origEl.bbox.x + nextObjDx - 60))
           : Math.min(curX, Math.max(preObjCx + 4, origEl.bbox.x + origEl.bbox.w + nextObjDx + 60));
       } else if (c.do === 'pull') {
-        endX = clampStageX(curX + deltaDx);
+        endX = clampX(curX + deltaDx, geo);
       }
       simObjDx[targetIdx] = nextObjDx;
       curFacing = awayDir;
@@ -698,7 +699,7 @@ function planHostTimeline(H, elements, orderedCues, { startX, startFacing, groun
 }
 
 /** Replays walk segments and interaction events up to time `t`. */
-function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, startX, startFacing }) {
+function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, startX, startFacing, geo = LANDSCAPE }) {
   let x = startX;
   let facing = startFacing;
   let walking = false;
@@ -745,7 +746,7 @@ function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, star
       if (Number.isInteger(seg.target)) {
         focusIdx = seg.target;
         focusChangedAt = seg.t0;
-        const shiftedAtEnd = applyObjectShift(elements, objDxAtT, droppedSpots);
+        const shiftedAtEnd = applyObjectShift(elements, objDxAtT, droppedSpots, geo);
         const el = shiftedAtEnd[seg.target];
         if (el) facing = (el.bbox.x + el.bbox.w / 2) >= x ? 1 : -1;
       } else if (seg.target === 'left') facing = 1;
@@ -791,7 +792,7 @@ function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, star
         facing = ev.facing;
         const peakU = ev.kind === 'open' ? 0.5 : 0.58;
         if (Math.abs(ev.anchorPt[0] - ev.standX) > 115) {
-          const stepInX = clampStageX(ev.anchorPt[0] - ev.facing * 85);
+          const stepInX = clampX(ev.anchorPt[0] - ev.facing * 85, geo);
           const stepEnv = u < peakU ? easeInOutCubic(u / peakU) : 1 - easeInOutCubic((u - peakU) / (1 - peakU));
           x = lerp(ev.standX, stepInX, stepEnv);
         } else x = ev.standX;
@@ -801,14 +802,14 @@ function evaluateTimelineAt(walkSegments, interactionEvents, elements, { t, star
       } else if (ev.kind === 'pull') {
         facing = ev.facing;
         const brace = ev.awayDir * 44 * Math.sin(u * Math.PI);
-        x = clampStageX(ev.standX + (ev.endX - ev.standX) * easeOutBack(u) + brace);
+        x = clampX(ev.standX + (ev.endX - ev.standX) * easeOutBack(u) + brace, geo);
       } else if (ev.kind === 'hold_up') {
         facing = 1;
         x = ev.standX;
       } else if (ev.kind === 'draw') {
         facing = ev.facing;
         if (Math.abs(ev.anchorPt[0] - ev.standX) > 110) {
-          const workX = clampStageX(ev.anchorPt[0] - ev.facing * 75);
+          const workX = clampX(ev.anchorPt[0] - ev.facing * 75, geo);
           const stepEnv = u < 0.15 ? easeOutCubic(u / 0.15) : u > 0.85 ? 1 - easeOutCubic((u - 0.85) / 0.15) : 1;
           x = lerp(ev.standX, workX, stepEnv);
         } else x = ev.standX;
@@ -997,8 +998,9 @@ const hostPlanCache = new WeakMap();
 
 function getCachedHostPlan(manifest, plan) {
   const H = manifest.height_px;
-  const ground = plan.ground ?? 930;
-  const start = plan.startState ?? { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
+  const geo = plan.frame ?? LANDSCAPE;
+  const ground = plan.ground ?? geo.ground;
+  const start = plan.startState ?? { x: geo.hostHome, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
   const cues = plan.cues ?? [];
   const elements = plan.elements ?? [];
   const sentences = plan.sentences ?? [];
@@ -1013,6 +1015,7 @@ function getCachedHostPlan(manifest, plan) {
     && prev.sentences === sentences
     && prev.durationSec === plan.durationSec
     && prev.ground === ground
+    && prev.geo === geo
     && prev.seed === seed
   ) {
     return prev;
@@ -1030,7 +1033,7 @@ function getCachedHostPlan(manifest, plan) {
     H,
     elements,
     orderedCues,
-    { startX: start.x, startFacing: start.facing ?? 1, ground, totalDur, headR },
+    { startX: start.x, startFacing: start.facing ?? 1, ground, totalDur, headR, geo },
   );
 
   const explicitActionSentences = new Set(
@@ -1091,7 +1094,7 @@ function getCachedHostPlan(manifest, plan) {
   ];
 
   const entry = {
-    manifest, cues, elements, start, sentences, durationSec: plan.durationSec, ground, seed,
+    manifest, cues, elements, start, sentences, durationSec: plan.durationSec, ground, geo, seed,
     orderedCues, walkSegments, interactionEvents, interactionStarts, curX, rushedMove,
     autoSnaps, effectiveCues, afterWalk, propTimeline, fidgets, kicks,
   };
@@ -1145,8 +1148,9 @@ export function hostEventTimeline(manifest, plan) {
 
 export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
   const H = manifest.height_px;
-  const ground = plan.ground ?? 930;
-  const start = plan.startState ?? { x: 320, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
+  const geo = plan.frame ?? LANDSCAPE;
+  const ground = plan.ground ?? geo.ground;
+  const start = plan.startState ?? { x: geo.hostHome, view: 'three_quarter', facing: 1, gesture: 'idle', expr: 'explaining', prop: 'none' };
   const cues = plan.cues ?? [];
   const elements = plan.elements ?? [];
   const theme = plan.theme ?? 'light';
@@ -1163,6 +1167,7 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
     t,
     startX: start.x,
     startFacing: start.facing ?? 1,
+    geo,
   });
 
   // Track reveal, highlight, and state cues for focus & micro-cooperation (§6.4)
@@ -1217,11 +1222,11 @@ export function evaluateHostAt(manifest, plan, t, audioFrame = { open: 0, width:
   }
 
   // Focus target point accounting for any push/pull/drop offsets
-  const currentElements = applyObjectShift(elements, objDxAtT, droppedSpots);
+  const currentElements = applyObjectShift(elements, objDxAtT, droppedSpots, geo);
   const focusEl = focusIdx !== null ? currentElements[focusIdx] : null;
   const focusPt = focusEl
     ? (focusEl.anchors?.front ?? [focusEl.bbox.x + focusEl.bbox.w / 2, focusEl.bbox.y + focusEl.bbox.h + 20])
-    : [1240, 320];
+    : geo.focusDefault;
 
   const fidget = fidgets.find((f) => t >= f.t0 && t < f.t0 + 0.8) ?? null;
   const fidgetEnv = fidget ? Math.sin(((t - fidget.t0) / 0.8) * Math.PI) : 0;

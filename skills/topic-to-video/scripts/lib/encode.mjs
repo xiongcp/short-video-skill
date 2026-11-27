@@ -7,12 +7,14 @@ import { cpus } from 'node:os';
 import { join, resolve } from 'node:path';
 import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads';
 import { findCjkFont, findTitleFont } from '../doctor.mjs';
+import { FRAMES, frameFor, isPortrait, outputSubdir, sizeFor } from './frame.mjs';
 import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from './mouth.mjs';
 import { buildSoundtrack, makeStereoWavBuffer } from './music.mjs';
 import { resolveSound } from './project.mjs';
 import { analyzeMixLevels } from './qa.mjs';
-import { buildShotPlans, evaluateFrame, shotCacheKey } from './scene.mjs';
+import { buildShotPlans, evaluateFrame, portraitLayoutIssues, shotCacheKey } from './scene.mjs';
 import { buildTimeline } from './timebase.mjs';
+import { subtitlePages } from './timing.mjs';
 import { synthesizeProject } from './tts.mjs';
 
 export const RESOLUTIONS = {
@@ -69,7 +71,7 @@ function alphaBlit(dst, dstW, dstH, src, srcW, srcH, dx, dy, opacity = 1) {
   }
 }
 
-function makeTextRasterizer(Resvg, scale) {
+function makeTextRasterizer(Resvg, scale, maxWidth = 1920) {
   const bodyFont = findCjkFont();
   const titleFont = findTitleFont() ?? bodyFont;
   const cache = new Map();
@@ -81,7 +83,7 @@ function makeTextRasterizer(Resvg, scale) {
     const charCount = Math.max(1, [...item.text].length);
     const padX = Math.round(fs * 0.8);
     const padY = Math.round(fs * 0.6);
-    const boxW = Math.min(Math.round(1920 * scale), Math.round(charCount * fs * 1.12) + padX * 2);
+    const boxW = Math.min(Math.round(maxWidth * scale), Math.round(charCount * fs * 1.12) + padX * 2);
     const boxH = Math.round(fs * 1.5) + padY * 2;
     const align = item.align ?? 'middle';
     const tx = align === 'start' ? padX : align === 'end' ? boxW - padX : boxW / 2;
@@ -115,7 +117,7 @@ function makeTextRasterizer(Resvg, scale) {
 }
 
 function renderSingleRgba(Resvg, rasterText, manifest, shotPlan, t, audioFrame, width, height) {
-  const scale = width / 1920;
+  const scale = width / (shotPlan.frame?.width ?? 1920);
   const frame = evaluateFrame(manifest, shotPlan, t, audioFrame);
   const base = new Resvg(frame.vectorSvg, {
     fitTo: { mode: 'width', value: width },
@@ -179,7 +181,8 @@ function loadShotAudioFrames(projectDir, shotPlan, fps) {
 
 async function renderShotToMp4({ projectDir, manifest, shotPlan, outPath, width, height, fps, crf, preset, motionBlur, pixFmt = 'yuv420p', ffmpeg = 'ffmpeg' }) {
   const { Resvg } = await import('@resvg/resvg-js');
-  const rasterText = makeTextRasterizer(Resvg, width / 1920);
+  const fw = shotPlan.frame?.width ?? 1920;
+  const rasterText = makeTextRasterizer(Resvg, width / fw, fw);
   const audioFrames = loadShotAudioFrames(projectDir, shotPlan, fps);
 
   const gop = fps * 2;
@@ -303,23 +306,29 @@ export function buildSubtitlesSrt(project, timeline) {
   return `${lines.join('\n')}`;
 }
 
-export function buildSubtitlesAss(project, timeline) {
+export function buildSubtitlesAss(project, timeline, frame = FRAMES['16:9']) {
   const anchors = new Map();
   for (const shot of project.shots) {
     for (const c of shot.cues ?? []) {
       if (c.at) anchors.set(`${shot.section}-${c.sentence}`, c.at);
     }
   }
+  const portrait = isPortrait(frame);
+  const S = frame.subtitle;
+  const marginV = Math.round(frame.height - (S.y + ((S.maxLines - 1) * S.lineHeight) / 2 + S.fontSize / 2));
+  const style = portrait
+    ? `Style: Default,Hiragino Sans GB,${S.fontSize},&H001F1F1F,&H00A3A520,&H00F6FAFB,&H00000000,-1,0,0,0,100,100,0,0,1,4,0,2,170,170,${marginV},1`
+    : 'Style: Default,Hiragino Sans GB,44,&H001F1F1F,&H00A3A520,&H00F6FAFB,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,2,40,40,48,1';
   const header = [
     '[Script Info]',
     `Title: ${project.title}`,
     'ScriptType: v4.00+',
-    'PlayResX: 1920',
-    'PlayResY: 1080',
+    `PlayResX: ${frame.width}`,
+    `PlayResY: ${frame.height}`,
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-    'Style: Default,Hiragino Sans GB,44,&H001F1F1F,&H00A3A520,&H00F6FAFB,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,2,40,40,48,1',
+    style,
     '',
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
@@ -327,8 +336,21 @@ export function buildSubtitlesAss(project, timeline) {
   for (const shot of timeline.shots) {
     for (const s of shot.sentenceRanges) {
       const kw = anchors.get(s.key);
-      const text = kw && s.text.includes(kw) ? s.text.replace(kw, `{\\c&HA3A520&}${kw}{\\r}`) : s.text;
-      header.push(`Dialogue: 0,${formatAssTime(s.startMs)},${formatAssTime(s.endMs)},Default,,0,0,0,,${text}`);
+      const mark = (text) => (kw && text.includes(kw) ? text.replace(kw, `{\\c&HA3A520&}${kw}{\\r}`) : text);
+      if (!portrait) {
+        header.push(`Dialogue: 0,${formatAssTime(s.startMs)},${formatAssTime(s.endMs)},Default,,0,0,0,,${mark(s.text)}`);
+        continue;
+      }
+      const pages = subtitlePages(s.text, { maxChars: S.maxChars, maxLines: S.maxLines });
+      const sizes = pages.map((pg) => [...pg.join('')].length);
+      const total = sizes.reduce((a, b) => a + b, 0) || 1;
+      let acc = 0;
+      pages.forEach((pg, i) => {
+        const start = s.startMs + ((s.endMs - s.startMs) * acc) / total;
+        acc += sizes[i];
+        const end = s.startMs + ((s.endMs - s.startMs) * acc) / total;
+        header.push(`Dialogue: 0,${formatAssTime(start)},${formatAssTime(end)},Default,,0,0,0,,${pg.map(mark).join('\\N')}`);
+      });
     }
   }
   return `${header.join('\n')}\n`;
@@ -438,10 +460,14 @@ export async function renderProject(rawProjectDir, opts = {}) {
   const manifest = JSON.parse(readFileSync(new URL('../../assets/host/manifest.json', import.meta.url), 'utf8'));
   const ffmpeg = opts.ffmpeg ?? process.env.FFMPEG ?? 'ffmpeg';
 
+  const projectRatio = project.settings?.ratio ?? '16:9';
+  const ratio = opts.ratio ?? projectRatio;
+  const frame = frameFor(ratio);
   const resKey = opts.preview ? 'preview' : (opts.resolution ?? project.settings?.resolution ?? '1080p');
   const spec = RESOLUTIONS[resKey] ?? RESOLUTIONS['1080p'];
   const fps = opts.preview ? 30 : (opts.fps ?? project.settings?.fps ?? spec.fps);
-  const { width, height, crf } = spec;
+  const { width, height } = sizeFor(spec, frame);
+  const { crf } = spec;
   const preset = opts.preset ?? spec.preset;
   const motionBlur = Boolean(opts.motionBlur);
 
@@ -450,7 +476,7 @@ export async function renderProject(rawProjectDir, opts = {}) {
     : await synthesizeProject(project, projectDir, { ffmpeg });
 
   const timeline = buildTimeline(project, timing, fps);
-  const allPlans = buildShotPlans(project, timeline, manifest);
+  const allPlans = buildShotPlans(project, timeline, manifest, { frame });
 
   // Optional --sample sh03-sh05 range filter
   let selectedPlans = allPlans;
@@ -463,7 +489,7 @@ export async function renderProject(rawProjectDir, opts = {}) {
   }
 
   const cacheDir = join(projectDir, 'cache/shots');
-  const outDir = join(projectDir, 'out');
+  const outDir = join(projectDir, 'out', outputSubdir(projectRatio, ratio));
   mkdirSync(cacheDir, { recursive: true });
   mkdirSync(outDir, { recursive: true });
 
@@ -531,13 +557,14 @@ export async function renderProject(rawProjectDir, opts = {}) {
   let masterPath = null;
   if (opts.master) {
     masterPath = join(outDir, 'master.mp4');
+    const masterTag = frame.ratio === '16:9' ? '' : `-${frame.ratio.replace(':', 'x')}`;
     const masterJobs = selectedPlans.map((plan) => ({
       projectDir, manifest, shotPlan: plan,
-      outPath: join(cacheDir, `${plan.id}-master.mp4`),
+      outPath: join(cacheDir, `${plan.id}${masterTag}-master.mp4`),
       width, height, fps, crf: 14, preset: 'slow', motionBlur, pixFmt: 'yuv444p', ffmpeg,
     }));
     await runPool(masterJobs, workerCount);
-    const mList = join(cacheDir, 'concat-master.txt');
+    const mList = join(cacheDir, `concat${masterTag}-master.txt`);
     writeFileSync(mList, `${masterJobs.map((j) => `file '${j.outPath.replace(/'/g, "'\\''")}'`).join('\n')}\n`);
     const mmux = spawnSync(ffmpeg, [
       '-y', '-loglevel', 'error',
@@ -549,28 +576,35 @@ export async function renderProject(rawProjectDir, opts = {}) {
 
   // Write deliverables: SRT, ASS, chapters.txt, cover.png
   writeFileSync(join(outDir, 'captions.srt'), buildSubtitlesSrt(project, timeline));
-  writeFileSync(join(outDir, 'captions.ass'), buildSubtitlesAss(project, timeline));
+  writeFileSync(join(outDir, 'captions.ass'), buildSubtitlesAss(project, timeline, frame));
   writeFileSync(join(outDir, 'chapters.txt'), buildChapters(project, timeline));
 
-  // Cover PNG from shot 0 at t = 0.6s (1920x1080)
+  // Cover PNG from shot 0 at t = 0.6s, at the frame's logical size (1920×1080 or 1080×1920)
   const { Resvg } = await import('@resvg/resvg-js');
   const coverPlan = allPlans[0];
   const coverFrame = evaluateFrame(manifest, coverPlan, Math.min(0.6, coverPlan.durationSec * 0.5));
-  const rasterCoverText = makeTextRasterizer(Resvg, 1);
-  const coverBase = new Resvg(coverFrame.vectorSvg, { fitTo: { mode: 'width', value: 1920 }, font: { loadSystemFonts: false } }).render();
+  const rasterCoverText = makeTextRasterizer(Resvg, 1, frame.width);
+  const coverBase = new Resvg(coverFrame.vectorSvg, { fitTo: { mode: 'width', value: frame.width }, font: { loadSystemFonts: false } }).render();
   const coverRgba = Buffer.from(coverBase.pixels);
   for (const item of coverFrame.textItems) {
     if (item.key?.startsWith('sub-')) continue;
     const bmp = rasterCoverText(item);
-    alphaBlit(coverRgba, 1920, 1080, bmp.pixels, bmp.width, bmp.height, item.x - bmp.anchorX, item.y - bmp.anchorY, item.opacity ?? 1);
+    alphaBlit(coverRgba, frame.width, frame.height, bmp.pixels, bmp.width, bmp.height, item.x - bmp.anchorX, item.y - bmp.anchorY, item.opacity ?? 1);
   }
   const coverRaw = join(cacheDir, 'cover.rgba');
   writeFileSync(coverRaw, coverRgba);
-  spawnSync(ffmpeg, ['-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', '1920x1080', '-i', coverRaw, '-frames:v', '1', join(outDir, 'cover.png')]);
+  const cover = spawnSync(ffmpeg, [
+    '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba',
+    '-s', `${frame.width}x${frame.height}`, '-i', coverRaw, '-frames:v', '1', join(outDir, 'cover.png'),
+  ], { encoding: 'utf8' });
+  if (cover.error || cover.status !== 0) throw new Error(`ffmpeg cover encode failed: ${cover.stderr || cover.error?.message}`);
 
   return {
     videoPath,
     masterPath,
+    outDir,
+    frame,
+    layoutIssues: portraitLayoutIssues(manifest, selectedPlans, { fps }),
     fps,
     width,
     height,

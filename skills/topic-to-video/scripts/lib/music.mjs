@@ -385,7 +385,7 @@ export function buildSoundtrack({ project, projectDir, allPlans, selectedPlans, 
   let sfxStem = { left: new Float32Array(totalSamples), right: new Float32Array(totalSamples) };
   if (sfx) {
     const events = thinSoundEvents(collectSoundEvents(selectedPlans, manifest, { fps, lastSectionId: project.sections.length > 1 ? project.sections.at(-1).id : null }));
-    const stem = renderSfxStem(events, totalSamples, { voiceRefDb, intervals, seed: project.title });
+    const stem = renderSfxStem(events, totalSamples, { voiceRefDb, intervals, seed: project.title, frameWidth: selectedPlans[0]?.frame?.width ?? 1920 });
     sfxStem = { left: stem.left, right: stem.right };
     report.sfxCounts = stem.counts;
   }

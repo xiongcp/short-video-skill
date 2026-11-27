@@ -3,8 +3,9 @@
 // 3x4 contact sheet, transition strip, qa.json and qa.md (出片质量设计 §9, 火柴人主持人设计 §7.6, §12).
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { splitSentences } from './captions.mjs';
+import { FRAMES, isPortrait } from './frame.mjs';
 import { lintStoryboard, visualKeywords } from './match.mjs';
 import { buildTimeline } from './timebase.mjs';
 
@@ -72,38 +73,44 @@ function probeMedia(videoPath, ffprobe = 'ffprobe') {
   return JSON.parse(res.stdout);
 }
 
-function extractLumaFrames(videoPath, ffmpeg = 'ffmpeg') {
+export function extractLumaFrames(videoPath, ffmpeg = 'ffmpeg', frame = FRAMES['16:9']) {
+  const [w, h] = isPortrait(frame ?? FRAMES['16:9']) ? [PROBE_H, PROBE_W] : [PROBE_W, PROBE_H];
   const res = spawnSync(ffmpeg, [
     '-v', 'error', '-i', videoPath,
-    '-vf', `scale=${PROBE_W}:${PROBE_H},format=gray`,
+    '-vf', `scale=${w}:${h},format=gray`,
     '-f', 'rawvideo', 'pipe:1',
   ], { maxBuffer: 256 * 1024 * 1024 });
   if (res.error || res.status !== 0) return [];
   const buf = res.stdout;
-  const frameSize = PROBE_W * PROBE_H;
+  const frameSize = w * h;
   const count = Math.floor(buf.length / frameSize);
   const frames = [];
   for (let i = 0; i < count; i += 1) frames.push(buf.subarray(i * frameSize, (i + 1) * frameSize));
   return frames;
 }
 
-function generateContactSheet(videoPath, outPng, durationSec, ffmpeg = 'ffmpeg') {
+function generateContactSheet(videoPath, outPng, durationSec, ffmpeg = 'ffmpeg', frame = FRAMES['16:9'], safeBox = false) {
   const interval = Math.max(0.05, durationSec / 12);
+  const portrait = isPortrait(frame);
+  const [tw, th] = portrait ? [180, 320] : [480, 270];
+  const k = tw / frame.width;
+  const s = frame.textSafe;
+  const box = safeBox ? `,drawbox=x=${Math.round(s.x * k)}:y=${Math.round(s.y * k)}:w=${Math.round(s.w * k)}:h=${Math.round(s.h * k)}:color=red@0.8:t=2` : '';
   spawnSync(ffmpeg, [
     '-y', '-loglevel', 'error', '-i', videoPath,
-    '-vf', `fps=1/${interval.toFixed(4)},scale=480:270,tile=4x3:padding=8:margin=8:color=0xfbfaf6`,
+    '-vf', `fps=1/${interval.toFixed(4)},scale=${tw}:${th}${box},tile=${portrait ? '6x2' : '4x3'}:padding=8:margin=8:color=0xfbfaf6`,
     '-frames:v', '1', outPng,
   ]);
 }
 
-function generateTransitionStrip(videoPath, outPng, cutFrames, fps, ffmpeg = 'ffmpeg') {
+function generateTransitionStrip(videoPath, outPng, cutFrames, fps, ffmpeg = 'ffmpeg', frame = FRAMES['16:9']) {
   const firstCut = [...cutFrames].find((f) => f > 2);
   if (!firstCut) return;
   const start = Math.max(0, firstCut - 2);
   const end = start + 5;
   spawnSync(ffmpeg, [
     '-y', '-loglevel', 'error', '-i', videoPath,
-    '-vf', `select='between(n,${start},${end})',scale=320:180,tile=6x1:padding=4:margin=4:color=0xfbfaf6`,
+    '-vf', `select='between(n,${start},${end})',scale=${isPortrait(frame) ? '180:320' : '320:180'},tile=6x1:padding=4:margin=4:color=0xfbfaf6`,
     '-fps_mode', 'vfr', '-frames:v', '1', outPng,
   ]);
 }
@@ -173,6 +180,10 @@ function soundSection(audio) {
  */
 export async function runQa(projectDir, {
   videoPath = join(projectDir, 'out/final.mp4'),
+  outDir = join(projectDir, 'out'),
+  frame = null,
+  expectedSize = null,
+  layoutIssues = [],
   expectedFps = null,
   timeline = null,
   shotPlans = null,
@@ -182,7 +193,8 @@ export async function runQa(projectDir, {
   ffprobe = process.env.FFPROBE ?? 'ffprobe',
 } = {}) {
   const project = JSON.parse(readFileSync(join(projectDir, 'project.json'), 'utf8'));
-  const outDir = join(projectDir, 'out');
+  const ratio = project.settings?.ratio;
+  const fr = frame ?? (typeof ratio === 'string' && Object.hasOwn(FRAMES, ratio) ? FRAMES[ratio] : FRAMES['16:9']);
   mkdirSync(outDir, { recursive: true });
   const issues = [];
   const warnings = [];
@@ -198,6 +210,9 @@ export async function runQa(projectDir, {
   if (v) {
     if (v.r_frame_rate !== `${fps}/1`) {
       issues.push({ code: 'FPS_MISMATCH', message: `帧率是 ${v.r_frame_rate}，期望 ${fps}/1` });
+    }
+    if (expectedSize && (v.width !== expectedSize.width || v.height !== expectedSize.height)) {
+      issues.push({ code: 'SIZE_MISMATCH', message: `成片是 ${v.width}×${v.height}，期望 ${expectedSize.width}×${expectedSize.height}` });
     }
     if (!['yuv420p', 'yuv444p'].includes(v.pix_fmt)) {
       issues.push({ code: 'PIX_FMT_UNSUPPORTED', message: `像素格式 ${v.pix_fmt} 不是 yuv420p/yuv444p` });
@@ -258,7 +273,7 @@ export async function runQa(projectDir, {
   issues.push(...checkAnchorSync(anchoredCues, fps));
 
   // Jump & freeze checks on downscaled frames
-  const lumaFrames = extractLumaFrames(videoPath, ffmpeg);
+  const lumaFrames = extractLumaFrames(videoPath, ffmpeg, fr);
   const diffStats = analyzeFrameDiffs(lumaFrames, { cutFrames, motionFrames });
   for (const j of diffStats.jumps) {
     issues.push({ code: 'UNPLANNED_JUMP', frame: j.frame, mad: j.mad, message: `第 ${j.frame} 帧出现计划外跳变（MAD=${j.mad}）` });
@@ -279,6 +294,7 @@ export async function runQa(projectDir, {
       issues.push({ code: 'HOST_OBJECT_OVERLAP', shotId, frames: meta.objectOverlapFrames, message: `镜头 ${shotId} 有 ${meta.objectOverlapFrames} 帧出现主持人身体与舞台物件重叠` });
     }
   }
+  issues.push(...layoutIssues);
 
   if (audio) {
     if (!audio.voiceMissing) issues.push(...(audio.levels?.issues ?? []));
@@ -298,8 +314,9 @@ export async function runQa(projectDir, {
 
   // Visual review aids: contact.png & transitions.png
   const durSec = Number(probe.format.duration ?? 1);
-  generateContactSheet(videoPath, join(outDir, 'contact.png'), durSec, ffmpeg);
-  generateTransitionStrip(videoPath, join(outDir, 'transitions.png'), cutFrames, fps, ffmpeg);
+  generateContactSheet(videoPath, join(outDir, 'contact.png'), durSec, ffmpeg, fr);
+  if (isPortrait(fr)) generateContactSheet(videoPath, join(outDir, 'contact-safe.png'), durSec, ffmpeg, fr, true);
+  generateTransitionStrip(videoPath, join(outDir, 'transitions.png'), cutFrames, fps, ffmpeg, fr);
 
   const report = {
     ok: issues.length === 0,
@@ -335,6 +352,7 @@ export async function runQa(projectDir, {
   };
 
   writeFileSync(join(outDir, 'qa.json'), `${JSON.stringify(report, null, 2)}\n`);
+  const rel = relative(projectDir, outDir).split('\\').join('/') || 'out';
   const md = [
     `# 成片 QA 报告：${project.title}`,
     '',
@@ -351,7 +369,8 @@ export async function runQa(projectDir, {
     ...soundSection(audio),
     '',
     '## 人工复核项（`not_checked`）',
-    '- 画面审美与排版平衡：`not_checked`（请看 `out/contact.png`、`out/transitions.png`）',
+    `- 画面审美与排版平衡：\`not_checked\`（请看 \`${rel}/contact.png\`、\`${rel}/transitions.png\`）`,
+    ...(isPortrait(fr) ? [`- 真机遮挡：\`not_checked\`（文字安全框 x ${fr.textSafe.x}–${fr.textSafe.x + fr.textSafe.w}、y ${fr.textSafe.y}–${fr.textSafe.y + fr.textSafe.h} 是第三方估算，见 \`${rel}/contact-safe.png\`；上传前设为仅自己可见，在抖音、TikTok、Shorts 预览一次）`] : []),
     '- 配音自然度与停顿：`not_checked`',
     '- 口型抽检（开头/中段/结尾）：`not_checked`',
     '- 混音听感：`not_checked`',

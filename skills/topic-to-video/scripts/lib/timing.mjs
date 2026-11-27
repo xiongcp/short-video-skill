@@ -32,6 +32,67 @@ export function splitClauses(sentence) {
   return merged;
 }
 
+const IS_PUNCT = (tk) => /^\p{P}$/u.test(tk);
+const OPEN_PUNCT = /^[\p{Ps}\p{Pi}]$/u;
+
+/**
+ * Portrait subtitle pages (竖屏设计 §6.5): clauses split into lines of at most `maxChars`, packed `maxLines` lines per
+ * page. Latin words and digit runs are never split; a trailing comma-like mark is dropped from each line.
+ */
+export function subtitlePages(text, { maxChars = 12, maxLines = 2 } = {}) {
+  const lines = [];
+  for (const clause of splitClauses(text)) {
+    const c = clause.replace(/[，、；：,:;]$/, '');
+    const tokens = c.match(/[A-Za-z0-9.%]+|./gsu) ?? [];
+    const total = tokens.reduce((s, tk) => s + [...tk].length, 0);
+    if (!total) continue;
+    const per = Math.ceil(total / Math.ceil(total / maxChars));
+    let cur = [];
+    let curLen = 0;
+    for (const tk of tokens) {
+      const tkLen = [...tk].length;
+      const punct = IS_PUNCT(tk);
+      if (cur.length && punct && curLen + tkLen > maxChars) {
+        if (!OPEN_PUNCT.test(tk)) {
+          let cut = cur.length - 1;
+          while (cut > 0 && IS_PUNCT(cur[cut])) cut -= 1;
+          const moved = cur.slice(cut);
+          const movedLen = moved.reduce((s, t) => s + [...t].length, 0);
+          if (cut > 0 && !IS_PUNCT(cur[cut]) && movedLen + tkLen <= maxChars) {
+            lines.push(cur.slice(0, cut).join(''));
+            cur = [...moved, tk];
+            curLen = movedLen + tkLen;
+            continue;
+          }
+        }
+        lines.push(cur.join(''));
+        cur = [tk];
+        curLen = tkLen;
+        continue;
+      }
+      if (cur.length && !punct && curLen + tkLen > per) {
+        lines.push(cur.join(''));
+        cur = [];
+        curLen = 0;
+      }
+      cur.push(tk);
+      curLen += tkLen;
+    }
+    if (cur.length) lines.push(cur.join(''));
+  }
+  const pages = [];
+  let page = [];
+  for (const line of lines) {
+    if (page.length === maxLines) {
+      pages.push(page);
+      page = [];
+    }
+    page.push(line);
+  }
+  if (page.length) pages.push(page);
+  return pages;
+}
+
 /** Parses WebVTT or SRT subtitle text (such as edge-tts --write-subtitles output) into word/phrase timings. */
 export function parseSubtitles(content) {
   const blocks = String(content).replace(/\r\n/g, '\n').split(/\n{2,}/);

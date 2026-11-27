@@ -1,8 +1,9 @@
 // Visual style packs and 8 hand-drawn stage scenes (个性化路线图, S1/S2).
 // Pure vector SVG helpers without <text> or <filter>, keeping the central stage clear.
+import { FRAMES, isPortrait } from './frame.mjs';
 import { chaikin, circlePoints, inkStroke, markerFill, num, pathData, random } from './ink.mjs';
 
-export const GROUND_Y = 930;
+export const GROUND_Y = FRAMES['16:9'].ground;
 export const STYLE_NAMES = ['paper', 'chalkboard', 'blueprint', 'kraft', 'night'];
 export const SCENE_NAMES = ['blank', 'podium', 'kitchen', 'street', 'lab', 'office', 'outdoor', 'workshop'];
 
@@ -183,13 +184,21 @@ export function styleBackgroundSvg(styleName, width = 1920, height = 1080, paral
  * Draws low-opacity edge/ceiling silhouettes plus a ground line at `ground` (default 930),
  * leaving the central performance zone (x 560..1360, y 360..920) and subtitle band (y > 935) clear.
  */
-export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, height = 1080, seed = 'scene', ground = GROUND_Y } = {}) {
+export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, height = 1080, seed = 'scene', ground = GROUND_Y, frame = null } = {}) {
   if (!SCENE_NAMES.includes(sceneName)) throw new Error(`unknown scene: ${sceneName}`);
   const { palette: pal } = resolveStyle(style);
   const kx = width / 1920;
   const ky = ground / GROUND_Y;
-  const sx = (x) => x * kx;
-  const sy = (y) => y * ky;
+  const portrait = Boolean(frame) && isPortrait(frame);
+  // Portrait (竖屏设计 §5.3): each decoration group keeps its shape at 0.7, pinned to its side and to the floor or ceiling.
+  const K = 0.7;
+  let side = 'center';
+  let band = 'floor';
+  const place = (s, b) => { side = s; band = b; };
+  const mapX = (x) => (side === 'left' ? x * K : side === 'right' ? frame.width - (1920 - x) * K : frame.width / 2 + (x - 960) * (frame.width / 1920));
+  const mapY = (y) => (band === 'floor' ? ground - (GROUND_Y - y) * K : frame.textSafe.y + (y - 40) * K);
+  const sx = (x) => (portrait ? mapX(x) : x * kx);
+  const sy = (y) => (portrait ? mapY(y) : y * ky);
   const pt = (x, y) => [sx(x), sy(y)];
   const poly = (pts) => pts.map(([x, y]) => pt(x, y));
 
@@ -243,7 +252,7 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
   ].join('');
 
   const circle = (cx, cy, r, key, widthRange = [2.8, 4]) => {
-    const pts = circlePoints(sx(cx), sy(cy), r * Math.min(kx, ky), { seed: `${seed}:${sceneName}:${key}`, overdraw: 0.3, count: 18 });
+    const pts = circlePoints(sx(cx), sy(cy), r * (portrait ? K : Math.min(kx, ky)), { seed: `${seed}:${sceneName}:${key}`, overdraw: 0.3, count: 18 });
     return wobbleStroke(pts, { keySeed: `${seed}:${sceneName}:${key}:s`, widthRange, wobble: 1.5, subdivide: false });
   };
 
@@ -256,25 +265,32 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       break;
     case 'podium':
       // Left curtain + lectern, right speaker stand + curtain, top twin spotlights
+      place('left', 'floor');
       parts.push(inkPath([[55, 45], [75, 290], [60, 620], [72, 920]], 'curtain-l1', { smooth: 1 }));
       parts.push(inkPath([[115, 45], [135, 310], [118, 640], [130, 920]], 'curtain-l2', { smooth: 1 }));
+      place('right', 'floor');
       parts.push(inkPath([[1865, 45], [1845, 290], [1860, 620], [1848, 920]], 'curtain-r1', { smooth: 1 }));
       parts.push(inkPath([[1805, 45], [1785, 310], [1802, 640], [1790, 920]], 'curtain-r2', { smooth: 1 }));
+      place('left', 'floor');
       parts.push(soft([[220, 610], [450, 610], [430, 920], [240, 920]], 'lectern-fill', pal.soft_accent));
       parts.push(box(205, 585, 260, 28, 'lectern-top'));
       parts.push(box(235, 613, 200, 307, 'lectern-body'));
       parts.push(inkPath([[335, 585], [335, 520], [365, 500]], 'mic'));
+      place('right', 'floor');
       parts.push(inkPath([[1540, 560], [1540, 920]], 'stand-pole'));
       parts.push(inkPath([[1470, 920], [1610, 920]], 'stand-base'));
       parts.push(box(1470, 480, 140, 80, 'speaker-head'));
       parts.push(circle(1540, 520, 22, 'speaker-cone'));
+      place('left', 'ceiling');
       parts.push(inkPath([[350, 40], [350, 120]], 'spot-l-cord'));
       parts.push(inkPath([[305, 175], [335, 120], [365, 120], [395, 175], [305, 175]], 'spot-l-hood'));
+      place('right', 'ceiling');
       parts.push(inkPath([[1570, 40], [1570, 120]], 'spot-r-cord'));
       parts.push(inkPath([[1525, 175], [1555, 120], [1585, 120], [1615, 175], [1525, 175]], 'spot-r-hood'));
       break;
     case 'kitchen':
       // Left upper cabinet, wall tiles, counter + kettle; right window, hanging rack, lower cabinet
+      place('left', 'floor');
       parts.push(box(65, 65, 410, 185, 'cab-l'));
       parts.push(inkPath([[270, 65], [270, 250]], 'cab-l-mid'));
       parts.push(inkPath([[65, 340], [475, 340]], 'tile-h1'));
@@ -286,11 +302,13 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       parts.push(box(80, 599, 390, 321, 'counter-l-base'));
       parts.push(circle(260, 535, 38, 'kettle'));
       parts.push(inkPath([[298, 525], [330, 505]], 'kettle-spout'));
+      place('right', 'ceiling');
       parts.push(inkPath([[1435, 110], [1845, 110]], 'pan-rail'));
       parts.push(inkPath([[1520, 110], [1520, 185]], 'pan-stem1'));
       parts.push(circle(1520, 225, 38, 'pan-1'));
       parts.push(inkPath([[1660, 110], [1660, 175]], 'pan-stem2'));
       parts.push(circle(1660, 208, 30, 'pan-2'));
+      place('right', 'floor');
       parts.push(box(1465, 310, 330, 210, 'window'));
       parts.push(inkPath([[1630, 310], [1630, 520]], 'window-v'));
       parts.push(inkPath([[1465, 415], [1795, 415]], 'window-h'));
@@ -298,7 +316,9 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       break;
     case 'street':
       // Left storefront + awning; right streetlamp + cafe facade; top power line
+      place('center', 'ceiling');
       parts.push(inkPath([[440, 115], [960, 155], [1480, 115]], 'wire', { smooth: 1 }));
+      place('left', 'floor');
       parts.push(box(65, 210, 415, 710, 'shop-l'));
       parts.push(soft([[55, 435], [495, 435], [480, 505], [70, 505]], 'awning-fill', pal.soft_red));
       parts.push(inkPath([[55, 435], [495, 435], [480, 505], [70, 505], [55, 435]], 'awning'));
@@ -307,6 +327,7 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       }
       parts.push(box(105, 555, 195, 210, 'shop-win'));
       parts.push(box(335, 555, 110, 365, 'shop-door'));
+      place('right', 'floor');
       parts.push(inkPath([[1470, 220], [1470, 920]], 'lamp-post'));
       parts.push(inkPath([[1425, 920], [1515, 920]], 'lamp-base'));
       parts.push(inkPath([[1470, 225], [1495, 185], [1545, 185], [1560, 215]], 'lamp-arm', { smooth: 1 }));
@@ -317,33 +338,42 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       break;
     case 'lab':
       // Left shelf with flasks + bench; right cabinet + upper chalkboard/atom; top pendant lamps
+      place('left', 'ceiling');
       parts.push(inkPath([[420, 40], [420, 130]], 'lamp-l-cord'));
       parts.push(inkPath([[375, 170], [420, 130], [465, 170], [375, 170]], 'lamp-l'));
+      place('right', 'ceiling');
       parts.push(inkPath([[1500, 40], [1500, 130]], 'lamp-r-cord'));
       parts.push(inkPath([[1455, 170], [1500, 130], [1545, 170], [1455, 170]], 'lamp-r'));
+      place('left', 'floor');
       parts.push(inkPath([[75, 420], [470, 420]], 'shelf-l'));
       parts.push(inkPath([[155, 315], [155, 355], [125, 418], [195, 418], [165, 355], [165, 315]], 'flask-1'));
       parts.push(circle(290, 384, 34, 'flask-2'));
       parts.push(box(365, 330, 55, 88, 'beaker-3'));
       parts.push(box(75, 615, 405, 305, 'bench-l'));
       parts.push(inkPath([[220, 615], [220, 535], [265, 505]], 'microscope'));
+      place('right', 'ceiling');
       parts.push(box(1445, 65, 390, 195, 'board-r'));
       parts.push(circle(1640, 162, 48, 'atom-core'));
+      place('right', 'floor');
       parts.push(box(1510, 315, 340, 605, 'cabinet-r'));
       parts.push(inkPath([[1680, 315], [1680, 920]], 'cabinet-r-door'));
       break;
     case 'office':
       // Left bookcase + desk edge; right blinds window + plant + wall clock; top ceiling beam
+      place('center', 'ceiling');
       parts.push(inkPath([[220, 80], [1700, 80]], 'ceiling-beam'));
+      place('left', 'floor');
       parts.push(box(65, 250, 195, 670, 'bookcase'));
       for (const shelfY of [400, 560, 730]) {
         parts.push(inkPath([[65, shelfY], [260, shelfY]], `shelf-${shelfY}`));
       }
       parts.push(box(285, 635, 195, 285, 'desk-l'));
       parts.push(box(345, 580, 48, 53, 'mug-l'));
+      place('right', 'ceiling');
       parts.push(circle(1470, 155, 45, 'clock'));
       parts.push(inkPath([[1470, 155], [1470, 128]], 'clock-m'));
       parts.push(inkPath([[1470, 155], [1492, 155]], 'clock-h'));
+      place('right', 'floor');
       parts.push(box(1545, 190, 305, 365, 'office-win'));
       for (const blindY of [245, 300, 355]) {
         parts.push(inkPath([[1545, blindY], [1850, blindY]], `blind-${blindY}`));
@@ -355,17 +385,22 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       break;
     case 'outdoor':
       // Top mountain ridge (y <= 305), clouds, sun; left tree + fence; right tree/bush + fence
+      place('right', 'ceiling');
       parts.push(soft([[1610, 100], [1730, 100], [1730, 220], [1610, 220]], 'sun-fill', pal.soft_yellow));
       parts.push(circle(1670, 160, 52, 'sun'));
+      place('left', 'ceiling');
       parts.push(inkPath([[220, 175], [275, 130], [360, 135], [415, 175], [220, 175]], 'cloud-1', { smooth: 1 }));
+      place('center', 'ceiling');
       parts.push(inkPath([[1120, 155], [1180, 110], [1275, 115], [1335, 155], [1120, 155]], 'cloud-2', { smooth: 1 }));
       parts.push(inkPath([[60, 295], [340, 225], [640, 285], [960, 235], [1280, 290], [1580, 225], [1860, 295]], 'hills', { smooth: 1 }));
+      place('left', 'floor');
       parts.push(inkPath([[185, 580], [185, 920]], 'tree-trunk-l1', { widthRange: [6, 8] }));
       parts.push(inkPath([[225, 580], [225, 920]], 'tree-trunk-l2', { widthRange: [6, 8] }));
       parts.push(circle(205, 470, 115, 'tree-crown-l'));
       parts.push(inkPath([[340, 780], [485, 780]], 'fence-l-rail'));
       parts.push(inkPath([[370, 745], [370, 920]], 'fence-l-p1'));
       parts.push(inkPath([[450, 745], [450, 920]], 'fence-l-p2'));
+      place('right', 'floor');
       parts.push(circle(1715, 570, 125, 'tree-crown-r'));
       parts.push(inkPath([[1715, 695], [1715, 920]], 'tree-trunk-r', { widthRange: [6, 8] }));
       parts.push(inkPath([[1430, 795], [1565, 795]], 'fence-r-rail'));
@@ -374,11 +409,15 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       break;
     case 'workshop':
       // Top industrial lamps + beam; left pegboard + workbench; right tall cabinet + coiled hose/gear
+      place('center', 'ceiling');
       parts.push(inkPath([[80, 75], [1840, 75]], 'beam'));
+      place('left', 'ceiling');
       parts.push(inkPath([[360, 75], [360, 145]], 'lamp-l-stem'));
       parts.push(inkPath([[305, 195], [340, 145], [380, 145], [415, 195], [305, 195]], 'lamp-l-shade'));
+      place('right', 'ceiling');
       parts.push(inkPath([[1560, 75], [1560, 145]], 'lamp-r-stem'));
       parts.push(inkPath([[1505, 195], [1540, 145], [1580, 145], [1615, 195], [1505, 195]], 'lamp-r-shade'));
+      place('left', 'floor');
       parts.push(box(75, 250, 385, 285, 'pegboard-l'));
       parts.push(inkPath([[145, 305], [145, 455]], 'wrench-shaft'));
       parts.push(circle(145, 298, 22, 'wrench-head'));
@@ -388,6 +427,7 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
       parts.push(inkPath([[105, 636], [105, 920]], 'bench-leg-l'));
       parts.push(inkPath([[445, 636], [445, 920]], 'bench-leg-r'));
       parts.push(inkPath([[105, 790], [445, 790]], 'bench-cross'));
+      place('right', 'floor');
       parts.push(circle(1465, 465, 44, 'gear-r'));
       parts.push(box(1535, 285, 320, 635, 'tool-cab-r'));
       for (const drawerY of [420, 560, 710]) {
@@ -397,6 +437,7 @@ export function sceneBackgroundSvg(sceneName, { style = 'paper', width = 1920, h
   }
 
   const bg = parts.length ? `<g stroke-opacity="0.26">${parts.join('')}</g>` : '';
+  place('center', 'floor');
   const groundLine = wobbleStroke([[sx(40), ground], [sx(1880), ground]], {
     keySeed: `${seed}:${sceneName}:ground`,
     widthRange: [2.5, 4],
