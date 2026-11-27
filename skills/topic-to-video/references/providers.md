@@ -61,6 +61,7 @@ node <本 skill 目录>/scripts/render.mjs <项目文件夹> --sample sh08-sh09
 node <本 skill 目录>/scripts/render.mjs <项目文件夹>
 
 # 可选参数：
+#   --ratio 9:16|16:9          换画幅出片：竖屏 1080×1920（预览 540×960）；和 settings.ratio 不同时写到 out/9x16/ 或 out/16x9/
 #   --resolution 1440p|2160p   更高清晰度（纯矢量重绘，无需换素材）
 #   --fps 30                   30fps 更快导出
 #   --motion-blur              快动作（跳/挥手/小跑/元素入场）4x 子帧运动模糊
@@ -103,3 +104,9 @@ L1 出片时用代码合成纸面手绘风的音效和背景音乐，不下载�
 - 混音：配音先润色，再混入音效和音乐。音乐整体比人声低 14 dB，说话时再压低 6 dB，段落之间换气一小节。
 - QA：`MUSIC_TOO_LOUD` 是说话时音乐离人声不到 15 dB，`SFX_OVER_VOICE` 是音效离人声不到 8 dB。出现时换更安静的情绪、改用 `"mood": "none"`，或关掉音效 `"sfx": "off"`，再重新出片。
 - 试听：`node <本 skill 目录>/scripts/render.mjs <项目文件夹> --audition-sound [calm,playful]` 写出 `out/audition/music-<情绪>.wav`（每个 15 秒）和 `out/audition/sfx.wav`（全部音效依次播放），不读 `project.json`，不需要 FFmpeg。
+
+## 6. 竖屏（9:16）
+
+- `settings.ratio` 是 9:16 时直接出竖屏；横屏项目加 `--ratio 9:16` 再出一版，写到 `out/9x16/`，配音、音效和音乐共用，不重新合成。
+- 标题、物件标签和字幕都留在文字安全框（x 64–910、y 250–1440）里，避开抖音、TikTok、Shorts 的标题栏、点赞栏和文案区；超出时 QA 报 `SAFE_ZONE_TEXT`，同台排不下报 `STAGE_CROWDED`。
+- 安全框是第三方估算，`qa.md` 里"真机遮挡"一项标 `not_checked`：请用户上传前设为仅自己可见，在 App 里预览一次；`contact-safe.png` 在联系表上画出了安全框。

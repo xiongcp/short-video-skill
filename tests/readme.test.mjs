@@ -61,3 +61,10 @@ test('both READMEs describe synthesized sound effects and background music with 
   for (const word of ['音效', '背景音乐', '--audition-sound']) assert.ok(zh.includes(word), word);
   for (const word of ['sound effects', 'music', '--audition-sound']) assert.ok(en.includes(word), word);
 });
+
+test('both READMEs describe native portrait output with --ratio 9:16', () => {
+  for (const name of ['README.md', 'README.en.md']) {
+    const text = read(name);
+    assert.ok(text.includes('--ratio 9:16') && text.includes('1080×1920'), name);
+  }
+});

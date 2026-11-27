@@ -1,6 +1,7 @@
 // Storyboard advice from references/storyboard.md: what is on screen against what is said, and how the host acts.
 // Warnings only: VISUAL_NOT_IN_NARRATION, POINT_MISSING, MOVE_TOO_MANY, FOCUS_SPLIT, STATIC_STRETCH, NO_INTERACTION and GESTURE_REPEAT.
 import { splitSentences } from './captions.mjs';
+import { customPropMeta, PROP_META } from './icons.mjs';
 import { checkShape, estimateReport, HOST_LAYOUTS, INTERACTION_CUES } from './project.mjs';
 
 const DIGITS = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
@@ -83,6 +84,17 @@ export function lintStoryboard(project) {
   const bySection = new Map(project.sections.map((s) => [s.id, splitSentences(s.text)]));
   const warnings = [];
   project.shots.forEach((shot, i) => {
+    if (project.settings?.ratio === '9:16' && shot.layout === 'stage') {
+      const custom = new Map((project.world?.custom_props ?? []).map((c) => [c.id, c]));
+      const layerOf = (o) => (['ground', 'mid', 'air'].includes(o.layer) ? o.layer
+        : PROP_META[o.prop]?.layer ?? (custom.has(o.prop) ? customPropMeta(custom.get(o.prop)).layer : 'ground'));
+      const objects = shot.visual?.data?.objects ?? [];
+      const air = objects.filter((o) => layerOf(o) === 'air').length;
+      const lower = objects.length - air;
+      if (lower > 3 || air > 2) {
+        warnings.push({ path: `/shots/${i}/visual/data/objects`, code: 'PORTRAIT_CROWDED', message: `竖屏镜头 ${shot.id} 地面和中间层有 ${lower} 件、空中 ${air} 件；竖屏最多地面 3 件、空中 2 件，减少物件或拆成两个镜头（见 storyboard.md）` });
+      }
+    }
     const said = shot.sentences.map((n) => bySection.get(shot.section)?.[n] ?? '');
     const narration = normalizeText(said.join(''));
     const judged = visualKeywords(shot.visual).filter((k) => fragments(k).length);

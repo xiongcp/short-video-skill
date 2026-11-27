@@ -17,7 +17,7 @@ When you change the script or storyboard it redoes only what changed and tells y
 | Level | Status | Output |
 | --- | --- | --- |
 | L0 text package | Available, no dependencies | `project.json`, `讲稿.md`, `分镜.md`, `提示词包.md` |
-| L1 local render | Available (falls back to L0 if FFmpeg is missing) | L0 plus `out/final.mp4` (1080p60, optional 1440p/4K), `.srt`/`.ass` captions, a cover image, chapter timestamps and a QA report; synthesized sound effects and background music are added automatically, the music ducks under speech, and `--audition-sound` lets you listen first |
+| L1 local render | Available (falls back to L0 if FFmpeg is missing) | L0 plus `out/final.mp4` (1080p60, optional 1440p/4K), `.srt`/`.ass` captions, a cover image, chapter timestamps and a QA report; synthesized sound effects and background music are added automatically, the music ducks under speech, and `--audition-sound` lets you listen first; `--ratio 9:16` renders native 1080×1920 portrait with text kept clear of the Douyin, TikTok and Shorts overlays |
 
 The L1 design and roadmap are in the [render quality design](docs/lite/出片质量设计.md), the [stick-figure host design](docs/lite/火柴人主持人设计.md) and the [surpass roadmap](docs/lite/超越路线图.md) (in Chinese): hand-drawn stick-figure full-body rig with 2-bone IK, 60 fps, matched-element transitions, selective 4x motion blur, keyword-level sync and automated BT.709/jump/freeze/occlusion QA.
 
