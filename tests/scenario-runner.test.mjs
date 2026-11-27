@@ -90,6 +90,16 @@ test('claude turns run headless, stream JSON and continue the same conversation'
   assert.deepEqual(agentInvocation({ agent: 'claude', index: 0, turn: 'x', model: 'opus' }).args.slice(-2), ['--model', 'opus']);
 });
 
+test('claude turns never skip permissions: edits stay auto-accepted in the workspace and Bash is limited to the skill tools', () => {
+  // Scenario sources carry prompt-injection text on purpose; Codex and agy run sandboxed, so Claude must not run unrestricted.
+  const { args } = agentInvocation({ agent: 'claude', index: 0, turn: 'x' });
+  assert.ok(!args.includes('--dangerously-skip-permissions'));
+  assert.deepEqual(args.slice(args.indexOf('--permission-mode'), args.indexOf('--permission-mode') + 2), ['--permission-mode', 'acceptEdits']);
+  const allowed = args[args.indexOf('--allowedTools') + 1].split(',');
+  for (const tool of ['Read', 'Write', 'Edit', 'Bash(node:*)', 'Bash(ffmpeg:*)', 'Bash(ffprobe:*)']) assert.ok(allowed.includes(tool), tool);
+  assert.ok(!allowed.includes('Bash') && !allowed.some((t) => /Bash\((curl|rm|sh|bash)/.test(t)));
+});
+
 test('parseClaudeStream returns the final reply, status and tools used', () => {
   const stream = `${[
     { type: 'system', subtype: 'init', session_id: 's1' },

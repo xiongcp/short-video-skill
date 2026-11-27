@@ -93,7 +93,10 @@ export function inspectProject(file) {
 /** Command and arguments for one turn. Codex and Claude Code resume the latest session; agy resumes by conversation id. */
 export function agentInvocation({ agent, index, turn, model, lastFile, conversationId }) {
   if (agent === 'claude') {
-    const args = ['-p', turn, '--output-format', 'stream-json', '--verbose', '--dangerously-skip-permissions'];
+    // No --dangerously-skip-permissions: scenario sources carry prompt-injection text, and unlike Codex and agy, Claude runs unsandboxed here.
+    // Edits are auto-accepted inside the workspace only; Bash is limited to what the skill needs, and anything else is denied in -p mode.
+    const args = ['-p', turn, '--output-format', 'stream-json', '--verbose', '--permission-mode', 'acceptEdits',
+      '--allowedTools', 'Read,Write,Edit,Glob,Grep,Bash(node:*),Bash(ffmpeg:*),Bash(ffprobe:*),Bash(ls:*),Bash(mkdir:*)'];
     if (index > 0) args.push('--continue');
     if (model) args.push('--model', model);
     return { cmd: 'claude', args };
