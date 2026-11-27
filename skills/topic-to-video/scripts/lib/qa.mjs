@@ -189,6 +189,7 @@ export async function runQa(projectDir, {
   shotPlans = null,
   qaByShot = {},
   audio = null,
+  draft = false,
   ffmpeg = process.env.FFMPEG ?? 'ffmpeg',
   ffprobe = process.env.FFPROBE ?? 'ffprobe',
 } = {}) {
@@ -349,6 +350,7 @@ export async function runQa(projectDir, {
       }
       : null,
     match: matchTable,
+    draft,
   };
 
   writeFileSync(join(outDir, 'qa.json'), `${JSON.stringify(report, null, 2)}\n`);
@@ -357,6 +359,7 @@ export async function runQa(projectDir, {
     `# 成片 QA 报告：${project.title}`,
     '',
     `- 结论：${report.ok ? '技术检查通过（审美项需人工复核）' : `发现 ${issues.length} 项技术问题`}`,
+    ...(draft ? ['- 未审核初稿：讲稿和分镜还没确认，画面左上角带"未审核初稿"角标；确认后重新出片即可去掉'] : []),
     `- 媒体规格：${report.media.width}×${report.media.height} @ ${report.media.fps}，${report.media.pix_fmt}，色彩 ${report.media.color_space}，音频 ${report.media.audio_sample_rate} Hz，时长 ${report.media.duration_sec} 秒`,
     '',
     '## 技术问题',

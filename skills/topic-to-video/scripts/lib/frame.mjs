@@ -30,6 +30,7 @@ const LANDSCAPE = {
     heading: { x: 960, y: 92, underlineY: 130, fontSize: 52 },
   },
   subtitle: { x: 960, y: 1012, fontSize: 44, maxChars: null, maxLines: 1, lineHeight: 0 },
+  draftBadge: { x: 32, y: 30 },
 };
 
 const PORTRAIT = {
@@ -55,6 +56,8 @@ const PORTRAIT = {
     heading: { x: 540, y: 300, underlineY: 340, fontSize: 52 },
   },
   subtitle: { x: 540, y: 1330, fontSize: 60, maxChars: 12, maxLines: 2, lineHeight: 80 },
+  // Outside the text-safe box on purpose: a draft is for review, not for upload.
+  draftBadge: { x: 32, y: 120 },
 };
 
 export const FRAMES = deepFreeze({ '16:9': LANDSCAPE, '9:16': PORTRAIT });

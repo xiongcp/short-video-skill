@@ -132,6 +132,7 @@ async function main() {
         qaByShot: result.qaByShot,
         audio: result.audio,
         layoutIssues: result.layoutIssues,
+        draft: result.draft,
       });
     } catch (err) {
       qa = { skipped: true, reason: err.message };
@@ -144,6 +145,7 @@ async function main() {
     resolution: `${result.width}x${result.height}`,
     ratio: result.frame.ratio,
     fps: result.fps,
+    draft: result.draft,
     shots_rendered: result.shotsRendered,
     shots_cached: result.shotsCached,
     sound: result.audio ? { music: result.audio.musicSource, sfx: Object.values(result.audio.sfxCounts).reduce((a, b) => a + b, 0) } : null,

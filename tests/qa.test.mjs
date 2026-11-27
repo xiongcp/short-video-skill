@@ -62,8 +62,13 @@ test('runQa catches BT.601 color, host occlusion and rushed moves, and passes a 
       timeline: rendered.timeline,
       shotPlans: rendered.shotPlans,
       qaByShot: rendered.qaByShot,
+      draft: rendered.draft,
     });
     assert.equal(cleanQa.ok, true, `unexpected QA issues: ${JSON.stringify(cleanQa.issues)}`);
+    // The fixture has no plan confirmation, so the render is an unreviewed draft and QA says so.
+    assert.equal(rendered.draft, true);
+    assert.equal(cleanQa.draft, true);
+    assert.match(readFileSync(join(dir, 'out/qa.md'), 'utf8'), /未审核初稿/);
     assert.ok(existsSync(join(dir, 'out/qa.json')));
     assert.ok(existsSync(join(dir, 'out/qa.md')));
     assert.ok(existsSync(join(dir, 'out/contact.png')));

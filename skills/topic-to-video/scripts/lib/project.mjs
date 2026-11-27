@@ -672,3 +672,8 @@ export function isApproved(project, stage) {
   const last = project.checkpoints.filter((c) => c.stage === stage).at(-1);
   return last !== undefined && last.revision === project.revision;
 }
+
+/** A render is an unreviewed draft (未审核初稿) until the plan is confirmed for the current revision. */
+export function isDraft(project) {
+  return !isApproved({ ...project, checkpoints: project.checkpoints ?? [] }, 'plan');
+}

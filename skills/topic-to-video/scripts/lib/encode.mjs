@@ -10,7 +10,7 @@ import { findCjkFont, findTitleFont } from '../doctor.mjs';
 import { FRAMES, frameFor, isPortrait, outputSubdir, sizeFor } from './frame.mjs';
 import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from './mouth.mjs';
 import { buildSoundtrack, makeStereoWavBuffer } from './music.mjs';
-import { resolveSound } from './project.mjs';
+import { isDraft, resolveSound } from './project.mjs';
 import { analyzeMixLevels } from './qa.mjs';
 import { buildShotPlans, evaluateFrame, portraitLayoutIssues, shotCacheKey } from './scene.mjs';
 import { buildTimeline } from './timebase.mjs';
@@ -484,7 +484,8 @@ export async function renderProject(rawProjectDir, opts = {}) {
     : await synthesizeProject(project, projectDir, { ffmpeg });
 
   const timeline = buildTimeline(project, timing, fps);
-  const allPlans = buildShotPlans(project, timeline, manifest, { frame });
+  const draft = isDraft(project);
+  const allPlans = buildShotPlans(project, timeline, manifest, { frame }).map((p) => (draft ? { ...p, draft: true } : p));
 
   // Optional --sample sh03-sh05 range filter
   let selectedPlans = allPlans;
@@ -622,5 +623,6 @@ export async function renderProject(rawProjectDir, opts = {}) {
     shotPlans: selectedPlans,
     qaByShot,
     audio,
+    draft,
   };
 }
