@@ -79,7 +79,7 @@ node <本 skill 目录>/scripts/render.mjs <项目文件夹>
   - `MUSIC_TOO_LOUD`、`SFX_OVER_VOICE`：见 providers.md 的声音一节。
 - `warnings` 里的 `LINK_LABEL_OVER_HOST` 是连线标签压在小青身上：换物件槽位、缩短标签或让小青站到另一边，再出片。
   - `COLOR_NOT_BT709`、`FPS_MISMATCH`、`SIZE_MISMATCH` 等规格问题：多半出在 FFmpeg 版本或参数上，原样报告。
-- `manual_review` 里标 `not_checked` 的人工项（审美、配音自然度、口型抽查、混音）照实告诉用户，请用户看一遍；竖屏的“真机遮挡”见 providers.md 的竖屏一节。
+- `manual_review` 里标 `not_checked` 的人工项（审美、配音自然度、口型抽查、混音、数字读法）照实告诉用户，请用户看一遍；数字读法对照 `qa.md` 的“读法对照”听，读错的写进该段 `pronunciation` 后重新出片（只重配那一句）；竖屏的“真机遮挡”见 providers.md 的竖屏一节。
 
 ## 6. 返修
 

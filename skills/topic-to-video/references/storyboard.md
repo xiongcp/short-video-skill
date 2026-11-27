@@ -118,7 +118,7 @@
 | `move` | 元素序号，或 `left`、`center`、`right` | 主持人在这句开始时走过去（仅限出镜镜头） |
 | `prop` | 道具名，或 `none` | 主持人在这句开始时拿起道具，`none` 放下（仅限出镜镜头） |
 
-- `sentence` 须在本镜 `sentences` 内；可选：`cue.at` 填本句关键词子串；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（[72 个内置图标](world.md)）。
+- `sentence` 须在本镜 `sentences` 内；可选：`cue.at` 填本句关键词子串，照讲稿原文写，数字也写阿拉伯数字，如 `"at": "11.61%"`；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（[72 个内置图标](world.md)）。
 - `title` 和 `number` 没有可单独指定的元素，不能用 `reveal`、`highlight` 或写序号的 `move`。
 
 ## 分镜.md 格式
