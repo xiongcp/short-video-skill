@@ -8,6 +8,7 @@ import { COMMON_STATES, ICONS, PROP_META } from '../skills/topic-to-video/script
 import { MAX_MOVES, STATIC_SECONDS } from '../skills/topic-to-video/scripts/lib/match.mjs';
 import { SCENE_NAMES, STYLE_NAMES } from '../skills/topic-to-video/scripts/lib/world.mjs';
 import { STAGE_SLOTS } from '../skills/topic-to-video/scripts/lib/stage.mjs';
+import { ERROR_CODES } from '../skills/topic-to-video/scripts/render.mjs';
 
 const SKILL = join(import.meta.dirname, '../skills/topic-to-video');
 const ref = (name) => readFileSync(join(SKILL, 'references', name), 'utf8');
@@ -186,11 +187,31 @@ test('storyboard.md links to world.md action card within budgets', () => {
 
 test('providers.md documents the sound field, licenses, QA codes and the sound audition; world.md and SKILL.md point to it', () => {
   const providers = ref('providers.md');
-  assert.ok(providers.includes('## 5. 声音（`project.json` 的 `sound` 字段）'));
+  assert.ok(providers.includes('## 3. 声音（`project.json` 的 `sound` 字段）'));
   for (const word of ['"sound"', 'MUSIC_LICENSE_MISSING', 'MUSIC_PATH_INVALID', 'MUSIC_FILE_MISSING', 'MUSIC_SILENT', 'MUSIC_TOO_LOUD', 'SFX_OVER_VOICE', '--audition-sound', 'calm', 'playful', 'curious', 'upbeat']) {
     assert.ok(providers.includes(word), word);
   }
   assert.match(ref('world.md'), /\]\(providers\.md\)/);
   assert.match(readFileSync(join(SKILL, 'SKILL.md'), 'utf8'), /^ {3}- 音乐：/m);
   assert.ok(ref('prompt-pack.md').includes('配乐建议'));
+});
+
+const read = (rel) => readFileSync(join(SKILL, rel), 'utf8');
+
+test('SKILL.md makes L1 the default when doctor says it can render and links render.md', () => {
+  const skill = read('SKILL.md');
+  for (const word of ['l1_ready', 'tts_ready', '未审核初稿', '](references/render.md)', '需要联网']) assert.ok(skill.includes(word), word);
+  assert.ok(!skill.includes('交出确认过的 L0 就是完整完成'));
+});
+
+test('render.md documents every render error code, the voice fix and the QA follow-up', () => {
+  const render = read('references/render.md');
+  for (const code of ERROR_CODES) assert.ok(render.includes(`\`${code}\``), code);
+  for (const word of ['recommended_voice', 'preset', '--sample', 'qa.md', 'not_checked', 'npm install --prefix', '退出码 2']) assert.ok(render.includes(word), word);
+});
+
+test('the description says the skill renders a video locally', () => {
+  const description = read('SKILL.md').match(/^description: (.+)$/m)[1];
+  assert.match(description, /渲染成片/);
+  assert.match(description, /rendered MP4/);
 });

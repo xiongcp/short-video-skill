@@ -1,4 +1,4 @@
 interface:
   display_name: "Topic to Video 中文解说视频"
   short_description: "把主题、资料或讲稿做成中文知识解说视频的讲稿、分镜和提示词包"
-  default_prompt: "用 $topic-to-video 帮我把一个主题做成中文知识解说视频：先给讲稿和分镜让我确认，再给提示词包。"
+  default_prompt: "用 $topic-to-video 把一个主题做成中文知识解说视频：先给讲稿和分镜让我确认，再在本机出 MP4 成片；不能出片时给提示词包。"
