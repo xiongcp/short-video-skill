@@ -1,6 +1,6 @@
 // Standalone QA CLI: node <skill>/scripts/qa.mjs <projectDir> [videoPath]
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { isCliEntry } from './doctor.mjs';
 import { runQa } from './lib/qa.mjs';
 
 async function main() {
@@ -11,4 +11,4 @@ async function main() {
   if (!report.ok) process.exitCode = 1;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) await main();
+if (isCliEntry(import.meta.url)) await main();

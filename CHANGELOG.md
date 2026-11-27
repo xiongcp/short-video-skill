@@ -1,5 +1,9 @@
 # 更新记录
 
+## v1.0.1（2026-11-26）
+
+- 修复 `doctor.mjs`、`render.mjs` 和 `qa.mjs` 的 CLI 入口判断：改用 `realpathSync(process.argv[1])` 比对，通过软链接目录（如 `ln -s` 安装的 skill 或 macOS `/var/folders` 临时目录）调用时不再静默无输出退出。
+
 ## v1.0.0（2026-11-26）
 
 第一个上线版本：说一句话，就能在本机得到一条中文知识解说视频。

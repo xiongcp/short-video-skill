@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { FRAMES } from '../skills/topic-to-video/scripts/lib/frame.mjs';
@@ -374,6 +374,28 @@ test('extractLumaFrames scales portrait to 90×160 and landscape to 160×90, and
     assert.equal(protoQa.ok, true, JSON.stringify(protoQa.issues));
     assert.ok(!existsSync(join(dir, 'out-proto/contact-safe.png')));
     assert.match(readFileSync(logFile, 'utf8'), /scale=160:90,format=gray/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('qa.mjs runs when invoked through a symlinked skill directory', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'svs-qa-link-'));
+  try {
+    const link = join(dir, 'topic-to-video');
+    symlinkSync(join(import.meta.dirname, '../skills/topic-to-video'), link, process.platform === 'win32' ? 'junction' : 'dir');
+    const proj = join(dir, 'proj');
+    mkdirSync(proj);
+    writeFileSync(join(proj, 'project.json'), JSON.stringify(minimal(), null, 2));
+    const clip = makeQaClip(proj);
+    const res = spawnSync(process.execPath, [join(link, 'scripts/qa.mjs'), proj, clip], { encoding: 'utf8' });
+    const report = JSON.parse(res.stdout);
+    assert.equal(report.media.width, 320);
+    assert.equal(res.status, report.ok ? 0 : 1);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

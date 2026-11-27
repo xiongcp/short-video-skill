@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { installHints, runDoctor } from '../skills/topic-to-video/scripts/doctor.mjs';
+import { pathToFileURL } from 'node:url';
+import { installHints, isCliEntry, runDoctor } from '../skills/topic-to-video/scripts/doctor.mjs';
 
 const none = () => ({ ok: false });
 const all = () => ({ ok: true, detail: 'x' });
@@ -34,4 +36,24 @@ test('installHints covers macOS and Windows package managers', () => {
   assert.match(installHints(['ffmpeg'], 'darwin').ffmpeg, /brew install ffmpeg/);
   assert.match(installHints(['ffmpeg'], 'win32').ffmpeg, /winget install/);
   assert.match(installHints(['@resvg/resvg-js'], 'darwin')['@resvg/resvg-js'], /npm install --prefix/);
+});
+
+test('isCliEntry and doctor.mjs CLI work when invoked through a symlinked directory', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'svs-doc-link-'));
+  try {
+    const link = join(dir, 'topic-to-video');
+    symlinkSync(join(import.meta.dirname, '../skills/topic-to-video'), link, process.platform === 'win32' ? 'junction' : 'dir');
+    const doctorPath = join(import.meta.dirname, '../skills/topic-to-video/scripts/doctor.mjs');
+    assert.equal(isCliEntry(pathToFileURL(doctorPath).href, join(link, 'scripts/doctor.mjs')), true);
+    assert.equal(isCliEntry(pathToFileURL(doctorPath).href, undefined), false);
+    assert.equal(isCliEntry(pathToFileURL(doctorPath).href, join(dir, 'missing.mjs')), false);
+
+    const res = spawnSync(process.execPath, [join(link, 'scripts/doctor.mjs')], { encoding: 'utf8' });
+    assert.equal(res.status, 0);
+    const report = JSON.parse(res.stdout);
+    assert.equal(report.ok, true);
+    assert.equal(report.l0_ready, true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

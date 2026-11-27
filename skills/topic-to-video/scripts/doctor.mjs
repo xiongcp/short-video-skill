@@ -1,7 +1,7 @@
 // Environment doctor for topic-to-video: checks Node, FFmpeg/FFprobe, @resvg/resvg-js, local TTS and CJK fonts.
 // Works across agy, Claude Code and Codex; when L1 tools are missing, reports graceful fallback to L0 text pack.
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const FONT_CANDIDATES = [
@@ -124,7 +124,17 @@ export async function runDoctor({
   };
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+/** True when `argv1` points to `metaUrl`, resolving symlinks so symlinked skill installs still run. */
+export function isCliEntry(metaUrl, argv1 = process.argv[1]) {
+  if (!argv1) return false;
+  try {
+    return realpathSync(argv1) === realpathSync(fileURLToPath(metaUrl));
+  } catch {
+    return false;
+  }
+}
+
+if (isCliEntry(import.meta.url)) {
   const report = await runDoctor();
   console.log(JSON.stringify(report, null, 2));
   if (process.argv.includes('--strict') && !report.l1_ready) process.exitCode = 1;
