@@ -288,7 +288,7 @@ export function inferSentenceBeat(text = '', { index = 0, hasVisualCue = false, 
     candidates = ['startle', 'double_take', 'emphasize'];
   } else if (/[！!][」』”’）)》】\]"']*$/.test(s) || /(?:记住|关键|直接|瞬间|省掉|省下|一定)/.test(s)) {
     candidates = ['emphasize', 'present', 'point'];
-  } else if (hasVisualCue || /(?:看|先看|找到|并排|这边|这张图|三零四|服务器|浏览器|副本)/.test(s)) {
+  } else if (hasVisualCue || /(?:看|先看|找到|并排|这边|这张图|三零四|304|服务器|浏览器|副本)/.test(s)) {
     candidates = ['point', 'present', 'emphasize'];
   } else {
     const start = Math.abs(index) % BEAT_CYCLE.length;

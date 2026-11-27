@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { countChars, splitSentences } from './captions.mjs';
 import { FRAMES } from './frame.mjs';
 import { COMMON_STATES, customPropMeta, ICONS, isCountState, PROP_META, propSupportsState, validateCustomProps } from './icons.mjs';
+import { toSpoken } from './reading.mjs';
 import { layoutStage, STAGE_SLOTS } from './stage.mjs';
 import { SCENE_NAMES, STYLE_NAMES } from './world.mjs';
 
@@ -613,11 +614,11 @@ function checkCues(shot, at, sentences, add, customProps = []) {
   });
 }
 
-/** Planning estimate for some sentences of one section: characters at 4 per second plus a gap after each sentence. */
+/** Planning estimate for some sentences of one section: spoken characters at 4.5 per second plus a gap after each sentence. */
 function estimateSentences(project, section, indexes) {
   const gap = (project.settings.sentence_gap_ms ?? DEFAULT_SENTENCE_GAP_MS) / 1000;
   const sentences = splitSentences(section.text);
-  return indexes.reduce((sum, i) => sum + countChars(sentences[i] ?? '') / CHARS_PER_SECOND + gap, 0);
+  return indexes.reduce((sum, i) => sum + countChars(toSpoken(sentences[i] ?? '', section.pronunciation).spoken) / CHARS_PER_SECOND + gap, 0);
 }
 
 /** Planning estimate for the whole project, in seconds. */
@@ -640,6 +641,34 @@ export function estimateReport(project) {
   };
 }
 
+// Chinese numerals that are data (字幕与转场设计 §3.4): percentages, decimals, multi-character numbers with a unit
+// character, dates, four-digit years and three or more digit characters in a row. Counts and set phrases are skipped.
+const N = '零〇一二两三四五六七八九十百千万亿';
+const HANZI_NUMBER_RULES = [
+  { rx: new RegExp(`百分之[${N}]+(?:点[零〇一二三四五六七八九]+)?`, 'g'), skip: (m) => m === '百分之百' },
+  { rx: new RegExp(`[${N}]+点[零〇一二三四五六七八九]+(?!点)`, 'g') },
+  { rx: new RegExp(`[${N}]{2,}`, 'g'), skip: (m) => !/[十百千万亿]/.test(m) || ['千万', '万一'].includes(m) || /^[一二三四五六七八九]{2}[十百千万亿]$/.test(m) },
+  { rx: /[零〇一二三四五六七八九十]+月[零〇一二三四五六七八九十]+[日号]/g },
+  { rx: /[零〇一二三四五六七八九]{4}年/g },
+  { rx: /[零〇一二两三四五六七八九]{3,}/g },
+];
+
+/** The data in a sentence written as Chinese numerals, in order; overlapping or touching hits are merged. */
+export function hanziNumbers(sentence) {
+  const hits = [];
+  for (const { rx, skip } of HANZI_NUMBER_RULES) {
+    for (const m of sentence.matchAll(rx)) if (!skip?.(m[0])) hits.push([m.index, m.index + m[0].length]);
+  }
+  hits.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  for (const [s, e] of hits) {
+    const last = merged.at(-1);
+    if (last && s <= last[1]) last[1] = Math.max(last[1], e);
+    else merged.push([s, e]);
+  }
+  return merged.map(([s, e]) => sentence.slice(s, e));
+}
+
 /** Advisory checks from references/script.md; these are warnings, not errors. Empty when checkProject reports MISSING_FIELD. */
 export function lintScript(project) {
   if (checkShape(project).length) return [];
@@ -649,6 +678,8 @@ export function lintScript(project) {
     if (length > MAX_SENTENCE_CHARS) warnings.push({ path: `/sections/${i}/text`, code: 'SENTENCE_TOO_LONG', message: `段落 ${s.id} 第 ${j} 句有 ${length} 字，超过 ${MAX_SENTENCE_CHARS} 字` });
     const absolute = project.brief.sources.length ? [] : absoluteWords(sentence);
     if (absolute.length) warnings.push({ path: `/sections/${i}/text`, code: 'ABSOLUTE_CLAIM', message: `段落 ${s.id} 第 ${j} 句用了${absolute.map((w) => `“${w}”`).join('')}；没有来源时改成中性说法，或写进 brief.open_questions` });
+    const hanzi = hanziNumbers(sentence);
+    if (hanzi.length) warnings.push({ path: `/sections/${i}/text`, code: 'HANZI_NUMBER', message: `段落 ${s.id} 第 ${j} 句的数字写成了汉字（${hanzi.join('、')}）；数据、百分比、日期和时间写阿拉伯数字，配音读法由渲染器生成（见 script.md）` });
   }));
   const estimate = estimateSeconds(project);
   const target = project.settings.target_seconds;

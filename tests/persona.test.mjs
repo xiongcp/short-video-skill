@@ -387,3 +387,8 @@ test('holding the question prop hides the redundant curious question symbol besi
   const withoutProp = draw({ expr: 'curious', prop: 'none' });
   assert.match(withoutProp, /data-symbol="question"/);
 });
+
+test('a 304 written in digits points at the picture just like 三零四', () => {
+  assert.equal(inferSentenceBeat('超市回张304凭证。').gesture, 'point');
+  assert.equal(inferSentenceBeat('超市回张三零四凭证。').gesture, 'point');
+});
