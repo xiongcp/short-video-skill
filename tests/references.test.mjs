@@ -122,9 +122,10 @@ test('prompt-pack.md allows the 呆毛 and settings.outfit instead of banning th
   assert.ok(!text.includes('人物不加头发、衣服和身体填色'));
 });
 
-test('world.md documents all 5 styles, 8 scenes, 60 built-in icons, custom prop limits, stage slots and scene recommendations', () => {
+test('world.md documents all 5 styles, 8 scenes, 72 built-in icons, custom prop limits, stage slots and scene recommendations', () => {
   const text = ref('world.md');
-  assert.equal(ICONS.length, 60);
+  assert.equal(ICONS.length, 72);
+  assert.ok(text.includes('72 个内置物件'));
   for (const name of STYLE_NAMES) assert.ok(text.includes(`\`${name}\``), `style ${name}`);
   for (const name of SCENE_NAMES) assert.ok(text.includes(`\`${name}\``), `scene ${name}`);
   for (const name of ICONS) assert.ok(text.includes(`\`${name}\``), `icon ${name}`);

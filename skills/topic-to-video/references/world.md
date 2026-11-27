@@ -49,7 +49,7 @@
 | `outdoor` | 远山、太阳、云朵、树木围栏 | 不穿（`none`） | `male-passion` / `child-cute` |
 | `workshop` | 工具墙、扳手锤子、工作台 | `hardhat` | `male-sunny` / `male-passion` |
 
-## 4. 60 个内置物件与状态
+## 4. 72 个内置物件与状态
 
 用于 `stage` 的 `objects[].prop`，及 `bullets`/`flow` 的 `icons`、`timeline`/`cycle` 的 `icon`。
 
@@ -62,14 +62,15 @@
 | 科学教育 6 个 | `beaker`、`microscope`、`book`、`whiteboard`、`brain`、`heart` |
 | 办公信息 6 个 | `laptop`、`mail`、`megaphone`、`calendar`、`stamp`、`clipboard` |
 | 小件与符号 4 个 | `package`、`ticket`、`shield`、`hourglass` |
+| 自然科学 12 个 | `sun`、`moon`、`star`、`lightning`、`tree`、`drop`、`apple`、`flame`、`thermometer`、`atom`、`germ`、`eye` |
 
 - **通用状态**（所有物件支持）：`normal`、`active`、`dim`、`crossed`、`stamped`、`broken`、`count:<值>`（`<>` 内最多 4 个字符）。
 - **专属状态**（仅部分物件支持，错用报 `STATE_UNSUPPORTED`）：
-  - `open` / `closed`：`folder`、`fridge`、`pot`、`door`、`window`、`trash`、`shop`、`box`、`wallet`、`book`、`laptop`、`mail`
-  - `full` / `empty`：`server`、`database`、`fridge`、`cup`、`pot`、`trash`、`cart`、`box`、`wallet`、`piggybank`、`truck`、`battery`、`beaker`、`hourglass`
+  - `open` / `closed`：`folder`、`fridge`、`pot`、`door`、`window`、`trash`、`shop`、`box`、`wallet`、`book`、`laptop`、`mail`、`eye`
+  - `full` / `empty`：`server`、`database`、`fridge`、`cup`、`pot`、`trash`、`cart`、`box`、`wallet`、`piggybank`、`truck`、`battery`、`beaker`、`hourglass`、`thermometer`
   - `locked` / `unlocked`：`lock`、`folder`、`door`、`shield`
   - `fresh` / `expired`：`doc`、`fridge`、`package`、`ticket`、`hourglass`
-  - `lit` / `off`：`browser`、`server`、`cache`、`phone`、`bulb`、`rocket`、`laptop`
+  - `lit` / `off`：`browser`、`server`、`cache`、`phone`、`bulb`、`rocket`、`laptop`、`sun`、`flame`
 
 ## 5. 自定义道具（`world.custom_props`）
 
