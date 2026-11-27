@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cpSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
-import { agentInvocation, findProjects, inspectProject, parseAgyStream, skillVersion } from './scenarios/run.mjs';
+import { agentInvocation, findProjects, inspectProject, inspectRender, installSkill, keepInResults, parseAgyStream, parseClaudeStream, skillVersion } from './scenarios/run.mjs';
 
 const scratch = (name) => mkdtempSync(join(tmpdir(), `svs-${name}-`));
 const put = (dir, path, content) => {
@@ -13,7 +14,7 @@ const put = (dir, path, content) => {
 
 test('findProjects finds nested project.json files and skips .git, .agents and node_modules', () => {
   const dir = scratch('find');
-  for (const p of ['a/project.json', 'b/c/project.json', '.agents/skills/x/project.json', '.git/project.json', 'node_modules/y/project.json', 'project.json.bak']) put(dir, p, '{}');
+  for (const p of ['a/project.json', 'b/c/project.json', '.agents/skills/x/project.json', '.claude/skills/x/project.json', '.git/project.json', 'node_modules/y/project.json', 'project.json.bak']) put(dir, p, '{}');
   assert.deepEqual(findProjects(dir).map((f) => relative(dir, f)).sort(), ['a/project.json', 'b/c/project.json']);
 });
 
@@ -78,4 +79,60 @@ test('skillVersion records the commit and whether the skill folder has uncommitt
   const version = skillVersion();
   assert.match(version.commit, /^[0-9a-f]{40}$/);
   assert.equal(typeof version.dirty, 'boolean');
+});
+
+test('claude turns run headless, stream JSON and continue the same conversation', () => {
+  const first = agentInvocation({ agent: 'claude', index: 0, turn: '你好' });
+  assert.equal(first.cmd, 'claude');
+  assert.deepEqual(first.args.slice(0, 2), ['-p', '你好']);
+  assert.ok(first.args.includes('stream-json') && !first.args.includes('--continue'));
+  assert.ok(agentInvocation({ agent: 'claude', index: 1, turn: '可以' }).args.includes('--continue'));
+  assert.deepEqual(agentInvocation({ agent: 'claude', index: 0, turn: 'x', model: 'opus' }).args.slice(-2), ['--model', 'opus']);
+});
+
+test('parseClaudeStream returns the final reply, status and tools used', () => {
+  const stream = `${[
+    { type: 'system', subtype: 'init', session_id: 's1' },
+    { type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Bash' }, { type: 'text', text: '先看看' }] } },
+    { type: 'assistant', message: { content: [{ type: 'tool_use', name: 'Write' }] } },
+    { type: 'result', subtype: 'success', result: '好的' },
+  ].map((e) => JSON.stringify(e)).join('\n')}\n{partial`;
+  assert.deepEqual(parseClaudeStream(stream), { status: 'success', response: '好的', tools: ['Bash', 'Write'] });
+});
+
+test('installSkill puts the skill where each agent looks and adds resvg only for L1', () => {
+  const claude = installSkill(scratch('inst-claude'), 'claude', 'L1');
+  assert.match(claude, /\.claude[\\/]skills[\\/]topic-to-video$/);
+  assert.ok(existsSync(join(claude, 'SKILL.md')));
+  assert.ok(existsSync(join(claude, 'scripts/node_modules/@resvg/resvg-js/package.json')));
+  const agy = installSkill(scratch('inst-agy'), 'agy', 'L0');
+  assert.match(agy, /\.agents[\\/]skills[\\/]topic-to-video$/);
+  assert.ok(existsSync(join(agy, 'SKILL.md')));
+  assert.ok(!existsSync(join(agy, 'scripts/node_modules')));
+});
+
+test('results keep qa.json and qa.md but leave out rendered media, caches, audio and installed skills', () => {
+  const work = join(tmpdir(), 'w');
+  for (const p of ['p/project.json', 'p/out', 'p/out/qa.json', 'p/out/qa.md']) assert.ok(keepInResults(work, join(work, p)), p);
+  for (const p of ['p/out/final.mp4', 'p/out/9x16', 'p/cache/shots/a.mp4', 'p/audio/s01-0.wav', '.claude/skills', '.agents/x', 'node_modules/y']) {
+    assert.ok(!keepInResults(work, join(work, p)), p);
+  }
+});
+
+test('inspectRender reports null when there is no render', () => {
+  assert.deepEqual(inspectRender(scratch('empty')), { final: null, qa: null });
+});
+
+test('inspectRender reads the size, frame rate and length of final.mp4 and the qa.json verdict', (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = scratch('render');
+  mkdirSync(join(dir, 'out'));
+  spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'testsrc=size=320x240:rate=30:duration=1', '-pix_fmt', 'yuv420p', join(dir, 'out/final.mp4')]);
+  writeFileSync(join(dir, 'out/qa.json'), JSON.stringify({ ok: true, issues: [{ code: 'X' }], draft: true }));
+  const r = inspectRender(dir);
+  assert.deepEqual({ ...r.final, duration: Math.round(r.final.duration) }, { exists: true, width: 320, height: 240, fps: 30, duration: 1 });
+  assert.deepEqual(r.qa, { ok: true, issues: 1, draft: true });
 });
