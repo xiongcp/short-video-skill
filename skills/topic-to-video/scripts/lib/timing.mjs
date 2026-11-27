@@ -1,6 +1,8 @@
 // Word-level timing: VTT/SRT subtitle parsing (edge-tts), silence trimming, weighted estimation,
 // cue.at anchor resolution and FFmpeg silencedetect splitting (出片质量设计 §6.1).
 import { spawnSync } from 'node:child_process';
+import { countChars } from './captions.mjs';
+import { toSpoken } from './reading.mjs';
 
 const PAUSE_PUNCT = /^[，、；：,:;]$/;
 const SKIP_PUNCT = /^[\s。！？!?「」『』“”‘’（）()《》【】\[\]"'—…·,.~]$/;
@@ -134,20 +136,35 @@ export function detectSpeechBounds(samples, sampleRate, thresholdDb = -40) {
   return [Math.round((first * 1000) / sampleRate), Math.min(totalMs, Math.round((last * 1000) / sampleRate))];
 }
 
-/**
- * Estimates word-level timestamps within [speechStartMs, speechEndMs] using 出片质量设计 §6.1 weights:
- * Han char = 1, digit run = digit count, English word = 0.8 * syllables, mid-sentence pause punct = 0.6.
- */
-export function estimateWords(sentence, speechStartMs, speechEndMs) {
+// Display tokens of a sentence with their spoken text and weight (出片质量设计 §6.1, 字幕与转场设计 §3.3): Han char 1,
+// English word 0.8 per syllable, mid-sentence pause 0.6, a replaced span (a number, a pronunciation term) its reading length.
+function displayTokens(sentence, spans) {
   const tokens = [];
-  const rx = /[A-Za-z]+|[0-9]+(?:\.[0-9]+)?|./gu;
-  for (const [tok] of sentence.matchAll(rx)) {
-    if (PAUSE_PUNCT.test(tok)) tokens.push({ text: tok, weight: 0.6, emit: false });
-    else if (SKIP_PUNCT.test(tok)) continue;
-    else if (/^[0-9]/.test(tok)) tokens.push({ text: tok, weight: Math.max(1, DIGIT_COUNT(tok) + (tok.includes('.') ? 1 : 0)), emit: true });
-    else if (/^[A-Za-z]/.test(tok)) tokens.push({ text: tok, weight: EN_SYLLABLES(tok) * 0.8, emit: true });
-    else tokens.push({ text: tok, weight: 1, emit: true });
+  const plain = (text) => {
+    for (const [tok] of text.matchAll(/[A-Za-z]+|[0-9]+(?:\.[0-9]+)?|./gu)) {
+      if (PAUSE_PUNCT.test(tok)) tokens.push({ text: tok, spoken: '', weight: 0.6, emit: false });
+      else if (SKIP_PUNCT.test(tok)) continue;
+      else if (/^[0-9]/.test(tok)) tokens.push({ text: tok, spoken: tok, weight: Math.max(1, DIGIT_COUNT(tok) + (tok.includes('.') ? 1 : 0)), emit: true });
+      else if (/^[A-Za-z]/.test(tok)) tokens.push({ text: tok, spoken: tok, weight: EN_SYLLABLES(tok) * 0.8, emit: true });
+      else tokens.push({ text: tok, spoken: tok, weight: 1, emit: true });
+    }
+  };
+  let at = 0;
+  for (const s of spans) {
+    plain(sentence.slice(at, s.start));
+    tokens.push({ text: s.text, spoken: s.reading, weight: Math.max(1, countChars(s.reading)), emit: true });
+    at = s.end;
   }
+  plain(sentence.slice(at));
+  return tokens;
+}
+
+/**
+ * Estimates word-level timestamps of the display text within [speechStartMs, speechEndMs]. `spans` (from toSpoken) are
+ * weighed by their reading, so 15.07% takes as long as 百分之十五点零七.
+ */
+export function estimateWords(sentence, speechStartMs, speechEndMs, spans = toSpoken(sentence).spans) {
+  const tokens = displayTokens(sentence, spans);
   const totalWeight = tokens.reduce((s, t) => s + t.weight, 0);
   if (!totalWeight) return [];
   const span = Math.max(1, speechEndMs - speechStartMs);
@@ -158,6 +175,33 @@ export function estimateWords(sentence, speechStartMs, speechEndMs) {
     acc += tok.weight;
     const end_ms = Math.round(speechStartMs + (acc / totalWeight) * span);
     if (tok.emit) out.push({ text: tok.text, start_ms, end_ms: Math.max(start_ms + 1, end_ms) });
+  }
+  return out;
+}
+
+const spokenChars = (s) => s.match(/[\p{L}\p{N}]/gu) ?? [];
+
+/**
+ * Maps provider word times, which are on the spoken text, back to display words (字幕与转场设计 §3.3). Returns null when
+ * the provider's characters differ from the spoken text, so the caller falls back to estimateWords.
+ */
+export function displayWords(words, sentence, spans) {
+  const tokens = displayTokens(sentence, spans);
+  if (words.map((w) => spokenChars(w.text).join('')).join('') !== tokens.map((t) => spokenChars(t.spoken).join('')).join('')) return null;
+  const marks = [];
+  for (const w of words) {
+    const chars = spokenChars(w.text);
+    chars.forEach((_, i) => marks.push([w.start_ms + ((w.end_ms - w.start_ms) * i) / chars.length, w.start_ms + ((w.end_ms - w.start_ms) * (i + 1)) / chars.length]));
+  }
+  const out = [];
+  let k = 0;
+  for (const t of tokens) {
+    const n = spokenChars(t.spoken).length;
+    if (t.emit && n) {
+      const start_ms = Math.round(marks[k][0]);
+      out.push({ text: t.text, start_ms, end_ms: Math.max(start_ms + 1, Math.round(marks[k + n - 1][1])) });
+    }
+    k += n;
   }
   return out;
 }

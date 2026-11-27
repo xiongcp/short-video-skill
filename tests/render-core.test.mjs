@@ -5,9 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ease, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp, linear } from '../skills/topic-to-video/scripts/lib/ease.mjs';
 import { buildTimeline, samplesPerFrame, sentencePauseMs } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
-import { detectSpeechBounds, estimateWords, parseSubtitles, resolveAnchorMs, resolveCueTiming, splitClauses } from '../skills/topic-to-video/scripts/lib/timing.mjs';
+import { detectSpeechBounds, displayWords, estimateWords, parseSubtitles, resolveAnchorMs, resolveCueTiming, splitClauses } from '../skills/topic-to-video/scripts/lib/timing.mjs';
 import { analyzeAudioFrames, makeWavBuffer, readWavPcm, trimSilenceWithFade } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
-import { applyPronunciation, speedToEdgeRate, splitCommandTemplate, synthesizeProject } from '../skills/topic-to-video/scripts/lib/tts.mjs';
+import { sentenceHash, speedToEdgeRate, splitCommandTemplate, synthesizeProject } from '../skills/topic-to-video/scripts/lib/tts.mjs';
+import { toSpoken } from '../skills/topic-to-video/scripts/lib/reading.mjs';
 import { runDoctor } from '../skills/topic-to-video/scripts/doctor.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
@@ -106,7 +107,7 @@ test('mouth analysis reads WAV PCM, opens mouth during speech, closes during sil
 });
 
 test('tts supports safe command templates, pronunciation substitution, caching and timing.json output', async () => {
-  assert.equal(applyPronunciation('返回 HTTP 304。', [{ term: 'HTTP', reading: 'H T T P' }]), '返回 H T T P 304。');
+  assert.equal(toSpoken('返回 HTTP 304。', [{ term: 'HTTP', reading: 'H T T P' }]).spoken, '返回 H T T P 三百零四。');
   assert.deepEqual(splitCommandTemplate('edge-tts --voice "zh-CN-XiaoxiaoNeural" --text {text} --write-media {out} --write-subtitles {sub}'),
     ['edge-tts', '--voice', 'zh-CN-XiaoxiaoNeural', '--text', '{text}', '--write-media', '{out}', '--write-subtitles', '{sub}']);
 
@@ -179,4 +180,73 @@ test('doctor reports environment capabilities cleanly and never crashes when too
   assert.equal(missing.l0_ready, true);
   assert.equal(missing.l1_ready, false);
   assert.ok(missing.missing.includes('ffmpeg'));
+});
+
+test('estimated word times weigh a number by how it is read, and cue.at keeps the display text (字幕与转场设计 §3.3)', () => {
+  // 15.07% is read 百分之十五点零七: 8 characters against 1 for 涨.
+  assert.deepEqual(estimateWords('涨15.07%。', 0, 900), [
+    { text: '涨', start_ms: 0, end_ms: 100 },
+    { text: '15.07%', start_ms: 100, end_ms: 900 },
+  ]);
+  // 创业板涨 is 4 of 12 spoken characters, so 11.61% starts a third of the way in.
+  const entry = { text: '创业板涨11.61%。', speech: [0, 1200], durationMs: 1200, words: [] };
+  assert.deepEqual(resolveAnchorMs(entry, '11.61%'), { offsetMs: 400, source: 'estimate' });
+});
+
+test('provider word times on the voice text map back to the display words, and a mismatch returns null', () => {
+  const s = '创业板涨11.61%，科创50大涨。';
+  const { spans } = toSpoken(s, [{ term: '科创50', reading: '科创五零' }]);
+  const provider = [
+    { text: '创业板涨', start_ms: 0, end_ms: 800 },
+    { text: '百分之十一点六一', start_ms: 800, end_ms: 2400 },
+    { text: '科创五零大涨', start_ms: 2700, end_ms: 3600 },
+  ];
+  assert.deepEqual(displayWords(provider, s, spans), [
+    { text: '创', start_ms: 0, end_ms: 200 },
+    { text: '业', start_ms: 200, end_ms: 400 },
+    { text: '板', start_ms: 400, end_ms: 600 },
+    { text: '涨', start_ms: 600, end_ms: 800 },
+    { text: '11.61%', start_ms: 800, end_ms: 2400 },
+    { text: '科创50', start_ms: 2700, end_ms: 3300 },
+    { text: '大', start_ms: 3300, end_ms: 3450 },
+    { text: '涨', start_ms: 3450, end_ms: 3600 },
+  ]);
+  assert.equal(displayWords([{ text: '别的文字', start_ms: 0, end_ms: 100 }], s, spans), null);
+});
+
+test('the voice reads numbers in Chinese while timing.json keeps the display words (字幕与转场设计 §3.3)', async () => {
+  for (const mismatch of [false, true]) {
+    const dir = mkdtempSync(join(tmpdir(), 'svs-tts-spoken-'));
+    try {
+      const p = minimal();
+      p.sections[0].text = '沪指涨3.7%。答案藏在阳光里。';
+      // A local fake voice: records the text it was given, writes 0.5 s of tone and a two-cue VTT. With `mismatch`
+      // the cues carry other words, as an engine that rewrote the text would.
+      const fakeTts = join(dir, 'fake-tts.mjs');
+      writeFileSync(fakeTts, `
+        import { appendFileSync, writeFileSync } from 'node:fs';
+        const [text, out, sub, mode] = process.argv.slice(2);
+        appendFileSync(${JSON.stringify(join(dir, 'said.txt'))}, text + '\\n');
+        const sr = 48000, n = 24000;
+        const buf = Buffer.alloc(44 + n * 2);
+        buf.write('RIFF', 0); buf.writeUInt32LE(36 + n * 2, 4); buf.write('WAVE', 8);
+        buf.write('fmt ', 12); buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(1, 22);
+        buf.writeUInt32LE(sr, 24); buf.writeUInt32LE(sr * 2, 28); buf.writeUInt16LE(2, 32); buf.writeUInt16LE(16, 34);
+        buf.write('data', 36); buf.writeUInt32LE(n * 2, 40);
+        for (let i = 2400; i < 21600; i++) buf.writeInt16LE(Math.round(8000 * Math.sin(2 * Math.PI * 300 * i / sr)), 44 + i * 2);
+        writeFileSync(out, buf);
+        const [a, b] = mode === 'mismatch' ? ['甲乙', '丙丁'] : [text.slice(0, 2), text.slice(2)];
+        writeFileSync(sub, 'WEBVTT\\n\\n00:00:00.050 --> 00:00:00.150\\n' + a + '\\n\\n00:00:00.150 --> 00:00:00.450\\n' + b + '\\n');
+      `);
+      p.voice = { provider: 'command', command: `${process.execPath} ${fakeTts} {text} {out} {sub}${mismatch ? ' mismatch' : ''}` };
+      const timing = await synthesizeProject(p, dir);
+      assert.deepEqual(readFileSync(join(dir, 'said.txt'), 'utf8').trim().split('\n'), ['沪指涨百分之三点七。', '答案藏在阳光里。']);
+      assert.equal(timing['s01-0'].cache_key, sentenceHash('沪指涨百分之三点七。', p.voice));
+      assert.equal(timing['s01-0'].source, 'provider');
+      assert.deepEqual(timing['s01-0'].words.map((w) => w.text), ['沪', '指', '涨', '3.7%'], mismatch ? 'mismatch falls back to the estimate' : 'mapped');
+      assert.deepEqual(timing['s01-1'].words.map((w) => w.text), [...'答案藏在阳光里']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
 });
