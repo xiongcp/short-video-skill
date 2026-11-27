@@ -7,12 +7,14 @@ import { cpus } from 'node:os';
 import { join, resolve } from 'node:path';
 import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads';
 import { findCjkFont, findTitleFont } from '../doctor.mjs';
+import { FRAMES, isPortrait } from './frame.mjs';
 import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from './mouth.mjs';
 import { buildSoundtrack, makeStereoWavBuffer } from './music.mjs';
 import { resolveSound } from './project.mjs';
 import { analyzeMixLevels } from './qa.mjs';
 import { buildShotPlans, evaluateFrame, shotCacheKey } from './scene.mjs';
 import { buildTimeline } from './timebase.mjs';
+import { subtitlePages } from './timing.mjs';
 import { synthesizeProject } from './tts.mjs';
 
 export const RESOLUTIONS = {
@@ -303,23 +305,29 @@ export function buildSubtitlesSrt(project, timeline) {
   return `${lines.join('\n')}`;
 }
 
-export function buildSubtitlesAss(project, timeline) {
+export function buildSubtitlesAss(project, timeline, frame = FRAMES['16:9']) {
   const anchors = new Map();
   for (const shot of project.shots) {
     for (const c of shot.cues ?? []) {
       if (c.at) anchors.set(`${shot.section}-${c.sentence}`, c.at);
     }
   }
+  const portrait = isPortrait(frame);
+  const S = frame.subtitle;
+  const marginV = Math.round(frame.height - (S.y + ((S.maxLines - 1) * S.lineHeight) / 2 + S.fontSize / 2));
+  const style = portrait
+    ? `Style: Default,Hiragino Sans GB,${S.fontSize},&H001F1F1F,&H00A3A520,&H00F6FAFB,&H00000000,-1,0,0,0,100,100,0,0,1,4,0,2,170,170,${marginV},1`
+    : 'Style: Default,Hiragino Sans GB,44,&H001F1F1F,&H00A3A520,&H00F6FAFB,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,2,40,40,48,1';
   const header = [
     '[Script Info]',
     `Title: ${project.title}`,
     'ScriptType: v4.00+',
-    'PlayResX: 1920',
-    'PlayResY: 1080',
+    `PlayResX: ${frame.width}`,
+    `PlayResY: ${frame.height}`,
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-    'Style: Default,Hiragino Sans GB,44,&H001F1F1F,&H00A3A520,&H00F6FAFB,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,2,40,40,48,1',
+    style,
     '',
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
@@ -327,8 +335,21 @@ export function buildSubtitlesAss(project, timeline) {
   for (const shot of timeline.shots) {
     for (const s of shot.sentenceRanges) {
       const kw = anchors.get(s.key);
-      const text = kw && s.text.includes(kw) ? s.text.replace(kw, `{\\c&HA3A520&}${kw}{\\r}`) : s.text;
-      header.push(`Dialogue: 0,${formatAssTime(s.startMs)},${formatAssTime(s.endMs)},Default,,0,0,0,,${text}`);
+      const mark = (text) => (kw && text.includes(kw) ? text.replace(kw, `{\\c&HA3A520&}${kw}{\\r}`) : text);
+      if (!portrait) {
+        header.push(`Dialogue: 0,${formatAssTime(s.startMs)},${formatAssTime(s.endMs)},Default,,0,0,0,,${mark(s.text)}`);
+        continue;
+      }
+      const pages = subtitlePages(s.text, { maxChars: S.maxChars, maxLines: S.maxLines });
+      const sizes = pages.map((pg) => [...pg.join('')].length);
+      const total = sizes.reduce((a, b) => a + b, 0) || 1;
+      let acc = 0;
+      pages.forEach((pg, i) => {
+        const start = s.startMs + ((s.endMs - s.startMs) * acc) / total;
+        acc += sizes[i];
+        const end = s.startMs + ((s.endMs - s.startMs) * acc) / total;
+        header.push(`Dialogue: 0,${formatAssTime(start)},${formatAssTime(end)},Default,,0,0,0,,${pg.map(mark).join('\\N')}`);
+      });
     }
   }
   return `${header.join('\n')}\n`;

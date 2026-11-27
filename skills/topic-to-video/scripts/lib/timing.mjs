@@ -32,6 +32,41 @@ export function splitClauses(sentence) {
   return merged;
 }
 
+/**
+ * Portrait subtitle pages (竖屏设计 §6.5): clauses split into lines of at most `maxChars`, packed `maxLines` lines per
+ * page. Latin words and digit runs are never split; a trailing comma-like mark is dropped from each line.
+ */
+export function subtitlePages(text, { maxChars = 12, maxLines = 2 } = {}) {
+  const lines = [];
+  for (const clause of splitClauses(text)) {
+    const c = clause.replace(/[，、；：,:;]$/, '');
+    const tokens = c.match(/[A-Za-z0-9.%]+|./gsu) ?? [];
+    const total = tokens.reduce((s, tk) => s + [...tk].length, 0);
+    if (!total) continue;
+    const per = Math.ceil(total / Math.ceil(total / maxChars));
+    let cur = '';
+    for (const tk of tokens) {
+      if (cur && !/^\p{P}$/u.test(tk) && [...cur].length + [...tk].length > per) {
+        lines.push(cur);
+        cur = '';
+      }
+      cur += tk;
+    }
+    if (cur) lines.push(cur);
+  }
+  const pages = [];
+  let page = [];
+  for (const line of lines) {
+    if (page.length === maxLines) {
+      pages.push(page);
+      page = [];
+    }
+    page.push(line);
+  }
+  if (page.length) pages.push(page);
+  return pages;
+}
+
 /** Parses WebVTT or SRT subtitle text (such as edge-tts --write-subtitles output) into word/phrase timings. */
 export function parseSubtitles(content) {
   const blocks = String(content).replace(/\r\n/g, '\n').split(/\n{2,}/);

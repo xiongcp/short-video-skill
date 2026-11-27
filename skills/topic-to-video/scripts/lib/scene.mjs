@@ -3,12 +3,12 @@
 // (出片质量设计 §4.1, §7.1-7.2, 火柴人主持人设计 §7.4-7.5, 超越路线图 §5.3).
 import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
-import { FRAMES, frameFor } from './frame.mjs';
+import { FRAMES, frameFor, isPortrait } from './frame.mjs';
 import { evaluateHostAt, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
 import { evaluateStageObjects, layoutStage, renderStage } from './stage.mjs';
 import { layoutElements, renderDiagram } from './templates.mjs';
-import { resolveCueTiming, splitClauses } from './timing.mjs';
+import { resolveCueTiming, splitClauses, subtitlePages } from './timing.mjs';
 import { resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
 
 export const SCENE_VERSION = 5;
@@ -364,6 +364,53 @@ function subtitleAt(shotPlan, t, pal) {
   };
 }
 
+/** Subtitle text items for one moment: the landscape single line, or a portrait page of up to two lines. */
+function subtitleItems(shotPlan, t, pal) {
+  const frame = shotPlan.frame ?? LANDSCAPE;
+  if (!isPortrait(frame)) {
+    const sub = subtitleAt(shotPlan, t, pal);
+    return sub ? [sub] : [];
+  }
+  const ms = t * 1000;
+  const sent = shotPlan.sentences.find((s) => ms >= s.startMs && ms <= s.endMs + 120);
+  if (!sent || !sent.text) return [];
+  const activeAnchor = shotPlan.cues
+    .filter((c) => c.sentence === sent.index && c.at && ms >= c.anchorMs - 50)
+    .at(-1)?.at;
+  const S = frame.subtitle;
+  const pages = subtitlePages(sent.text, { maxChars: S.maxChars, maxLines: S.maxLines });
+  if (!pages.length) return [];
+  const sizes = pages.map((pg) => [...pg.join('')].length);
+  const total = sizes.reduce((a, b) => a + b, 0);
+  const sp0 = sent.startMs + (sent.speech?.[0] ?? 0);
+  const sp1 = sent.startMs + (sent.speech?.[1] ?? (sent.endMs - sent.startMs));
+  const frac = clamp01((ms - sp0) / Math.max(1, sp1 - sp0));
+  let acc = 0;
+  let page = pages.at(-1);
+  for (let i = 0; i < pages.length; i += 1) {
+    acc += sizes[i];
+    if (frac <= acc / total) {
+      page = pages[i];
+      break;
+    }
+  }
+  const y0 = S.y - ((page.length - 1) * S.lineHeight) / 2;
+  return page.map((line, i) => ({
+    key: `sub-${sent.key}-${i}-${line}-${activeAnchor ?? ''}`,
+    text: line,
+    highlightWord: activeAnchor && line.includes(activeAnchor) ? activeAnchor : null,
+    x: S.x,
+    y: y0 + i * S.lineHeight,
+    fontSize: S.fontSize,
+    color: pal.ink,
+    highlightColor: pal.teal,
+    stroke: pal.paper,
+    align: 'middle',
+    weight: 'bold',
+    opacity: 1,
+  }));
+}
+
 function renderPrevLayer(shotPlan, prevStates, fadeOut) {
   const prev = shotPlan.prevShot;
   const frame = shotPlan.frame ?? LANDSCAPE;
@@ -604,8 +651,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     x: cx + (ti.x - cx) * camScale,
     y: cy + (ti.y - cy) * camScale,
   }));
-  const sub = subtitleAt(shotPlan, t, pal);
-  if (sub) scaledText.push(sub);
+  scaledText.push(...subtitleItems(shotPlan, t, pal));
 
   const objectBoxes = isStage
     ? shotPlan.elements.map((el, i) => {
