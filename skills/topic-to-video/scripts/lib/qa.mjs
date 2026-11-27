@@ -7,6 +7,7 @@ import { join, relative } from 'node:path';
 import { splitSentences } from './captions.mjs';
 import { FRAMES, isPortrait } from './frame.mjs';
 import { lintStoryboard, visualKeywords } from './match.mjs';
+import { toSpoken } from './reading.mjs';
 import { buildTimeline } from './timebase.mjs';
 
 const PROBE_W = 160;
@@ -315,6 +316,10 @@ export async function runQa(projectDir, {
     narration: shot.sentences.map((n) => bySection.get(shot.section)?.[n] ?? '').join(''),
     keywords: visualKeywords(shot.visual),
   }));
+  // 读法对照 (字幕与转场设计 §3.3): every sentence whose voice-over differs from the caption.
+  const readings = project.sections.flatMap((sec) => splitSentences(sec.text)
+    .map((text, j) => ({ key: `${sec.id}-${j}`, spans: toSpoken(text, sec.pronunciation).spans }))
+    .filter((r) => r.spans.length));
 
   // Visual review aids: contact.png & transitions.png
   const durSec = Number(probe.format.duration ?? 1);
@@ -341,6 +346,7 @@ export async function runQa(projectDir, {
       voice_naturalness: 'not_checked',
       lip_sync_spot_check: 'not_checked',
       sound_mix: 'not_checked',
+      number_reading: 'not_checked',
     },
     audio: audio
       ? {
@@ -374,12 +380,18 @@ export async function runQa(projectDir, {
     '## 声音',
     ...soundSection(audio),
     '',
+    '## 读法对照',
+    ...(readings.length
+      ? ['| 句子 | 写法 → 读法 |', '| --- | --- |', ...readings.map((r) => `| ${r.key} | ${r.spans.map((s) => `${s.text} → ${s.reading}`).join('；')} |`)]
+      : ['- 无']),
+    '',
     '## 人工复核项（`not_checked`）',
     `- 画面审美与排版平衡：\`not_checked\`（请看 \`${rel}/contact.png\`、\`${rel}/transitions.png\`）`,
     ...(isPortrait(fr) ? [`- 真机遮挡：\`not_checked\`（文字安全框 x ${fr.textSafe.x}–${fr.textSafe.x + fr.textSafe.w}、y ${fr.textSafe.y}–${fr.textSafe.y + fr.textSafe.h} 是第三方估算，见 \`${rel}/contact-safe.png\`；上传前设为仅自己可见，在抖音、TikTok、Shorts 预览一次）`] : []),
     '- 配音自然度与停顿：`not_checked`',
     '- 口型抽检（开头/中段/结尾）：`not_checked`',
     '- 混音听感：`not_checked`',
+    '- 数字读法：`not_checked`（对照上面的读法对照听一遍；读错的写进该段 `pronunciation`）',
     '',
     '## 逐镜口播与画面关键词对照',
     '| 镜头 | 画面关键词 | 口播原文 |',
