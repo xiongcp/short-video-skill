@@ -191,6 +191,37 @@ export function subtitlePages(text, opts = {}) {
   return layoutCaption(text, { maxChars: 12, maxLines: 2, ...opts }).map((pg) => pg.map((l) => l.text));
 }
 
+// Offset where each word ends in `text`, with its start time; null when a word is not found in order.
+function placeWords(text, words) {
+  const out = [];
+  let cursor = 0;
+  for (const w of words) {
+    const pos = text.indexOf(w.text, cursor);
+    if (pos < 0) return null;
+    out.push({ end: pos + w.text.length, start_ms: w.start_ms });
+    cursor = pos + w.text.length;
+  }
+  return out;
+}
+
+/**
+ * Caption pages of one sentence and when each shows, in ms from the sentence start (字幕与转场设计 §4.4): the first page
+ * from 0, every later page from the moment its first word is spoken, the last one until 120 ms after the sentence.
+ * `entry` is a timeline sentence `{ text, durationMs, speech, words }`; `opts` go to layoutCaption.
+ */
+export function captionPages(entry, opts = {}) {
+  const text = entry.text ?? '';
+  const pages = layoutCaption(text, opts);
+  if (!pages.length) return [];
+  const durationMs = entry.durationMs ?? 0;
+  const [sp0, sp1] = entry.speech ?? [0, durationMs];
+  const placed = placeWords(text, entry.words?.length ? entry.words : estimateWords(text, sp0, sp1));
+  const timeAt = (offset) => placed?.find((w) => w.end > offset)?.start_ms ?? Math.round(sp0 + (offset / Math.max(1, text.length)) * (sp1 - sp0));
+  const starts = pages.map((pg, i) => (i ? timeAt(pg[0].start) : 0));
+  for (let i = 1; i < starts.length; i += 1) starts[i] = Math.max(starts[i], starts[i - 1]);
+  return pages.map((pg, i) => ({ lines: pg.map((l) => l.text), startMs: starts[i], endMs: i + 1 < pages.length ? starts[i + 1] : durationMs + 120 }));
+}
+
 /** Parses WebVTT or SRT subtitle text (such as edge-tts --write-subtitles output) into word/phrase timings. */
 export function parseSubtitles(content) {
   const blocks = String(content).replace(/\r\n/g, '\n').split(/\n{2,}/);

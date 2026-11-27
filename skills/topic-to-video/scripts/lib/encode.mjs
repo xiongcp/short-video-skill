@@ -8,13 +8,14 @@ import { join, resolve } from 'node:path';
 import { isMainThread, parentPort, Worker, workerData } from 'node:worker_threads';
 import { findCjkFont, findTitleFont } from '../doctor.mjs';
 import { FRAMES, frameFor, isPortrait, outputSubdir, sizeFor } from './frame.mjs';
+import { captionKeywords } from './match.mjs';
 import { analyzeAudioFrames, makeWavBuffer, readWavPcm } from './mouth.mjs';
 import { buildSoundtrack, makeStereoWavBuffer } from './music.mjs';
 import { isDraft, resolveSound } from './project.mjs';
 import { analyzeMixLevels } from './qa.mjs';
 import { buildShotPlans, evaluateFrame, linkLabelsOverHost, portraitLayoutIssues, shotCacheKey } from './scene.mjs';
 import { buildTimeline } from './timebase.mjs';
-import { subtitlePages } from './timing.mjs';
+import { captionPages } from './timing.mjs';
 import { synthesizeProject } from './tts.mjs';
 
 export const RESOLUTIONS = {
@@ -351,24 +352,16 @@ export function buildSubtitlesAss(project, timeline, frame = FRAMES['16:9']) {
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
   ];
+  const shotsById = new Map(project.shots.map((sh) => [sh.id, sh]));
   for (const shot of timeline.shots) {
+    const keywords = captionKeywords(project, shotsById.get(shot.id));
     for (const s of shot.sentenceRanges) {
       const kw = anchors.get(s.key);
       const mark = (text) => (kw && text.includes(kw) ? text.replace(kw, `{\\c&HA3A520&}${kw}{\\r}`) : text);
-      if (!portrait) {
-        header.push(`Dialogue: 0,${formatAssTime(s.startMs)},${formatAssTime(s.endMs)},Default,,0,0,0,,${mark(s.text)}`);
-        continue;
+      // The same pages and times as the burned-in subtitles (字幕与转场设计 §4.4)
+      for (const pg of captionPages(s, { maxChars: S.maxChars, maxLines: S.maxLines, keywords })) {
+        header.push(`Dialogue: 0,${formatAssTime(s.startMs + pg.startMs)},${formatAssTime(s.startMs + pg.endMs)},Default,,0,0,0,,${pg.lines.map(mark).join('\\N')}`);
       }
-      const pages = subtitlePages(s.text, { maxChars: S.maxChars, maxLines: S.maxLines });
-      const sizes = pages.map((pg) => [...pg.join('')].length);
-      const total = sizes.reduce((a, b) => a + b, 0) || 1;
-      let acc = 0;
-      pages.forEach((pg, i) => {
-        const start = s.startMs + ((s.endMs - s.startMs) * acc) / total;
-        acc += sizes[i];
-        const end = s.startMs + ((s.endMs - s.startMs) * acc) / total;
-        header.push(`Dialogue: 0,${formatAssTime(start)},${formatAssTime(end)},Default,,0,0,0,,${pg.map(mark).join('\\N')}`);
-      });
     }
   }
   return `${header.join('\n')}\n`;

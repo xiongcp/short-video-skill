@@ -4,11 +4,12 @@
 import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
 import { FRAMES, frameFor, isPortrait, textBox, textOutsideSafe } from './frame.mjs';
+import { captionKeywords } from './match.mjs';
 import { evaluateHostAt, hostEventTimeline, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
 import { chooseLinkLabelT, evaluateStageObjects, layoutStage, linkControlPoint, renderStage } from './stage.mjs';
 import { layoutElements, renderDiagram } from './templates.mjs';
-import { resolveCueTiming, splitClauses, subtitlePages } from './timing.mjs';
+import { captionPages, resolveCueTiming } from './timing.mjs';
 import { resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
 
 export const SCENE_VERSION = 5;
@@ -169,10 +170,14 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
       }
     }
 
+    const S = frame.subtitle;
+    const keywords = captionKeywords(project, shot);
     const relSentences = tl.sentenceRanges.map((r) => ({
       ...r,
       startMs: r.startMs - tl.startMs,
       endMs: r.endMs - tl.startMs,
+      // Caption pages and when each shows, from the sentence start (字幕与转场设计 §4.4)
+      captions: captionPages(r, { maxChars: S.maxChars, maxLines: S.maxLines, keywords }),
     }));
 
     const plan = {
@@ -286,6 +291,7 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     customProps: shotPlan.customProps ?? [],
     outfit: shotPlan.outfit ?? 'none',
     audioHashes: shotPlan.audioHashes,
+    captions: shotPlan.sentences.map((s) => s.captions),
     startState: shotPlan.startState,
     transition: shotPlan.transition,
     prevShot: shotPlan.prevShot ? {
@@ -355,32 +361,23 @@ function buildElementStates(shotPlan, t, tapFocusIdx, tapImpact) {
   return { states, fastMotion };
 }
 
-function subtitleAt(shotPlan, t, pal) {
+// The caption page on screen at shot time t (字幕与转场设计 §4.4) and the cue.at keyword in effect.
+function captionAt(shotPlan, t) {
   const ms = t * 1000;
   const sent = shotPlan.sentences.find((s) => ms >= s.startMs && ms <= s.endMs + 120);
-  if (!sent || !sent.text) return null;
-  // Find active cue.at keyword for this sentence to color-highlight in sync with diagram
+  if (!sent?.captions?.length) return null;
+  const page = sent.captions.findLast((pg) => ms - sent.startMs >= pg.startMs) ?? sent.captions[0];
   const activeAnchor = shotPlan.cues
     .filter((c) => c.sentence === sent.index && c.at && ms >= c.anchorMs - 50)
     .at(-1)?.at;
-  let display = sent.text;
-  // Split into natural breath clauses synced proportionally to the sentence's spoken window
-  const parts = splitClauses(display);
-  if (parts.length > 1 && [...display].length > 12) {
-    const totalChars = [...display].length;
-    const sp0 = sent.startMs + (sent.speech?.[0] ?? 0);
-    const sp1 = sent.startMs + (sent.speech?.[1] ?? (sent.endMs - sent.startMs));
-    const frac = clamp01((ms - sp0) / Math.max(1, sp1 - sp0));
-    let acc = 0;
-    for (const p of parts) {
-      const len = [...p].length;
-      if (frac <= (acc + len) / totalChars || p === parts.at(-1)) {
-        display = p.replace(/[，、；：,:;]$/, '');
-        break;
-      }
-      acc += len;
-    }
-  }
+  return { sent, lines: page.lines, activeAnchor };
+}
+
+function subtitleAt(shotPlan, t, pal) {
+  const cap = captionAt(shotPlan, t);
+  if (!cap) return null;
+  const { sent, activeAnchor } = cap;
+  const display = cap.lines[0];
   return {
     key: `sub-${sent.key}-${display}-${activeAnchor ?? ''}`,
     text: display,
@@ -404,29 +401,10 @@ function subtitleItems(shotPlan, t, pal) {
     const sub = subtitleAt(shotPlan, t, pal);
     return sub ? [sub] : [];
   }
-  const ms = t * 1000;
-  const sent = shotPlan.sentences.find((s) => ms >= s.startMs && ms <= s.endMs + 120);
-  if (!sent || !sent.text) return [];
-  const activeAnchor = shotPlan.cues
-    .filter((c) => c.sentence === sent.index && c.at && ms >= c.anchorMs - 50)
-    .at(-1)?.at;
+  const cap = captionAt(shotPlan, t);
+  if (!cap) return [];
+  const { sent, lines: page, activeAnchor } = cap;
   const S = frame.subtitle;
-  const pages = subtitlePages(sent.text, { maxChars: S.maxChars, maxLines: S.maxLines });
-  if (!pages.length) return [];
-  const sizes = pages.map((pg) => [...pg.join('')].length);
-  const total = sizes.reduce((a, b) => a + b, 0);
-  const sp0 = sent.startMs + (sent.speech?.[0] ?? 0);
-  const sp1 = sent.startMs + (sent.speech?.[1] ?? (sent.endMs - sent.startMs));
-  const frac = clamp01((ms - sp0) / Math.max(1, sp1 - sp0));
-  let acc = 0;
-  let page = pages.at(-1);
-  for (let i = 0; i < pages.length; i += 1) {
-    acc += sizes[i];
-    if (frac <= acc / total) {
-      page = pages[i];
-      break;
-    }
-  }
   const y0 = S.y - ((page.length - 1) * S.lineHeight) / 2;
   return page.map((line, i) => ({
     key: `sub-${sent.key}-${i}-${line}-${activeAnchor ?? ''}`,

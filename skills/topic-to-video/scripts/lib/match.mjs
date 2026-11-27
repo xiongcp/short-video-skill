@@ -65,6 +65,18 @@ export function visualKeywords(visual) {
   return (pick?.() ?? []).filter((t) => typeof t === 'string' || typeof t === 'number').map(String);
 }
 
+/** Words a caption line never splits (字幕与转场设计 §4.1): this shot's cue anchors, visual keywords and its section's
+ *  pronunciation terms, 2–6 characters each, without repeats. */
+export function captionKeywords(project, shot) {
+  const section = project.sections.find((s) => s.id === shot.section);
+  const words = [
+    ...(shot.cues ?? []).map((c) => c.at),
+    ...visualKeywords(shot.visual),
+    ...(section?.pronunciation ?? []).map((p) => p.term),
+  ];
+  return [...new Set(words.filter((w) => typeof w === 'string' && [...w].length >= 2 && [...w].length <= 6))];
+}
+
 const DEICTIC_WORDS = ['看右边', '右边的', '右侧', '看这张图', '看这里', '看这儿', '看这边', '右图'];
 // Gestures that aim at the focus element; point_right is the old name of point.
 const POINTING = ['point', 'point_right', 'present', 'tap'];
