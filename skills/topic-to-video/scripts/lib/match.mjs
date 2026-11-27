@@ -1,8 +1,8 @@
 // Storyboard advice from references/storyboard.md: what is on screen against what is said, and how the host acts.
-// Warnings only: VISUAL_NOT_IN_NARRATION, POINT_MISSING, MOVE_TOO_MANY, FOCUS_SPLIT, STATIC_STRETCH, NO_INTERACTION and GESTURE_REPEAT.
+// Warnings only: VISUAL_NOT_IN_NARRATION, POINT_MISSING, MOVE_TOO_MANY, FOCUS_SPLIT, STATIC_STRETCH, EMPTY_START, NO_INTERACTION and GESTURE_REPEAT.
 import { splitSentences } from './captions.mjs';
 import { customPropMeta, PROP_META } from './icons.mjs';
-import { checkShape, estimateReport, HOST_LAYOUTS, INTERACTION_CUES } from './project.mjs';
+import { checkShape, elementCount, estimateReport, HOST_LAYOUTS, INTERACTION_CUES } from './project.mjs';
 
 const DIGITS = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
 const UNITS = { 十: 10, 百: 100, 千: 1000 };
@@ -205,6 +205,13 @@ function lintStatic(project) {
       return Math.round((start + (end - start) * idx / text.length) * 10) / 10;
     };
     const cueTimes = (shot.cues ?? []).map(cueTime).filter((t) => t !== undefined);
+    // EMPTY_START: a full shot has no host, so when every element waits for a reveal the opening frames are blank.
+    const n = shot.layout === 'full' ? elementCount(shot.visual ?? {}) : 0;
+    const reveals = (shot.cues ?? []).filter((c) => c.do === 'reveal' && Number.isInteger(c.target));
+    const firstReveal = Math.min(...reveals.map(cueTime).filter((t) => t !== undefined));
+    if (n > 0 && new Set(reveals.map((c) => c.target)).size >= n && firstReveal > 1) {
+      out.push({ path: `/shots/${i}`, code: 'EMPTY_START', message: `镜头 ${shot.id} 开头约 ${firstReveal} 秒画面是空的：所有元素都要等 reveal 才出现；让第一个元素从镜头开始就显示，或把它的 reveal 提到镜头开头（见 storyboard.md）` });
+    }
     const times = [0, ...cueTimes, estimate.seconds].sort((a, b) => a - b);
     const k = times.findIndex((t, j) => j > 0 && Math.round((t - times[j - 1]) * 10) > STATIC_SECONDS * 10);
     if (k > 0) out.push({ path: `/shots/${i}`, code: 'STATIC_STRETCH', message: `镜头 ${shot.id} 在 ${times[k - 1]}–${times[k]} 秒之间画面没有变化，超过 ${STATIC_SECONDS} 秒；加一个 cue 或拆成两个镜头（见 storyboard.md）` });

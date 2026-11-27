@@ -212,6 +212,22 @@ test('a cue with an at keyword counts from that word, so one long sentence can c
   assert.match(lintStoryboard(p)[0].message, /sh02 在 0–4\.2 秒之间/);
 });
 
+test('EMPTY_START warns when every element of a full shot waits for a reveal that comes after the first second', () => {
+  const p = minimal();
+  p.sections[0].text = '不同颜色的光波长不一样。红光长，蓝光短。';
+  p.shots = [
+    { ...p.shots[0], sentences: [0], layout: 'host-left', host: { expr: 'curious', gesture: 'think' }, visual: { template: 'title', data: { heading: '波长' } }, cues: [] },
+    { id: 'sh02', section: 's01', sentences: [1], layout: 'full', visual: { template: 'compare', data: { left: { label: '红光', rows: ['长'] }, right: { label: '蓝光', rows: ['短'] } } },
+      cues: [{ sentence: 1, do: 'reveal', target: 0, at: '红光' }, { sentence: 1, do: 'reveal', target: 1, at: '蓝光' }], note: '红长蓝短' },
+  ];
+  assert.deepEqual(lintStoryboard(p), [], 'the first reveal lands at the shot start');
+  p.sections[0].text = '不同颜色的光波长不一样。说到颜色，红光长，蓝光短。';
+  assert.deepEqual(codes(p), ['EMPTY_START /shots/1']);
+  assert.match(lintStoryboard(p).find((w) => w.code === 'EMPTY_START').message, /sh02 开头约 1\.\d 秒画面是空的/);
+  p.shots[1].cues = [{ sentence: 1, do: 'reveal', target: 1, at: '蓝光' }];
+  assert.deepEqual(lintStoryboard(p), [], 'one element shows from the start');
+});
+
 test('does not raise STATIC_STRETCH on an exact 4.0-second stretch despite floating-point drift', () => {
   const p = minimal();
   p.settings.sentence_gap_ms = 200;

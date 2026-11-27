@@ -25,7 +25,7 @@ const absoluteWords = (sentence) => ABSOLUTE_WORDS.filter((w) => sentence.includ
 const LIST_FIELD = { bullets: 'items', flow: 'nodes', bars: 'items', timeline: 'items', cycle: 'items', stage: 'objects' };
 
 /** Elements a reveal, highlight or move cue can address: list items, flow nodes, bars, timeline/cycle items, stage objects, or the two compare columns. */
-function elementCount(visual) {
+export function elementCount(visual) {
   if (visual.template === 'compare') return 2;
   const tpl = visual?.template;
   const field = typeof tpl === 'string' && Object.hasOwn(LIST_FIELD, tpl) ? LIST_FIELD[tpl] : undefined;

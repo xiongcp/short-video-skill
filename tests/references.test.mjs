@@ -41,7 +41,7 @@ test('prompt-pack.md uses the host prompt lock and reference image', () => {
 
 test('storyboard.md maps sentence intent to host acting and names the storyboard warnings', () => {
   const text = ref('storyboard.md');
-  for (const word of ['句意', 'VISUAL_NOT_IN_NARRATION', 'POINT_MISSING', 'MOVE_TOO_MANY', 'FOCUS_SPLIT', 'STATIC_STRETCH', 'NO_INTERACTION', 'GESTURE_REPEAT']) assert.ok(text.includes(word), word);
+  for (const word of ['句意', 'VISUAL_NOT_IN_NARRATION', 'POINT_MISSING', 'MOVE_TOO_MANY', 'FOCUS_SPLIT', 'STATIC_STRETCH', 'EMPTY_START', 'NO_INTERACTION', 'GESTURE_REPEAT']) assert.ok(text.includes(word), word);
   assert.ok(text.includes(`超过 ${STATIC_SECONDS} 秒没有变化`), 'the still-picture limit');
   assert.ok(text.includes(`最多 ${MAX_MOVES} 次 \`move\``), 'the move limit');
 });
