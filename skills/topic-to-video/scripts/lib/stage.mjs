@@ -4,6 +4,7 @@ import { clamp01, easeOutBack, lerp } from './ease.mjs';
 import { FRAMES, flowArrowEnds, isPortrait, textBox } from './frame.mjs';
 import { COMMON_STATES, customPropMeta, drawCustomProp, drawIcon, isCountState, PROP_META } from './icons.mjs';
 import { inkStroke, num, resample } from './ink.mjs';
+import { nearestOutward } from './motion.mjs';
 import { resolveStyle } from './world.mjs';
 
 export const STAGE_SLOTS = FRAMES['16:9'].stage.slots;
@@ -518,6 +519,7 @@ function simResolveStandX(target, currentX, elements, geo = LANDSCAPE) {
       if (leftOk && !rightOk) chosen = left;
       else if (rightOk && !leftOk) chosen = right;
       else chosen = Math.abs(currentX - left) <= Math.abs(currentX - right) ? left : right;
+      if (!leftOk && !rightOk) chosen = nearestOutward(left, right, currentX, elements, geo.ground, geo.stage.bounds.minX, geo.stage.bounds.maxX) ?? chosen;
       return clamp(Math.round(chosen), geo.stage.bounds.minX, geo.stage.bounds.maxX);
     }
     const cx = el.bbox.x + el.bbox.w / 2;

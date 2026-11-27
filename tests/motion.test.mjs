@@ -80,6 +80,16 @@ test('resolveStandX places host 60 px outside target element or at preset spots 
   assert.equal(resolveStandX(0, 1500, elements), 1060); // approaching from right -> right edge + 60
 });
 
+test('resolveStandX steps past a wider object underneath when both spots beside a stacked object are blocked', () => {
+  // A cup stacked on a table: both spots beside the cup fall on the table, so the host stands just outside the table.
+  const elements = [
+    { index: 0, prop: 'table', bbox: { x: 800, y: 700, w: 320, h: 230 }, standSpots: { left: 730, right: 1190 } },
+    { index: 1, prop: 'cup', bbox: { x: 920, y: 620, w: 80, h: 80 }, standSpots: { left: 850, right: 1070 } },
+  ];
+  assert.equal(resolveStandX(1, 1600, elements), 1190, 'from the right: just outside the table');
+  assert.equal(resolveStandX(1, 320, elements), 730, 'from the left: just outside the table');
+});
+
 test('evaluateHostAt drives move, jump arc, continuous lip-sync and deterministic SVG', () => {
   const plan = {
     seed: 'sh01',
