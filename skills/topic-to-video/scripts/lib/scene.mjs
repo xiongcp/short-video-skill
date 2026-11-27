@@ -3,7 +3,7 @@
 // (出片质量设计 §4.1, §7.1-7.2, 火柴人主持人设计 §7.4-7.5, 超越路线图 §5.3).
 import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
-import { FRAMES, frameFor, isPortrait } from './frame.mjs';
+import { FRAMES, frameFor, isPortrait, textOutsideSafe } from './frame.mjs';
 import { evaluateHostAt, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
 import { evaluateStageObjects, layoutStage, renderStage } from './stage.mjs';
@@ -266,6 +266,7 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     width,
     height,
     motionBlur,
+    ...(shotPlan.frame && shotPlan.frame.ratio !== '16:9' ? { ratio: shotPlan.frame.ratio } : {}),
   })).digest('hex').slice(0, 16);
 }
 
@@ -663,4 +664,30 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     : null;
 
   return { vectorSvg, textItems: scaledText, isFastMotion, hostMeta, objectBoxes };
+}
+
+/** Portrait-only layout problems (竖屏设计 §7.1): crowded stages and text leaving the safe box on sampled frames. */
+export function portraitLayoutIssues(manifest, plans, { fps = 60, step = 6 } = {}) {
+  const issues = [];
+  for (const plan of plans) {
+    const frame = plan.frame ?? LANDSCAPE;
+    if (!isPortrait(frame)) continue;
+    if (plan.stageLayout?.crowded) {
+      issues.push({ code: 'STAGE_CROWDED', shotId: plan.id, message: `竖屏镜头 ${plan.id} 的同台物件缩到 0.6 倍仍排不下；减少物件或拆成两个镜头` });
+    }
+    let frames = 0;
+    const keys = new Set();
+    for (let f = 0; f < plan.frameCount; f += step) {
+      const out = textOutsideSafe(evaluateFrame(manifest, plan, f / fps).textItems, frame);
+      if (out.length) {
+        frames += 1;
+        out.forEach((k) => keys.add(k));
+      }
+    }
+    if (frames) {
+      const list = [...keys];
+      issues.push({ code: 'SAFE_ZONE_TEXT', shotId: plan.id, frames, keys: list.slice(0, 5), message: `竖屏镜头 ${plan.id} 有 ${frames} 个抽样帧的文字超出安全框（${list.slice(0, 3).join('、')}）` });
+    }
+  }
+  return issues;
 }
