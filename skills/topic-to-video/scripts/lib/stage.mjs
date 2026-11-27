@@ -1,7 +1,7 @@
 // Semantic stage auto-layout and pure-vector renderer for `layout: "stage"` (画面与同台互动设计 §4.2, §5.1–§5.4).
 // Pure deterministic functions without <text>, sharing geometry with project.mjs and scene.mjs.
 import { clamp01, easeOutBack, lerp } from './ease.mjs';
-import { FRAMES } from './frame.mjs';
+import { FRAMES, flowArrowEnds } from './frame.mjs';
 import { COMMON_STATES, customPropMeta, drawCustomProp, drawIcon, isCountState, PROP_META } from './icons.mjs';
 import { inkStroke, num, resample } from './ink.mjs';
 import { resolveStyle } from './world.mjs';
@@ -750,15 +750,15 @@ export function evaluateStageObjects(shotPlan, t, hostMeta = null) {
       targetIdx = dstIdx;
       const prevB = elements[dstIdx - 1].bbox;
       const currB = elements[dstIdx].bbox;
-      fromPt = [
-        prevB.x + prevB.w + 8 + (objectStates[dstIdx - 1]?.dx ?? 0),
-        prevB.y + prevB.h / 2 + (objectStates[dstIdx - 1]?.dy ?? 0),
-      ];
-      toPt = [
-        currB.x - 8 + (objectStates[dstIdx]?.dx ?? 0),
-        currB.y + currB.h / 2 + (objectStates[dstIdx]?.dy ?? 0),
-      ];
-      bend = [0, -14];
+      const prevSt = objectStates[dstIdx - 1];
+      const currSt = objectStates[dstIdx];
+      const ends = flowArrowEnds(
+        { x: prevB.x + (prevSt?.dx ?? 0), y: prevB.y + (prevSt?.dy ?? 0), w: prevB.w, h: prevB.h },
+        { x: currB.x + (currSt?.dx ?? 0), y: currB.y + (currSt?.dy ?? 0), w: currB.w, h: currB.h },
+      );
+      fromPt = ends.from;
+      toPt = ends.to;
+      bend = ends.bend;
     }
 
     const u = dt / 0.8;

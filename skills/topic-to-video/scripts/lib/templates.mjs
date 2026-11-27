@@ -1,7 +1,7 @@
 // Eight hand-drawn explainer diagram templates (火柴人主持人设计 §3.5-3.6, 出片质量设计 §6.2, §7.1, 个性化路线图 S).
 // Returns pure vectorSvg (no <text>, fast resvg) + textItems (cached CJK layer) + elements with bboxes.
 import { clamp01, easeOutCubic, lerp } from './ease.mjs';
-import { FRAMES } from './frame.mjs';
+import { FRAMES, flowArrowEnds, isPortrait } from './frame.mjs';
 import { drawIcon, drawStateOverlay, isCountState } from './icons.mjs';
 import { circlePoints, inkStroke, markerFill, num, resample } from './ink.mjs';
 import { renderSendPacket } from './stage.mjs';
@@ -103,13 +103,15 @@ function rayBoxExit(b, dx, dy, pad = 10) {
 /** Computes element bounding boxes inside `zone` for any of the 8 templates. */
 export function layoutElements(visual, layout = 'full', zoneOverride = null, frame = FRAMES['16:9']) {
   const z = zoneOverride ?? frame.zones[layout] ?? frame.zones.full;
+  const portrait = isPortrait(frame);
+  const compact = layout === 'host-left' || portrait;
   const d = visual.data;
   switch (visual.template) {
     case 'title':
       return [{ index: 0, label: d.heading, bbox: { x: z.x + 20, y: z.y + 20, w: z.w - 40, h: z.h - 40 } }];
     case 'bullets': {
       const n = d.items.length;
-      const cols = layout === 'host-left' && n > 2 ? 2 : 1;
+      const cols = !portrait && layout === 'host-left' && n > 2 ? 2 : 1;
       const rows = Math.ceil(n / cols);
       const gapX = 28;
       const gapY = 20;
@@ -125,6 +127,17 @@ export function layoutElements(visual, layout = 'full', zoneOverride = null, fra
       });
     }
     case 'flow': {
+      if (portrait) {
+        const n = d.nodes.length;
+        const gap = 44;
+        const pad = 16;
+        const w = Math.min(560, z.w - pad * 2);
+        const h = Math.min(140, (z.h - pad * 2 - gap * (n - 1)) / n);
+        const totalH = n * h + (n - 1) * gap;
+        const x = z.x + (z.w - w) / 2;
+        const startY = z.y + (z.h - totalH) / 2;
+        return d.nodes.map((label, index) => ({ index, label, bbox: { x, y: startY + index * (h + gap), w, h } }));
+      }
       const n = d.nodes.length;
       const gap = Math.min(72, Math.max(44, (z.w * 0.14) / Math.max(1, n - 1)));
       const pad = 16;
@@ -160,6 +173,20 @@ export function layoutElements(visual, layout = 'full', zoneOverride = null, fra
       return d.items.map((item, index) => ({ index, label: item.label, bbox: { x: startX + index * (w + gap), y, w, h } }));
     }
     case 'timeline': {
+      if (portrait) {
+        const n = d.items.length;
+        const gapY = 16;
+        const stemGap = 22;
+        const axisX = z.x + z.w / 2;
+        const w = z.w / 2 - stemGap - 12;
+        const h = Math.min(120, (z.h - 32 - gapY * (n - 1)) / n);
+        const totalH = n * h + (n - 1) * gapY;
+        const startY = z.y + (z.h - totalH) / 2;
+        return d.items.map((item, index) => {
+          const x = index % 2 === 0 ? axisX - stemGap - w : axisX + stemGap;
+          return { index, label: item.label, bbox: { x, y: startY + index * (h + gapY), w, h } };
+        });
+      }
       const n = d.items.length;
       const padX = 36;
       const gapX = Math.min(36, Math.max(16, (z.w * 0.08) / Math.max(1, n - 1)));
@@ -178,15 +205,15 @@ export function layoutElements(visual, layout = 'full', zoneOverride = null, fra
     }
     case 'cycle': {
       const n = d.items.length;
-      const cardW = layout === 'host-left'
+      const cardW = compact
         ? Math.min(220, ((z.w - 120) / Math.max(3, n)) * 0.95)
         : Math.min(270, ((z.w - 160) / Math.max(3, n)) * 0.95);
-      const cardH = layout === 'host-left' ? (n >= 5 ? 92 : 98) : (n >= 5 ? 124 : 134);
+      const cardH = compact ? (n >= 5 ? 92 : 98) : (n >= 5 ? 124 : 134);
       const cx = z.x + z.w / 2;
       const cy = z.y + z.h / 2;
       const ry = Math.max(60, (z.h - cardH) / 2 - 14);
       const maxRx = (z.w - cardW) / 2 - 24;
-      const rx = Math.min(maxRx, ry * (layout === 'host-left' ? 2.25 : 1.55));
+      const rx = Math.min(maxRx, ry * (portrait ? 1 : compact ? 2.25 : 1.55));
       return d.items.map((item, index) => {
         const a = -Math.PI / 2 + (2 * Math.PI * index) / n;
         const nx = cx + rx * Math.cos(a);
@@ -236,6 +263,10 @@ export function renderDiagram(visual, {
   const iconStyleOpts = style != null ? { style: styleName } : { theme };
   const zone = zoneOverride ?? frame.zones[layout] ?? frame.zones.full;
   const elements = layoutElements(visual, layout, zoneOverride, frame);
+  const portrait = isPortrait(frame);
+  const compact = layout === 'host-left' || portrait;
+  /** Largest font up to `base` that fits `text` across `width` (portrait only; landscape keeps `base`). */
+  const fitFont = (base, text, width) => (portrait ? Math.min(base, Math.floor((width - 48) / Math.max(1, [...String(text)].length))) : base);
   const vectors = [];
   const textItems = [];
   const d = visual.data;
@@ -321,7 +352,7 @@ export function renderDiagram(visual, {
         text: heading,
         x: cx + (effSt.dx ?? 0),
         y: cy + (effSt.dy ?? 0),
-        fontSize: layout === 'host-left' ? 68 : 88,
+        fontSize: fitFont(compact ? 68 : 88, d.heading, b.w),
         color: pal.ink,
         align: 'middle',
         weight: 'bold',
@@ -335,7 +366,7 @@ export function renderDiagram(visual, {
           text: d.sub,
           x: cx + (effSt.dx ?? 0),
           y: cy + 92 + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 40 : 48,
+          fontSize: fitFont(compact ? 40 : 48, d.sub, b.w),
           color: pal.muted,
           align: 'middle',
           opacity: subOp,
@@ -363,7 +394,7 @@ export function renderDiagram(visual, {
           text: el.label,
           x: b.x + (iconName ? 94 : 72) + (effSt.dx ?? 0),
           y: b.y + b.h / 2 + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 38 : 48,
+          fontSize: compact ? 38 : 48,
           color: pal.ink,
           align: 'start',
           weight: effSt.highlight > 0 ? 'bold' : 'normal',
@@ -392,7 +423,7 @@ export function renderDiagram(visual, {
           text: el.label,
           x: b.x + b.w / 2 + (effSt.dx ?? 0),
           y: b.y + (iconName ? b.h * 0.75 : b.h / 2) + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 38 : 46,
+          fontSize: compact ? 38 : 46,
           color: pal.ink,
           align: 'middle',
           weight: 'bold',
@@ -401,17 +432,16 @@ export function renderDiagram(visual, {
         if (i > 0) {
           const prevSt = getState(i - 1);
           const prevB = prevSt.overrideBbox ?? elements[i - 1].bbox;
-          const arrow = handArrow(
-            prevB.x + prevB.w + 8 + (prevSt.dx ?? 0),
-            prevB.y + prevB.h / 2 + (prevSt.dy ?? 0),
-            b.x - 8 + (st.dx ?? 0),
-            b.y + b.h / 2 + (st.dy ?? 0),
-            {
-              seed: `${seed}:arr${i}`,
-              color: st.highlight > 0 ? pal.red : pal.teal,
-              progress: st.arrowProgress * st.opacity,
-            },
+          const ends = flowArrowEnds(
+            { x: prevB.x + (prevSt.dx ?? 0), y: prevB.y + (prevSt.dy ?? 0), w: prevB.w, h: prevB.h },
+            { x: b.x + (st.dx ?? 0), y: b.y + (st.dy ?? 0), w: b.w, h: b.h },
           );
+          const arrow = handArrow(ends.from[0], ends.from[1], ends.to[0], ends.to[1], {
+            seed: `${seed}:arr${i}`,
+            color: st.highlight > 0 ? pal.red : pal.teal,
+            progress: st.arrowProgress * st.opacity,
+            bend: ends.bend,
+          });
           if (arrow) vectors.push(arrow);
         }
       });
@@ -426,17 +456,17 @@ export function renderDiagram(visual, {
           const prevB = prevSt.overrideBbox ?? elements[targetIdx - 1].bbox;
           const currB = currSt.overrideBbox ?? elements[targetIdx].bbox;
           const hasOverride = Boolean(zoneOverride || prevSt.overrideBbox || currSt.overrideBbox);
-          const fromPt = !hasOverride && Array.isArray(s.fromPt)
-            ? s.fromPt
-            : [prevB.x + prevB.w + 8 + (prevSt.dx ?? 0), prevB.y + prevB.h / 2 + (prevSt.dy ?? 0)];
-          const toPt = !hasOverride && Array.isArray(s.toPt)
-            ? s.toPt
-            : [currB.x - 8 + (currSt.dx ?? 0), currB.y + currB.h / 2 + (currSt.dy ?? 0)];
+          const ends = flowArrowEnds(
+            { x: prevB.x + (prevSt.dx ?? 0), y: prevB.y + (prevSt.dy ?? 0), w: prevB.w, h: prevB.h },
+            { x: currB.x + (currSt.dx ?? 0), y: currB.y + (currSt.dy ?? 0), w: currB.w, h: currB.h },
+          );
+          const fromPt = !hasOverride && Array.isArray(s.fromPt) ? s.fromPt : ends.from;
+          const toPt = !hasOverride && Array.isArray(s.toPt) ? s.toPt : ends.to;
           const pktSvg = renderSendPacket(fromPt, toPt, s.prop, s.u, {
             style: styleName,
             seed: `${seed}:send:${s.index ?? idx}`,
             customProps,
-            bend: s.bend ?? [0, -14],
+            bend: s.bend ?? ends.bend,
           });
           if (pktSvg) vectors.push(pktSvg);
         });
@@ -463,7 +493,7 @@ export function renderDiagram(visual, {
           text: cols[i].label,
           x: b.x + b.w / 2 + (effSt.dx ?? 0),
           y: b.y + headerH / 2 + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 40 : 48,
+          fontSize: compact ? 40 : 48,
           color: pal.ink,
           align: 'middle',
           weight: 'bold',
@@ -476,7 +506,7 @@ export function renderDiagram(visual, {
             text: row,
             x: b.x + b.w / 2 + (effSt.dx ?? 0),
             y: b.y + headerH + 10 + rowH * (r + 0.5) + (effSt.dy ?? 0),
-            fontSize: layout === 'host-left' ? 34 : 42,
+            fontSize: portrait ? 30 : compact ? 34 : 42,
             color: pal.ink,
             align: 'middle',
             opacity: effSt.opacity,
@@ -501,7 +531,7 @@ export function renderDiagram(visual, {
         text: formatAnimatedNumber(d.value, t),
         x: cx + (effSt.dx ?? 0),
         y: cy - 30 + (effSt.dy ?? 0),
-        fontSize: layout === 'host-left' ? 116 : 164,
+        fontSize: fitFont(compact ? 116 : 164, String(d.value), b.w),
         color: pal.teal,
         stroke: pal.textStroke,
         align: 'middle',
@@ -513,8 +543,8 @@ export function renderDiagram(visual, {
         key: 'number-label',
         text: d.label,
         x: cx + (effSt.dx ?? 0),
-        y: cy + (layout === 'host-left' ? 105 : 145) + (effSt.dy ?? 0),
-        fontSize: layout === 'host-left' ? 42 : 52,
+        y: cy + (compact ? 105 : 145) + (effSt.dy ?? 0),
+        fontSize: compact ? 42 : 52,
         color: pal.ink,
         align: 'middle',
         weight: 'bold',
@@ -548,7 +578,7 @@ export function renderDiagram(visual, {
           text: valStr,
           x: b.x + b.w / 2 + (effSt.dx ?? 0),
           y: barRect.y - 24 + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 32 : 38,
+          fontSize: compact ? 32 : 38,
           color: pal.ink,
           align: 'middle',
           weight: 'bold',
@@ -559,7 +589,7 @@ export function renderDiagram(visual, {
           text: el.label,
           x: b.x + b.w / 2 + (effSt.dx ?? 0),
           y: baseLineY + 34 + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 32 : 38,
+          fontSize: compact ? 32 : 38,
           color: pal.ink,
           align: 'middle',
           opacity: effSt.opacity,
@@ -570,8 +600,12 @@ export function renderDiagram(visual, {
 
     case 'timeline': {
       const fills = [pal.softTeal, pal.softYellow, pal.softRed, pal.softTeal, pal.softYellow];
+      const axisX = zone.x + zone.w / 2;
       const axisY = zone.y + zone.h / 2;
-      const axis = `<path d="${inkStroke([[zone.x + 24, axisY], [zone.x + zone.w - 24, axisY]], { seed: `${seed}:tl-axis`, width: [4.5, 6], wobble: 1.8 }).d}" fill="${pal.ink}"/>`;
+      const axisPts = portrait
+        ? [[axisX, zone.y + 24], [axisX, zone.y + zone.h - 24]]
+        : [[zone.x + 24, axisY], [zone.x + zone.w - 24, axisY]];
+      const axis = `<path d="${inkStroke(axisPts, { seed: `${seed}:tl-axis`, width: [4.5, 6], wobble: 1.8 }).d}" fill="${pal.ink}"/>`;
       vectors.push(axis);
 
       elements.forEach((el, i) => {
@@ -582,9 +616,14 @@ export function renderDiagram(visual, {
         const item = d.items[i];
         const isTop = i % 2 === 0;
         const cx = b.x + b.w / 2;
-        const stemY = isTop ? b.y + b.h : b.y;
-        const stem = `<path d="${inkStroke([[cx, axisY], [cx, stemY]], { seed: `${seed}:tls${i}`, width: [3.5, 5], wobble: 1.2 }).d}" fill="${pal.ink}"/>`;
-        const dotPts = circlePoints(cx, axisY, 10, { seed: `${seed}:tld${i}`, overdraw: 0.25, count: 18 });
+        const cyMid = b.y + b.h / 2;
+        const stemPts = portrait
+          ? [[axisX, cyMid], [cx < axisX ? b.x + b.w : b.x, cyMid]]
+          : [[cx, axisY], [cx, isTop ? b.y + b.h : b.y]];
+        const stem = `<path d="${inkStroke(stemPts, { seed: `${seed}:tls${i}`, width: [3.5, 5], wobble: 1.2 }).d}" fill="${pal.ink}"/>`;
+        const dotPts = portrait
+          ? circlePoints(axisX, cyMid, 10, { seed: `${seed}:tld${i}`, overdraw: 0.25, count: 18 })
+          : circlePoints(cx, axisY, 10, { seed: `${seed}:tld${i}`, overdraw: 0.25, count: 18 });
         const dot = `<g opacity="${num(clamp01(effSt.opacity))}">`
           + `<path d="${markerFill(dotPts, { seed: `${seed}:tldf${i}`, shift: 2 })}" fill="${effSt.highlight > 0 ? pal.yellow : pal.softTeal}"/>`
           + `<path d="${inkStroke(dotPts, { seed: `${seed}:tlds${i}`, width: [4, 5], wobble: 0.9 }).d}" fill="${pal.ink}"/>`
@@ -601,7 +640,7 @@ export function renderDiagram(visual, {
           text: item.time,
           x: (item.icon ? b.x + 62 : cx) + (effSt.dx ?? 0),
           y: b.y + 36 + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 28 : 34,
+          fontSize: compact ? 28 : 34,
           color: pal.teal,
           align: item.icon ? 'start' : 'middle',
           weight: 'bold',
@@ -612,7 +651,7 @@ export function renderDiagram(visual, {
           text: item.label,
           x: cx + (effSt.dx ?? 0),
           y: b.y + b.h * 0.68 + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 32 : 38,
+          fontSize: compact ? 32 : 38,
           color: pal.ink,
           align: 'middle',
           weight: effSt.highlight > 0 ? 'bold' : 'normal',
@@ -642,7 +681,7 @@ export function renderDiagram(visual, {
           text: item.label,
           x: (item.icon ? b.x + 74 : b.x + b.w / 2) + (effSt.dx ?? 0),
           y: b.y + b.h / 2 + (effSt.dy ?? 0),
-          fontSize: layout === 'host-left' ? 34 : 42,
+          fontSize: compact ? 34 : 42,
           color: pal.ink,
           align: item.icon ? 'start' : 'middle',
           weight: 'bold',
