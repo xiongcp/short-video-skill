@@ -87,7 +87,8 @@ export function lintStoryboard(project) {
     if (project.settings?.ratio === '9:16' && shot.layout === 'stage') {
       const custom = new Map((project.world?.custom_props ?? []).map((c) => [c.id, c]));
       const layerOf = (o) => (['ground', 'mid', 'air'].includes(o.layer) ? o.layer
-        : PROP_META[o.prop]?.layer ?? (custom.has(o.prop) ? customPropMeta(custom.get(o.prop)).layer : 'ground'));
+        : (typeof o.prop === 'string' && Object.hasOwn(PROP_META, o.prop) ? PROP_META[o.prop].layer
+          : (custom.has(o.prop) ? customPropMeta(custom.get(o.prop)).layer : 'ground')));
       const objects = shot.visual?.data?.objects ?? [];
       const air = objects.filter((o) => layerOf(o) === 'air').length;
       const lower = objects.length - air;

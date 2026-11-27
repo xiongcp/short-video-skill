@@ -32,6 +32,9 @@ export function splitClauses(sentence) {
   return merged;
 }
 
+const IS_PUNCT = (tk) => /^\p{P}$/u.test(tk);
+const OPEN_PUNCT = /^[\p{Ps}\p{Pi}]$/u;
+
 /**
  * Portrait subtitle pages (竖屏设计 §6.5): clauses split into lines of at most `maxChars`, packed `maxLines` lines per
  * page. Latin words and digit runs are never split; a trailing comma-like mark is dropped from each line.
@@ -44,15 +47,38 @@ export function subtitlePages(text, { maxChars = 12, maxLines = 2 } = {}) {
     const total = tokens.reduce((s, tk) => s + [...tk].length, 0);
     if (!total) continue;
     const per = Math.ceil(total / Math.ceil(total / maxChars));
-    let cur = '';
+    let cur = [];
+    let curLen = 0;
     for (const tk of tokens) {
-      if (cur && !/^\p{P}$/u.test(tk) && [...cur].length + [...tk].length > per) {
-        lines.push(cur);
-        cur = '';
+      const tkLen = [...tk].length;
+      const punct = IS_PUNCT(tk);
+      if (cur.length && punct && curLen + tkLen > maxChars) {
+        if (!OPEN_PUNCT.test(tk)) {
+          let cut = cur.length - 1;
+          while (cut > 0 && IS_PUNCT(cur[cut])) cut -= 1;
+          const moved = cur.slice(cut);
+          const movedLen = moved.reduce((s, t) => s + [...t].length, 0);
+          if (cut > 0 && !IS_PUNCT(cur[cut]) && movedLen + tkLen <= maxChars) {
+            lines.push(cur.slice(0, cut).join(''));
+            cur = [...moved, tk];
+            curLen = movedLen + tkLen;
+            continue;
+          }
+        }
+        lines.push(cur.join(''));
+        cur = [tk];
+        curLen = tkLen;
+        continue;
       }
-      cur += tk;
+      if (cur.length && !punct && curLen + tkLen > per) {
+        lines.push(cur.join(''));
+        cur = [];
+        curLen = 0;
+      }
+      cur.push(tk);
+      curLen += tkLen;
     }
-    if (cur) lines.push(cur);
+    if (cur.length) lines.push(cur.join(''));
   }
   const pages = [];
   let page = [];

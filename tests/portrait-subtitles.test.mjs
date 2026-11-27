@@ -23,6 +23,31 @@ test('subtitlePages never splits a Latin word or a digit run', () => {
   for (const l of lines) assert.ok(len(l) <= 12, l);
 });
 
+test('subtitlePages keeps lines within maxChars when punctuation lands on a full line', () => {
+  for (const text of [
+    '一二三四五六七八九十一二。一二三四五六七八九十一',
+    '一二三四五六七八九十一二？一二三四五六七八九十一',
+    '一二三四五六七八九十一。？一二三四五六七八九十',
+    '一二三四五六七Redis？一二三四五六七八九十一',
+  ]) {
+    const lines = subtitlePages(text).flat();
+    assert.equal(lines.join(''), text);
+    for (const l of lines) {
+      assert.ok(len(l) <= 12, `${text} -> ${l} (${len(l)})`);
+      assert.ok(!/^\p{P}/u.test(l), `${text} -> leading punct in ${l}`);
+    }
+    if (text.includes('Redis')) assert.ok(lines.some((l) => l.includes('Redis')));
+  }
+
+  const opening = '一二三四五六七八九十一二「缓存」一二三四五六七八';
+  const openLines = subtitlePages(opening).flat();
+  assert.equal(openLines.join(''), opening);
+  for (const l of openLines) assert.ok(len(l) <= 12, l);
+  assert.ok(openLines[1].startsWith('「缓存」'), openLines.join(' / '));
+
+  assert.deepEqual(subtitlePages('123456789012。').flat(), ['123456789012', '。']);
+});
+
 test('every narration sentence in the fixtures fits the portrait page limits', () => {
   for (const p of Object.values(goldenCases())) {
     for (const sec of p.sections) {

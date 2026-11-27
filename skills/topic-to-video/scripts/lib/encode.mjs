@@ -557,13 +557,14 @@ export async function renderProject(rawProjectDir, opts = {}) {
   let masterPath = null;
   if (opts.master) {
     masterPath = join(outDir, 'master.mp4');
+    const masterTag = frame.ratio === '16:9' ? '' : `-${frame.ratio.replace(':', 'x')}`;
     const masterJobs = selectedPlans.map((plan) => ({
       projectDir, manifest, shotPlan: plan,
-      outPath: join(cacheDir, `${plan.id}-master.mp4`),
+      outPath: join(cacheDir, `${plan.id}${masterTag}-master.mp4`),
       width, height, fps, crf: 14, preset: 'slow', motionBlur, pixFmt: 'yuv444p', ffmpeg,
     }));
     await runPool(masterJobs, workerCount);
-    const mList = join(cacheDir, 'concat-master.txt');
+    const mList = join(cacheDir, `concat${masterTag}-master.txt`);
     writeFileSync(mList, `${masterJobs.map((j) => `file '${j.outPath.replace(/'/g, "'\\''")}'`).join('\n')}\n`);
     const mmux = spawnSync(ffmpeg, [
       '-y', '-loglevel', 'error',
@@ -592,7 +593,11 @@ export async function renderProject(rawProjectDir, opts = {}) {
   }
   const coverRaw = join(cacheDir, 'cover.rgba');
   writeFileSync(coverRaw, coverRgba);
-  spawnSync(ffmpeg, ['-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', `${frame.width}x${frame.height}`, '-i', coverRaw, '-frames:v', '1', join(outDir, 'cover.png')]);
+  const cover = spawnSync(ffmpeg, [
+    '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba',
+    '-s', `${frame.width}x${frame.height}`, '-i', coverRaw, '-frames:v', '1', join(outDir, 'cover.png'),
+  ], { encoding: 'utf8' });
+  if (cover.error || cover.status !== 0) throw new Error(`ffmpeg cover encode failed: ${cover.stderr || cover.error?.message}`);
 
   return {
     videoPath,

@@ -17,3 +17,12 @@ test('PORTRAIT_CROWDED warns about more than 3 lower or 2 air objects in 9:16 pr
   assert.match(warns[0].message, /地面和中间层有 4 件/);
   assert.deepEqual(crowded('16:9'), []);
 });
+
+test('lintStoryboard guards PROP_META against prototype-key prop names', () => {
+  const p = sceneTour();
+  p.settings.ratio = '9:16';
+  p.shots[0].visual.data.objects = [{ prop: 'constructor' }, { prop: 'toString' }, { prop: 'valueOf' }, { prop: 'hasOwnProperty' }];
+  const warns = lintStoryboard(p).filter((w) => w.code === 'PORTRAIT_CROWDED');
+  assert.equal(warns.length, 1);
+  assert.match(warns[0].message, /地面和中间层有 4 件/);
+});

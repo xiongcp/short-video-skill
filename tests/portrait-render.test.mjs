@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { renderProject } from '../skills/topic-to-video/scripts/lib/encode.mjs';
@@ -87,6 +87,58 @@ test('--ratio 9:16 on a 16:9 project renders 540×960 into out/9x16 with a portr
     assert.match(readFileSync(join(res.outDir, 'qa.md'), 'utf8'), /真机遮挡：`not_checked`/);
     const wrong = await runQa(dir, { videoPath: res.videoPath, outDir: res.outDir, frame: res.frame, expectedSize: { width: 1080, height: 1920 }, expectedFps: res.fps, timeline: res.timeline, shotPlans: res.shotPlans });
     assert.ok(wrong.issues.some((i) => i.code === 'SIZE_MISMATCH'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('--master separates portrait intermediates from landscape and cover.png throws when ffmpeg fails', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'svs-portrait-master-'));
+  try {
+    const p = JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
+    p.voice = { provider: 'import' };
+    mkdirSync(join(dir, 'audio'), { recursive: true });
+    for (const key of ['s01-0', 's01-1']) {
+      const sr = 48000;
+      const samples = new Int16Array(Math.round(sr * 0.25));
+      for (let i = 1000; i < samples.length - 1000; i += 1) samples[i] = Math.round(9000 * Math.sin((2 * Math.PI * 330 * i) / sr));
+      writeFileSync(join(dir, `audio/${key}.wav`), makeWavBuffer(samples, sr));
+    }
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(p, null, 2));
+
+    const probeVideo = (file) => {
+      const out = JSON.parse(spawnSync('ffprobe', ['-v', 'quiet', '-print_format', 'json', '-show_streams', file], { encoding: 'utf8' }).stdout);
+      return out.streams.find((s) => s.codec_type === 'video');
+    };
+
+    await renderProject(dir, { preview: true, master: true, workers: 1 });
+    await renderProject(dir, { preview: true, ratio: '9:16', master: true, skipTts: true, workers: 1 });
+
+    const landInter = join(dir, 'cache/shots/sh01-master.mp4');
+    const portInter = join(dir, 'cache/shots/sh01-9x16-master.mp4');
+    const portMaster = join(dir, 'out/9x16/master.mp4');
+    assert.ok(existsSync(landInter), 'landscape master intermediate preserved');
+    assert.ok(existsSync(portInter), 'portrait master intermediate separated');
+    assert.ok(existsSync(portMaster), 'portrait master written');
+
+    const lv = probeVideo(landInter);
+    assert.deepEqual([lv.width, lv.height, lv.pix_fmt], [960, 540, 'yuv444p']);
+    const pv = probeVideo(portInter);
+    assert.deepEqual([pv.width, pv.height, pv.pix_fmt], [540, 960, 'yuv444p']);
+    const pm = probeVideo(portMaster);
+    assert.deepEqual([pm.width, pm.height, pm.pix_fmt], [540, 960, 'yuv444p']);
+
+    const failCover = join(dir, 'fail-cover-ffmpeg.sh');
+    writeFileSync(failCover, '#!/bin/sh\nfor a in "$@"; do\n  case "$a" in *cover.png) echo "simulated cover error" >&2; exit 1 ;; esac\ndone\nexec ffmpeg "$@"\n');
+    chmodSync(failCover, 0o755);
+    await assert.rejects(
+      () => renderProject(dir, { preview: true, ratio: '9:16', skipTts: true, workers: 1, ffmpeg: failCover }),
+      /cover.*simulated cover error/i,
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

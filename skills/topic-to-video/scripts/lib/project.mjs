@@ -240,7 +240,8 @@ function checkWorld(world, add) {
 function checkStageShots(project, add) {
   const customProps = Array.isArray(project.world?.custom_props) ? project.world.custom_props.filter(isObject) : [];
   const customIds = new Set(customProps.map((p) => p.id).filter((id) => typeof id === 'string'));
-  const frame = FRAMES[project.settings?.ratio] ?? FRAMES['16:9'];
+  const ratio = project.settings?.ratio;
+  const frame = typeof ratio === 'string' && Object.hasOwn(FRAMES, ratio) ? FRAMES[ratio] : FRAMES['16:9'];
   let prevHostX = frame.hostHome;
 
   project.shots.forEach((shot, i) => {

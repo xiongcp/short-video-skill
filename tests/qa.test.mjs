@@ -1,12 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { FRAMES } from '../skills/topic-to-video/scripts/lib/frame.mjs';
 import { makeWavBuffer } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
 import { renderProject } from '../skills/topic-to-video/scripts/lib/encode.mjs';
-import { analyzeFrameDiffs, analyzeMixLevels, checkAnchorSync, runQa } from '../skills/topic-to-video/scripts/lib/qa.mjs';
+import { analyzeFrameDiffs, analyzeMixLevels, checkAnchorSync, extractLumaFrames, runQa } from '../skills/topic-to-video/scripts/lib/qa.mjs';
 
 const minimal = () => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/minimal-project.json'), 'utf8'));
 
@@ -313,6 +314,60 @@ test('runQa writes the sound section and the sound_mix review item', async (t) =
     assert.ok(loud.warnings.some((w) => w.code === 'MUSIC_SILENT'));
     assert.match(md2, /音乐比人声低：最少 10\.0 dB（下限 15 dB）/);
     assert.match(md2, /音乐：music\/bed\.mp3（许可：CC BY 4\.0）/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('extractLumaFrames scales portrait to 90×160 and landscape to 160×90, and runQa passes frame and guards ratio', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'svs-qa-luma-'));
+  try {
+    const makeHalfClip = (name, halfW, h) => {
+      const file = join(dir, name);
+      const r = spawnSync('ffmpeg', [
+        '-v', 'error', '-y',
+        '-filter_complex', `color=c=white:s=${halfW}x${h}:r=30:d=0.1[a];color=c=black:s=${halfW}x${h}:r=30:d=0.1[b];[a][b]hstack,format=yuv420p,setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709`,
+        '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=0.1',
+        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709',
+        '-c:a', 'aac', '-shortest', file,
+      ]);
+      assert.equal(r.status, 0, String(r.stderr));
+      return file;
+    };
+    const portMp4 = makeHalfClip('port.mp4', 90, 320);
+    const landMp4 = makeHalfClip('land.mp4', 160, 180);
+
+    const pf = extractLumaFrames(portMp4, 'ffmpeg', FRAMES['9:16']);
+    assert.ok(pf.length >= 2);
+    assert.equal(pf[0].length, 90 * 160);
+    assert.ok(pf[0][40] > 200 && pf[0][50] < 40 && pf[0][95] > 200, `portrait stride should be 90: [40]=${pf[0][40]} [50]=${pf[0][50]} [95]=${pf[0][95]}`);
+
+    const lf = extractLumaFrames(landMp4);
+    assert.ok(lf.length >= 2);
+    assert.equal(lf[0].length, 160 * 90);
+    assert.ok(lf[0][50] > 200 && lf[0][95] < 40 && lf[0][165] > 200, `landscape stride should be 160: [50]=${lf[0][50]} [95]=${lf[0][95]} [165]=${lf[0][165]}`);
+
+    const logFile = join(dir, 'ffmpeg.log');
+    const wrapper = join(dir, 'wrap-ffmpeg.sh');
+    writeFileSync(wrapper, `#!/bin/sh\necho "$*" >> "${logFile}"\nexec ffmpeg "$@"\n`);
+    chmodSync(wrapper, 0o755);
+
+    const p = minimal();
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(p, null, 2));
+    await runQa(dir, { videoPath: portMp4, outDir: join(dir, 'out-p'), frame: FRAMES['9:16'], expectedFps: 30, ffmpeg: wrapper });
+    assert.match(readFileSync(logFile, 'utf8'), /scale=90:160,format=gray/);
+
+    writeFileSync(logFile, '');
+    p.settings.ratio = 'constructor';
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(p, null, 2));
+    const protoQa = await runQa(dir, { videoPath: landMp4, outDir: join(dir, 'out-proto'), expectedFps: 30, ffmpeg: wrapper });
+    assert.equal(protoQa.ok, true, JSON.stringify(protoQa.issues));
+    assert.ok(!existsSync(join(dir, 'out-proto/contact-safe.png')));
+    assert.match(readFileSync(logFile, 'utf8'), /scale=160:90,format=gray/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

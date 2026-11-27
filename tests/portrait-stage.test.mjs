@@ -63,3 +63,15 @@ test('checkProject reports STAGE_CROWDED with the portrait geometry only for 9:1
   assert.equal(crowded.length, 1);
   assert.match(crowded[0].message, /竖屏/);
 });
+
+test('checkProject falls back to 16:9 for prototype-key settings.ratio without throwing', () => {
+  for (const ratio of ['constructor', 'toString']) {
+    const p = sceneTour();
+    p.settings.ratio = ratio;
+    p.shots[0].visual.data.objects = ['fridge', 'box', 'shop', 'table', 'chair'].map((prop) => ({ prop }));
+    p.shots[0].cues = [];
+    const errs = checkProject(p);
+    assert.ok(Array.isArray(errs));
+    assert.ok(!errs.some((e) => e.code === 'STAGE_CROWDED'), `${ratio} falls back to 16:9`);
+  }
+});

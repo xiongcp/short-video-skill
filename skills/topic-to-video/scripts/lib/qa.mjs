@@ -73,15 +73,16 @@ function probeMedia(videoPath, ffprobe = 'ffprobe') {
   return JSON.parse(res.stdout);
 }
 
-function extractLumaFrames(videoPath, ffmpeg = 'ffmpeg') {
+export function extractLumaFrames(videoPath, ffmpeg = 'ffmpeg', frame = FRAMES['16:9']) {
+  const [w, h] = isPortrait(frame ?? FRAMES['16:9']) ? [PROBE_H, PROBE_W] : [PROBE_W, PROBE_H];
   const res = spawnSync(ffmpeg, [
     '-v', 'error', '-i', videoPath,
-    '-vf', `scale=${PROBE_W}:${PROBE_H},format=gray`,
+    '-vf', `scale=${w}:${h},format=gray`,
     '-f', 'rawvideo', 'pipe:1',
   ], { maxBuffer: 256 * 1024 * 1024 });
   if (res.error || res.status !== 0) return [];
   const buf = res.stdout;
-  const frameSize = PROBE_W * PROBE_H;
+  const frameSize = w * h;
   const count = Math.floor(buf.length / frameSize);
   const frames = [];
   for (let i = 0; i < count; i += 1) frames.push(buf.subarray(i * frameSize, (i + 1) * frameSize));
@@ -192,7 +193,8 @@ export async function runQa(projectDir, {
   ffprobe = process.env.FFPROBE ?? 'ffprobe',
 } = {}) {
   const project = JSON.parse(readFileSync(join(projectDir, 'project.json'), 'utf8'));
-  const fr = frame ?? FRAMES[project.settings?.ratio] ?? FRAMES['16:9'];
+  const ratio = project.settings?.ratio;
+  const fr = frame ?? (typeof ratio === 'string' && Object.hasOwn(FRAMES, ratio) ? FRAMES[ratio] : FRAMES['16:9']);
   mkdirSync(outDir, { recursive: true });
   const issues = [];
   const warnings = [];
@@ -271,7 +273,7 @@ export async function runQa(projectDir, {
   issues.push(...checkAnchorSync(anchoredCues, fps));
 
   // Jump & freeze checks on downscaled frames
-  const lumaFrames = extractLumaFrames(videoPath, ffmpeg);
+  const lumaFrames = extractLumaFrames(videoPath, ffmpeg, fr);
   const diffStats = analyzeFrameDiffs(lumaFrames, { cutFrames, motionFrames });
   for (const j of diffStats.jumps) {
     issues.push({ code: 'UNPLANNED_JUMP', frame: j.frame, mad: j.mad, message: `第 ${j.frame} 帧出现计划外跳变（MAD=${j.mad}）` });
