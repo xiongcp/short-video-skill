@@ -21,7 +21,7 @@ const evalPlanCache = new WeakMap();
 function getCachedSceneBg(sceneName, styleName, seed, frame) {
   const key = `${sceneName}|${styleName}|${seed}|${frame.ground}|${frame.ratio}`;
   if (sceneBgCache.has(key)) return sceneBgCache.get(key);
-  const svg = sceneBackgroundSvg(sceneName, { style: styleName, seed, ground: frame.ground, width: frame.width, height: frame.height });
+  const svg = sceneBackgroundSvg(sceneName, { style: styleName, seed, ground: frame.ground, width: frame.width, height: frame.height, frame });
   if (sceneBgCache.size >= MAX_SCENE_BG_CACHE) {
     sceneBgCache.delete(sceneBgCache.keys().next().value);
   }
