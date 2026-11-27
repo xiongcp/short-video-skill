@@ -101,8 +101,8 @@ function rayBoxExit(b, dx, dy, pad = 10) {
 }
 
 /** Computes element bounding boxes inside `zone` for any of the 8 templates. */
-export function layoutElements(visual, layout = 'full', zoneOverride = null) {
-  const z = zoneOverride ?? DIAGRAM_ZONES[layout] ?? DIAGRAM_ZONES.full;
+export function layoutElements(visual, layout = 'full', zoneOverride = null, frame = FRAMES['16:9']) {
+  const z = zoneOverride ?? frame.zones[layout] ?? frame.zones.full;
   const d = visual.data;
   switch (visual.template) {
     case 'title':
@@ -230,11 +230,12 @@ export function renderDiagram(visual, {
   sends = [],
   customProps = [],
   zoneOverride = null,
+  frame = FRAMES['16:9'],
 } = {}) {
   const { name: styleName, palette: pal } = resolveStyle(style ?? theme);
   const iconStyleOpts = style != null ? { style: styleName } : { theme };
-  const zone = zoneOverride ?? DIAGRAM_ZONES[layout] ?? DIAGRAM_ZONES.full;
-  const elements = layoutElements(visual, layout, zoneOverride);
+  const zone = zoneOverride ?? frame.zones[layout] ?? frame.zones.full;
+  const elements = layoutElements(visual, layout, zoneOverride, frame);
   const vectors = [];
   const textItems = [];
   const d = visual.data;
