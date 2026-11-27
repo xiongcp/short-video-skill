@@ -471,6 +471,14 @@ export async function renderProject(rawProjectDir, opts = {}) {
   const preset = opts.preset ?? spec.preset;
   const motionBlur = Boolean(opts.motionBlur);
 
+  if (opts.sample) {
+    const ids = project.shots.map((s) => s.id);
+    const [a, b = a] = String(opts.sample).split('-');
+    if (!ids.includes(a) || !ids.includes(b) || ids.indexOf(b) < ids.indexOf(a)) {
+      throw Object.assign(new Error(`--sample ${opts.sample} 不是有效的镜头区间，例如 sh03-sh05`), { code: 'SAMPLE_RANGE_INVALID' });
+    }
+  }
+
   const timing = opts.skipTts && existsSync(join(projectDir, 'audio/timing.json'))
     ? JSON.parse(readFileSync(join(projectDir, 'audio/timing.json'), 'utf8'))
     : await synthesizeProject(project, projectDir, { ffmpeg });

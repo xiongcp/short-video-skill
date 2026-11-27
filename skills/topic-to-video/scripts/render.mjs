@@ -4,12 +4,13 @@
 //   node <skill>/scripts/render.mjs <projectDir> --audition [male,female-warm,...]   voice presets into out/audition/
 //   node <skill>/scripts/render.mjs <projectDir> --audition-sound [calm,playful,...]  music moods and effects into out/audition/
 // Falls back cleanly to L0 guidance when FFmpeg or @resvg/resvg-js is unavailable; --audition needs only FFmpeg and edge-tts or uvx.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runDoctor } from './doctor.mjs';
 import { renderProject } from './lib/encode.mjs';
 import { auditionSound } from './lib/music.mjs';
+import { checkProject } from './lib/project.mjs';
 import { auditionCommand, auditionVoices, selectPresets } from './lib/tts.mjs';
 
 // The word after --audition is a preset list only when every item looks like a preset ID or prefix, so
@@ -44,6 +45,37 @@ export function parseArgs(argv) {
   return opts;
 }
 
+// Exit codes: 0 rendered, 1 coded error (JSON on stdout), 2 dependencies missing so the agent falls back to L0.
+export const ERROR_CODES = ['PROJECT_NOT_FOUND', 'PROJECT_INVALID', 'VOICE_UNDECIDED', 'TTS_FAILED', 'AUDIO_MISSING', 'SAMPLE_RANGE_INVALID', 'RENDER_FAILED'];
+
+export function errorReport(err, doctor, project) {
+  const code = ERROR_CODES.includes(err?.code) ? err.code : 'RENDER_FAILED';
+  const report = { ok: false, code, message: String(err?.message ?? err).split('\n')[0] };
+  if (err?.errors) report.errors = err.errors.slice(0, 10);
+  if (code === 'VOICE_UNDECIDED') {
+    const voice = { ...doctor.recommended_voice };
+    if (/edge-tts/.test(voice.command ?? '') && project?.voice?.preset) voice.preset = project.voice.preset;
+    report.fix = { voice };
+  }
+  return report;
+}
+
+const coded = (code, message, extra) => Object.assign(new Error(message), { code }, extra);
+
+function readProject(dir) {
+  const file = join(dir, 'project.json');
+  if (!existsSync(file)) throw coded('PROJECT_NOT_FOUND', `${dir} 里没有 project.json`);
+  let project;
+  try {
+    project = JSON.parse(readFileSync(file, 'utf8'));
+  } catch (err) {
+    throw coded('PROJECT_INVALID', `project.json 不是合法 JSON：${err.message}`);
+  }
+  const errors = checkProject(project);
+  if (errors.length) throw coded('PROJECT_INVALID', `project.json 有 ${errors.length} 个错误，先运行 check.mjs 改好`, { errors });
+  return project;
+}
+
 /** --audition: reads voice presets aloud into out/audition/. Needs FFmpeg and an edge-tts command, never resvg or macOS say. */
 export function runAudition(opts, doc) {
   if (!doc.checks.ffmpeg.ok) return { ok: false, message: '试听需要 FFmpeg' };
@@ -75,7 +107,16 @@ async function main() {
     process.exitCode = 2;
     return;
   }
-  const result = await renderProject(opts.projectDir, opts);
+  let project;
+  let result;
+  try {
+    project = readProject(opts.projectDir);
+    result = await renderProject(opts.projectDir, opts);
+  } catch (err) {
+    console.log(JSON.stringify(errorReport(err, doc, project), null, 2));
+    process.exitCode = 1;
+    return;
+  }
   let qa = null;
   if (!opts.noQa) {
     try {
