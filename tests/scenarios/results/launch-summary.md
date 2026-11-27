@@ -42,8 +42,31 @@
 | 67b8bb2 | `STATIC_STRETCH` 只按句首算 cue 时间，忽略 `cue.at`。超过 4 秒的长句不管怎么加 cue 都报警；场景 09 里每个镜头都报。`NO_INTERACTION` 写着"或 tap"，场景 09 的 Agent 因此写成了 `do: tap`。 | 带 `at` 的 cue 按关键词在句中的位置估时，和渲染器一致。提示改为写明 `{"do": "gesture", "target": "tap"}`。storyboard.md 补一句"长句用 `at`"。 |
 | 3061db3 | `TTS_FAILED` 引用的报错行带缩进，结尾是"。"。 | 去掉缩进和句末标点。 |
 | 6009157 | 小青走到"叠在桌上的杯子"旁时，两侧站位都落在桌面上，结果站进桌子里（`HOST_OBJECT_OVERLAP` 324 帧，图：`sky-sh07-overlap-before.png`）。 | 两侧都被挡时往外找第一个空位。正片走位和舞台模拟共用这个逻辑。 |
-| 5170fef | 命中缓存的镜头不回填逐镜 QA。返修后重出，没改动镜头的遮挡、重叠、标签压人问题会从 qa 里消失（sh10 的警告第二次出片就没了）。 | 每个镜头把 QA 计数存成缓存旁的 `.qa.json`，命中缓存时读回。修复前生成的旧缓存没有这个文件，重渲一次才有。 |
+| 5170fef | 命中缓存的镜头不回填逐镜 QA。返修后重出，没改动镜头的遮挡、重叠、标签压人问题会从 qa 里消失（sh10 的警告第二次出片就没了）。 | 每个镜头把 QA 计数存成缓存旁的 `.qa.json`，命中缓存时读回。后续 `fc24e4e` 补齐：只有视频没有 `.qa.json`（或损坏）的旧缓存按未命中处理，且每个镜头渲完即写 `.qa.json`。 |
 | 54be3ba | sh03 是 `full` 对比图，两栏都在第 2 句才出现，开头约 3 秒空白。自检和 QA 都没拦住。 | 新增警告 `EMPTY_START`：`full` 镜头所有元素都等 reveal，且第一个晚于 1 秒出现时提醒。storyboard.md 记一句（10233/10240 字节）。 |
+| 18502ec | 安全审查：`tests/scenarios/run.mjs` 中 Claude Code 评测白名单含通用 `Bash(node:*)` 和 `Bash(ffmpeg:*)`，存在诱导执行任意代码风险。 | 改为仅允许调用 skill 自带的 `doctor.mjs`、`check.mjs`、`render.mjs`，并用 `--disallowedTools` 显式禁掉 `node -e`、`--eval`、`-p`、`--print`。 |
+| fc24e4e | 终审两条 Important：旧缓存没有 `.qa.json` 仍会命中并跳过 QA；逐镜 `.qa.json` 等全部镜头渲完才写，中断后下次跳过 QA。 | 无有效 `.qa.json` 视为未命中并清理旧 sidecar；`runPool` 每完成一镜立即写 `.qa.json`，并安全处理 FFmpeg 提前退出的 `EPIPE`。 |
+| 4084447 | Linux CI（`ubuntu-latest` Node 22/24）`host-rig.test.mjs` 失败：长度 60 px 的肢体在 arm64 与 x86_64 上 `Math.hypot/6` 差 1 ULP，导致 `Math.ceil` 在 10/11 间翻转。 | `ink.mjs` 改为 `Math.ceil(total / 6 - 1e-9)`，重绘 host 资产并重录金样。CI run `45934297122` 在 Ubuntu 22/24 与 macOS 24 全绿（643/643）。 |
+
+## agy 场景评测（任务 14 · gemini-3.8-flash-high）
+
+日期：2026-11-26（UTC 2026-11-27）。基于提交 `4084447`（`dirty: false`），`agy 1.5.18`，模型 `gemini-3.8-flash-high`，并行运行场景 10、11、04（均不含视频媒体文件提交）。
+
+| 场景 | 主题与模式 | 检查通过 | 成片规格与时长 | QA 结论 | 记录目录 |
+| --- | --- | --- | --- | --- | --- |
+| 10 | 一句话出片（L1，2 轮） | **5 / 5** | 1920×1080，60fps，**58.47 秒**（估算 57.0 秒） | `ok: true`，0 问题 0 警告，`draft: false` | [`2026-11-27-03-30-06-10-skill/review.md`](2026-11-27-03-30-06-10-skill/review.md) |
+| 11 | 直接出片（L1，1 轮） | **3 / 4** | 1920×1080，60fps，**66.62 秒**（估算约 63 秒） | `ok: true`，0 问题（2 处 3 帧警告），`draft: true` | [`2026-11-27-03-30-07-11-skill/review.md`](2026-11-27-03-30-07-11-skill/review.md) |
+| 04 | 要成片但无渲染能力（L0，2 轮） | **1 / 4** | 未退回 L0，安装 `@resvg/resvg-js` 后出了 63.13 秒成片 | `ok: true`，0 问题，`draft: false` | [`2026-11-27-03-30-09-04-skill/review.md`](2026-11-27-03-30-09-04-skill/review.md) |
+
+### 评测发现与待决项
+
+1. **4.5 字/秒估时校准有效**：三条实测成片分别比估算多 2.6%（57.0 → 58.47s）、2.8%（61.4 → 63.13s）、5.7%（63 → 66.62s），远好于之前 13–16% 的偏差。场景 11 仅因原稿写到 255 字（估算 63 秒），最终实测 66.62 秒超出 54–66 秒判定上限 0.62 秒。
+2. **场景 11 验证了 QA 自修与镜头缓存**：模型首渲遇到 `HOST_OBJECT_OVERLAP` 与 `LINK_LABEL_OVER_HOST` 后，自行微调 `sh03` 槽位并在 46.5 秒内借缓存完成增量重渲，最终 `qa.ok: true`、`issues: 0`。
+3. **场景 04 暴露两处需 owner 拍板的边界**：
+   - `run.mjs` 对 L0 场景只省略了 `node_modules/@resvg`，未屏蔽本机 `ffmpeg`，导致 `doctor.mjs` 只缺 `@resvg/resvg-js` 一项；
+   - `references/render.md` 第 21 行允许“第一次缺 `@resvg/resvg-js` 时经用户同意运行 `npm install --prefix .../scripts`”，模型在第 1 轮越步读了 `render.md`，把安装请求打包进确认①，并将第 2 轮的“方案可以。”视为安装授权。
+4. **越步读源码现象**：三场评测里模型都在第 1 轮查看了 `scripts/` 源码（如 `check.mjs`、`project.mjs`），尽管 `SKILL.md` 写明“scripts/ 的源码都不用读”；这会增加首轮耗时与 token 消耗，但不影响产出正确性。
+5. **agy 沙箱与 `uvx`**：agy 默认沙箱禁止 `uvx` 写入 `~/.local/share/uv/tools`，首次 `render.mjs` 干净返回结构化 `TTS_FAILED`（含原因与备选建议），随后 agy 在跳过沙箱权限后正常完成 edge-tts 合成与出片。
 
 ## owner 已决定
 

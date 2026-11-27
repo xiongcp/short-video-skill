@@ -1,0 +1,53 @@
+{
+  "scenario": "11",
+  "title": "直接出片：不确认，一轮出带“未审核初稿”角标的 MP4",
+  "mode": "skill",
+  "agent": "agy",
+  "agent_version": "agy 1.5.18",
+  "model": "gemini-3.8-flash-high",
+  "skill": {
+    "commit": "4084447809e17fa0b16d9b826b0b00b216df8f50",
+    "dirty": false
+  },
+  "isolated_home": false,
+  "doctor": {
+    "l1_ready": true,
+    "tts_ready": true
+  },
+  "at": "2026-11-27T03:42:22.071Z",
+  "projects": [
+    {
+      "file": "winter-static/project.json",
+      "files": [
+        "audio",
+        "cache",
+        "out",
+        "project.json",
+        "分镜.md",
+        "讲稿.md"
+      ],
+      "schema_errors": [],
+      "check_errors": [],
+      "lint_warnings": [],
+      "storyboard_warnings": [],
+      "derived_docs": [],
+      "revision": 1,
+      "target_seconds": 60,
+      "checkpoints": [],
+      "render": {
+        "final": {
+          "exists": true,
+          "width": 1920,
+          "height": 1080,
+          "fps": 60,
+          "duration": 66.616667
+        },
+        "qa": {
+          "ok": true,
+          "issues": 0,
+          "draft": true
+        }
+      }
+    }
+  ]
+}

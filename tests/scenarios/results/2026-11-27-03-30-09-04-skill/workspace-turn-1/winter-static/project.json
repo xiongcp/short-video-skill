@@ -1,0 +1,607 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么冬天静电多？",
+  "brief": {
+    "topic": "为什么冬天静电多？",
+    "audience": "对物理没有专业基础的普通观众",
+    "promise": "冬天静电多不是因为产生得更多，而是干燥空气切断了导电水膜，让电荷越积越多无处释放",
+    "sources": [],
+    "open_questions": [
+      "冬天下人体摩擦静电电压通常在数千伏级别，击穿空气瞬间放电"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 60,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "light",
+    "outfit": "glasses"
+  },
+  "voice": {
+    "provider": "undecided",
+    "preset": "female-warm"
+  },
+  "world": {
+    "metaphor": "电荷像身上的小脾气，夏天空气湿润能悄悄化解，冬天干燥无处释放就暴躁放电",
+    "style": "paper",
+    "scene": "lab",
+    "custom_props": []
+  },
+  "sound": {
+    "sfx": "auto",
+    "music": {
+      "mood": "curious"
+    }
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "冬天的触电体验",
+      "text": "寒冬里脱掉毛衣噼啪作响，摸个金属门把手还经常被静电电一激灵。为什么一到冬天，我们身上就特别容易聚集静电呢？"
+    },
+    {
+      "id": "s02",
+      "title": "电荷随时在产生",
+      "text": "其实无论春夏秋冬，衣物摩擦时往往都会产生电荷。真正拉开差距的关键，在于这些电荷能不能悄悄溜走。"
+    },
+    {
+      "id": "s03",
+      "title": "湿度与导电水膜",
+      "text": "夏天环境湿度较高，物体表面通常附着一层微小水膜。微弱的电荷顺着导电水膜，不知不觉就导入了大地。但冬天寒冷干燥，空气水汽减少，导电通路直接中断。摩擦产生的多余电荷无处可去，只能在身上越积越多。"
+    },
+    {
+      "id": "s04",
+      "title": "瞬间放电与防范",
+      "text": "当你靠近金属门把手，积攒的高压电荷瞬间击穿空气。伴随着一道电火花，手指就会结结实实地疼一下。想要防静电其实很简单，开加湿器或者常涂护手霜。给干燥环境补足水分，静电自然就很难在身上聚集了。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0],
+      "layout": "stage",
+      "host": {
+        "expr": "worried",
+        "gesture": "startle",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "寒冬触电",
+          "objects": [
+            {
+              "prop": "door",
+              "label": "金属门把手",
+              "at": "right",
+              "state": "closed"
+            },
+            {
+              "prop": "lightning",
+              "label": "静电",
+              "at": "center",
+              "state": "active"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 0,
+          "at": "摸个金属门把手",
+          "do": "move",
+          "target": 0
+        },
+        {
+          "sentence": 0,
+          "at": "静电",
+          "do": "react",
+          "target": 1
+        }
+      ],
+      "note": "冬天脱衣服或碰金属门把手被静电刺激"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [1],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "think"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "为什么冬天静电多",
+          "sub": "身上为什么容易聚集静电？"
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "do": "prop",
+          "target": "question"
+        },
+        {
+          "sentence": 1,
+          "at": "聚集静电",
+          "do": "expr",
+          "target": "curious"
+        }
+      ],
+      "note": "抛出核心问题：为什么冬天身上容易聚集静电"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0],
+      "layout": "stage",
+      "host": {
+        "expr": "explaining",
+        "gesture": "point",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "摩擦产生电荷",
+          "objects": [
+            {
+              "prop": "cloud",
+              "label": "衣物摩擦",
+              "at": "mid-left",
+              "state": "normal"
+            },
+            {
+              "prop": "battery",
+              "label": "产生电荷",
+              "at": "right",
+              "state": "active"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 0,
+          "at": "摩擦时",
+          "do": "move",
+          "target": 0
+        },
+        {
+          "sentence": 0,
+          "at": "产生电荷",
+          "do": "gesture",
+          "target": "present"
+        },
+        {
+          "sentence": 0,
+          "at": "电荷",
+          "do": "react",
+          "target": 1
+        }
+      ],
+      "note": "摩擦时随时都在产生电荷"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [1],
+      "layout": "stage",
+      "host": {
+        "expr": "focused",
+        "gesture": "idle",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "电荷悄悄溜走",
+          "objects": [
+            {
+              "prop": "battery",
+              "label": "电荷",
+              "at": "mid-left",
+              "state": "active"
+            },
+            {
+              "prop": "cloud",
+              "label": "悄悄溜走",
+              "at": "right",
+              "state": "normal"
+            }
+          ],
+          "links": [
+            {
+              "from": 0,
+              "to": 1,
+              "style": "dashed",
+              "label": "释放"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "at": "在于",
+          "do": "move",
+          "target": 1
+        },
+        {
+          "sentence": 1,
+          "at": "能不能",
+          "do": "gesture",
+          "target": "tap"
+        },
+        {
+          "sentence": 1,
+          "at": "溜走",
+          "do": "react",
+          "target": 1
+        }
+      ],
+      "note": "关键看电荷能不能悄悄溜走"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [0],
+      "layout": "stage",
+      "host": {
+        "expr": "happy",
+        "gesture": "present",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "夏天微小水膜",
+          "objects": [
+            {
+              "prop": "drop",
+              "label": "微小水膜",
+              "at": "center",
+              "state": "active"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 0,
+          "at": "较高",
+          "do": "move",
+          "target": 0
+        },
+        {
+          "sentence": 0,
+          "at": "水膜",
+          "do": "react",
+          "target": 0
+        }
+      ],
+      "note": "夏天湿度高附着微小导电水膜"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [1],
+      "layout": "stage",
+      "host": {
+        "expr": "happy",
+        "gesture": "point",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "顺畅导入大地",
+          "objects": [
+            {
+              "prop": "drop",
+              "label": "导电水膜",
+              "at": "mid-left",
+              "state": "active"
+            },
+            {
+              "prop": "globe",
+              "label": "导入大地",
+              "at": "right",
+              "state": "normal"
+            }
+          ],
+          "links": [
+            {
+              "from": 0,
+              "to": 1,
+              "style": "solid",
+              "label": "通路"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "at": "水膜",
+          "do": "move",
+          "target": 1
+        },
+        {
+          "sentence": 1,
+          "at": "大地",
+          "do": "react",
+          "target": 1
+        }
+      ],
+      "note": "微弱电荷顺着导电水膜导入大地"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [2],
+      "layout": "stage",
+      "host": {
+        "expr": "focused",
+        "gesture": "think",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "冬天寒冷干燥",
+          "objects": [
+            {
+              "prop": "thermometer",
+              "label": "寒冷干燥",
+              "at": "center",
+              "state": "empty"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "at": "减少",
+          "do": "move",
+          "target": 0
+        },
+        {
+          "sentence": 2,
+          "at": "中断",
+          "do": "react",
+          "target": 0
+        }
+      ],
+      "note": "冬天空气干燥导致导电通路中断"
+    },
+    {
+      "id": "sh08",
+      "section": "s03",
+      "sentences": [3],
+      "layout": "stage",
+      "host": {
+        "expr": "worried",
+        "gesture": "emphasize",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "电荷越积越多",
+          "objects": [
+            {
+              "prop": "battery",
+              "label": "越积越多",
+              "at": "center",
+              "state": "full"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "at": "多余电荷",
+          "do": "move",
+          "target": 0
+        },
+        {
+          "sentence": 3,
+          "at": "越积越多",
+          "do": "react",
+          "target": 0
+        }
+      ],
+      "note": "多余电荷无处可去在身上越积越多"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [0],
+      "layout": "stage",
+      "host": {
+        "expr": "focused",
+        "gesture": "lean_in",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "瞬间击穿空气",
+          "objects": [
+            {
+              "prop": "door",
+              "label": "金属门把手",
+              "at": "right",
+              "state": "closed"
+            },
+            {
+              "prop": "lightning",
+              "label": "击穿空气",
+              "at": "center",
+              "state": "active"
+            }
+          ],
+          "links": [
+            {
+              "from": 1,
+              "to": 0,
+              "style": "dashed",
+              "label": "放电"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 0,
+          "at": "金属门把手",
+          "do": "move",
+          "target": 1
+        },
+        {
+          "sentence": 0,
+          "at": "击穿空气",
+          "do": "react",
+          "target": 1
+        }
+      ],
+      "note": "靠近金属门把手瞬间击穿空气"
+    },
+    {
+      "id": "sh10",
+      "section": "s04",
+      "sentences": [1],
+      "layout": "stage",
+      "host": {
+        "expr": "surprised",
+        "gesture": "startle",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "一道电火花",
+          "objects": [
+            {
+              "prop": "lightning",
+              "label": "电火花",
+              "at": "center",
+              "state": "active"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 1,
+          "at": "电火花",
+          "do": "move",
+          "target": 0
+        },
+        {
+          "sentence": 1,
+          "at": "疼一下",
+          "do": "react",
+          "target": 0
+        }
+      ],
+      "note": "伴随电火花手指被狠狠电到"
+    },
+    {
+      "id": "sh11",
+      "section": "s04",
+      "sentences": [2],
+      "layout": "stage",
+      "host": {
+        "expr": "happy",
+        "gesture": "present",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "开加湿器防静电",
+          "objects": [
+            {
+              "prop": "drop",
+              "label": "加湿器",
+              "at": "mid-left",
+              "state": "active"
+            },
+            {
+              "prop": "shield",
+              "label": "防静电",
+              "at": "right",
+              "state": "locked"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 2,
+          "at": "加湿器",
+          "do": "move",
+          "target": 0
+        },
+        {
+          "sentence": 2,
+          "at": "护手霜",
+          "do": "react",
+          "target": 1
+        }
+      ],
+      "note": "防静电小妙招：开加湿器或抹护手霜"
+    },
+    {
+      "id": "sh12",
+      "section": "s04",
+      "sentences": [3],
+      "layout": "stage",
+      "host": {
+        "expr": "happy",
+        "gesture": "cheer",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "heading": "补足水分",
+          "objects": [
+            {
+              "prop": "drop",
+              "label": "补足水分",
+              "at": "center",
+              "state": "active"
+            }
+          ]
+        }
+      },
+      "cues": [
+        {
+          "sentence": 3,
+          "at": "补足水分",
+          "do": "move",
+          "target": 0
+        },
+        {
+          "sentence": 3,
+          "at": "聚集",
+          "do": "react",
+          "target": 0
+        }
+      ],
+      "note": "环境补水后静电不易聚集"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}
