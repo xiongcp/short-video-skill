@@ -90,14 +90,32 @@ test('claude turns run headless, stream JSON and continue the same conversation'
   assert.deepEqual(agentInvocation({ agent: 'claude', index: 0, turn: 'x', model: 'opus' }).args.slice(-2), ['--model', 'opus']);
 });
 
-test('claude turns never skip permissions: edits stay auto-accepted in the workspace and Bash is limited to the skill tools', () => {
+test('claude turns never skip permissions: Bash is limited to the three skill scripts and blocks node eval', () => {
   // Scenario sources carry prompt-injection text on purpose; Codex and agy run sandboxed, so Claude must not run unrestricted.
-  const { args } = agentInvocation({ agent: 'claude', index: 0, turn: 'x' });
+  const work = '/tmp/svs-scenario-01-test';
+  const { args } = agentInvocation({ agent: 'claude', index: 0, turn: 'x', work });
   assert.ok(!args.includes('--dangerously-skip-permissions'));
   assert.deepEqual(args.slice(args.indexOf('--permission-mode'), args.indexOf('--permission-mode') + 2), ['--permission-mode', 'acceptEdits']);
   const allowed = args[args.indexOf('--allowedTools') + 1].split(',');
-  for (const tool of ['Read', 'Write', 'Edit', 'Bash(node:*)', 'Bash(ffmpeg:*)', 'Bash(ffprobe:*)']) assert.ok(allowed.includes(tool), tool);
-  assert.ok(!allowed.includes('Bash') && !allowed.some((t) => /Bash\((curl|rm|sh|bash)/.test(t)));
+  for (const tool of ['Read', 'Write', 'Edit', 'Glob', 'Grep', 'Bash(ffprobe:*)', 'Bash(ls:*)', 'Bash(mkdir:*)']) {
+    assert.ok(allowed.includes(tool), tool);
+  }
+  for (const script of ['doctor.mjs', 'check.mjs', 'render.mjs']) {
+    const rel = `.claude/skills/topic-to-video/scripts/${script}`;
+    const abs = join(work, rel);
+    assert.ok(allowed.includes(`Bash(node ${rel})`), `allows relative ${script}`);
+    assert.ok(allowed.includes(`Bash(node ${rel} *)`), `allows relative ${script} with args`);
+    assert.ok(allowed.includes(`Bash(node ${abs})`), `allows absolute ${script}`);
+    assert.ok(allowed.includes(`Bash(node ${abs} *)`), `allows absolute ${script} with args`);
+  }
+  // No generic node or ffmpeg wildcards, and no leading wildcard before script names.
+  assert.ok(!allowed.includes('Bash'));
+  assert.ok(!allowed.some((t) => /^Bash\((node[:*)]|node \*|ffmpeg|curl|rm|sh|bash)/.test(t)), `overbroad Bash rule in ${allowed}`);
+  assert.ok(!allowed.some((t) => /^Bash\(node .*\*.*\.mjs/.test(t)), `leading wildcard before script path in ${allowed}`);
+  const disallowed = args[args.indexOf('--disallowedTools') + 1].split(',');
+  for (const blocked of ['Bash(node -e*)', 'Bash(node --eval*)', 'Bash(node -p*)', 'Bash(node --print*)']) {
+    assert.ok(disallowed.includes(blocked), blocked);
+  }
 });
 
 test('parseClaudeStream returns the final reply, status and tools used', () => {

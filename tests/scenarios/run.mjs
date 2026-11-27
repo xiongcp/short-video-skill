@@ -90,13 +90,22 @@ export function inspectProject(file) {
   };
 }
 
+const CLAUDE_SKILL_SCRIPTS = ['doctor.mjs', 'check.mjs', 'render.mjs'];
+const CLAUDE_DISALLOWED_TOOLS = 'Bash(node -e*),Bash(node --eval*),Bash(node -p*),Bash(node --print*)';
+
 /** Command and arguments for one turn. Codex and Claude Code resume the latest session; agy resumes by conversation id. */
-export function agentInvocation({ agent, index, turn, model, lastFile, conversationId }) {
+export function agentInvocation({ agent, index, turn, model, lastFile, conversationId, work }) {
   if (agent === 'claude') {
     // No --dangerously-skip-permissions: scenario sources carry prompt-injection text, and unlike Codex and agy, Claude runs unsandboxed here.
-    // Edits are auto-accepted inside the workspace only; Bash is limited to what the skill needs, and anything else is denied in -p mode.
+    // Edits are auto-accepted inside the workspace only; Bash allows only the three bundled skill scripts (no generic node:* or ffmpeg:*), plus ffprobe/ls/mkdir.
+    const scriptRules = CLAUDE_SKILL_SCRIPTS.flatMap((script) => {
+      const rel = `${SKILL_DIRS.claude}/topic-to-video/scripts/${script}`;
+      const paths = [rel, `./${rel}`, ...(work ? [join(work, rel)] : [])];
+      return paths.flatMap((p) => [`Bash(node ${p})`, `Bash(node ${p} *)`]);
+    });
+    const allowed = ['Read', 'Write', 'Edit', 'Glob', 'Grep', ...scriptRules, 'Bash(ffprobe:*)', 'Bash(ls:*)', 'Bash(mkdir:*)'].join(',');
     const args = ['-p', turn, '--output-format', 'stream-json', '--verbose', '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'Read,Write,Edit,Glob,Grep,Bash(node:*),Bash(ffmpeg:*),Bash(ffprobe:*),Bash(ls:*),Bash(mkdir:*)'];
+      '--allowedTools', allowed, '--disallowedTools', CLAUDE_DISALLOWED_TOOLS];
     if (index > 0) args.push('--continue');
     if (model) args.push('--model', model);
     return { cmd: 'claude', args };
@@ -223,7 +232,7 @@ async function main() {
   let conversationId;
   spec.turns.forEach((turn, i) => {
     const last = join(out, `turn-${i + 1}.md`);
-    const { cmd, args } = agentInvocation({ agent: values.agent, index: i, turn, model: values.model, lastFile: last, conversationId });
+    const { cmd, args } = agentInvocation({ agent: values.agent, index: i, turn, model: values.model, lastFile: last, conversationId, work });
     const result = spawnSync(cmd, args, { cwd: work, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
     writeFileSync(join(out, `turn-${i + 1}.log`), `${result.stdout}\n--- stderr ---\n${result.stderr}`);
     if (result.status !== 0) throw new Error(`${cmd} 在第 ${i + 1} 轮退出码 ${result.status}，日志在 ${out}`);
