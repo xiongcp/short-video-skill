@@ -74,7 +74,7 @@ test('a TTS failure on the second sentence keeps the first in timing.json and sa
 import { spawnSync } from 'node:child_process';
 const [out] = process.argv.slice(2);
 const marker = new URL('./count', import.meta.url);
-if (existsSync(marker)) { console.error('Cannot connect to host speech.platform.bing.com'); process.exit(1); }
+if (existsSync(marker)) { console.error('Retrying...\\n  Cannot connect to host speech.platform.bing.com.'); process.exit(1); }
 writeFileSync(marker, '1');
 spawnSync(process.env.FFMPEG || 'ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'sine=frequency=220:duration=0.5', out]);
 `);
@@ -84,6 +84,8 @@ spawnSync(process.env.FFMPEG || 'ffmpeg', ['-y', '-loglevel', 'error', '-f', 'la
   assert.equal(r.json.code, 'TTS_FAILED');
   assert.match(r.json.message, /联网/);
   assert.match(r.json.message, /say|录音/);
+  // the last stderr line is quoted without its indent or a doubled full stop
+  assert.match(r.json.message, /失败：Cannot connect to host speech\.platform\.bing\.com。edge-tts/);
   const timing = JSON.parse(readFileSync(join(dir, 'audio/timing.json'), 'utf8'));
   assert.ok(timing['s01-0']);
 });

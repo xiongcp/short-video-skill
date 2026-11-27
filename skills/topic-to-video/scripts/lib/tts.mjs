@@ -131,7 +131,7 @@ function runCommandTts(voice, text, wavOut, subOut, { ffmpeg = 'ffmpeg' } = {}) 
   const args = tokens.slice(1).map((tok) => Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(k, v), tok));
   const res = spawnSync(tokens[0], args, { encoding: 'utf8' });
   if (res.error || res.status !== 0) {
-    const tail = `${res.stderr || res.error?.message || ''}`.trim().split('\n').pop();
+    const tail = `${res.stderr || res.error?.message || ''}`.trim().split('\n').pop().trim().replace(/[。.]+$/, '');
     throw fail('TTS_FAILED', `配音命令 ${tokens[0]} 失败：${tail}。edge-tts 需要联网；不能联网时改用 macOS say 或导入录音`);
   }
   if (!existsSync(rawOut)) throw new Error(`voice.command did not create ${rawOut}`);
