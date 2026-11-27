@@ -203,6 +203,15 @@ test('a cue splits a shot into stretches of at most 4 seconds', () => {
   assert.deepEqual(lintStoryboard(p), []);
 });
 
+test('a cue with an at keyword counts from that word, so one long sentence can change mid-way', () => {
+  const p = fiveSecondShot();
+  p.shots[1].cues = [{ sentence: 1, do: 'reveal', target: 1, at: '散射' }];
+  assert.deepEqual(lintStoryboard(p), []);
+  p.shots[1].cues = [{ sentence: 1, do: 'reveal', target: 1, at: '一些' }];
+  assert.deepEqual(codes(p), ['STATIC_STRETCH /shots/1']);
+  assert.match(lintStoryboard(p)[0].message, /sh02 在 0–4\.2 秒之间/);
+});
+
 test('does not raise STATIC_STRETCH on an exact 4.0-second stretch despite floating-point drift', () => {
   const p = minimal();
   p.settings.sentence_gap_ms = 200;
@@ -301,6 +310,8 @@ test('NO_INTERACTION warns on stage shots without interaction cues or tap, and c
     { ...p.shots[1], sentences: [1] },
   ];
   assert.deepEqual(codes(p), ['NO_INTERACTION /shots/0']);
+  // tap is a gesture, not a cue type: the message spells out the cue to write
+  assert.match(lintStoryboard(p)[0].message, /react、open 等互动 cue，或 \{"do": "gesture", "target": "tap"\}/);
 
   p.shots[0].cues = [{ sentence: 0, do: 'open', target: 0 }];
   assert.deepEqual(lintStoryboard(p), []);
