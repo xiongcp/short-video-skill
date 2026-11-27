@@ -103,3 +103,11 @@ test('inkStroke with smooth and taper is deterministic', () => {
   const o = { ...opts, smooth: 2, taper: 'end' };
   assert.equal(inkStroke(line, o).d, inkStroke(line, o).d);
 });
+
+test('inkStroke picks the same sample count across 1-ULP drift near a multiple of 6', () => {
+  // Rotated 60 px limbs can differ by 1e-13 across arm64 and x86_64 libm; Math.ceil(total / 6) must not flip 10 vs 11.
+  const below = inkStroke([[0, 0], [60 - 1e-12, 0]], opts);
+  const above = inkStroke([[0, 0], [60 + 1e-12, 0]], opts);
+  assert.equal(below.base.length, above.base.length);
+  assert.equal(below.d, above.d);
+});
