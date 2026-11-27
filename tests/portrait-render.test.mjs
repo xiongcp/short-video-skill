@@ -8,11 +8,11 @@ import { renderProject } from '../skills/topic-to-video/scripts/lib/encode.mjs';
 import { FRAMES } from '../skills/topic-to-video/scripts/lib/frame.mjs';
 import { makeWavBuffer } from '../skills/topic-to-video/scripts/lib/mouth.mjs';
 import { runQa } from '../skills/topic-to-video/scripts/lib/qa.mjs';
-import { buildShotPlans, portraitLayoutIssues, shotCacheKey } from '../skills/topic-to-video/scripts/lib/scene.mjs';
+import { buildShotPlans, evaluateFrame, portraitLayoutIssues, shotCacheKey } from '../skills/topic-to-video/scripts/lib/scene.mjs';
 import { panGains } from '../skills/topic-to-video/scripts/lib/sound.mjs';
 import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
 import { parseArgs } from '../skills/topic-to-video/scripts/render.mjs';
-import { fakeTiming, manifest, sceneTour } from './helpers/golden.mjs';
+import { fakeTiming, goldenCases, manifest, sceneTour } from './helpers/golden.mjs';
 import { pngSize } from './helpers/png.mjs';
 
 const plansOf = (p, frame) => buildShotPlans(p, buildTimeline(p, fakeTiming(p), 60), manifest, frame ? { frame } : undefined);
@@ -141,5 +141,37 @@ test('--master separates portrait intermediates from landscape and cover.png thr
     );
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('examples/cache-speed in 9:16 has zero HOST_OCCLUSION, STAGE_CROWDED, SAFE_ZONE_TEXT and HOST_OBJECT_OVERLAP', () => {
+  const p = goldenCases()['cache-speed'];
+  const plans = plansOf(p, FRAMES['9:16']);
+  assert.deepEqual(portraitLayoutIssues(manifest, plans), []);
+
+  const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  for (const plan of plans) {
+    if (plan.shot.layout === 'full') continue;
+    for (let f = 0; f < plan.frameCount; f += 6) {
+      const frame = evaluateFrame(manifest, plan, f / 60);
+      const hm = frame.hostMeta;
+      if (!hm?.bodyBbox || hm.lift > 0.01) continue;
+      if (plan.shot.layout === 'stage') {
+        if (!hm.interacting) {
+          const t = f / 60;
+          const sw = hm.sitWalk;
+          const hit = (frame.objectBoxes ?? []).find((box, idx) => {
+            if (!box || !overlaps(hm.bodyBbox, box)) return false;
+            const winSec = Math.max(0.8, ((box.w * 0.5 + hm.bodyBbox.w * 0.5) / 360) * 3.0 + 0.2);
+            if (sw && ((sw.enterIdx === idx && t >= sw.enterT1 - winSec && t <= sw.enterT1) || (sw.exitIdx === idx && t >= sw.exitT0 && t <= sw.exitT0 + winSec))) return false;
+            return true;
+          });
+          assert.equal(hit, undefined, `${plan.id} f=${f}: host overlaps stage object`);
+        }
+      } else {
+        const hit = plan.elements.find((el, idx) => idx !== hm.focusIdx && overlaps(hm.bodyBbox, el.bbox));
+        assert.equal(hit, undefined, `${plan.id} f=${f}: host occludes host-left element`);
+      }
+    }
   }
 });

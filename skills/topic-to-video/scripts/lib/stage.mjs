@@ -1,7 +1,7 @@
 // Semantic stage auto-layout and pure-vector renderer for `layout: "stage"` (画面与同台互动设计 §4.2, §5.1–§5.4).
 // Pure deterministic functions without <text>, sharing geometry with project.mjs and scene.mjs.
 import { clamp01, easeOutBack, lerp } from './ease.mjs';
-import { FRAMES, flowArrowEnds } from './frame.mjs';
+import { FRAMES, flowArrowEnds, isPortrait, textBox } from './frame.mjs';
 import { COMMON_STATES, customPropMeta, drawCustomProp, drawIcon, isCountState, PROP_META } from './icons.mjs';
 import { inkStroke, num, resample } from './ink.mjs';
 import { resolveStyle } from './world.mjs';
@@ -17,6 +17,15 @@ const escAttr = (s) => String(s).replace(/[&"<>]/g, (c) => ({ '&': '&amp;', '"':
 const isOverlayState = (s) => COMMON_STATES.includes(s) || isCountState(s);
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const clampPortraitTextX = (x, text, fontSize, frame) => {
+  if (!isPortrait(frame)) return x;
+  const cx = frame.center[0];
+  const s = frame.textSafe;
+  const halfW = textBox({ text, x: 0, y: 0, fontSize }).w / 2;
+  const lo = cx + (s.x + halfW - cx) / 1.03;
+  const hi = cx + (s.x + s.w - halfW - cx) / 1.03;
+  return lo > hi ? cx : clamp(x, lo, hi);
+};
 const boxesOverlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 const boxesOverlapStrict = (a, b) => (
   a.x < b.x + b.w - 1e-6
@@ -217,62 +226,81 @@ function buildAttempt(specs, scale, preferredHostX, hostHeight, geo = LANDSCAPE)
 
   // Freestanding mid shares the lower stage height band with ground objects
   const lowerItems = [...byLayer.ground, ...freestandingMid];
-  const lowerSpread = spreadLayer(lowerItems, B.minX, B.maxX, B.gap);
   const airSpread = spreadLayer(byLayer.air, B.minX, B.maxX, B.gap);
+  const airMidY = (B.airTopMin + B.airBottomMax) / 2;
+  const hostTop = G - hostHeight;
+  const clampedPref = clamp(preferredHostX, geo.stage.hostMinX, geo.stage.hostMaxX);
 
-  const xMap = new Map([...lowerSpread.positions, ...airSpread.positions]);
-  const groundRects = byLayer.ground.map((g) => {
-    const x = xMap.get(g.index);
-    return { index: g.index, x, y: G - g.h, w: g.w, h: g.h };
-  });
-  const groundByIndex = new Map(groundRects.map((g) => [g.index, g]));
+  const evaluateLower = (lowerSpread) => {
+    const xMap = new Map([...lowerSpread.positions, ...airSpread.positions]);
+    const groundRects = byLayer.ground.map((g) => {
+      const x = xMap.get(g.index);
+      return { index: g.index, x, y: G - g.h, w: g.w, h: g.h };
+    });
+    const groundByIndex = new Map(groundRects.map((g) => [g.index, g]));
 
-  let stackedOk = true;
-  for (const [supIdx, group] of stackedBySupporter.entries()) {
-    const sup = groundByIndex.get(supIdx);
-    const supCx = sup.x + sup.w / 2;
-    const shiftedGroup = group.map((m) => ({ ...m, targetX: supCx + m.offsetFromSupporter }));
-    const groupSpread = spreadLayer(shiftedGroup, B.minX, B.maxX, B.gap);
-    if (!groupSpread.ok) stackedOk = false;
-    for (const [idx, x] of groupSpread.positions.entries()) xMap.set(idx, x);
+    let stackedOk = true;
+    for (const [supIdx, group] of stackedBySupporter.entries()) {
+      const sup = groundByIndex.get(supIdx);
+      const supCx = sup.x + sup.w / 2;
+      const shiftedGroup = group.map((m) => ({ ...m, targetX: supCx + m.offsetFromSupporter }));
+      const groupSpread = spreadLayer(shiftedGroup, B.minX, B.maxX, B.gap);
+      if (!groupSpread.ok) stackedOk = false;
+      for (const [idx, x] of groupSpread.positions.entries()) xMap.set(idx, x);
+    }
+
+    const boxes = scaled.map((item) => {
+      const x = xMap.get(item.index);
+      let y;
+      if (item.layer === 'ground') {
+        y = G - item.h;
+      } else if (item.layer === 'air') {
+        y = airMidY - item.h / 2;
+      } else {
+        const cx = x + item.w / 2;
+        const supporter = groundRects.find((g) => cx >= g.x - 1e-6 && cx <= g.x + g.w + 1e-6);
+        y = supporter ? supporter.y - item.h : B.midDefaultBottom - item.h;
+      }
+      return { x, y, w: item.w, h: item.h };
+    });
+
+    // Host 200px corridor avoids all objects vertically intersecting [G - hostHeight, G]
+    const hostBlockingRects = boxes.filter((b) => b.y < G - 1e-6 && b.y + b.h > hostTop + 1e-6);
+    const hostX = findHostX(hostBlockingRects, preferredHostX, geo);
+
+    const layersFit = initGroundSpread.ok && lowerSpread.ok && airSpread.ok && stackedOk;
+    const boundsOk = scaled.every((item, i) => {
+      const b = boxes[i];
+      if (b.x < B.minX - 1e-6 || b.x + b.w > B.maxX + 1e-6) return false;
+      if (b.y < B.airTopMin - 1e-6 || b.y + b.h > G + 1e-6) return false;
+      if (item.layer === 'air' && b.y + b.h > B.airBottomMax + 1e-6) return false;
+      return true;
+    });
+    const spacingOk = sameLayerGapOk(scaled, boxes, B.gap) && no2DOverlap(boxes);
+
+    return {
+      ok: layersFit && boundsOk && spacingOk && hostX !== null,
+      hostX,
+      boxes,
+    };
+  };
+
+  let best = evaluateLower(spreadLayer(lowerItems, B.minX, B.maxX, B.gap));
+  if (isPortrait(geo) && lowerItems.length > 0 && (best.hostX === null || Math.abs(best.hostX - clampedPref) > B.hostClearWidth / 2)) {
+    const corridor = { index: -1, w: Math.max(0, B.hostClearWidth - 2 * B.gap), targetX: clampedPref };
+    const candSpread = spreadLayer([...lowerItems, corridor], B.minX, B.maxX, B.gap);
+    candSpread.positions.delete(-1);
+    const cand = evaluateLower(candSpread);
+    if (cand.ok && (!best.ok || Math.abs(cand.hostX - clampedPref) < Math.abs(best.hostX - clampedPref) - 1e-6)) {
+      best = cand;
+    }
   }
 
-  const airMidY = (B.airTopMin + B.airBottomMax) / 2;
-  const boxes = scaled.map((item) => {
-    const x = xMap.get(item.index);
-    let y;
-    if (item.layer === 'ground') {
-      y = G - item.h;
-    } else if (item.layer === 'air') {
-      y = airMidY - item.h / 2;
-    } else {
-      const cx = x + item.w / 2;
-      const supporter = groundRects.find((g) => cx >= g.x - 1e-6 && cx <= g.x + g.w + 1e-6);
-      y = supporter ? supporter.y - item.h : B.midDefaultBottom - item.h;
-    }
-    return { x, y, w: item.w, h: item.h };
-  });
-
-  // Host 200px corridor avoids all objects vertically intersecting [G - hostHeight, G]
-  const hostTop = G - hostHeight;
-  const hostBlockingRects = boxes.filter((b) => b.y < G - 1e-6 && b.y + b.h > hostTop + 1e-6);
-  const hostX = findHostX(hostBlockingRects, preferredHostX, geo);
-
-  const layersFit = initGroundSpread.ok && lowerSpread.ok && airSpread.ok && stackedOk;
-  const boundsOk = scaled.every((item, i) => {
-    const b = boxes[i];
-    if (b.x < B.minX - 1e-6 || b.x + b.w > B.maxX + 1e-6) return false;
-    if (b.y < B.airTopMin - 1e-6 || b.y + b.h > G + 1e-6) return false;
-    if (item.layer === 'air' && b.y + b.h > B.airBottomMax + 1e-6) return false;
-    return true;
-  });
-  const spacingOk = sameLayerGapOk(scaled, boxes, B.gap) && no2DOverlap(boxes);
-
   return {
-    ok: layersFit && boundsOk && spacingOk && hostX !== null,
+    ok: best.ok,
     scale,
-    hostX: hostX ?? clamp(preferredHostX, geo.stage.hostMinX, geo.stage.hostMaxX),
-    boxes,
+    hostX: best.hostX ?? clampedPref,
+    boxes: best.boxes,
   };
 }
 
@@ -936,7 +964,7 @@ export function renderStage(visualData, {
       textItems.push({
         key: `stage-link-${lnk.index}`,
         text: lnk.label,
-        x: midX,
+        x: clampPortraitTextX(midX, lnk.label, 30, frame),
         y: clamp(midY - 20, frame.stage.bounds.airTopMin + 16, frame.ground - 24),
         fontSize: 30,
         color: pal.muted,
@@ -1036,15 +1064,16 @@ export function renderStage(visualData, {
           ? el.label
           : chars.slice(0, Math.min(maxPartial, Math.max(1, Math.ceil(dp * chars.length)))).join('');
         if (shownLabel) {
+          const labelX = clampPortraitTextX(bEff.x + bEff.w / 2, el.label, 36, frame);
           const yAbove = bEff.y - 24;
           const halfW = Math.max(36, (chars.length * 36) / 2);
-          const aboveBox = { x: bEff.x + bEff.w / 2 - halfW, y: yAbove - 18, w: halfW * 2, h: 36 };
+          const aboveBox = { x: labelX - halfW, y: yAbove - 18, w: halfW * 2, h: 36 };
           const conflicts = yAbove < frame.stage.bounds.airTopMin
             || effectiveBoxes.some((other, j) => j !== i && other.visible && boxesOverlap(aboveBox, other.shifted));
           textItems.push({
             key: `stage-label-${i}`,
             text: shownLabel,
-            x: bEff.x + bEff.w / 2,
+            x: labelX,
             y: conflicts ? bEff.y + bEff.h * 0.55 : yAbove,
             fontSize: 36,
             color: pal.ink,

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { FRAMES } from '../skills/topic-to-video/scripts/lib/frame.mjs';
+import { FRAMES, textOutsideSafe } from '../skills/topic-to-video/scripts/lib/frame.mjs';
 import { evaluateHostAt, resolveStandX } from '../skills/topic-to-video/scripts/lib/motion.mjs';
 import { checkProject } from '../skills/topic-to-video/scripts/lib/project.mjs';
 import { layoutStage, renderStage } from '../skills/topic-to-video/scripts/lib/stage.mjs';
@@ -74,4 +74,59 @@ test('checkProject falls back to 16:9 for prototype-key settings.ratio without t
     assert.ok(Array.isArray(errs));
     assert.ok(!errs.some((e) => e.code === 'STAGE_CROWDED'), `${ratio} falls back to 16:9`);
   }
+});
+
+test('portrait stage opens a host corridor for sh10-like 3 lower props and sh13-like 2 props without overlap', () => {
+  const sh10 = {
+    objects: [
+      { prop: 'phone', label: '问超市', at: 'left' },
+      { prop: 'shop', label: '超市', at: 'center', size: 'sm' },
+      { prop: 'ticket', label: '缓存单', at: 'right' },
+    ],
+  };
+  const lay10 = layoutStage(sh10, { hostAt: 0.72, frame: P });
+  assert.equal(lay10.ok, true);
+  assert.equal(lay10.crowded, false);
+  const half = P.stage.bounds.hostClearWidth / 2;
+  for (const el of lay10.elements) {
+    assert.ok(el.bbox.x + el.bbox.w <= lay10.hostX - half + 1e-6 || el.bbox.x >= lay10.hostX + half - 1e-6, `${el.prop} clears host corridor`);
+  }
+
+  const sh13 = {
+    objects: [
+      { prop: 'fridge', label: '缓存', at: 'center' },
+      { prop: 'ticket', label: '状态码', at: 'right', state: 'count:304' },
+    ],
+  };
+  const lay13 = layoutStage(sh13, { hostAt: 'mid-right', frame: P });
+  assert.equal(lay13.ok, true);
+  assert.ok(lay13.hostX >= lay13.elements[0].bbox.x + lay13.elements[0].bbox.w + half - 1e-6, `host right of fridge: ${lay13.hostX}`);
+  assert.ok(lay13.hostX <= lay13.elements[1].bbox.x - half + 1e-6, `host left of ticket: ${lay13.hostX}`);
+});
+
+test('portrait renderStage keeps edge prop labels, link labels and count badges inside textSafe at 1.03 zoom', () => {
+  const [cx, cy] = P.center;
+  const zoom = (items) => items.map((ti) => ({ ...ti, x: cx + (ti.x - cx) * 1.03, y: cy + (ti.y - cy) * 1.03 }));
+
+  const sh10 = {
+    objects: [
+      { prop: 'phone', label: '问超市', at: 'left' },
+      { prop: 'shop', label: '超市', at: 'center', size: 'sm' },
+      { prop: 'ticket', label: '缓存单', at: 'right' },
+    ],
+    links: [{ from: 0, to: 1, label: '问一次超市' }],
+  };
+  const lay10 = layoutStage(sh10, { hostAt: 0.72, frame: P });
+  const res10 = renderStage(sh10, { frame: P, layoutResult: lay10 });
+  assert.deepEqual(textOutsideSafe(zoom(res10.textItems), P), []);
+
+  const sh13 = {
+    objects: [
+      { prop: 'fridge', label: '缓存', at: 'center' },
+      { prop: 'ticket', label: '状态码', at: 'right', state: 'count:304' },
+    ],
+  };
+  const lay13 = layoutStage(sh13, { hostAt: 'mid-right', frame: P });
+  const res13 = renderStage(sh13, { frame: P, layoutResult: lay13 });
+  assert.deepEqual(textOutsideSafe(zoom(res13.textItems), P), []);
 });

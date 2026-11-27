@@ -44,12 +44,12 @@ const PORTRAIT = {
   walk: { minX: 110, maxX: 970 },
   focusDefault: [487, 580],
   zones: {
-    'host-left': { x: 64, y: 260, w: 846, h: 640 },
+    'host-left': { x: 64, y: 260, w: 846, h: 440 },
     full: { x: 64, y: 260, w: 846, h: 940 },
   },
   stage: {
     slots: { left: 160, 'mid-left': 325, center: 490, 'mid-right': 655, right: 820 },
-    bounds: { minX: 90, maxX: 890, titleTop: 260, titleBottom: 370, airTopMin: 400, airBottomMax: 720, midDefaultBottom: 1012, subtitleSafeY: 1200, gap: 32, hostClearWidth: 200, minScale: 0.6 },
+    bounds: { minX: 90, maxX: 880, titleTop: 260, titleBottom: 370, airTopMin: 400, airBottomMax: 720, midDefaultBottom: 1012, subtitleSafeY: 1200, gap: 32, hostClearWidth: 200, minScale: 0.6 },
     hostMinX: 140,
     hostMaxX: 860,
     heading: { x: 540, y: 300, underlineY: 340, fontSize: 52 },
