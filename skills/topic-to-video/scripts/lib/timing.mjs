@@ -2,7 +2,8 @@
 // cue.at anchor resolution and FFmpeg silencedetect splitting (出片质量设计 §6.1).
 import { spawnSync } from 'node:child_process';
 import { countChars } from './captions.mjs';
-import { toSpoken } from './reading.mjs';
+import { textBox } from './frame.mjs';
+import { NUMBER_UNITS, toSpoken } from './reading.mjs';
 
 const PAUSE_PUNCT = /^[，、；：,:;]$/;
 const SKIP_PUNCT = /^[\s。！？!?「」『』“”‘’（）()《》【】\[\]"'—…·,.~]$/;
@@ -23,7 +24,7 @@ const parseTimestamp = (raw) => {
 export function splitClauses(sentence) {
   const text = String(sentence ?? '').trim();
   if (!text) return [];
-  const raw = text.split(/(?<=[，、；：,:;]|——|……)/).map((s) => s.trim()).filter(Boolean);
+  const raw = text.split(/(?<=[，、；：;]|——|……|(?<!\d)[,:]|[,:](?!\d))/).map((s) => s.trim()).filter(Boolean);
   if (raw.length <= 1) return raw;
   // Merge tiny orphan fragments (<= 2 chars) into their neighbor so subtitles stay balanced
   const merged = [];
@@ -34,65 +35,160 @@ export function splitClauses(sentence) {
   return merged;
 }
 
-const IS_PUNCT = (tk) => /^\p{P}$/u.test(tk);
-const OPEN_PUNCT = /^[\p{Ps}\p{Pi}]$/u;
+// Caption line breaking (字幕与转场设计 §4): a clause breaks only between atoms — number groups, keywords, English words
+// and segmenter words — into the fewest lines, then the most even lines, avoiding breaks next to an unknown single
+// character and lines that start with a particle.
+const FUNCTION_WORDS = new Set('的了和与及或在是把被从向对给跟也都还就才又再很更最不没有让为以于而并但却则即每各该这那其此之将已曾正到');
+const WEAK_START = new Set('的了着过吗呢吧啊');
+const BREAK_PENALTY = 4;
+const HARD = new RegExp(`[A-Za-z][A-Za-z0-9.+-]*|\\d+[A-Za-z][A-Za-z0-9.+-]*|\\d[\\d.,:%％]*[${NUMBER_UNITS}]*(?:[到至~～–-]?\\d[\\d.,:%％]*[${NUMBER_UNITS}]*)*`, 'gu');
+const OPENING = /^[\p{Ps}\p{Pi}]+$/u;
+const PUNCT = /^[\p{P}\s]+$/u;
+const width = (s) => textBox({ text: s, fontSize: 1, x: 0, y: 0 }).w;
+
+let segmenter;
+function segmentWords(text) {
+  segmenter ??= new Intl.Segmenter('zh-CN', { granularity: 'word' });
+  return [...segmenter.segment(text)].map((s) => s.segment);
+}
+
+// Atoms of one clause: hard spans (number groups, English words, keywords; overlapping ones merged) and segmenter
+// words for the gaps. Punctuation sticks to the atom before it, opening brackets and quotes to the atom after.
+function atomsOf(clause, keywords, segment) {
+  const hard = [...clause.matchAll(HARD)].map((m) => [m.index, m.index + m[0].length]);
+  for (const k of keywords) for (let i = clause.indexOf(k); i >= 0; i = clause.indexOf(k, i + 1)) hard.push([i, i + k.length]);
+  hard.sort((a, b) => a[0] - b[0] || b[1] - a[1]);
+  const merged = [];
+  for (const [s, e] of hard) {
+    const last = merged.at(-1);
+    if (last && s < last[1]) last[1] = Math.max(last[1], e);
+    else merged.push([s, e]);
+  }
+  const raw = [];
+  const words = (from, to) => {
+    let p = from;
+    for (const w of segment(clause.slice(from, to))) {
+      const single = [...w].length === 1 && /\p{Script=Han}/u.test(w) && !FUNCTION_WORDS.has(w);
+      raw.push({ text: w, start: p, kind: PUNCT.test(w) ? 'punct' : single ? 'single' : 'word' });
+      p += w.length;
+    }
+  };
+  let pos = 0;
+  for (const [s, e] of merged) {
+    if (pos < s) words(pos, s);
+    raw.push({ text: clause.slice(s, e), start: s, kind: 'hard' });
+    pos = e;
+  }
+  if (pos < clause.length) words(pos, clause.length);
+  const atoms = [];
+  let open = null;
+  for (const a of raw) {
+    if (a.kind === 'punct' && OPENING.test(a.text)) open = open ? { ...open, text: open.text + a.text } : { ...a };
+    else if (open) {
+      atoms.push({ ...a, text: open.text + a.text, start: open.start });
+      open = null;
+    } else if (a.kind === 'punct' && atoms.length) atoms.at(-1).text += a.text;
+    else atoms.push({ ...a });
+  }
+  if (open) atoms.push(open);
+  return atoms;
+}
+
+// Lines of one clause: the fewest lines of at most maxWidth, then the lowest cost; on a tie the earlier break wins.
+function breakClause(atoms, maxWidth) {
+  const units = atoms.flatMap((a) => {
+    if (width(a.text) <= maxWidth) return [a];
+    let p = a.start;
+    return [...a.text].map((ch) => {
+      const u = { text: ch, start: p, kind: 'char' };
+      p += ch.length;
+      return u;
+    });
+  });
+  const w = units.map((u) => width(u.text));
+  let lines = 1;
+  let acc = 0;
+  for (const x of w) {
+    if (acc > 0 && acc + x > maxWidth + 1e-9) {
+      lines += 1;
+      acc = x;
+    } else acc += x;
+  }
+  const prefix = [0];
+  for (const x of w) prefix.push(prefix.at(-1) + x);
+  const mean = prefix.at(-1) / lines;
+  const penalty = (j) => (units[j - 1].kind === 'single' || units[j].kind === 'single' ? BREAK_PENALTY : 0)
+    + (WEAK_START.has(units[j].text[0]) ? BREAK_PENALTY : 0);
+  const n = units.length;
+  const best = Array.from({ length: lines + 1 }, () => new Array(n + 1).fill(Infinity));
+  const back = Array.from({ length: lines + 1 }, () => new Array(n + 1).fill(-1));
+  best[0][0] = 0;
+  for (let k = 1; k <= lines; k += 1) {
+    for (let i = k; i <= n; i += 1) {
+      for (let j = k - 1; j < i; j += 1) {
+        const lw = prefix[i] - prefix[j];
+        if (best[k - 1][j] === Infinity || lw > maxWidth + 1e-9) continue;
+        const cost = best[k - 1][j] + (lw - mean) ** 2 + (j > 0 ? penalty(j) : 0);
+        if (cost < best[k][i] - 1e-9) {
+          best[k][i] = cost;
+          back[k][i] = j;
+        }
+      }
+    }
+  }
+  const out = [];
+  for (let k = lines, i = n; k > 0; k -= 1) {
+    const j = back[k][i];
+    out.unshift({ text: units.slice(j, i).map((u) => u.text).join('').trim(), start: units[j].start });
+    i = j;
+  }
+  return out;
+}
 
 /**
- * Portrait subtitle pages (竖屏设计 §6.5): clauses split into lines of at most `maxChars`, packed `maxLines` lines per
- * page. Latin words and digit runs are never split; a trailing comma-like mark is dropped from each line.
+ * Caption pages of one sentence (字幕与转场设计 §4): pages of lines `{ text, start }`, `start` being the line's offset
+ * in `text`. Portrait (`maxChars` set): each clause on lines of at most `maxChars` wide, all of a clause's lines on one
+ * page unless it has more than `maxLines`. Landscape (`maxChars` null): one clause per page; a sentence of at most 12
+ * characters or with one clause is one page.
  */
-export function subtitlePages(text, { maxChars = 12, maxLines = 2 } = {}) {
-  const lines = [];
-  for (const clause of splitClauses(text)) {
-    const c = clause.replace(/[，、；：,:;]$/, '');
-    const tokens = c.match(/[A-Za-z0-9.%]+|./gsu) ?? [];
-    const total = tokens.reduce((s, tk) => s + [...tk].length, 0);
-    if (!total) continue;
-    const per = Math.ceil(total / Math.ceil(total / maxChars));
-    let cur = [];
-    let curLen = 0;
-    for (const tk of tokens) {
-      const tkLen = [...tk].length;
-      const punct = IS_PUNCT(tk);
-      if (cur.length && punct && curLen + tkLen > maxChars) {
-        if (!OPEN_PUNCT.test(tk)) {
-          let cut = cur.length - 1;
-          while (cut > 0 && IS_PUNCT(cur[cut])) cut -= 1;
-          const moved = cur.slice(cut);
-          const movedLen = moved.reduce((s, t) => s + [...t].length, 0);
-          if (cut > 0 && !IS_PUNCT(cur[cut]) && movedLen + tkLen <= maxChars) {
-            lines.push(cur.slice(0, cut).join(''));
-            cur = [...moved, tk];
-            curLen = movedLen + tkLen;
-            continue;
-          }
-        }
-        lines.push(cur.join(''));
-        cur = [tk];
-        curLen = tkLen;
-        continue;
-      }
-      if (cur.length && !punct && curLen + tkLen > per) {
-        lines.push(cur.join(''));
-        cur = [];
-        curLen = 0;
-      }
-      cur.push(tk);
-      curLen += tkLen;
-    }
-    if (cur.length) lines.push(cur.join(''));
+export function layoutCaption(text, { maxChars = null, maxLines = 1, keywords = [], segment = segmentWords } = {}) {
+  const clauses = [];
+  let at = 0;
+  for (const part of splitClauses(text)) {
+    // splitClauses trims spaces, so a part may not be found verbatim; its offset then only feeds page timing.
+    const found = text.indexOf(part, at);
+    const start = found < 0 ? at : found;
+    at = start + part.length;
+    clauses.push({ text: part.replace(/[，、；：,:;]$/, ''), start });
+  }
+  if (maxChars === null) {
+    if (clauses.length <= 1 || [...text].length <= 12) return text ? [[{ text, start: 0 }]] : [];
+    return clauses.map((c) => [c]);
   }
   const pages = [];
   let page = [];
-  for (const line of lines) {
-    if (page.length === maxLines) {
+  for (const c of clauses) {
+    if (!c.text) continue;
+    const lines = breakClause(atomsOf(c.text, keywords, segment), maxChars).map((l) => ({ text: l.text, start: c.start + l.start }));
+    if (page.length && page.length + lines.length > maxLines) {
       pages.push(page);
       page = [];
     }
-    page.push(line);
+    for (const line of lines) {
+      if (page.length === maxLines) {
+        pages.push(page);
+        page = [];
+      }
+      page.push(line);
+    }
   }
   if (page.length) pages.push(page);
   return pages;
+}
+
+/** Portrait subtitle pages as text (竖屏设计 §6.5, 字幕与转场设计 §4): at most two lines of width 12 per page. */
+export function subtitlePages(text, opts = {}) {
+  return layoutCaption(text, { maxChars: 12, maxLines: 2, ...opts }).map((pg) => pg.map((l) => l.text));
 }
 
 /** Parses WebVTT or SRT subtitle text (such as edge-tts --write-subtitles output) into word/phrase timings. */
