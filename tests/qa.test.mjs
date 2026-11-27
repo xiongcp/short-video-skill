@@ -62,8 +62,13 @@ test('runQa catches BT.601 color, host occlusion and rushed moves, and passes a 
       timeline: rendered.timeline,
       shotPlans: rendered.shotPlans,
       qaByShot: rendered.qaByShot,
+      draft: rendered.draft,
     });
     assert.equal(cleanQa.ok, true, `unexpected QA issues: ${JSON.stringify(cleanQa.issues)}`);
+    // The fixture has no plan confirmation, so the render is an unreviewed draft and QA says so.
+    assert.equal(rendered.draft, true);
+    assert.equal(cleanQa.draft, true);
+    assert.match(readFileSync(join(dir, 'out/qa.md'), 'utf8'), /未审核初稿/);
     assert.ok(existsSync(join(dir, 'out/qa.json')));
     assert.ok(existsSync(join(dir, 'out/qa.md')));
     assert.ok(existsSync(join(dir, 'out/contact.png')));
@@ -82,9 +87,10 @@ test('runQa catches BT.601 color, host occlusion and rushed moves, and passes a 
       expectedFps: rendered.fps,
       timeline: rendered.timeline,
       shotPlans: rendered.shotPlans,
-      qaByShot: { sh01: { rushedMove: true, occludedFrames: 5 } },
+      qaByShot: { sh01: { rushedMove: true, occludedFrames: 5, labelOverHostFrames: 4 } },
     });
     const codes = badQa.issues.map((i) => i.code);
+    assert.ok(badQa.warnings.some((w) => w.code === 'LINK_LABEL_OVER_HOST' && w.shotId === 'sh01' && w.frames === 4));
     assert.ok(codes.includes('COLOR_NOT_BT709'), `expected COLOR_NOT_BT709 in ${codes}`);
     assert.ok(codes.includes('HOST_OCCLUSION'), `expected HOST_OCCLUSION in ${codes}`);
     assert.ok(codes.includes('RUSHED_MOVE'), `expected RUSHED_MOVE in ${codes}`);

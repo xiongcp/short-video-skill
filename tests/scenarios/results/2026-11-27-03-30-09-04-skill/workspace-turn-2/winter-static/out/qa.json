@@ -1,0 +1,157 @@
+{
+  "ok": true,
+  "video": "/private/var/folders/bp/fmq4wtfn57lcl4dd6k7tyj_80000gn/T/svs-scenario-04-BNDbhy/winter-static/out/final.mp4",
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": "60/1",
+    "pix_fmt": "yuv420p",
+    "color_space": "bt709",
+    "audio_sample_rate": 48000,
+    "duration_sec": 63.13
+  },
+  "issues": [],
+  "warnings": [
+    {
+      "code": "FREEZE_DETECTED",
+      "startFrame": 674,
+      "length": 3,
+      "message": "第 674 帧起连续 3 帧完全相同"
+    },
+    {
+      "code": "FREEZE_DETECTED",
+      "startFrame": 1323,
+      "length": 3,
+      "message": "第 1323 帧起连续 3 帧完全相同"
+    },
+    {
+      "code": "FREEZE_DETECTED",
+      "startFrame": 3176,
+      "length": 3,
+      "message": "第 3176 帧起连续 3 帧完全相同"
+    }
+  ],
+  "manual_review": {
+    "aesthetics": "not_checked",
+    "voice_naturalness": "not_checked",
+    "lip_sync_spot_check": "not_checked",
+    "sound_mix": "not_checked"
+  },
+  "audio": {
+    "music_margin_db": 15.991032165458066,
+    "sfx_margin_db": 11.677808761715141,
+    "sfx_counts": {
+      "startle": 3,
+      "step": 37,
+      "sparkle": 11,
+      "page": 8,
+      "tick": 2,
+      "chime": 1
+    },
+    "music_source": "synth:curious",
+    "music_license": null,
+    "voice_missing": false
+  },
+  "match": [
+    {
+      "id": "sh01",
+      "narration": "寒冬里脱掉毛衣噼啪作响，摸个金属门把手还经常被静电电一激灵。",
+      "keywords": [
+        "寒冬触电",
+        "金属门把手",
+        "静电"
+      ]
+    },
+    {
+      "id": "sh02",
+      "narration": "为什么一到冬天，我们身上就特别容易聚集静电呢？",
+      "keywords": []
+    },
+    {
+      "id": "sh03",
+      "narration": "其实无论春夏秋冬，衣物摩擦时往往都会产生电荷。",
+      "keywords": [
+        "摩擦产生电荷",
+        "衣物摩擦",
+        "产生电荷"
+      ]
+    },
+    {
+      "id": "sh04",
+      "narration": "真正拉开差距的关键，在于这些电荷能不能悄悄溜走。",
+      "keywords": [
+        "电荷悄悄溜走",
+        "电荷",
+        "悄悄溜走"
+      ]
+    },
+    {
+      "id": "sh05",
+      "narration": "夏天环境湿度较高，物体表面通常附着一层微小水膜。",
+      "keywords": [
+        "夏天微小水膜",
+        "微小水膜"
+      ]
+    },
+    {
+      "id": "sh06",
+      "narration": "微弱的电荷顺着导电水膜，不知不觉就导入了大地。",
+      "keywords": [
+        "顺畅导入大地",
+        "导电水膜",
+        "导入大地"
+      ]
+    },
+    {
+      "id": "sh07",
+      "narration": "但冬天寒冷干燥，空气水汽减少，导电通路直接中断。",
+      "keywords": [
+        "冬天寒冷干燥",
+        "寒冷干燥"
+      ]
+    },
+    {
+      "id": "sh08",
+      "narration": "摩擦产生的多余电荷无处可去，只能在身上越积越多。",
+      "keywords": [
+        "电荷越积越多",
+        "越积越多"
+      ]
+    },
+    {
+      "id": "sh09",
+      "narration": "当你靠近金属门把手，积攒的高压电荷瞬间击穿空气。",
+      "keywords": [
+        "瞬间击穿空气",
+        "金属门把手",
+        "击穿空气"
+      ]
+    },
+    {
+      "id": "sh10",
+      "narration": "伴随着一道电火花，手指就会结结实实地疼一下。",
+      "keywords": [
+        "一道电火花",
+        "电火花"
+      ]
+    },
+    {
+      "id": "sh11",
+      "narration": "想要防静电其实很简单，开加湿器或者常涂护手霜。",
+      "keywords": [
+        "开加湿器防静电",
+        "加湿器",
+        "防静电"
+      ]
+    },
+    {
+      "id": "sh12",
+      "narration": "给干燥环境补足水分，静电自然就很难在身上聚集了。",
+      "keywords": [
+        "补足水分",
+        "补足水分"
+      ]
+    }
+  ],
+  "draft": false
+}

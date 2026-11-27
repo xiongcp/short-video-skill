@@ -41,11 +41,23 @@ test('both READMEs give 小青 the 呆毛 and the H counts', () => {
   assert.ok(read('README.en.md').includes('17 gestures, 9 expressions, 6 props and 4 outfits'));
 });
 
-test('both READMEs describe style packs, hand-drawn scenes, 60 built-in props and stage layout', () => {
+test('both READMEs describe style packs, hand-drawn scenes, 72 built-in props and stage layout', () => {
   const zh = read('README.md');
   const en = read('README.en.md');
-  assert.ok(zh.includes('风格包') && zh.includes('手绘场景') && zh.includes('`stage`') && zh.includes('60'));
-  assert.ok(en.includes('style packs') && en.includes('hand-drawn scenes') && en.includes('`stage`') && en.includes('60'));
+  assert.ok(zh.includes('风格包') && zh.includes('手绘场景') && zh.includes('`stage`') && zh.includes('72 个内置手绘物件'));
+  assert.ok(en.includes('style packs') && en.includes('hand-drawn scenes') && en.includes('`stage`') && en.includes('72 built-in hand-drawn props'));
+});
+
+test('both READMEs lead with one sentence, link both guides and doctor.mjs, say edge-tts needs a network and are no longer in progress', () => {
+  const zh = read('README.md');
+  const en = read('README.en.md');
+  for (const text of [zh, en]) {
+    for (const w of ['](docs/guide/安装部署.md)', '](docs/guide/使用指南.md)', 'doctor.mjs']) assert.ok(text.includes(w), w);
+  }
+  assert.ok(zh.includes('需要联网') && zh.includes('一句话'));
+  assert.ok(en.includes('needs a network connection') && en.includes('one sentence'));
+  assert.ok(!zh.includes('进行中'));
+  assert.ok(!en.includes('In progress'));
 });
 
 test('both READMEs describe stage interactions, state/send and link the upgraded example prompt pack', () => {

@@ -5,7 +5,7 @@
 - 每段 `text` 按 `。！？`（含半角 `!?`）切句，从 0 编号；句末紧跟的 `”`、`）`、`》` 归前句。
 - 每镜只属一段，如 `"section": "s02", "sentences": [0, 1]`。
 - 按顺序覆盖：每段每句恰好属于一镜，顺序与段落一致，不跳句、不重叠、不回头。
-- 每镜通常 1–3 句（4–12 秒）。同一画面超过 4 秒没有变化时加 cue 或拆镜，否则报 `STATIC_STRETCH`。
+- 每镜通常 1–3 句（4–12 秒）。同一画面超过 4 秒没有变化时加 cue（长句用 `at` 把 cue 放到句中）或拆镜，否则报 `STATIC_STRETCH`；`full` 镜头开头空白报 `EMPTY_START`。
 - 镜头 ID 依次为 `sh01`、`sh02`……。先写 `note`（这镜观众要看懂的变化），再选画面。
 - 每镜只讲一个意思，只画此刻在说的东西；口播里的关键数字用 `number` 或 `bars` 表现。
 - 镜头估时照抄 `check.mjs` 输出的 `estimates.shots`。
@@ -72,7 +72,7 @@
 - 每个镜头最多 2 次 `move`，否则报 `MOVE_TOO_MANY`；走动跟着正在讲的对象，不要来回踱步。`tap` 之前先走到该元素。
 - 每个镜头最多换 1 次道具；`wave` 全片最多 2 次，`jump` 和 `cheer` 全片合计最多 3 次。
 - 口播有"看右边""右侧""看这张图""看这里"等指示词时，该句动作要是 `point`、`present` 或 `tap`，否则报 `POINT_MISSING`。
-- `stage` 镜头需有互动 cue 或 `tap`，否则报 `NO_INTERACTION`；连续重复同一动作报 `GESTURE_REPEAT`；同台互动、`state`/`send` 与动作卡见 [world.md](world.md)。
+- `stage` 镜头需有互动 cue 或 `tap` 动作，否则报 `NO_INTERACTION`；连续重复同一动作报 `GESTURE_REPEAT`；同台互动、`state`/`send` 与动作卡见 [world.md](world.md)。
 - 竖屏（9:16）同台镜头地面层加中间层最多 3 件、空中最多 2 件，否则报 `PORTRAIT_CROWDED`。
 
 ## 图解模板
@@ -118,7 +118,7 @@
 | `move` | 元素序号，或 `left`、`center`、`right` | 主持人在这句开始时走过去（仅限出镜镜头） |
 | `prop` | 道具名，或 `none` | 主持人在这句开始时拿起道具，`none` 放下（仅限出镜镜头） |
 
-- `sentence` 须在本镜 `sentences` 内；可选：`cue.at` 填本句关键词子串；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（[60 个内置图标](world.md)）。
+- `sentence` 须在本镜 `sentences` 内；可选：`cue.at` 填本句关键词子串；`shot.transition: "cut"` 强制硬切；`bullets`/`flow` 可配 `data.icons`（[72 个内置图标](world.md)）。
 - `title` 和 `number` 没有可单独指定的元素，不能用 `reveal`、`highlight` 或写序号的 `move`。
 
 ## 分镜.md 格式

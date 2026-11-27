@@ -12,7 +12,7 @@ const PROFILE = JSON.parse(readFileSync(new URL('../../assets/host/profile.json'
 /** The only host this skill draws; settings.host must name it (assets/host/profile.json). */
 export const HOST_ID = PROFILE.id;
 
-export const CHARS_PER_SECOND = 4;
+export const CHARS_PER_SECOND = 4.5;
 export const DEFAULT_SENTENCE_GAP_MS = 250;
 export const MAX_SENTENCE_CHARS = 30;
 export const HOST_LAYOUTS = ['host-left', 'stage'];
@@ -25,7 +25,7 @@ const absoluteWords = (sentence) => ABSOLUTE_WORDS.filter((w) => sentence.includ
 const LIST_FIELD = { bullets: 'items', flow: 'nodes', bars: 'items', timeline: 'items', cycle: 'items', stage: 'objects' };
 
 /** Elements a reveal, highlight or move cue can address: list items, flow nodes, bars, timeline/cycle items, stage objects, or the two compare columns. */
-function elementCount(visual) {
+export function elementCount(visual) {
   if (visual.template === 'compare') return 2;
   const tpl = visual?.template;
   const field = typeof tpl === 'string' && Object.hasOwn(LIST_FIELD, tpl) ? LIST_FIELD[tpl] : undefined;
@@ -671,4 +671,9 @@ export function lintVoice(project) {
 export function isApproved(project, stage) {
   const last = project.checkpoints.filter((c) => c.stage === stage).at(-1);
   return last !== undefined && last.revision === project.revision;
+}
+
+/** A render is an unreviewed draft (未审核初稿) until the plan is confirmed for the current revision. */
+export function isDraft(project) {
+  return !isApproved({ ...project, checkpoints: project.checkpoints ?? [] }, 'plan');
 }

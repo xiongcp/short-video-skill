@@ -83,7 +83,8 @@ export function chaikin(points, iterations = 1) {
 export function inkStroke(points, { seed, width, wobble = 0, taper = 'both', smooth = 0 }) {
   const pts = smooth > 0 ? chaikin(points, smooth) : points;
   const total = lengths(pts).at(-1);
-  const count = Math.max(8, Math.min(64, Math.ceil(total / 6)));
+  // Guard against 1-ULP trig/hypot drift flipping Math.ceil when total is an exact multiple of 6 (e.g. 60 px limbs).
+  const count = Math.max(8, Math.min(64, Math.ceil(total / 6 - 1e-9)));
   const base = resample(pts, count);
   const amp = Math.min(wobble, 0.02 * total);
   const rnd = random(seed);

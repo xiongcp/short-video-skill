@@ -12,9 +12,11 @@ The previous Studio implementation (13 skills, a TypeScript runtime, a SQLite st
 | `examples/` | Example projects as JSON and Markdown, no media |
 | `tests/` | `node --test` suites and the agent scenario evaluations in `tests/scenarios/` |
 | `docs/lite/` | Plans, in Chinese |
+| `docs/guide/` | Install and usage guides for users, in Chinese |
 | `site/` | The project website: one static page, no build step, published to GitHub Pages |
 | `tools/` | Development scripts outside the skill: `export-host.mjs` redraws the host images from `rig.mjs`; `review-host.mjs` renders review frames and comparisons |
-| `.github/workflows/` | `pages.yml` publishes `site/` |
+| `.github/workflows/` | `pages.yml` publishes `site/`; `test.yml` runs `npm test` on every push and pull request |
+| `CHANGELOG.md` | Release notes, in Chinese |
 
 ## Budgets (enforced by `tests/budget.test.mjs`)
 
@@ -41,5 +43,5 @@ npm install   # development dependencies
 npm test      # every node --test suite
 npm run export-host   # redraw host-ref.png, the site cheatsheet and hero after changing rig.mjs, ink.mjs or manifest.json
 npm run review-host   # render 1080p/540p review frames, H.264 round trips and side-by-side sheets into out/review/
-npm run scenario -- --scenario 01 --mode skill --agent agy   # agent scenario run (codex or agy); spends quota, ask the owner first
+npm run scenario -- --scenario 01 --mode skill --agent agy   # agent scenario run (codex, agy or claude); spends quota, ask the owner first
 ```

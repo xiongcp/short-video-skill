@@ -27,6 +27,7 @@ function relativeLinks(markdown) {
 const docs = [
   ...['README.md', 'README.en.md', 'AGENTS.md'].map((f) => join(ROOT, f)),
   ...markdownFiles(join(ROOT, 'docs/lite')),
+  ...markdownFiles(join(ROOT, 'docs/guide')),
   ...markdownFiles(join(ROOT, 'skills')),
 ];
 

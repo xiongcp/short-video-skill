@@ -1,4 +1,4 @@
-// 60 built-in hand-drawn props with metadata, exclusive/common states, and whitelisted custom props.
+// 72 built-in hand-drawn props with metadata, exclusive/common states, and whitelisted custom props.
 // Pure SVG <g> without <text>, deterministic by seed, styled via world.mjs palettes.
 import { clamp01, easeOutBack, lerp } from './ease.mjs';
 import { circlePoints, inkStroke, markerFill, num, random } from './ink.mjs';
@@ -21,9 +21,12 @@ export const ICONS = [
   'laptop', 'mail', 'megaphone', 'calendar', 'stamp', 'clipboard',
   // 小件与符号 (4)
   'package', 'ticket', 'shield', 'hourglass',
+  // 自然科学 (12), appended so the first 60 keep their order
+  'sun', 'moon', 'star', 'lightning', 'tree', 'drop', 'apple', 'flame', 'thermometer', 'atom', 'germ', 'eye',
 ];
 
 const ORIGINAL_24 = new Set(ICONS.slice(0, 24));
+const SCIENCE_12 = new Set(ICONS.slice(60));
 
 export const COMMON_STATES = ['normal', 'active', 'dim', 'crossed', 'stamped', 'broken'];
 
@@ -112,6 +115,19 @@ export const PROP_META = {
   ticket:     { height: 0.22, aspect: 1.65, layer: 'mid',    anchors: { handle: [0.15, 0.50], top: [0.50, 0.12], front: [0.50, 0.50] }, states: ['fresh', 'expired'], carry: true },
   shield:     { height: 0.38, aspect: 0.85, layer: 'mid',    anchors: { handle: [0.20, 0.45], top: [0.50, 0.06], front: [0.50, 0.45] }, states: ['locked', 'unlocked'], carry: true },
   hourglass:  { height: 0.34, aspect: 0.72, layer: 'mid',    anchors: { handle: [0.20, 0.50], top: [0.50, 0.06], front: [0.50, 0.50] }, states: ['full', 'empty', 'fresh', 'expired'], carry: true },
+  // 自然科学 (12)
+  sun:         { height: 0.42, aspect: 1.00, layer: 'air',    anchors: { handle: [0.20, 0.50], top: [0.50, 0.06], front: [0.50, 0.50] }, states: ['lit', 'off'], carry: false },
+  moon:        { height: 0.36, aspect: 1.00, layer: 'air',    anchors: { handle: [0.20, 0.50], top: [0.50, 0.08], front: [0.35, 0.50] }, states: [], carry: false },
+  star:        { height: 0.34, aspect: 1.00, layer: 'air',    anchors: { handle: [0.20, 0.45], top: [0.50, 0.06], front: [0.50, 0.55] }, states: [], carry: false },
+  lightning:   { height: 0.48, aspect: 0.62, layer: 'air',    anchors: { handle: [0.30, 0.50], top: [0.50, 0.04], front: [0.50, 0.50] }, states: [], carry: false },
+  tree:        { height: 1.10, aspect: 0.85, layer: 'ground', anchors: { handle: [0.40, 0.75], top: [0.50, 0.04], front: [0.50, 0.40] }, states: [], carry: false },
+  drop:        { height: 0.30, aspect: 0.72, layer: 'mid',    anchors: { handle: [0.20, 0.62], top: [0.50, 0.04], front: [0.50, 0.62] }, states: [], carry: true },
+  apple:       { height: 0.30, aspect: 1.00, layer: 'mid',    anchors: { handle: [0.18, 0.56], top: [0.50, 0.06], front: [0.50, 0.56] }, states: [], carry: true },
+  flame:       { height: 0.40, aspect: 0.72, layer: 'ground', anchors: { handle: [0.20, 0.86], top: [0.50, 0.04], front: [0.50, 0.55] }, states: ['lit', 'off'], carry: false },
+  thermometer: { height: 0.42, aspect: 0.42, layer: 'ground', anchors: { handle: [0.50, 0.30], top: [0.50, 0.04], front: [0.50, 0.50] }, states: ['full', 'empty'], carry: true },
+  atom:        { height: 0.40, aspect: 1.00, layer: 'mid',    anchors: { handle: [0.15, 0.50], top: [0.50, 0.12], front: [0.50, 0.50] }, states: [], carry: false },
+  germ:        { height: 0.34, aspect: 1.15, layer: 'mid',    anchors: { handle: [0.15, 0.50], top: [0.50, 0.10], front: [0.50, 0.52] }, states: [], carry: false },
+  eye:         { height: 0.26, aspect: 1.60, layer: 'mid',    anchors: { handle: [0.12, 0.50], top: [0.50, 0.12], front: [0.50, 0.50] }, states: ['open', 'closed'], carry: false },
 };
 
 const LEGACY_COLORS = {
@@ -918,6 +934,130 @@ function drawNew36(name, c, pal, state) {
   }
 }
 
+// Elliptical arc in box units from a0 to a1 degrees (screen coordinates: y grows downward).
+const arcPts = (cx, cy, ru, rv, a0, a1, n = 14) => Array.from({ length: n + 1 }, (_, i) => {
+  const a = ((a0 + ((a1 - a0) * i) / n) * Math.PI) / 180;
+  return [cx + ru * Math.cos(a), cy + rv * Math.sin(a)];
+});
+
+function drawScience12(name, c, pal, state) {
+  const { box, stroke, dStroke, smooth, ring, ellipse, fill, fillRing, fillEllipse, dot } = c;
+  switch (name) {
+    case 'sun': {
+      const isOff = state === 'off';
+      let out = fillRing('core', 0, 0, 0.5, isOff ? pal.soft_yellow : pal.yellow)
+        + ring('core', 0, 0, 0.5, isOff ? pal.muted : pal.ink);
+      if (!isOff) {
+        for (let i = 0; i < 8; i += 1) {
+          const a = (i * Math.PI) / 4;
+          out += dStroke(`ray${i}`, [[0.66 * Math.cos(a), 0.66 * Math.sin(a)], [0.94 * Math.cos(a), 0.94 * Math.sin(a)]], pal.ink);
+        }
+      }
+      return out;
+    }
+    case 'moon': {
+      const shape = [...arcPts(0, 0, 0.86, 0.86, 300, 60, 16), ...arcPts(0.3, 0, 0.76, 0.76, 80, 280, 14)];
+      return fill('body', shape, pal.soft_yellow)
+        + smooth('outline', [...shape, shape[0]])
+        + dot(-0.5, -0.1, 0.07, pal.muted) + dot(-0.36, 0.38, 0.05, pal.muted);
+    }
+    case 'star': {
+      const pts = Array.from({ length: 10 }, (_, i) => {
+        const r = i % 2 ? 0.4 : 0.94;
+        const a = -Math.PI / 2 + (i * Math.PI) / 5;
+        return [r * Math.cos(a), r * Math.sin(a) + 0.06];
+      });
+      return fill('body', pts, pal.yellow) + stroke('outline', [...pts, pts[0]]);
+    }
+    case 'lightning': {
+      const pts = [[0.2, -0.96], [-0.62, 0.12], [-0.06, 0.12], [-0.3, 0.96], [0.66, -0.22], [0.1, -0.22], [0.44, -0.96]];
+      return fill('bolt', pts, pal.yellow) + stroke('outline', [...pts, pts[0]]);
+    }
+    case 'tree': {
+      const crown = [[-0.2, -0.95], [0.3, -0.9], [0.72, -0.62], [0.86, -0.2], [0.66, 0.2], [0.18, 0.34], [-0.36, 0.3], [-0.8, 0.06], [-0.88, -0.36], [-0.6, -0.78]];
+      return fill('trunk', box(-0.14, 0.2, 0.14, 0.96), pal.card)
+        + stroke('trunk', [[-0.14, 0.24], [-0.14, 0.96], [0.14, 0.96], [0.14, 0.24]])
+        + fill('crown', crown, pal.soft_accent)
+        + smooth('crown', [...crown, crown[0]])
+        + dStroke('leaf1', arcPts(-0.3, -0.36, 0.22, 0.16, 200, 320, 6), pal.accent)
+        + dStroke('leaf2', arcPts(0.3, -0.1, 0.22, 0.16, 200, 320, 6), pal.accent)
+        + dStroke('ground', [[-0.5, 0.96], [0.5, 0.96]], pal.muted);
+    }
+    case 'drop': {
+      const shape = [[0, -0.96], ...arcPts(0, 0.32, 0.8, 0.6, -40, 220, 16)];
+      return fill('body', shape, pal.soft_accent)
+        + smooth('outline', [...shape, shape[0]], pal.accent)
+        + dStroke('shine', arcPts(0, 0.32, 0.46, 0.34, 150, 210, 4), pal.card);
+    }
+    case 'apple':
+      return fillEllipse('body', 0, 0.16, 0.8, 0.76, pal.red)
+        + ellipse('body', 0, 0.16, 0.8, 0.76)
+        + dStroke('stem', [[0, -0.56], [0.1, -0.94]])
+        + fill('leaf', [[0.1, -0.76], [0.52, -0.96], [0.46, -0.68]], pal.soft_accent)
+        + dStroke('leaf', [[0.1, -0.76], [0.52, -0.96], [0.46, -0.68], [0.1, -0.76]], pal.accent)
+        + dStroke('shine', arcPts(0, 0.16, 0.52, 0.5, 200, 250, 4), pal.card);
+    case 'flame': {
+      let out = fill('log1', [[-0.9, 0.66], [0.8, 0.9], [0.74, 0.98], [-0.94, 0.76]], pal.card)
+        + stroke('log1', [[-0.9, 0.66], [0.8, 0.9], [0.74, 0.98], [-0.94, 0.76], [-0.9, 0.66]])
+        + fill('log2', [[0.9, 0.66], [-0.8, 0.9], [-0.74, 0.98], [0.94, 0.76]], pal.card)
+        + stroke('log2', [[0.9, 0.66], [-0.8, 0.9], [-0.74, 0.98], [0.94, 0.76], [0.9, 0.66]]);
+      if (state === 'off') {
+        return out + dStroke('smoke1', [[-0.1, 0.5], [-0.3, 0.1], [0, -0.3], [-0.2, -0.7]], pal.muted)
+          + dStroke('smoke2', [[0.2, 0.44], [0.08, 0.06], [0.3, -0.3]], pal.muted);
+      }
+      const outer = [[0, -0.96], [0.42, -0.4], [0.6, 0.1], [0.46, 0.6], [0, 0.74], [-0.46, 0.6], [-0.6, 0.1], [-0.3, -0.36]];
+      const inner = [[0.02, -0.4], [0.26, 0.06], [0.22, 0.52], [-0.22, 0.52], [-0.26, 0.12]];
+      out += fill('outer', outer, pal.yellow) + smooth('outer', [...outer, outer[0]], pal.red)
+        + fill('inner', inner, pal.soft_red) + smooth('inner', [...inner, inner[0]], pal.red);
+      return out;
+    }
+    case 'thermometer': {
+      const top = state === 'full' ? -0.72 : state === 'empty' ? 0.16 : -0.24;
+      return fill('tube', box(-0.4, -0.92, 0.4, 0.34), pal.card)
+        + fillRing('bulb', 0, 0.62, 0.92, pal.red)
+        + fill('col', box(-0.16, top, 0.16, 0.5), pal.red)
+        + stroke('tube', [[-0.4, 0.3], [-0.4, -0.78], ...arcPts(0, -0.78, 0.4, 0.16, 180, 360, 6), [0.4, 0.3]])
+        + ring('bulb', 0, 0.62, 0.92)
+        + dStroke('t1', [[0.5, -0.6], [0.8, -0.6]], pal.muted)
+        + dStroke('t2', [[0.5, -0.3], [0.8, -0.3]], pal.muted)
+        + dStroke('t3', [[0.5, 0], [0.8, 0]], pal.muted);
+    }
+    case 'atom': {
+      const orbit = (k, deg) => {
+        const r = (deg * Math.PI) / 180;
+        const pts = arcPts(0, 0, 0.94, 0.34, 20, 400, 26).map(([u, v]) => [u * Math.cos(r) - v * Math.sin(r), u * Math.sin(r) + v * Math.cos(r)]);
+        return dStroke(k, pts, pal.accent);
+      };
+      return orbit('o1', 0) + orbit('o2', 60) + orbit('o3', 120)
+        + fillRing('nuc', 0, 0, 0.18, pal.red) + ring('nuc', 0, 0, 0.18)
+        + dot(0.94, 0, 0.08, pal.ink) + dot(-0.47, -0.81, 0.08, pal.ink) + dot(-0.47, 0.81, 0.08, pal.ink);
+    }
+    case 'germ': {
+      let out = '';
+      for (let i = 0; i < 8; i += 1) {
+        const a = (i * Math.PI) / 4 + 0.2;
+        out += dStroke(`sp${i}`, [[0.6 * Math.cos(a), 0.62 * Math.sin(a)], [0.86 * Math.cos(a), 0.9 * Math.sin(a)]], pal.accent)
+          + dot(0.9 * Math.cos(a), 0.94 * Math.sin(a), 0.08, pal.accent);
+      }
+      return out + fillEllipse('body', 0, 0, 0.66, 0.66, pal.soft_accent)
+        + ellipse('body', 0, 0, 0.66, 0.66, pal.accent)
+        + dot(-0.22, -0.12, 0.09) + dot(0.22, -0.12, 0.09)
+        + dStroke('mouth', arcPts(0, 0.08, 0.22, 0.16, 20, 160, 6));
+    }
+    case 'eye': {
+      if (state === 'closed') {
+        return dStroke('lid', arcPts(0, -0.3, 0.9, 0.7, 20, 160, 12))
+          + dStroke('l1', [[-0.44, 0.3], [-0.56, 0.7]]) + dStroke('l2', [[0, 0.4], [0, 0.82]]) + dStroke('l3', [[0.44, 0.3], [0.56, 0.7]]);
+      }
+      const shape = [...arcPts(0, 0.9, 1.3, 1.62, 225, 315, 10), ...arcPts(0, -0.9, 1.3, 1.62, 45, 135, 10)];
+      return fill('white', shape, pal.card)
+        + fillRing('iris', 0, 0, 0.66, pal.accent) + ring('iris', 0, 0, 0.66, pal.ink, c.wDetail)
+        + dot(0, 0, 0.3) + dot(0.16, -0.18, 0.12, pal.card)
+        + smooth('outline', [...shape, shape[0]]);
+    }
+  }
+}
+
 /**
  * Draws state overlay (active/dim/crossed/stamped/broken/count:*) around `bbox = { x, y, w, h }`.
  * Returns `{ opacity, overlaySvg }`. Never emits <text>.
@@ -1021,7 +1161,7 @@ export function drawStateOverlay(state, bbox, pal, seed = 'state', progress = 1,
 }
 
 /**
- * Draws one of the 60 built-in props centered at (x, y).
+ * Draws one of the 72 built-in props centered at (x, y).
  * Keeps legacy 24-icon output compatible when called with `size` only (no `style`, `state`, `width`, `height`).
  * Always emits `data-icon` and `data-state` and zero <text>.
  */
@@ -1067,7 +1207,7 @@ export function drawIcon(name, {
 
   const body = ORIGINAL_24.has(name)
     ? drawOriginal24(name, c, pal, safeState)
-    : drawNew36(name, c, pal, safeState);
+    : SCIENCE_12.has(name) ? drawScience12(name, c, pal, safeState) : drawNew36(name, c, pal, safeState);
 
   const bbox = { x: x - boxW / 2, y: y - boxH / 2, w: boxW, h: boxH };
   const overlayW = isCompact ? w : [Math.max(4.4, w[0]), Math.max(5.5, w[1])];

@@ -1,2 +1,7 @@
 node_modules/
 out/
+!tests/scenarios/results/**/out/
+tests/scenarios/results/**/out/*
+!tests/scenarios/results/**/out/qa.json
+!tests/scenarios/results/**/out/qa.md
+.DS_Store

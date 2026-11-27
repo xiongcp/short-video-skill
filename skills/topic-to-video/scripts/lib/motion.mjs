@@ -313,12 +313,25 @@ const SIT_ON_ANGLES = {
 const LANDSCAPE = FRAMES['16:9'];
 const clampX = (v, geo = LANDSCAPE) => Math.max(geo.walk.minX, Math.min(geo.walk.maxX, v));
 
+const standBlocker = (sx, elements, ground) => elements.find((other) => {
+  const b = other?.bbox;
+  if (!b || b.y >= ground - 1e-6 || b.y + b.h <= ground - 440 + 1e-6) return false;
+  return sx - 50 < b.x + b.w && sx + 50 > b.x;
+})?.bbox;
+
 function isSpotClearOfOthers(sx, elements, geo = LANDSCAPE) {
-  return !elements.some((other) => {
-    const b = other?.bbox;
-    if (!b || b.y >= geo.ground - 1e-6 || b.y + b.h <= geo.ground - 440 + 1e-6) return false;
-    return sx - 50 < b.x + b.w && sx + 50 > b.x;
-  });
+  return !standBlocker(sx, elements, geo.ground);
+}
+
+/** Steps a blocked stand spot outward (dir -1 left, 1 right) past each object in the way, such as the table under a cup; null when it leaves [minX, maxX]. */
+function walkOutClear(sx, dir, elements, ground, minX, maxX) {
+  for (let n = 0; n <= elements.length; n++) {
+    const b = standBlocker(sx, elements, ground);
+    if (!b) return sx;
+    sx = dir < 0 ? b.x - 70 : b.x + b.w + 70;
+    if (sx < minX || sx > maxX) return null;
+  }
+  return null;
 }
 
 function applyObjectShift(elements, objDx, droppedSpots, geo = LANDSCAPE) {
@@ -386,6 +399,15 @@ function objectStateAt(elements, cues, interactionStarts, targetIdx, t) {
   return state;
 }
 
+/** Both spots beside the target are blocked: the nearer of the first clear spots outward on each side, or null. */
+export function nearestOutward(left, right, currentX, elements, ground, minX, maxX) {
+  const l = Number.isFinite(left) ? walkOutClear(left, -1, elements, ground, minX, maxX) : null;
+  const r = Number.isFinite(right) ? walkOutClear(right, 1, elements, ground, minX, maxX) : null;
+  if (l === null) return r;
+  if (r === null) return l;
+  return Math.abs(currentX - l) <= Math.abs(currentX - r) ? l : r;
+}
+
 /** Resolves a `move` cue target (preset spot or element index) to a ground X inside walk bounds. */
 export function resolveStandX(target, currentX = 320, elements = [], geo = LANDSCAPE) {
   if (typeof target === 'string' && Object.hasOwn(geo.spots, target)) return geo.spots[target];
@@ -400,6 +422,7 @@ export function resolveStandX(target, currentX = 320, elements = [], geo = LANDS
       if (leftOk && !rightOk) chosen = left;
       else if (rightOk && !leftOk) chosen = right;
       else chosen = Math.abs(currentX - left) <= Math.abs(currentX - right) ? left : right;
+      if (!leftOk && !rightOk) chosen = nearestOutward(left, right, currentX, elements, geo.ground, geo.walk.minX, geo.walk.maxX) ?? chosen;
       return clampX(Math.round(chosen), geo);
     }
     const { x, w } = el.bbox;

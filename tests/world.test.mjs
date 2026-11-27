@@ -244,9 +244,9 @@ const SAMPLE_FISHTANK = {
   ],
 };
 
-test('ICONS has 60 props preserving original 24 order and complete PROP_META with valid bounds and anchors', () => {
-  assert.equal(ICONS.length, 60);
-  assert.equal(new Set(ICONS).size, 60);
+test('ICONS has 72 props preserving original 24 order and complete PROP_META with valid bounds and anchors', () => {
+  assert.equal(ICONS.length, 72);
+  assert.equal(new Set(ICONS).size, 72);
   assert.deepEqual(ICONS.slice(0, 24), ORIGINAL_24_ICONS);
   assert.deepEqual(COMMON_STATES, ['normal', 'active', 'dim', 'crossed', 'stamped', 'broken']);
 
@@ -289,7 +289,7 @@ test('ICONS has 60 props preserving original 24 order and complete PROP_META wit
   assert.equal(propSupportsState('no_such_prop', 'normal'), false);
 });
 
-test('all 60 props draw deterministically across styles with no <text>, light ink on dark styles, and >=4.4px strokes at stage scale', () => {
+test('all 72 props draw deterministically across styles with no <text>, light ink on dark styles, and >=4.4px strokes at stage scale', () => {
   for (const name of ICONS) {
     const meta = PROP_META[name];
     const h = 400 * meta.height;
@@ -310,6 +310,42 @@ test('all 60 props draw deterministically across styles with no <text>, light in
       for (const [, rx] of caps) {
         assert.ok(Number(rx) * 2 >= 4.4 - 1e-6, `${name} ${style} stroke width ${Number(rx) * 2} < 4.4`);
       }
+    }
+  }
+});
+
+const SCIENCE_12 = {
+  sun: { layer: 'air', carry: false, states: ['lit', 'off'] },
+  moon: { layer: 'air', carry: false, states: [] },
+  star: { layer: 'air', carry: false, states: [] },
+  lightning: { layer: 'air', carry: false, states: [] },
+  tree: { layer: 'ground', carry: false, states: [] },
+  drop: { layer: 'mid', carry: true, states: [] },
+  apple: { layer: 'mid', carry: true, states: [] },
+  flame: { layer: 'ground', carry: false, states: ['lit', 'off'] },
+  thermometer: { layer: 'ground', carry: true, states: ['full', 'empty'] },
+  atom: { layer: 'mid', carry: false, states: [] },
+  germ: { layer: 'mid', carry: false, states: [] },
+  eye: { layer: 'mid', carry: false, states: ['open', 'closed'] },
+};
+
+test('the 12 science props come after the first 60 and draw in all 5 styles with distinct exclusive states', () => {
+  assert.deepEqual(ICONS.slice(60), Object.keys(SCIENCE_12));
+  for (const [name, want] of Object.entries(SCIENCE_12)) {
+    const meta = PROP_META[name];
+    assert.deepEqual({ layer: meta.layer, carry: meta.carry, states: meta.states }, want, name);
+    const h = 400 * meta.height;
+    const opts = (style, state = 'normal') => ({ x: 500, y: 500, width: h * meta.aspect, height: h, style, seed: 'sc01', state });
+    for (const style of STYLE_NAMES) {
+      const a = drawIcon(name, opts(style));
+      assert.equal(a, drawIcon(name, opts(style)), `${name} ${style} deterministic`);
+      assert.ok(!a.includes('<text'), `${name} ${style} has no <text>`);
+      for (const [, r] of a.matchAll(/A(\d+(?:\.\d+)?) (\d+(?:\.\d+)?) 0 0 0/g)) assert.ok(Number(r) * 2 >= 4.4 - 1e-6, `${name} ${style} stroke ${Number(r) * 2}`);
+    }
+    if (want.states.length) {
+      const [s1, s2] = want.states;
+      const body = (state) => drawIcon(name, opts('paper', state)).replace(/data-state="[^"]*"/, '');
+      assert.notEqual(body(s1), body(s2), `${name} ${s1} vs ${s2}`);
     }
   }
 });

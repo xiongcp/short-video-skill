@@ -110,6 +110,8 @@ async function runOpenAiTts(voice, text, outPath) {
   writeFileSync(outPath, Buffer.from(await resp.arrayBuffer()));
 }
 
+const fail = (code, message) => Object.assign(new Error(message), { code });
+
 function runCommandTts(voice, text, wavOut, subOut, { ffmpeg = 'ffmpeg' } = {}) {
   const tokens = splitCommandTemplate(voice.command);
   if (!tokens.length) throw new Error('voice.command is empty');
@@ -129,7 +131,8 @@ function runCommandTts(voice, text, wavOut, subOut, { ffmpeg = 'ffmpeg' } = {}) 
   const args = tokens.slice(1).map((tok) => Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(k, v), tok));
   const res = spawnSync(tokens[0], args, { encoding: 'utf8' });
   if (res.error || res.status !== 0) {
-    throw new Error(`voice.command failed (${tokens[0]}): ${res.stderr || res.error?.message}`);
+    const tail = `${res.stderr || res.error?.message || ''}`.trim().split('\n').pop().trim().replace(/[。.]+$/, '');
+    throw fail('TTS_FAILED', `配音命令 ${tokens[0]} 失败：${tail}。edge-tts 需要联网；不能联网时改用 macOS say 或导入录音`);
   }
   if (!existsSync(rawOut)) throw new Error(`voice.command did not create ${rawOut}`);
   if (rawOut !== wavOut) {
@@ -237,12 +240,12 @@ export async function synthesizeProject(project, projectDir, { ffmpeg = 'ffmpeg'
     if (voice.provider === 'import') {
       if (!existsSync(wavPath)) {
         const alt = ['.mp3', '.m4a', '.aiff', '.flac'].map((e) => join(audioDir, `${s.key}${e}`)).find((p) => existsSync(p));
-        if (!alt) throw new Error(`missing imported audio file for ${s.key} (${relWav})`);
+        if (!alt) throw fail('AUDIO_MISSING', `缺少导入的录音 ${relWav}（也可以放整段录音 audio/full.wav）`);
         normalizeToWav(alt, wavPath, { ffmpeg });
       }
     } else if (voice.provider === 'undecided') {
       if (!existsSync(wavPath)) {
-        throw new Error(`voice.provider is "undecided" and ${relWav} does not exist; configure voice.provider (e.g. "command" with edge-tts or macOS say, or "import")`);
+        throw fail('VOICE_UNDECIDED', `voice.provider 还是 "undecided"，缺少 ${relWav}：先把 doctor.mjs 的 recommended_voice 写进 project.json 的 voice`);
       }
     } else if (!prev || prev.cache_key !== hash || !existsSync(wavPath)) {
       if (existsSync(subPath)) unlinkSync(subPath);
@@ -303,6 +306,7 @@ export async function synthesizeProject(project, projectDir, { ffmpeg = 'ffmpeg'
       sha256,
       cache_key: hash,
     };
+    writeFileSync(timingFile, `${JSON.stringify({ ...existing, ...timing }, null, 2)}\n`);
   }
 
   writeFileSync(timingFile, `${JSON.stringify(timing, null, 2)}\n`);

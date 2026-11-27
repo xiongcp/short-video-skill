@@ -21,11 +21,11 @@ test('check.mjs passes the example project and reports its estimates', () => {
   const { status, out } = run(EXAMPLE);
   assert.equal(status, 0);
   assert.deepEqual([out.errors, out.warnings, out.docs], [[], [], []]);
-  assert.equal(Math.round(out.estimates.total_seconds), 70);
+  assert.equal(Math.round(out.estimates.total_seconds), 63);
   assert.deepEqual(out.estimates.sections.map((s) => s.id), ['s01', 's02', 's03', 's04', 's05']);
   assert.equal(out.estimates.shots.length, 13);
-  // sh05 第 0 句(s02·3)"如果响应允许缓存，内容就会留下。"有 14 字：14 / 4 + 0.25 = 3.75 → 3.8 秒后第 1 句开始
-  assert.deepEqual(out.estimates.shots[4], { id: 'sh05', seconds: 7, starts: [0, 3.8] });
+  // sh05 第 0 句(s02·3)"如果响应允许缓存，内容就会留下。"有 14 字：14 / 4.5 + 0.25 = 3.36 → 3.4 秒后第 1 句开始
+  assert.deepEqual(out.estimates.shots[4], { id: 'sh05', seconds: 6, starts: [0, 3.4] });
 });
 
 test('check.mjs accepts a project after step 1, before shots and 分镜.md exist', () => {

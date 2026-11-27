@@ -1,0 +1,17 @@
+{
+  "id": "10",
+  "title": "一句话出片：确认讲稿和分镜后直接出 MP4",
+  "level": "L1",
+  "fixtures": [],
+  "turns": [
+    "把“为什么天空是蓝色的”做成一个 1 分钟的讲解视频。",
+    "可以，出片吧。"
+  ],
+  "checks": [
+    "第 1 轮没有追问能用默认值的项；运行了 doctor.mjs；产出 project.json、讲稿.md、分镜.md 后停在确认①，确认请求里说明了确认后会出 MP4、配音用 edge-tts 且需要联网、大致耗时",
+    "第 2 轮在 checkpoints 记录了 plan 确认；voice 改成 doctor 推荐的命令，preset 仍是 female-warm，没有写 voice.voice",
+    "out/final.mp4 存在：1920×1080、60 fps、时长 54–66 秒；qa.json 的 ok 为 true，draft 为 false",
+    "没有写提示词包.md；没有安装工具，没有付费调用",
+    "最后的回复列出成片路径、时长、QA 结论和 not_checked 的人工复核项"
+  ]
+}

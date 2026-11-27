@@ -3,10 +3,10 @@
 // (出片质量设计 §4.1, §7.1-7.2, 火柴人主持人设计 §7.4-7.5, 超越路线图 §5.3).
 import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
-import { FRAMES, frameFor, isPortrait, textOutsideSafe } from './frame.mjs';
-import { evaluateHostAt, walkFrame } from './motion.mjs';
+import { FRAMES, frameFor, isPortrait, textBox, textOutsideSafe } from './frame.mjs';
+import { evaluateHostAt, hostEventTimeline, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
-import { evaluateStageObjects, layoutStage, renderStage } from './stage.mjs';
+import { chooseLinkLabelT, evaluateStageObjects, layoutStage, linkControlPoint, renderStage } from './stage.mjs';
 import { layoutElements, renderDiagram } from './templates.mjs';
 import { resolveCueTiming, splitClauses, subtitlePages } from './timing.mjs';
 import { resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
@@ -213,7 +213,7 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
     };
 
     if (isHost) {
-      const endEval = evaluateHostAt(manifest, {
+      const hostPlan = {
         seed: shot.id,
         theme,
         style,
@@ -225,7 +225,9 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
         cues,
         elements,
         sentences: relSentences,
-      }, tl.durationSec);
+      };
+      const endEval = evaluateHostAt(manifest, hostPlan, tl.durationSec);
+      if (isStage) placeLinkLabels(stageLayout, manifest, hostPlan, [startState.x, endEval.endState.x], frame);
       plan.endHostState = endEval.endState;
       plan.endHostMeta = endEval;
       lastHostEnd = endEval.endState;
@@ -241,7 +243,35 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
   return plans;
 }
 
+/**
+ * Moves each stage link label along its curve so it clears every spot the host stands or walks through in this shot
+ * (body half-width 70 px, one body height above the ground). Stored as stageLayout.links[i].labelT.
+ */
+function placeLinkLabels(stageLayout, manifest, hostPlan, extraXs, frame) {
+  const labelled = stageLayout.links.filter((lnk) => lnk.label && lnk.from !== lnk.to);
+  if (!labelled.length) return;
+  const ev = hostEventTimeline(manifest, hostPlan);
+  const xs = [...extraXs, ...ev.walks.flatMap((w) => [w.fromX, w.toX]), ...ev.interactions.map((it) => it.x)];
+  const span = { x0: Math.min(...xs) - 70, x1: Math.max(...xs) + 70, y0: frame.ground - manifest.height_px, y1: frame.ground };
+  for (const lnk of labelled) {
+    const m = linkControlPoint(lnk.fromPt[0], lnk.fromPt[1], lnk.toPt[0], lnk.toPt[1]);
+    const { w } = textBox({ text: lnk.label, fontSize: 30, x: 0, y: 0 });
+    lnk.labelT = chooseLinkLabelT({ p1: lnk.fromPt, m, p2: lnk.toPt }, { w, h: 34 }, span);
+  }
+}
+
 /** Deterministic cache key for one shot — intentionally excludes absolute frame offsets (出片质量设计 §4.1). */
+/** Whether any visible stage link label in `textItems` overlaps the host's body box (QA LINK_LABEL_OVER_HOST). */
+export function linkLabelsOverHost(textItems, hb) {
+  return textItems.some((it) => {
+    if (!it.key?.startsWith('stage-link-') || (it.opacity ?? 1) <= 0.02) return false;
+    const b = textBox(it);
+    return b.x < hb.x + hb.w && b.x + b.w > hb.x && b.y < hb.y + hb.h && b.y + b.h > hb.y;
+  });
+}
+
+const labelTs = (shotPlan) => (shotPlan.stageLayout?.links ?? []).map((lnk) => lnk.labelT ?? 0.5);
+
 export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, motionBlur = false, rigVersion = 2 } = {}) {
   return createHash('sha256').update(JSON.stringify({
     v: SCENE_VERSION,
@@ -267,6 +297,8 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     height,
     motionBlur,
     ...(shotPlan.frame && shotPlan.frame.ratio !== '16:9' ? { ratio: shotPlan.frame.ratio } : {}),
+    ...(shotPlan.draft ? { draft: true } : {}),
+    ...(labelTs(shotPlan).some((t) => t !== 0.5) ? { labelTs: labelTs(shotPlan) } : {}),
   })).digest('hex').slice(0, 16);
 }
 
@@ -453,6 +485,19 @@ function renderPrevLayer(shotPlan, prevStates, fadeOut) {
  * Evaluates a single frame at continuous time `t` (in seconds relative to shot start).
  * Returns `{ vectorSvg, textItems, isFastMotion, hostMeta }` ready for layered resvg rendering.
  */
+// 未审核初稿 corner badge: a paper plate with bold red text, outside the camera push so it never moves.
+const BADGE_TEXT = '未审核初稿';
+function draftBadge(frame, pal) {
+  const { x, y } = frame.draftBadge;
+  const fontSize = 30;
+  const w = [...BADGE_TEXT].length * fontSize + 28;
+  const h = fontSize + 20;
+  return {
+    svg: `<rect data-badge="draft" x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${pal.paper}" fill-opacity="0.8" stroke="${pal.red}" stroke-width="2" opacity="0.9"/>`,
+    text: { key: 'draft-badge', text: BADGE_TEXT, x: x + 14, y: y + h / 2, fontSize, color: pal.red, stroke: pal.paper, align: 'start', weight: 'bold', opacity: 0.9 },
+  };
+}
+
 export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, width: 0.5, nod: 0 }) {
   const frame = shotPlan.frame ?? LANDSCAPE;
   const [cx, cy] = frame.center;
@@ -639,11 +684,13 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   const camOpen = `<g transform="translate(${cx} ${cy}) scale(${camScaleStr}) translate(${-cx} ${-cy})">`;
   const backLayer = isStage ? diag.backVectorSvg : diag.vectorSvg;
   const frontLayer = isStage && diag.frontVectorSvg ? `${camOpen}${diag.frontVectorSvg}</g>` : '';
+  const badge = shotPlan.draft ? draftBadge(frame, pal) : null;
   const vectorSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${frame.width}" height="${frame.height}" viewBox="0 0 ${frame.width} ${frame.height}">`
     + styleBackgroundSvg(styleName, frame.width, frame.height, bgParallax)
     + camOpen + sceneBg + prevDiagSvg + backLayer + '</g>'
     + hostSvg
     + frontLayer
+    + (badge?.svg ?? '')
     + '</svg>';
 
   // Apply gentle camera scale to diagram/stage text items (not subtitle)
@@ -653,6 +700,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     y: cy + (ti.y - cy) * camScale,
   }));
   scaledText.push(...subtitleItems(shotPlan, t, pal));
+  if (badge) scaledText.push(badge.text);
 
   const objectBoxes = isStage
     ? shotPlan.elements.map((el, i) => {
@@ -678,7 +726,8 @@ export function portraitLayoutIssues(manifest, plans, { fps = 60, step = 6 } = {
     let frames = 0;
     const keys = new Set();
     for (let f = 0; f < plan.frameCount; f += step) {
-      const out = textOutsideSafe(evaluateFrame(manifest, plan, f / fps).textItems, frame);
+      const items = evaluateFrame(manifest, plan, f / fps).textItems.filter((it) => it.key !== 'draft-badge');
+      const out = textOutsideSafe(items, frame);
       if (out.length) {
         frames += 1;
         out.forEach((k) => keys.add(k));

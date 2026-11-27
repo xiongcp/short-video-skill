@@ -38,7 +38,8 @@
         "car", "truck", "rocket", "battery", "magnet", "scale",
         "beaker", "microscope", "book", "whiteboard", "brain", "heart",
         "laptop", "mail", "megaphone", "calendar", "stamp", "clipboard",
-        "package", "ticket", "shield", "hourglass"
+        "package", "ticket", "shield", "hourglass",
+        "sun", "moon", "star", "lightning", "tree", "drop", "apple", "flame", "thermometer", "atom", "germ", "eye"
       ]
     },
     "style": { "enum": ["paper", "chalkboard", "blueprint", "kraft", "night"] },

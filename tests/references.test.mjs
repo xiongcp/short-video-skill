@@ -8,6 +8,7 @@ import { COMMON_STATES, ICONS, PROP_META } from '../skills/topic-to-video/script
 import { MAX_MOVES, STATIC_SECONDS } from '../skills/topic-to-video/scripts/lib/match.mjs';
 import { SCENE_NAMES, STYLE_NAMES } from '../skills/topic-to-video/scripts/lib/world.mjs';
 import { STAGE_SLOTS } from '../skills/topic-to-video/scripts/lib/stage.mjs';
+import { ERROR_CODES } from '../skills/topic-to-video/scripts/render.mjs';
 
 const SKILL = join(import.meta.dirname, '../skills/topic-to-video');
 const ref = (name) => readFileSync(join(SKILL, 'references', name), 'utf8');
@@ -16,6 +17,9 @@ const schema = JSON.parse(readFileSync(join(SKILL, 'schema/project.schema.json')
 test('script.md states the same planning constants as project.mjs', () => {
   const text = ref('script.md');
   assert.ok(text.includes(`每秒 ${CHARS_PER_SECOND} 个字`));
+  // Calibrated on the launch acceptance run: edge-tts 晓晓 read 4.6 chars/s, macOS say 4.0 (tests/scenarios/results/launch-summary.md).
+  assert.equal(CHARS_PER_SECOND, 4.5);
+  assert.ok(text.includes('120 秒大约是 480–520 字'));
   assert.ok(text.includes(`${DEFAULT_SENTENCE_GAP_MS / 1000} 秒停顿`));
   assert.ok(text.includes(`每句不超过 ${MAX_SENTENCE_CHARS} 字`));
   assert.ok(text.includes('±10%'));
@@ -40,7 +44,7 @@ test('prompt-pack.md uses the host prompt lock and reference image', () => {
 
 test('storyboard.md maps sentence intent to host acting and names the storyboard warnings', () => {
   const text = ref('storyboard.md');
-  for (const word of ['句意', 'VISUAL_NOT_IN_NARRATION', 'POINT_MISSING', 'MOVE_TOO_MANY', 'FOCUS_SPLIT', 'STATIC_STRETCH', 'NO_INTERACTION', 'GESTURE_REPEAT']) assert.ok(text.includes(word), word);
+  for (const word of ['句意', 'VISUAL_NOT_IN_NARRATION', 'POINT_MISSING', 'MOVE_TOO_MANY', 'FOCUS_SPLIT', 'STATIC_STRETCH', 'EMPTY_START', 'NO_INTERACTION', 'GESTURE_REPEAT']) assert.ok(text.includes(word), word);
   assert.ok(text.includes(`超过 ${STATIC_SECONDS} 秒没有变化`), 'the still-picture limit');
   assert.ok(text.includes(`最多 ${MAX_MOVES} 次 \`move\``), 'the move limit');
 });
@@ -121,9 +125,10 @@ test('prompt-pack.md allows the 呆毛 and settings.outfit instead of banning th
   assert.ok(!text.includes('人物不加头发、衣服和身体填色'));
 });
 
-test('world.md documents all 5 styles, 8 scenes, 60 built-in icons, custom prop limits, stage slots and scene recommendations', () => {
+test('world.md documents all 5 styles, 8 scenes, 72 built-in icons, custom prop limits, stage slots and scene recommendations', () => {
   const text = ref('world.md');
-  assert.equal(ICONS.length, 60);
+  assert.equal(ICONS.length, 72);
+  assert.ok(text.includes('72 个内置物件'));
   for (const name of STYLE_NAMES) assert.ok(text.includes(`\`${name}\``), `style ${name}`);
   for (const name of SCENE_NAMES) assert.ok(text.includes(`\`${name}\``), `scene ${name}`);
   for (const name of ICONS) assert.ok(text.includes(`\`${name}\``), `icon ${name}`);
@@ -186,11 +191,31 @@ test('storyboard.md links to world.md action card within budgets', () => {
 
 test('providers.md documents the sound field, licenses, QA codes and the sound audition; world.md and SKILL.md point to it', () => {
   const providers = ref('providers.md');
-  assert.ok(providers.includes('## 5. 声音（`project.json` 的 `sound` 字段）'));
+  assert.ok(providers.includes('## 3. 声音（`project.json` 的 `sound` 字段）'));
   for (const word of ['"sound"', 'MUSIC_LICENSE_MISSING', 'MUSIC_PATH_INVALID', 'MUSIC_FILE_MISSING', 'MUSIC_SILENT', 'MUSIC_TOO_LOUD', 'SFX_OVER_VOICE', '--audition-sound', 'calm', 'playful', 'curious', 'upbeat']) {
     assert.ok(providers.includes(word), word);
   }
   assert.match(ref('world.md'), /\]\(providers\.md\)/);
   assert.match(readFileSync(join(SKILL, 'SKILL.md'), 'utf8'), /^ {3}- 音乐：/m);
   assert.ok(ref('prompt-pack.md').includes('配乐建议'));
+});
+
+const read = (rel) => readFileSync(join(SKILL, rel), 'utf8');
+
+test('SKILL.md makes L1 the default when doctor says it can render and links render.md', () => {
+  const skill = read('SKILL.md');
+  for (const word of ['l1_ready', 'tts_ready', '未审核初稿', '](references/render.md)', '需要联网']) assert.ok(skill.includes(word), word);
+  assert.ok(!skill.includes('交出确认过的 L0 就是完整完成'));
+});
+
+test('render.md documents every render error code, the voice fix and the QA follow-up', () => {
+  const render = read('references/render.md');
+  for (const code of ERROR_CODES) assert.ok(render.includes(`\`${code}\``), code);
+  for (const word of ['recommended_voice', 'preset', '--sample', 'qa.md', 'not_checked', 'npm install --prefix', '退出码 2', 'LINK_LABEL_OVER_HOST']) assert.ok(render.includes(word), word);
+});
+
+test('the description says the skill renders a video locally', () => {
+  const description = read('SKILL.md').match(/^description: (.+)$/m)[1];
+  assert.match(description, /渲染成片/);
+  assert.match(description, /rendered MP4/);
 });

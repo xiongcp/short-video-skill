@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { LABELS, cheatsheetSvg, heroSvg, svgHash } from '../tools/export-host.mjs';
 import { pngSize, pngText } from './helpers/png.mjs';
@@ -77,11 +77,44 @@ test('the site describes the 呆毛 and shows the taller cheatsheet', () => {
   assert.match(html, /host-cheatsheet\.png" alt="[^"]*" width="1800" height="2480"/);
 });
 
-test('the site describes style packs, hand-drawn scenes, 60 built-in props and stage layout', () => {
+test('the site describes style packs, hand-drawn scenes, 72 built-in props and stage layout', () => {
   assert.ok(html.includes('风格包'));
   assert.ok(html.includes('场景'));
-  assert.ok(html.includes('60'));
+  assert.ok(html.includes('72 个内置'));
+  assert.ok(!/60 (个)?(内置|手绘)/.test(html));
   assert.ok(html.includes('stage'));
+});
+
+const section = (id) => html.match(new RegExp(`<section id="${id}"[\\s\\S]*?</section>`))?.[0] ?? '';
+
+test('the site leads with one-line video and embeds the real demo under 8 MB with a poster', () => {
+  assert.ok(html.includes('说一句话，出一条中文知识解说视频'));
+  const video = html.match(/<video\b[^>]*>/)?.[0];
+  assert.ok(video, 'the page has a <video>');
+  const src = video.match(/\ssrc="([^"]+)"/)?.[1] ?? html.match(/<source\s[^>]*src="([^"]+)"/)?.[1];
+  const poster = video.match(/\sposter="([^"]+)"/)?.[1];
+  assert.ok(src && poster, 'video has src and poster');
+  assert.ok(existsSync(join(SITE, src)) && statSync(join(SITE, src)).size <= 8 * 1024 * 1024, `${src} exists and is at most 8 MB`);
+  assert.ok(existsSync(join(SITE, poster)) && statSync(join(SITE, poster)).size <= 200 * 1024, `${poster} exists and is at most 200 KB`);
+  assert.match(video, /controls/);
+  assert.match(video, /playsinline/);
+});
+
+test('the site has Open Graph tags with a 1200x630 image', () => {
+  for (const tag of ['og:title', 'og:description', 'og:image', 'twitter:card']) assert.ok(html.includes(`"${tag}"`), tag);
+  assert.deepEqual(pngSize(readFileSync(join(SITE, 'assets/og.png'))), { width: 1200, height: 630 });
+});
+
+test('the install section verifies with doctor.mjs and the FAQ says edge-tts needs a network; no pre-release wording', () => {
+  assert.ok(section('install').includes('doctor.mjs'));
+  assert.ok(section('faq').includes('需要联网'));
+  assert.ok(!html.includes('首版只做 16:9'));
+  assert.ok(!html.includes('发布前实测后更新'));
+  assert.ok(!html.includes('进行中'));
+});
+
+test('the inline host SVG now sits in the host section', () => {
+  assert.ok(section('host').includes('<!-- host:hero -->'));
 });
 
 test('the site describes stage interactions, state/send and the upgraded fridge-supermarket example', () => {

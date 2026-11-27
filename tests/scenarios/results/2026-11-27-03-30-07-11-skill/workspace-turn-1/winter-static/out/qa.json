@@ -1,0 +1,137 @@
+{
+  "ok": true,
+  "video": "/private/var/folders/bp/fmq4wtfn57lcl4dd6k7tyj_80000gn/T/svs-scenario-11-iBBzof/winter-static/out/final.mp4",
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": "60/1",
+    "pix_fmt": "yuv420p",
+    "color_space": "bt709",
+    "audio_sample_rate": 48000,
+    "duration_sec": 66.62
+  },
+  "issues": [],
+  "warnings": [
+    {
+      "code": "FREEZE_DETECTED",
+      "startFrame": 1762,
+      "length": 3,
+      "message": "第 1762 帧起连续 3 帧完全相同"
+    },
+    {
+      "code": "FREEZE_DETECTED",
+      "startFrame": 3068,
+      "length": 3,
+      "message": "第 3068 帧起连续 3 帧完全相同"
+    }
+  ],
+  "manual_review": {
+    "aesthetics": "not_checked",
+    "voice_naturalness": "not_checked",
+    "lip_sync_spot_check": "not_checked",
+    "sound_mix": "not_checked"
+  },
+  "audio": {
+    "music_margin_db": 15.96880623129789,
+    "sfx_margin_db": 11.691403690220529,
+    "sfx_counts": {
+      "startle": 1,
+      "page": 6,
+      "sparkle": 6,
+      "ding": 4,
+      "swish": 2,
+      "pop": 3,
+      "rise": 1,
+      "step": 5,
+      "chime": 1,
+      "snap": 1,
+      "tick": 1
+    },
+    "music_source": "synth:curious",
+    "music_license": null,
+    "voice_missing": false
+  },
+  "match": [
+    {
+      "id": "sh01",
+      "narration": "冬天脱毛衣噼啪冒火花，摸门把手还冷不防被刺痛一下。",
+      "keywords": []
+    },
+    {
+      "id": "sh02",
+      "narration": "你肯定好奇，为什么一到冬天，静电就格外猖狂？",
+      "keywords": [
+        "为什么冬天静电多",
+        "静电",
+        "门把手"
+      ]
+    },
+    {
+      "id": "sh03",
+      "narration": "其实衣服和皮肤摩擦起电，一年四季常常发生。关键区别在于，这些电荷能不能及时溜走。",
+      "keywords": [
+        "摩擦起电常发生",
+        "摩擦起电",
+        "电荷"
+      ]
+    },
+    {
+      "id": "sh04",
+      "narration": "夏天空气湿润，水汽在物体表面形成一层微薄水膜。电荷顺着这层导电水膜，悄悄散入大地了。",
+      "keywords": [
+        "水膜导走电荷",
+        "水汽",
+        "导电水膜"
+      ]
+    },
+    {
+      "id": "sh05",
+      "narration": "可一到寒冬，冷空气含水量骤降，周围格外干燥。导电水膜消失了，干燥空气成了绝缘体。",
+      "keywords": [
+        "夏天湿润",
+        "含水量多",
+        "导电水膜溜走",
+        "寒冬干燥",
+        "含水量骤降",
+        "空气成绝缘体"
+      ]
+    },
+    {
+      "id": "sh06",
+      "narration": "电荷无处可去，在衣服和人体表面疯狂堆积。",
+      "keywords": [
+        "电荷无处可去",
+        "人体表面",
+        "电荷堆积"
+      ]
+    },
+    {
+      "id": "sh07",
+      "narration": "当静电累积到几千伏，手指靠近金属门把手。高压瞬间击穿空气放电，火花猛地一闪！",
+      "keywords": [
+        "击穿空气放电",
+        "金属门把手",
+        "放电火花"
+      ]
+    },
+    {
+      "id": "sh08",
+      "narration": "想防静电其实很简单。在室内开加湿器，能让导电水膜重新回来。",
+      "keywords": [
+        "加湿器防静电",
+        "导电水膜",
+        "加湿器"
+      ]
+    },
+    {
+      "id": "sh09",
+      "narration": "摸金属前先摸摸湿布或墙壁，也能提前放掉电荷。有了水分和导电通路，静电自然悄悄溜走啦！",
+      "keywords": [
+        "加湿器增水汽",
+        "摸墙放掉电荷",
+        "静电悄悄溜走"
+      ]
+    }
+  ],
+  "draft": true
+}

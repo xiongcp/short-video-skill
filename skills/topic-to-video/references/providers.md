@@ -1,22 +1,10 @@
-# L1 本地渲染、配音来源与跨 Agent 配置
+# 配音来源、字体、声音与竖屏
 
-只在用户确认要本地合成 MP4（L1）时阅读本文件；只做 L0 文本包时不用读。
+配音来源、字体、声音和竖屏的细节；出片步骤见 [render.md](render.md)。
 
-## 1. 环境自检与自动退回
+## 1. 配音来源（`project.json` 的 `voice` 字段）
 
-先运行环境自检：
-
-```sh
-node <本 skill 目录>/scripts/doctor.mjs
-```
-
-- `l1_ready: true`：具备 Node ≥ 20、FFmpeg/FFprobe 与 `@resvg/resvg-js`，可直接本地出片。
-- 首次在独立安装的 skill 目录启用 L1 时，如缺 `@resvg/resvg-js`，经用户同意后运行一次 `npm install --prefix <本 skill 目录>/scripts`（仅 1 个运行时包）。
-- 缺少 FFmpeg 或 `@resvg/resvg-js`（例如无 FFmpeg 的云沙箱）：不要硬跑，也不要擅自装重型工具，直接按 `SKILL.md` 交付 L0 文本包，并告知用户缺少哪一项。
-
-## 2. 配音来源（`project.json` 的 `voice` 字段）
-
-优先使用**免费本地或 CLI 工具**，零 API 成本即可出片：
+优先使用**免费的本地工具或命令行工具**，零 API 成本即可出片（edge-tts 免费，但需要联网，讲稿文本会发给微软的朗读服务）：
 
 | 方案 | `voice` 配置示例 | 词级时间 | 适用场景 |
 | --- | --- | --- | --- |
@@ -48,37 +36,12 @@ node <本 skill 目录>/scripts/render.mjs <项目文件夹> --audition male,fem
 - 只写 `out/audition/`，不改 `project.json`，也不动 `audio/`。把 `all.wav` 的路径告诉用户，等用户选定后再改 `voice.preset`。
 - 项目的 `command` 是 edge-tts 命令时用它，否则用 `doctor.mjs` 推荐的 edge-tts 或 uvx 命令；两者都没有时报错"试听需要 edge-tts 或 uvx"，不改用 macOS `say`。
 
-## 3. 本地渲染命令（agy / Claude Code / Codex 通用）
-
-```sh
-# 1) 540p30 快速预览
-node <本 skill 目录>/scripts/render.mjs <项目文件夹> --preview
-
-# 2) 1080p60 样片（选 2–3 个代表镜头确认）
-node <本 skill 目录>/scripts/render.mjs <项目文件夹> --sample sh08-sh09
-
-# 3) 1080p60 成片（默认 BT.709、CRF 16、双遍 loudnorm、自动跑 QA）
-node <本 skill 目录>/scripts/render.mjs <项目文件夹>
-
-# 可选参数：
-#   --ratio 9:16|16:9          换画幅出片：竖屏 1080×1920（预览 540×960）；和 settings.ratio 不同时写到 out/9x16/ 或 out/16x9/
-#   --resolution 1440p|2160p   更高清晰度（纯矢量重绘，无需换素材）
-#   --fps 30                   30fps 更快导出
-#   --motion-blur              快动作（跳/挥手/小跑/元素入场）4x 子帧运动模糊
-#   --master                   额外输出 yuv444p 高码率母版 out/master.mp4
-#   --skip-tts                 复用已有 audio/timing.json
-#   --audition [人设列表]      只试听配音人设，写入 out/audition/，不出片
-#   --audition-sound [情绪列表]  只试听音乐情绪和音效，写入 out/audition/，不出片
-```
-
-交付物全部写在 `<项目文件夹>/out/`：`final.mp4`、`captions.srt`、`captions.ass`（保留关键词高亮）、`cover.png`、`chapters.txt`、`contact.png`、`transitions.png`、`qa.json`、`qa.md`。
-
-## 4. 字体与画质
+## 2. 字体与画质
 
 - 正文与字幕自动查找系统中文黑体（macOS `Hiragino Sans GB` / `STHeiti`，Linux `Noto Sans CJK`，Windows 微软雅黑），也可用环境变量 `SVS_FONT`、`SVS_TITLE_FONT` 指定自定义字体或霞鹜文楷（LXGW WenKai，OFL 许可，下载前先告知文件大小并征得用户同意，放缓存目录，不放 skill 目录）。
 - 返修单句讲稿或单镜图解时，只重新合成或重渲染受影响的镜头，其余镜头自动命中 `cache/shots/` 缓存。
 
-## 5. 声音（`project.json` 的 `sound` 字段）
+## 3. 声音（`project.json` 的 `sound` 字段）
 
 L1 出片时用代码合成纸面手绘风的音效和背景音乐，不下载、不调用付费接口。`sound` 可以不写：有 `world` 时音效开、音乐取场景推荐的情绪；没有 `world` 时都不开，和以前一样只有配音。
 
@@ -105,7 +68,7 @@ L1 出片时用代码合成纸面手绘风的音效和背景音乐，不下载�
 - QA：`MUSIC_TOO_LOUD` 是说话时音乐离人声不到 15 dB，`SFX_OVER_VOICE` 是音效离人声不到 8 dB。出现时换更安静的情绪、改用 `"mood": "none"`，或关掉音效 `"sfx": "off"`，再重新出片。
 - 试听：`node <本 skill 目录>/scripts/render.mjs <项目文件夹> --audition-sound [calm,playful]` 写出 `out/audition/music-<情绪>.wav`（每个 15 秒）和 `out/audition/sfx.wav`（全部音效依次播放），不读 `project.json`，不需要 FFmpeg。
 
-## 6. 竖屏（9:16）
+## 4. 竖屏（9:16）
 
 - `settings.ratio` 是 9:16 时直接出竖屏；横屏项目加 `--ratio 9:16` 再出一版，写到 `out/9x16/`，配音、音效和音乐共用，不重新合成。
 - 标题、物件标签和字幕都留在文字安全框（x 64–910、y 250–1440）里，避开抖音、TikTok、Shorts 的标题栏、点赞栏和文案区；超出时 QA 报 `SAFE_ZONE_TEXT`，同台排不下报 `STAGE_CROWDED`。

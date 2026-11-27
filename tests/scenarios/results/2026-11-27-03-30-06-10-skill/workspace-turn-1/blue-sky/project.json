@@ -1,0 +1,337 @@
+{
+  "version": 1,
+  "revision": 1,
+  "title": "为什么天空是蓝色的？",
+  "brief": {
+    "topic": "为什么天空是蓝色的？",
+    "audience": "对光学和大气没有专业基础的普通观众",
+    "promise": "阳光由多种颜色的光组成，其中波长较短的蓝光更容易被空气分子散射到四面八方",
+    "sources": [],
+    "open_questions": [
+      "瑞利散射定律：散射光强与波长四次方成反比，短波长蓝紫光散射最强",
+      "人眼感光细胞（锥状细胞）对蓝光比紫光更加敏感",
+      "太阳光谱中可见光波段能量分布以绿蓝光为主，紫光成分较少"
+    ]
+  },
+  "settings": {
+    "ratio": "16:9",
+    "target_seconds": 60,
+    "lang": "zh-CN",
+    "host": "xiaoqing",
+    "theme": "light"
+  },
+  "voice": {
+    "provider": "undecided",
+    "preset": "female-warm"
+  },
+  "world": {
+    "metaphor": "阳光是不同颜色的光波，短波长的蓝光被空气分子弹开，长波长的红光轻松穿透",
+    "style": "paper",
+    "scene": "outdoor",
+    "custom_props": []
+  },
+  "sections": [
+    {
+      "id": "s01",
+      "title": "白色的阳光与蓝色的天",
+      "text": "阳光看起来是白色的，为什么晴天的天空却是蓝色的？这个小秘密，其实就藏在阳光和地球的大气层里。"
+    },
+    {
+      "id": "s02",
+      "title": "阳光里的七彩波浪",
+      "text": "太阳发出的白光，其实混合了红橙黄绿青蓝紫各种颜色。光像波浪一样传播，红光的波长比较长，蓝光的波长比较短。"
+    },
+    {
+      "id": "s03",
+      "title": "微小分子的散射",
+      "text": "当阳光穿过厚厚的大气层，会迎面撞上微小的空气分子。波长较长的红光能轻松绕过去，蓝光却容易被撞偏。这些向四面八方飞散的蓝光，在物理上就叫散射。"
+    },
+    {
+      "id": "s04",
+      "title": "为什么天空不是紫色",
+      "text": "你可能会想，紫光的波长更短，天空为什么不是紫色？这是因为阳光中的紫光较少，而且人眼对蓝光敏感得多。"
+    },
+    {
+      "id": "s05",
+      "title": "蓝天的真正答案",
+      "text": "无数散开的蓝光洒满整个天空，汇成了我们眼中的蓝天。蓝天并不是天空本身的颜色，而是被空气散开的蓝色阳光。"
+    }
+  ],
+  "shots": [
+    {
+      "id": "sh01",
+      "section": "s01",
+      "sentences": [0],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "think"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "为什么天空是蓝色的",
+          "sub": "白色的阳光与蓝色的天"
+        }
+      },
+      "cues": [
+        { "sentence": 0, "do": "prop", "target": "question" },
+        { "sentence": 0, "at": "为什么", "do": "gesture", "target": "shrug" }
+      ],
+      "note": "开场提出问题：阳光是白色的，天空为什么是蓝色的"
+    },
+    {
+      "id": "sh02",
+      "section": "s01",
+      "sentences": [1],
+      "layout": "stage",
+      "host": {
+        "expr": "explaining",
+        "gesture": "present",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "objects": [
+            { "prop": "sun", "label": "阳光", "at": "mid-left" },
+            { "prop": "globe", "label": "地球", "at": "mid-right" }
+          ],
+          "links": [
+            { "from": 0, "to": 1, "style": "dashed", "label": "穿过" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "prop", "target": "none" },
+        { "sentence": 1, "do": "move", "target": 0 },
+        { "sentence": 1, "at": "大气层", "do": "react", "target": 1 }
+      ],
+      "note": "指出秘密藏在阳光和地球大气层中"
+    },
+    {
+      "id": "sh03",
+      "section": "s02",
+      "sentences": [0],
+      "layout": "stage",
+      "host": {
+        "expr": "focused",
+        "gesture": "idle",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "objects": [
+            { "prop": "sun", "label": "太阳", "at": "mid-left" },
+            { "prop": "bulb", "label": "白光", "at": "mid-right", "state": "lit" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "do": "move", "target": 0 },
+        { "sentence": 0, "at": "红橙黄绿", "do": "gesture", "target": "point" },
+        { "sentence": 0, "at": "各种颜色", "do": "react", "target": 1 }
+      ],
+      "note": "解释白光是由各种颜色混合而成的"
+    },
+    {
+      "id": "sh04",
+      "section": "s02",
+      "sentences": [1],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "红光",
+            "rows": ["波长比较长"]
+          },
+          "right": {
+            "label": "蓝光",
+            "rows": ["波长比较短"]
+          }
+        }
+      },
+      "cues": [
+        { "sentence": 1, "at": "蓝光", "do": "reveal", "target": 1 }
+      ],
+      "note": "对比红光与蓝光的波长长短差异"
+    },
+    {
+      "id": "sh05",
+      "section": "s03",
+      "sentences": [0],
+      "layout": "stage",
+      "host": {
+        "expr": "focused",
+        "gesture": "idle",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "objects": [
+            { "prop": "sun", "label": "阳光", "at": "mid-left" },
+            { "prop": "atom", "label": "空气分子", "at": "mid-right" }
+          ],
+          "links": [
+            { "from": 0, "to": 1, "style": "dashed", "label": "撞上" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "do": "move", "target": 1 },
+        { "sentence": 0, "at": "微小的", "do": "gesture", "target": "point" },
+        { "sentence": 0, "at": "迎面撞上", "do": "react", "target": 1 }
+      ],
+      "note": "阳光穿过大气层迎面撞上空气分子"
+    },
+    {
+      "id": "sh06",
+      "section": "s03",
+      "sentences": [1],
+      "layout": "full",
+      "visual": {
+        "template": "compare",
+        "data": {
+          "left": {
+            "label": "红光",
+            "rows": ["轻松绕过去"]
+          },
+          "right": {
+            "label": "蓝光",
+            "rows": ["容易被撞偏"]
+          }
+        }
+      },
+      "cues": [
+        { "sentence": 1, "at": "蓝光", "do": "reveal", "target": 1 }
+      ],
+      "note": "红光能轻松绕过，蓝光容易被撞偏"
+    },
+    {
+      "id": "sh07",
+      "section": "s03",
+      "sentences": [2],
+      "layout": "stage",
+      "host": {
+        "expr": "amazed",
+        "gesture": "snap",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "objects": [
+            { "prop": "cloud", "label": "蓝光", "at": "mid-left" },
+            { "prop": "bulb", "label": "散射", "at": "mid-right", "state": "lit" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 2, "do": "move", "target": 1 },
+        { "sentence": 2, "at": "四面八方", "do": "gesture", "target": "point" },
+        { "sentence": 2, "at": "叫散射", "do": "react", "target": 1 }
+      ],
+      "note": "引出散射的概念"
+    },
+    {
+      "id": "sh08",
+      "section": "s04",
+      "sentences": [0],
+      "layout": "host-left",
+      "host": {
+        "expr": "curious",
+        "gesture": "think"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "为什么不是紫色",
+          "sub": "紫光的波长更短"
+        }
+      },
+      "cues": [
+        { "sentence": 0, "do": "prop", "target": "question" },
+        { "sentence": 0, "at": "为什么", "do": "gesture", "target": "scratch_head" }
+      ],
+      "note": "提出追问：紫光波长更短，天空为什么不是紫色"
+    },
+    {
+      "id": "sh09",
+      "section": "s04",
+      "sentences": [1],
+      "layout": "stage",
+      "host": {
+        "expr": "explaining",
+        "gesture": "present",
+        "at": "left"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "objects": [
+            { "prop": "sun", "label": "紫光", "at": "mid-left" },
+            { "prop": "eye", "label": "人眼", "at": "mid-right" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 1, "do": "prop", "target": "none" },
+        { "sentence": 1, "do": "move", "target": 1 },
+        { "sentence": 1, "at": "敏感得多", "do": "react", "target": 1 }
+      ],
+      "note": "解释阳光中紫光较少，且人眼对蓝光更敏感"
+    },
+    {
+      "id": "sh10",
+      "section": "s05",
+      "sentences": [0],
+      "layout": "stage",
+      "host": {
+        "expr": "happy",
+        "gesture": "cheer",
+        "at": "center"
+      },
+      "visual": {
+        "template": "stage",
+        "data": {
+          "objects": [
+            { "prop": "cloud", "label": "蓝光", "at": "mid-left" },
+            { "prop": "sun", "label": "蓝天", "at": "mid-right" }
+          ]
+        }
+      },
+      "cues": [
+        { "sentence": 0, "do": "move", "target": 1 },
+        { "sentence": 0, "at": "汇成了", "do": "react", "target": 1 }
+      ],
+      "note": "散开的蓝光洒满天空汇成蓝天"
+    },
+    {
+      "id": "sh11",
+      "section": "s05",
+      "sentences": [1],
+      "layout": "host-left",
+      "host": {
+        "expr": "happy",
+        "gesture": "wave"
+      },
+      "visual": {
+        "template": "title",
+        "data": {
+          "heading": "蓝色阳光",
+          "sub": "被空气散开的阳光"
+        }
+      },
+      "cues": [
+        { "sentence": 1, "at": "蓝色阳光", "do": "expr", "target": "proud" },
+        { "sentence": 1, "at": "空气散开", "do": "gesture", "target": "present" }
+      ],
+      "note": "结尾回扣带走：蓝天是被空气散开的蓝色阳光"
+    }
+  ],
+  "checkpoints": [],
+  "jobs": []
+}

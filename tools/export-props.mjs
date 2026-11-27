@@ -1,4 +1,4 @@
-// Exports a visual cheatsheet of all 60 built-in props, state overlays, and a sample custom prop.
+// Exports a visual cheatsheet of all 72 built-in props, state overlays, and a sample custom prop.
 // Development tool only (not inside skills/topic-to-video/).
 // Usage: npm run export-props -- [--style paper|chalkboard|blueprint|kraft|night] [--out path]
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -42,7 +42,7 @@ export function propsCheatsheetSvg({ style = 'paper' } = {}) {
   const height = stateTop + 2 * stateCellH + 60;
 
   const bg = styleBackgroundSvg(styleName, width, height);
-  const header = `<text x="60" y="64" font-family="${FONT}" font-size="38" font-weight="bold" fill="${pal.ink}">内置物件速查表 · 60 Props (${styleName})</text>`
+  const header = `<text x="60" y="64" font-family="${FONT}" font-size="38" font-weight="bold" fill="${pal.ink}">内置物件速查表 · ${ICONS.length} Props (${styleName})</text>`
     + `<text x="${width - 60}" y="64" font-family="${FONT}" font-size="22" fill="${pal.muted}" text-anchor="end">比例 H = 400 px · 描边 ≥ 4.4 px · 支持 5 套风格包</text>`;
 
   const propCells = ICONS.map((name, i) => {

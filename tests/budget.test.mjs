@@ -79,6 +79,12 @@ test('a full L0 run reads at most 100 KB of skill files', () => {
   assert.ok(total <= 100 * KB, `${total} bytes`);
 });
 
+test('a full L1 run reads at most 100 KB of skill files', () => {
+  const read = ['SKILL.md', 'references/script.md', 'references/world.md', 'references/storyboard.md', 'references/render.md', 'references/providers.md', 'assets/host/profile.json'];
+  const total = read.reduce((sum, f) => sum + bytes(join(SKILL, f)), 0);
+  assert.ok(total <= 100 * KB, `${total} bytes`);
+});
+
 // Hermes lists a skill by the first 60 characters of its description (skills.index_desc_limit, 小青人设设计 §5.1).
 test('the first 60 characters of the description say what the skill makes', () => {
   const description = readFileSync(join(SKILL, 'SKILL.md'), 'utf8').match(/^description: (.+)$/m)[1];
