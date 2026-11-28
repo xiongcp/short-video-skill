@@ -425,7 +425,7 @@ function subtitleItems(shotPlan, t, pal) {
   }));
 }
 
-function renderPrevLayer(shotPlan, prevStates, fadeOut) {
+function renderPrevLayer(shotPlan, prevStates, fadeOut, headingOpacity = fadeOut) {
   const prev = shotPlan.prevShot;
   const frame = shotPlan.frame ?? LANDSCAPE;
   const { objectStates: prevObjStates } = evaluateStageObjects(prev, prev.durationSec, prev.endHostMeta ?? null);
@@ -440,7 +440,7 @@ function renderPrevLayer(shotPlan, prevStates, fadeOut) {
         t: prev.durationSec,
         duration: prev.durationSec,
         elementStates: mergedPrevStates,
-        headingOpacity: fadeOut,
+        headingOpacity,
         customProps: prev.customProps ?? shotPlan.customProps ?? [],
         layoutResult: prev.stageLayout,
         frame,
@@ -599,7 +599,10 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
     const sharedByNext = new Map(tr.shared.map((s) => [s.nextIndex, s.prevIndex]));
     const sharedPrev = new Set(tr.shared.map((s) => s.prevIndex));
     const move = easeInOutCubic(trU);
-    headingOpacity = enterOp;
+    // A stage heading both shots share stays put: only the new one is drawn, at full opacity.
+    const heading = (pl) => (pl.shot.layout === 'stage' ? pl.shot.visual?.data?.heading : undefined);
+    const keepHeading = heading(shotPlan) !== undefined && heading(shotPlan) === heading(shotPlan.prevShot);
+    headingOpacity = keepHeading ? 1 : enterOp;
     states.forEach((st, ni) => {
       if (sharedByNext.has(ni)) {
         st.overrideBbox = lerpBox(shotPlan.prevShot.elements[sharedByNext.get(ni)].bbox, shotPlan.elements[ni].bbox, move);
@@ -613,7 +616,7 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
         opacity: sharedPrev.has(pi) ? 0 : exitOp,
         scale: lerp(0.96, 1, exitOp),
       }));
-      const prevRes = renderPrevLayer(shotPlan, prevStates, exitOp);
+      const prevRes = renderPrevLayer(shotPlan, prevStates, exitOp, keepHeading ? 0 : exitOp);
       prevDiagSvg = prevRes.vectorSvg;
       prevTextItems.push(...prevRes.textItems);
     }

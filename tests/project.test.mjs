@@ -805,3 +805,13 @@ test('HANZI_NUMBER flags data written in Chinese numerals and leaves counts and 
     message: '段落 s01 第 1 句的数字写成了汉字（百分之四十、三点七）；数据、百分比、日期和时间写阿拉伯数字，配音读法由渲染器生成（见 script.md）',
   }]);
 });
+
+test('HANZI_NUMBER skips units after Arabic numbers, ordinals, reduplication, rough counts and set phrases (final review I4)', () => {
+  for (const s of ['重回2万亿元', '流入1.4万亿', '十万火急', '万万没想到', '亿万富翁', '百万富翁', '上百万人', '数十万人', '几十万人',
+    '千千万万', '三三两两', '七七八八', '一五一十', '九九八十一', '第一百个', '三十而立', '十二生肖', '二十四节气']) {
+    assert.deepEqual(hanziNumbers(s), [], s);
+  }
+  for (const [s, want] of [['十万人', ['十万']], ['两万亿元', ['两万亿']], ['一百万', ['一百万']], ['三千六百点', ['三千六百']]]) {
+    assert.deepEqual(hanziNumbers(s), want, s);
+  }
+});

@@ -653,11 +653,19 @@ const HANZI_NUMBER_RULES = [
   { rx: /[零〇一二两三四五六七八九]{3,}/g },
 ];
 
+// Set phrases with numerals that are not data; they are masked before the rules run.
+const NUMERAL_PHRASES = ['一五一十', '九九八十一', '三十而立', '十二生肖', '二十四节气', '十万火急'];
+// Not data either: unit characters alone (the 万亿 of 2万亿, 百万富翁), doubled numerals (三三两两) and numerals after
+// 第 (an ordinal) or 数 几 (a rough count, 数十万).
+const notData = (text, m) => /^[百千万亿]+$/.test(m[0]) || /^(.)\1(.)\2$/u.test(m[0]) || '第数几'.includes(text[m.index - 1] || ' ');
+
 /** The data in a sentence written as Chinese numerals, in order; overlapping or touching hits are merged. */
 export function hanziNumbers(sentence) {
+  let text = sentence;
+  for (const p of NUMERAL_PHRASES) text = text.replaceAll(p, '·'.repeat(p.length));
   const hits = [];
   for (const { rx, skip } of HANZI_NUMBER_RULES) {
-    for (const m of sentence.matchAll(rx)) if (!skip?.(m[0])) hits.push([m.index, m.index + m[0].length]);
+    for (const m of text.matchAll(rx)) if (!skip?.(m[0]) && !notData(text, m)) hits.push([m.index, m.index + m[0].length]);
   }
   hits.sort((a, b) => a[0] - b[0]);
   const merged = [];

@@ -95,3 +95,20 @@ test('a host-left morph with no shared elements clears the old diagram, then bri
   assert.ok(shown(0.2).includes('天空为什么是蓝的') && !shown(0.2).includes('阳光'), shown(0.2).join('、'));
   assert.ok(shown(0.7).includes('阳光') && !shown(0.7).includes('天空为什么是蓝的'), shown(0.7).join('、'));
 });
+
+test('a stage heading both shots share stays on screen, once, through the transition (final review I1)', () => {
+  for (const opts of [undefined, { frame: FRAMES['9:16'] }]) {
+    const plans = plansOf(goldenCases()['scene-tour'], opts);
+    const same = plans.filter((pl) => pl.prevShot && pl.transition.kind !== 'cut' && pl.shot.layout === 'stage'
+      && pl.prevShot.shot.layout === 'stage' && pl.shot.visual.data.heading === pl.prevShot.shot.visual.data.heading);
+    assert.ok(same.length > 0, 'scene-tour has stage shots sharing a heading');
+    for (const pl of same) {
+      for (let f = 0; f / 60 < pl.transition.durationSec; f += 1) {
+        const ops = evaluateFrame(manifest, pl, f / 60).textItems
+          .filter((it) => it.key === 'stage-heading' && it.text === pl.shot.visual.data.heading && (it.opacity ?? 1) > 0.02)
+          .map((it) => it.opacity ?? 1);
+        assert.deepEqual(ops, [1], `${pl.id}@${f}`);
+      }
+    }
+  }
+});

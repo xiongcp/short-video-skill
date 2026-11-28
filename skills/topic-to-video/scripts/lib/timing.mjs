@@ -41,6 +41,8 @@ export function splitClauses(sentence) {
 const FUNCTION_WORDS = new Set('的了和与及或在是把被从向对给跟也都还就才又再很更最不没有让为以于而并但却则即每各该这那其此之将已曾正到');
 const WEAK_START = new Set('的了着过吗呢吧啊');
 const BREAK_PENALTY = 4;
+// Added to a penalized break so that, on an equal cost, a clean break wins before the earlier one does.
+const TIE_BREAK = 1e-6;
 const HARD = new RegExp(`[A-Za-z][A-Za-z0-9.+-]*|\\d+[A-Za-z][A-Za-z0-9.+-]*|\\d[\\d.,:%％]*[${NUMBER_UNITS}]*(?:[到至~～–-]?\\d[\\d.,:%％]*[${NUMBER_UNITS}]*)*`, 'gu');
 const OPENING = /^[\p{Ps}\p{Pi}]+$/u;
 const PUNCT = /^[\p{P}\s]+$/u;
@@ -94,7 +96,8 @@ function atomsOf(clause, keywords, segment) {
   return atoms;
 }
 
-// Lines of one clause: the fewest lines of at most maxWidth, then the lowest cost; on a tie the earlier break wins.
+// Lines of one clause: the fewest lines of at most maxWidth, then the lowest cost; on a tie a break without a penalty
+// wins, then the earlier break.
 function breakClause(atoms, maxWidth) {
   const units = atoms.flatMap((a) => {
     if (width(a.text) <= maxWidth) return [a];
@@ -117,8 +120,11 @@ function breakClause(atoms, maxWidth) {
   const prefix = [0];
   for (const x of w) prefix.push(prefix.at(-1) + x);
   const mean = prefix.at(-1) / lines;
-  const penalty = (j) => (units[j - 1].kind === 'single' || units[j].kind === 'single' ? BREAK_PENALTY : 0)
-    + (WEAK_START.has(units[j].text[0]) ? BREAK_PENALTY : 0);
+  const penalty = (j) => {
+    const p = (units[j - 1].kind === 'single' || units[j].kind === 'single' ? BREAK_PENALTY : 0)
+      + (WEAK_START.has(units[j].text[0]) ? BREAK_PENALTY : 0);
+    return p ? p + TIE_BREAK : 0;
+  };
   const n = units.length;
   const best = Array.from({ length: lines + 1 }, () => new Array(n + 1).fill(Infinity));
   const back = Array.from({ length: lines + 1 }, () => new Array(n + 1).fill(-1));

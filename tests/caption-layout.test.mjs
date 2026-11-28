@@ -69,3 +69,7 @@ test('landscape layout is one clause per page, and a short or one-clause sentenc
   ]);
   assert.deepEqual(layoutCaption(''), []);
 });
+
+test('on equal cost a clean break wins over one next to an unknown single character (acceptance: 吸走)', () => {
+  assert.equal(show(subtitlePages('前几天大盘缩量见底，银行和煤炭吸走了不少资金。')), '前几天大盘缩量见底 ‖ 银行和煤炭吸走了 / 不少资金。');
+});

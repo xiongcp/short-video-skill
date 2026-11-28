@@ -3,14 +3,19 @@
 
 const DIGITS = '零一二三四五六七八九';
 /** A lone 2 right before one of these is read 两 (§3.2). */
-const MEASURE_WORDS = '个只位名人家户种项条次回遍倍天周年岁元块股手份批件本张台辆篇首部页杯瓶斤吨米点';
+const MEASURE_WORDS = '个只位名人家户种项条次回遍倍天周年岁元块股手份批件本张台辆篇首部页杯瓶斤吨米点成夜层场轮期季套款颗座架';
+/** Two-character measure words after which a lone 2 is read 两; 分 alone is left out, as 2分 may be a score or a minute. */
+const MEASURE_PAIRS = ['小时', '分钟', '公里', '公斤', '星期'];
 /** Unit characters that belong to a number, as in 3600点 or 11月27日 (§4.1); captions keep them on the number's line. */
 export const NUMBER_UNITS = '年月日号时分秒点半万亿千百倍元只个家位人次天岁股手';
 const LIANG_NEXT = new Set([...MEASURE_WORDS, '万', '亿', '千', '百']);
-// Latin words and numbers glued to letters (5G, H100, GPT-5) are left to the voice engine; then H:MM; then numbers
-// with an optional sign or range mark, thousands commas, a decimal part and a percent sign.
-const TOKEN = /[A-Za-z][A-Za-z0-9.+-]*|\d+[A-Za-z][A-Za-z0-9.+-]*|([01]?\d|2[0-4]):([0-5]\d)(?![\d:])|([-−~～–]?)(\d{1,3}(?:,\d{3})+(?![\d,])|\d+)(\.\d+)?([%％]?)/g;
-const AFTER_RANGE = /^(?:[-~～–到至]\d[\d,]*(?:\.\d+)?[%％]?)?(.?)/u;
+// Latin words and numbers glued to letters (5G, H100, GPT-5) are left to the voice engine; then three or more numbers
+// joined by dashes (a date or a phone number); then H:MM; then numbers with an optional sign or range mark, thousands
+// commas, a decimal part and a percent sign.
+const TOKEN = /[A-Za-z][A-Za-z0-9.+-]*|\d+[A-Za-z][A-Za-z0-9.+-]*|(\d+(?:[-–]\d+){2,})|([01]?\d|2[0-4]):([0-5]\d)(?![\d:])|([-−~～–]?)(\d{1,3}(?:,\d{3})+(?![\d,])|\d+)(\.\d+)?([%％]?)/g;
+const AFTER_RANGE = /^(?:[-~～–到至]\d[\d,]*(?:\.\d+)?[%％]?)?(.{0,2})/u;
+/** A four-digit number before a range to a year, as in 2023到2025年, is a year too. */
+const YEAR_RANGE = /^[-~～–到至]\d{4}年/;
 
 const spell = (digits) => [...digits].map((d) => DIGITS[d]).join('');
 
@@ -51,9 +56,10 @@ function readNumber(src, start, end, int, frac, pct) {
   const digits = int.replaceAll(',', '');
   const ordinal = src[start - 1] === '第';
   let reading;
-  if (!frac && !pct && digits.length === 4 && src[end] === '年') reading = spell(digits);
+  const next = AFTER_RANGE.exec(src.slice(end))[1];
+  if (!frac && !pct && digits.length === 4 && (src[end] === '年' || YEAR_RANGE.test(src.slice(end)))) reading = spell(digits);
   else if ((digits.length > 1 && digits[0] === '0') || digits.length > 12) reading = spell(digits);
-  else if (digits === '2' && !frac && !pct && !ordinal && LIANG_NEXT.has(AFTER_RANGE.exec(src.slice(end))[1])) reading = '两';
+  else if (digits === '2' && !frac && !pct && !ordinal && (LIANG_NEXT.has(next[0]) || MEASURE_PAIRS.includes(next))) reading = '两';
   else reading = ordinal ? readInteger(digits) : readInteger(digits).replace(/^二(?=[千万亿])/, '两');
   if (frac) reading += `点${spell(frac.slice(1))}`;
   return pct ? `百分之${reading}` : reading;
@@ -62,10 +68,18 @@ function readNumber(src, start, end, int, frac, pct) {
 function numberSpans(src, from, to) {
   const out = [];
   for (const m of src.slice(from, to).matchAll(TOKEN)) {
-    const [whole, hour, minute, mark, int, frac = '', pct] = m;
-    if (hour === undefined && int === undefined) continue;
+    const [whole, chain, hour, minute, mark, int, frac = '', pct] = m;
+    if (chain === undefined && hour === undefined && int === undefined) continue;
     let start = from + m.index;
     const end = start + whole.length;
+    if (chain !== undefined) {
+      // YYYY-MM-DD reads as a date; any other chain (a phone number) digit by digit.
+      const parts = chain.split(/[-–]/);
+      const [month, day] = [Number(parts[1]), Number(parts[2])];
+      const date = parts.length === 3 && parts[0].length === 4 && month >= 1 && month <= 12 && day >= 1 && day <= 31;
+      out.push({ start, end, text: whole, reading: date ? `${spell(parts[0])}年${readInteger(String(month))}月${readInteger(String(day))}日` : parts.map(spell).join('') });
+      continue;
+    }
     if (hour !== undefined) {
       const min = Number(minute);
       const h = Number(hour);

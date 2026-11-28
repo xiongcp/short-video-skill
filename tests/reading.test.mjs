@@ -77,3 +77,16 @@ test('a script without Arabic digits gives the same voice text and cache key as 
   }
   assert.ok(count >= 30, `only ${count} digit-free sentences`);
 });
+
+test('a year range reads both years digit by digit, and a dash chain reads as a date or digit by digit (final review I2)', () => {
+  for (const [text, spoken] of [
+    ['2023到2025年', '二零二三到二零二五年'], ['2024-2025年', '二零二四到二零二五年'], ['2024~2025年间', '二零二四到二零二五年间'],
+    ['2025-11-27', '二零二五年十一月二十七日'], ['400-820-8820', '四零零八二零八八二零'],
+    ['2-3倍', '两到三倍'], ['27日-28日', '二十七日到二十八日'], ['2000到3000点', '两千到三千点'],
+  ]) assert.equal(toSpoken(text).spoken, spoken, text);
+});
+
+test('a lone 2 before 小时 分钟 公里 公斤 星期 成 夜 层 场 轮 期 季 套 款 颗 座 架 reads 两 (final review I3)', () => {
+  for (const m of ['小时', '分钟', '公里', '公斤', '星期', ...'成夜层场轮期季套款颗座架']) assert.equal(toSpoken(`2${m}`).spoken, `两${m}`, m);
+  assert.equal(toSpoken('2天2夜').spoken, '两天两夜');
+});
