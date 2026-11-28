@@ -1031,8 +1031,8 @@ test('11. react after auto_approach + open waits for both walk and full 0.6s ope
   assert.equal(evaluateHostAt(manifest, midOpenPlan, r0 + 0.4).interaction?.kind, 'react');
 });
 
-test('12. evaluateFrame wires SCENE_VERSION=5, stage back/host/front layering with carry+send, camScale hand alignment, and flow/bullets state+send cues', () => {
-  assert.equal(SCENE_VERSION, 5);
+test('12. evaluateFrame wires SCENE_VERSION=6, stage back/host/front layering with carry+send, camScale hand alignment, and flow/bullets state+send cues', () => {
+  assert.equal(SCENE_VERSION, 6);
 
   const project = {
     version: 1,

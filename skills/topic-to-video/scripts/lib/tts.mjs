@@ -7,7 +7,8 @@ import { extname, join } from 'node:path';
 import { splitSentences } from './captions.mjs';
 import { makeWavBuffer, readWavPcm, trimSilenceWithFade } from './mouth.mjs';
 import { isEdgeVoiceCommand, VOICE_PRESETS } from './project.mjs';
-import { detectSpeechBounds, estimateWords, parseSubtitles, splitRecordingBySilence } from './timing.mjs';
+import { toSpoken } from './reading.mjs';
+import { detectSpeechBounds, displayWords, estimateWords, parseSubtitles, splitRecordingBySilence } from './timing.mjs';
 
 /** Converts numeric speed (e.g. 0.96 -> "-4%", 1.08 -> "+8%") to edge-tts --rate format. */
 export function speedToEdgeRate(speed = 1) {
@@ -47,15 +48,6 @@ export function resolveVoice(voice) {
     rate: speedToEdgeRate(voice.speed ?? preset?.speed ?? 0.96),
     pitch: pitchToEdge(voice.pitch ?? 0),
   };
-}
-
-/** Applies section.pronunciation term -> reading substitutions to spoken text only (keeps display text untouched). */
-export function applyPronunciation(text, pronunciation = []) {
-  let out = text;
-  for (const { term, reading } of pronunciation) {
-    if (term && reading) out = out.replaceAll(term, reading);
-  }
-  return out;
 }
 
 /** Splits a command template string into argv tokens respecting single and double quotes (no shell evaluation). */
@@ -202,13 +194,10 @@ export async function synthesizeProject(project, projectDir, { ffmpeg = 'ffmpeg'
   const existing = existsSync(timingFile) ? JSON.parse(readFileSync(timingFile, 'utf8')) : {};
   const voice = project.voice ?? { provider: 'undecided' };
   const allSentences = project.sections.flatMap((sec) =>
-    splitSentences(sec.text).map((text, idx) => ({
-      key: `${sec.id}-${idx}`,
-      section: sec.id,
-      index: idx,
-      text,
-      spoken: applyPronunciation(text, sec.pronunciation),
-    })),
+    splitSentences(sec.text).map((text, idx) => {
+      const { spoken, spans } = toSpoken(text, sec.pronunciation);
+      return { key: `${sec.id}-${idx}`, section: sec.id, index: idx, text, spoken, spans };
+    }),
   );
 
   // Import single recording mode if `audio/full.*` exists and per-sentence files do not
@@ -285,16 +274,18 @@ export async function synthesizeProject(project, projectDir, { ffmpeg = 'ffmpeg'
         end_ms: Math.min(decoded.durationMs, Math.max(1, w.end_ms - trimOffsetMs)),
       }));
       if (parsed.length > 1) {
-        words = parsed;
+        // Provider words are on the spoken text: map them back to display words, or estimate inside their span
+        words = displayWords(parsed, s.text, s.spans)
+          ?? estimateWords(s.text, parsed[0].start_ms, Math.max(parsed[0].start_ms + 50, parsed.at(-1).end_ms), s.spans);
         source = 'provider';
       } else if (parsed.length === 1) {
         // edge-tts v7 emits one sentence-level cue: subdivide its exact speech span into weighted words
-        words = estimateWords(s.text, parsed[0].start_ms, Math.max(parsed[0].start_ms + 50, parsed[0].end_ms));
+        words = estimateWords(s.text, parsed[0].start_ms, Math.max(parsed[0].start_ms + 50, parsed[0].end_ms), s.spans);
         source = 'provider';
       }
     }
     if (!words.length) {
-      words = estimateWords(s.text, speech[0], speech[1]);
+      words = estimateWords(s.text, speech[0], speech[1], s.spans);
     }
     const sha256 = createHash('sha256').update(wavBuf).digest('hex');
     timing[s.key] = {
@@ -341,7 +332,7 @@ export function auditionCommand(voice, recommended) {
  */
 export function auditionVoices(project, projectDir, { presets = Object.keys(VOICE_PRESETS), command, ffmpeg = 'ffmpeg' } = {}) {
   const text = project.sections
-    .flatMap((sec) => splitSentences(sec.text).map((t) => applyPronunciation(t, sec.pronunciation)))
+    .flatMap((sec) => splitSentences(sec.text).map((t) => toSpoken(t, sec.pronunciation).spoken))
     .slice(0, 2)
     .join('');
   const dir = join(projectDir, 'out', 'audition');

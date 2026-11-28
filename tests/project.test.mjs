@@ -8,6 +8,7 @@ import {
   DRAWABLE_PROPS,
   estimateReport,
   estimateSeconds,
+  hanziNumbers,
   HOST_ID,
   INTERACTION_CUES,
   isApproved,
@@ -189,7 +190,7 @@ test('estimates seconds from spoken characters and sentence gaps', () => {
 
 test('warns about long sentences and off-target estimates', () => {
   const p = minimal();
-  p.sections[0].text = `${'一'.repeat(31)}。`;
+  p.sections[0].text = `${'字'.repeat(31)}。`;
   assert.deepEqual(lintScript(p).map((w) => w.code).sort(), ['ESTIMATE_OFF_TARGET', 'SENTENCE_TOO_LONG']);
 });
 
@@ -772,4 +773,45 @@ test('lintSoundFiles warns when the music file is not in the project folder', ()
   writeFileSync(join(dir, 'music/bgm.mp3'), 'x');
   assert.deepEqual(lintSoundFiles(p, dir), []);
   assert.deepEqual(lintSoundFiles(withWorld(), dir), []);
+});
+
+test('estimates count the characters the voice reads, not the digits on screen (字幕与转场设计 §3.3)', () => {
+  const p = minimal();
+  p.sections[0].text = '涨15.07%。';
+  assert.equal(estimateSeconds(p).toFixed(6), (9 / 4.5 + 0.25).toFixed(6));
+  p.sections[0].text = '用Redis。';
+  p.sections[0].pronunciation = [{ term: 'Redis', reading: '瑞迪斯' }];
+  assert.equal(estimateSeconds(p).toFixed(6), (4 / 4.5 + 0.25).toFixed(6));
+});
+
+test('HANZI_NUMBER flags data written in Chinese numerals and leaves counts and set phrases alone (字幕与转场设计 §3.4)', () => {
+  const flagged = [
+    ['科创五零大涨百分之十五点零七', ['百分之十五点零七']], ['沪指涨超三点七', ['三点七']], ['流入一点四万亿', ['一点四万亿']],
+    ['二十七', ['二十七']], ['四百只', ['四百']], ['三千六百点', ['三千六百']], ['两万亿元', ['两万亿']],
+    ['十一月二十七日', ['十一月二十七日']], ['三月五日', ['三月五日']], ['二零二六年', ['二零二六年']], ['返回三零四', ['三零四']],
+    ['今天是十一月二十七日，科创五零大涨百分之十五点零七。', ['十一月二十七日', '百分之十五点零七']],
+  ];
+  for (const [s, want] of flagged) assert.deepEqual(hanziNumbers(s), want, s);
+  for (const s of ['四股力量', '第一', '一点', '一起', '一些', '十分', '千方百计', '万众一心', '两到三倍', '三五个', '七八成',
+    '百分之百', '千万别扔', '万一过期了', '三四十个', '一点一点地', '第一点', '两点', '十几年']) {
+    assert.deepEqual(hanziNumbers(s), [], s);
+  }
+
+  const p = minimal();
+  p.sections[0].text = '天空为什么是蓝的？阳光里有百分之四十几是蓝光，三点七倍。';
+  assert.deepEqual(lintScript(p).filter((w) => w.code === 'HANZI_NUMBER'), [{
+    path: '/sections/0/text',
+    code: 'HANZI_NUMBER',
+    message: '段落 s01 第 1 句的数字写成了汉字（百分之四十、三点七）；数据、百分比、日期和时间写阿拉伯数字，配音读法由渲染器生成（见 script.md）',
+  }]);
+});
+
+test('HANZI_NUMBER skips units after Arabic numbers, ordinals, reduplication, rough counts and set phrases (final review I4)', () => {
+  for (const s of ['重回2万亿元', '流入1.4万亿', '十万火急', '万万没想到', '亿万富翁', '百万富翁', '上百万人', '数十万人', '几十万人',
+    '千千万万', '三三两两', '七七八八', '一五一十', '九九八十一', '第一百个', '三十而立', '十二生肖', '二十四节气']) {
+    assert.deepEqual(hanziNumbers(s), [], s);
+  }
+  for (const [s, want] of [['十万人', ['十万']], ['两万亿元', ['两万亿']], ['一百万', ['一百万']], ['三千六百点', ['三千六百']]]) {
+    assert.deepEqual(hanziNumbers(s), want, s);
+  }
 });

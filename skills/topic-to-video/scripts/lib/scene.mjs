@@ -4,19 +4,23 @@
 import { createHash } from 'node:crypto';
 import { clamp01, easeInOutCubic, easeInOutSine, easeOutBack, easeOutCubic, lerp } from './ease.mjs';
 import { FRAMES, frameFor, isPortrait, textBox, textOutsideSafe } from './frame.mjs';
+import { captionKeywords } from './match.mjs';
 import { evaluateHostAt, hostEventTimeline, walkFrame } from './motion.mjs';
 import { drawHost } from './rig.mjs';
 import { chooseLinkLabelT, evaluateStageObjects, layoutStage, linkControlPoint, renderStage } from './stage.mjs';
 import { layoutElements, renderDiagram } from './templates.mjs';
-import { resolveCueTiming, splitClauses, subtitlePages } from './timing.mjs';
+import { captionPages, resolveCueTiming } from './timing.mjs';
 import { resolveStyle, sceneBackgroundSvg, styleBackgroundSvg } from './world.mjs';
 
-export const SCENE_VERSION = 5;
+export const SCENE_VERSION = 6;
 
 const LANDSCAPE = FRAMES['16:9'];
 const MAX_SCENE_BG_CACHE = 64;
 const sceneBgCache = new Map();
 const evalPlanCache = new WeakMap();
+// 先退后进: the share of a transition the old shot takes to leave (字幕与转场设计 §5.2).
+const EXIT_SHARE = 0.45;
+const fadeLayer = (svg, op) => (op >= 0.999 ? svg : op <= 0.005 ? '' : `<g opacity="${op.toFixed(3)}">${svg}</g>`);
 
 function getCachedSceneBg(sceneName, styleName, seed, frame) {
   const key = `${sceneName}|${styleName}|${seed}|${frame.ground}|${frame.ratio}`;
@@ -165,14 +169,18 @@ export function buildShotPlans(project, timeline, manifest, { frame = frameFor(p
           shared,
         };
       } else {
-        transition = { kind: 'crossfade', durationSec: 0.3, layoutSwitch: null, shared: [] };
+        transition = { kind: 'crossfade', durationSec: 0.4, layoutSwitch: null, shared: [] };
       }
     }
 
+    const S = frame.subtitle;
+    const keywords = captionKeywords(project, shot);
     const relSentences = tl.sentenceRanges.map((r) => ({
       ...r,
       startMs: r.startMs - tl.startMs,
       endMs: r.endMs - tl.startMs,
+      // Caption pages and when each shows, from the sentence start (字幕与转场设计 §4.4)
+      captions: captionPages(r, { maxChars: S.maxChars, maxLines: S.maxLines, keywords }),
     }));
 
     const plan = {
@@ -286,6 +294,7 @@ export function shotCacheKey(shotPlan, { fps = 60, width = 1920, height = 1080, 
     customProps: shotPlan.customProps ?? [],
     outfit: shotPlan.outfit ?? 'none',
     audioHashes: shotPlan.audioHashes,
+    captions: shotPlan.sentences.map((s) => s.captions),
     startState: shotPlan.startState,
     transition: shotPlan.transition,
     prevShot: shotPlan.prevShot ? {
@@ -355,32 +364,23 @@ function buildElementStates(shotPlan, t, tapFocusIdx, tapImpact) {
   return { states, fastMotion };
 }
 
-function subtitleAt(shotPlan, t, pal) {
+// The caption page on screen at shot time t (字幕与转场设计 §4.4) and the cue.at keyword in effect.
+function captionAt(shotPlan, t) {
   const ms = t * 1000;
   const sent = shotPlan.sentences.find((s) => ms >= s.startMs && ms <= s.endMs + 120);
-  if (!sent || !sent.text) return null;
-  // Find active cue.at keyword for this sentence to color-highlight in sync with diagram
+  if (!sent?.captions?.length) return null;
+  const page = sent.captions.findLast((pg) => ms - sent.startMs >= pg.startMs) ?? sent.captions[0];
   const activeAnchor = shotPlan.cues
     .filter((c) => c.sentence === sent.index && c.at && ms >= c.anchorMs - 50)
     .at(-1)?.at;
-  let display = sent.text;
-  // Split into natural breath clauses synced proportionally to the sentence's spoken window
-  const parts = splitClauses(display);
-  if (parts.length > 1 && [...display].length > 12) {
-    const totalChars = [...display].length;
-    const sp0 = sent.startMs + (sent.speech?.[0] ?? 0);
-    const sp1 = sent.startMs + (sent.speech?.[1] ?? (sent.endMs - sent.startMs));
-    const frac = clamp01((ms - sp0) / Math.max(1, sp1 - sp0));
-    let acc = 0;
-    for (const p of parts) {
-      const len = [...p].length;
-      if (frac <= (acc + len) / totalChars || p === parts.at(-1)) {
-        display = p.replace(/[，、；：,:;]$/, '');
-        break;
-      }
-      acc += len;
-    }
-  }
+  return { sent, lines: page.lines, activeAnchor };
+}
+
+function subtitleAt(shotPlan, t, pal) {
+  const cap = captionAt(shotPlan, t);
+  if (!cap) return null;
+  const { sent, activeAnchor } = cap;
+  const display = cap.lines[0];
   return {
     key: `sub-${sent.key}-${display}-${activeAnchor ?? ''}`,
     text: display,
@@ -404,29 +404,10 @@ function subtitleItems(shotPlan, t, pal) {
     const sub = subtitleAt(shotPlan, t, pal);
     return sub ? [sub] : [];
   }
-  const ms = t * 1000;
-  const sent = shotPlan.sentences.find((s) => ms >= s.startMs && ms <= s.endMs + 120);
-  if (!sent || !sent.text) return [];
-  const activeAnchor = shotPlan.cues
-    .filter((c) => c.sentence === sent.index && c.at && ms >= c.anchorMs - 50)
-    .at(-1)?.at;
+  const cap = captionAt(shotPlan, t);
+  if (!cap) return [];
+  const { sent, lines: page, activeAnchor } = cap;
   const S = frame.subtitle;
-  const pages = subtitlePages(sent.text, { maxChars: S.maxChars, maxLines: S.maxLines });
-  if (!pages.length) return [];
-  const sizes = pages.map((pg) => [...pg.join('')].length);
-  const total = sizes.reduce((a, b) => a + b, 0);
-  const sp0 = sent.startMs + (sent.speech?.[0] ?? 0);
-  const sp1 = sent.startMs + (sent.speech?.[1] ?? (sent.endMs - sent.startMs));
-  const frac = clamp01((ms - sp0) / Math.max(1, sp1 - sp0));
-  let acc = 0;
-  let page = pages.at(-1);
-  for (let i = 0; i < pages.length; i += 1) {
-    acc += sizes[i];
-    if (frac <= acc / total) {
-      page = pages[i];
-      break;
-    }
-  }
   const y0 = S.y - ((page.length - 1) * S.lineHeight) / 2;
   return page.map((line, i) => ({
     key: `sub-${sent.key}-${i}-${line}-${activeAnchor ?? ''}`,
@@ -444,7 +425,7 @@ function subtitleItems(shotPlan, t, pal) {
   }));
 }
 
-function renderPrevLayer(shotPlan, prevStates, fadeOut) {
+function renderPrevLayer(shotPlan, prevStates, fadeOut, headingOpacity = fadeOut) {
   const prev = shotPlan.prevShot;
   const frame = shotPlan.frame ?? LANDSCAPE;
   const { objectStates: prevObjStates } = evaluateStageObjects(prev, prev.durationSec, prev.endHostMeta ?? null);
@@ -459,7 +440,7 @@ function renderPrevLayer(shotPlan, prevStates, fadeOut) {
         t: prev.durationSec,
         duration: prev.durationSec,
         elementStates: mergedPrevStates,
-        headingOpacity: fadeOut,
+        headingOpacity,
         customProps: prev.customProps ?? shotPlan.customProps ?? [],
         layoutResult: prev.stageLayout,
         frame,
@@ -608,51 +589,46 @@ export function evaluateFrame(manifest, shotPlan, t, audioFrame = { open: 0, wid
   const prevTextItems = [];
   let headingOpacity = 1;
 
-  if (inTr && tr.kind === 'morph') {
+  let exitOp = 1;
+  let enterOp = 1;
+  if (inTr) {
+    // 先退后进 (字幕与转场设计 §5.2): old-only content leaves in the first 45%, new-only content enters in the rest,
+    // shared elements move from their old box to the new one over the whole transition.
+    exitOp = 1 - easeInOutCubic(clamp01(trU / EXIT_SHARE));
+    enterOp = easeOutCubic(clamp01((trU - EXIT_SHARE) / (1 - EXIT_SHARE)));
     const sharedByNext = new Map(tr.shared.map((s) => [s.nextIndex, s.prevIndex]));
-    const sharedPrevSet = new Set(tr.shared.map((s) => s.prevIndex));
-    const u = easeInOutCubic(trU);
-    headingOpacity = u;
-    const hasShared = tr.shared.length > 0;
+    const sharedPrev = new Set(tr.shared.map((s) => s.prevIndex));
+    const move = easeInOutCubic(trU);
+    // A stage heading both shots share stays put: only the new one is drawn, at full opacity.
+    const heading = (pl) => (pl.shot.layout === 'stage' ? pl.shot.visual?.data?.heading : undefined);
+    const keepHeading = heading(shotPlan) !== undefined && heading(shotPlan) === heading(shotPlan.prevShot);
+    headingOpacity = keepHeading ? 1 : enterOp;
     states.forEach((st, ni) => {
       if (sharedByNext.has(ni)) {
-        const pi = sharedByNext.get(ni);
-        st.overrideBbox = lerpBox(shotPlan.prevShot.elements[pi].bbox, shotPlan.elements[ni].bbox, u);
-      } else if (hasShared) {
-        // New-only elements fade in during [0.15s, duration]
-        const fade = clamp01((t - 0.15) / Math.max(0.1, tr.durationSec - 0.15));
-        st.opacity *= fade;
+        st.overrideBbox = lerpBox(shotPlan.prevShot.elements[sharedByNext.get(ni)].bbox, shotPlan.elements[ni].bbox, move);
       } else {
-        st.opacity *= u;
+        st.opacity *= enterOp;
+        st.scale = (st.scale ?? 1) * lerp(0.96, 1, enterOp);
       }
     });
-    // Old-only elements: cross-dissolve smoothly when nothing is morphing; clear early when shared elements morph.
-    if (!hasShared || t < 0.2) {
-      const fadeOut = hasShared ? 1 - easeOutCubic(t / 0.2) : 1 - u;
+    if (exitOp > 0.005) {
       const prevStates = shotPlan.prevShot.elements.map((_, pi) => ({
-        opacity: sharedPrevSet.has(pi) ? 0 : fadeOut,
-        scale: lerp(hasShared ? 0.92 : 0.96, 1, fadeOut),
+        opacity: sharedPrev.has(pi) ? 0 : exitOp,
+        scale: lerp(0.96, 1, exitOp),
       }));
-      const prevRes = renderPrevLayer(shotPlan, prevStates, fadeOut);
+      const prevRes = renderPrevLayer(shotPlan, prevStates, exitOp, keepHeading ? 0 : exitOp);
       prevDiagSvg = prevRes.vectorSvg;
       prevTextItems.push(...prevRes.textItems);
     }
     isFastMotion = true;
-  } else if (inTr && tr.kind === 'crossfade') {
-    const u = easeInOutCubic(trU);
-    headingOpacity = u;
-    states.forEach((st) => { st.opacity *= u; });
-    const prevStates = shotPlan.prevShot.elements.map(() => ({ opacity: 1 - u }));
-    const prevRes = renderPrevLayer(shotPlan, prevStates, 1 - u);
-    prevDiagSvg = prevRes.vectorSvg;
-    prevTextItems.push(...prevRes.textItems);
-    isFastMotion = true;
   }
 
   const isStage = shotPlan.shot.layout === 'stage';
-  const sceneBg = isStage
-    ? getCachedSceneBg(shotPlan.scene ?? 'blank', styleName, shotPlan.id, frame)
-    : '';
+  // The scene follows the content: a new scene enters with it, the old one leaves with it; the same scene stays.
+  const prevStage = inTr && shotPlan.prevShot.shot.layout === 'stage';
+  const sameScene = isStage && prevStage && shotPlan.prevShot.scene === shotPlan.scene;
+  const sceneBg = (prevStage && !sameScene ? fadeLayer(getCachedSceneBg(shotPlan.prevShot.scene ?? 'blank', styleName, shotPlan.prevShot.id, frame), exitOp) : '')
+    + (isStage ? fadeLayer(getCachedSceneBg(shotPlan.scene ?? 'blank', styleName, shotPlan.id, frame), sameScene ? 1 : enterOp) : '');
   const diag = isStage
     ? renderStage(shotPlan.shot.visual, {
         style: styleName,

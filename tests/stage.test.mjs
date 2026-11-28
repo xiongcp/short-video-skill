@@ -501,7 +501,8 @@ test('dual-theme world fixtures (cache paper+kitchen/street & flight chalkboard+
   for (const [name, project] of [['cache', cache], ['flight', flight]]) {
     assert.deepEqual(validateProject(project).errors, [], `${name} schema errors`);
     assert.deepEqual(checkProject(project), [], `${name} checkProject errors`);
-    assert.deepEqual(lintScript(project), [], `${name} lintScript warnings`);
+    // world-cache predates 字幕与转场设计 and keeps 三零四: an old project only gets HANZI_NUMBER (§2 C6).
+    assert.deepEqual(lintScript(project).map((w) => w.code), name === 'cache' ? ['HANZI_NUMBER', 'HANZI_NUMBER', 'HANZI_NUMBER'] : [], `${name} lintScript warnings`);
     // Batch 1 fixtures predate Batch 2 interaction cues and the 4s STATIC_STRETCH limit; Task 6 tests full 0-warning enforcement.
     assert.deepEqual(
       lintStoryboard(project).filter((w) => !['NO_INTERACTION', 'STATIC_STRETCH'].includes(w.code)),

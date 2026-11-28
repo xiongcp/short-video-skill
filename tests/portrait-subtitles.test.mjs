@@ -1,17 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildSubtitlesAss } from '../skills/topic-to-video/scripts/lib/encode.mjs';
-import { FRAMES } from '../skills/topic-to-video/scripts/lib/frame.mjs';
+import { FRAMES, textBox } from '../skills/topic-to-video/scripts/lib/frame.mjs';
 import { buildShotPlans, evaluateFrame } from '../skills/topic-to-video/scripts/lib/scene.mjs';
 import { buildTimeline } from '../skills/topic-to-video/scripts/lib/timebase.mjs';
 import { subtitlePages } from '../skills/topic-to-video/scripts/lib/timing.mjs';
 import { fakeTiming, goldenCases, manifest } from './helpers/golden.mjs';
 
-const len = (s) => [...s].length;
+const width = (s) => textBox({ text: s, fontSize: 1, x: 0, y: 0 }).w;
 
 test('subtitlePages packs clauses into pages of at most two 12-character lines', () => {
   assert.deepEqual(subtitlePages('你昨天见过的这张图标，今天再打开，还要从头下载吗？'), [['你昨天见过的这张图标', '今天再打开'], ['还要从头下载吗？']]);
-  assert.deepEqual(subtitlePages('一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十。'), [['一二三四五六七八九十一', '二三四五六七八九十一二'], ['三四五六七八九十。']]);
+  const numerals = '一二三四五六七八九十一二三四五六七八九十一二三四五六七八九十。';
+  const pages = subtitlePages(numerals);
+  assert.equal(pages.flat().join(''), numerals);
+  assert.deepEqual(pages.map((pg) => pg.length), [2, 1]);
   assert.deepEqual(subtitlePages('短句。'), [['短句。']]);
 });
 
@@ -20,7 +23,7 @@ test('subtitlePages never splits a Latin word or a digit run', () => {
   const lines = pages.flat();
   assert.ok(lines.some((l) => l.includes('Redis')));
   assert.ok(lines.some((l) => l.includes('304')));
-  for (const l of lines) assert.ok(len(l) <= 12, l);
+  for (const l of lines) assert.ok(width(l) <= 12, l);
 });
 
 test('subtitlePages keeps lines within maxChars when punctuation lands on a full line', () => {
@@ -33,7 +36,7 @@ test('subtitlePages keeps lines within maxChars when punctuation lands on a full
     const lines = subtitlePages(text).flat();
     assert.equal(lines.join(''), text);
     for (const l of lines) {
-      assert.ok(len(l) <= 12, `${text} -> ${l} (${len(l)})`);
+      assert.ok(width(l) <= 12, `${text} -> ${l} (${width(l)})`);
       assert.ok(!/^\p{P}/u.test(l), `${text} -> leading punct in ${l}`);
     }
     if (text.includes('Redis')) assert.ok(lines.some((l) => l.includes('Redis')));
@@ -42,10 +45,10 @@ test('subtitlePages keeps lines within maxChars when punctuation lands on a full
   const opening = '一二三四五六七八九十一二「缓存」一二三四五六七八';
   const openLines = subtitlePages(opening).flat();
   assert.equal(openLines.join(''), opening);
-  for (const l of openLines) assert.ok(len(l) <= 12, l);
+  for (const l of openLines) assert.ok(width(l) <= 12, l);
   assert.ok(openLines[1].startsWith('「缓存」'), openLines.join(' / '));
 
-  assert.deepEqual(subtitlePages('123456789012。').flat(), ['123456789012', '。']);
+  assert.deepEqual(subtitlePages('123456789012。').flat(), ['123456789012。']);
 });
 
 test('every narration sentence in the fixtures fits the portrait page limits', () => {
@@ -53,7 +56,7 @@ test('every narration sentence in the fixtures fits the portrait page limits', (
     for (const sec of p.sections) {
       for (const page of subtitlePages(sec.text)) {
         assert.ok(page.length <= 2);
-        for (const line of page) assert.ok(len(line) <= 12, line);
+        for (const line of page) assert.ok(width(line) <= 12, line);
       }
     }
   }
@@ -85,6 +88,6 @@ test('portrait ASS uses a 1080×1920 canvas, 60 px and 170 px side margins', () 
   assert.match(ass, /Style: Default,Hiragino Sans GB,60,.*,2,170,170,520,1/);
   for (const line of ass.split('\n').filter((l) => l.startsWith('Dialogue:'))) {
     const text = line.split(',').slice(9).join(',').replace(/\{[^}]*\}/g, '');
-    for (const part of text.split('\\N')) assert.ok(len(part) <= 12, part);
+    for (const part of text.split('\\N')) assert.ok(width(part) <= 12, part);
   }
 });

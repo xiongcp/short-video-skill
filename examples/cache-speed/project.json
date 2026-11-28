@@ -5,7 +5,7 @@
   "brief": {
     "topic": "为什么缓存能让网页变快？",
     "audience": "经常用浏览器、没有网络基础的观众",
-    "promise": "缓存就像家门口的冰箱，新鲜时直接拿，过期再向远处超市确认三零四",
+    "promise": "缓存就像家门口的冰箱，新鲜时直接拿，过期再向远处超市确认304",
     "sources": [
       {
         "id": "src01",
@@ -56,13 +56,15 @@
     {
       "id": "s04",
       "title": "过期后打电话问304",
-      "text": "几天后打开冰箱，包裹已经过期。小青吓一跳，这还能吃吗？先留着别扔，给超市打个电话。货没变，超市回张三零四凭证。盖上章，旧货继续放心用！要是货换新，才重搬一箱回来。",
+      "text": "几天后打开冰箱，包裹已经过期。小青吓一跳，这还能吃吗？先留着别扔，给超市打个电话。货没变，超市回张304凭证。盖上章，旧货继续放心用！要是货换新，才重搬一箱回来。",
+      "pronunciation": [{ "term": "304", "reading": "三零四" }],
       "source_ids": ["src01"]
     },
     {
       "id": "s05",
       "title": "坐下来记住三招",
-      "text": "其实缓存就三招，坐下来记一记。新鲜直接拿，过期先打个电话。拿到三零四，省下跑超市的路！"
+      "text": "其实缓存就三招，坐下来记一记。新鲜直接拿，过期先打个电话。拿到304，省下跑超市的路！",
+      "pronunciation": [{ "term": "304", "reading": "三零四" }]
     }
   ],
   "shots": [
@@ -293,7 +295,7 @@
       },
       "cues": [
         { "sentence": 2, "at": "电话", "do": "send", "target": 0, "value": "key" },
-        { "sentence": 3, "at": "三零四", "do": "send", "target": 1, "value": "ticket" },
+        { "sentence": 3, "at": "304", "do": "send", "target": 1, "value": "ticket" },
         { "sentence": 3, "at": "凭证", "do": "state", "target": 2, "value": "count:304" },
         { "sentence": 4, "at": "盖上章", "do": "state", "target": 2, "value": "stamped" },
         { "sentence": 4, "at": "盖上章", "do": "hold_up", "target": 2 },
@@ -359,7 +361,7 @@
         }
       },
       "cues": [
-        { "sentence": 2, "at": "三零四", "do": "hold_up", "target": 1 },
+        { "sentence": 2, "at": "304", "do": "hold_up", "target": 1 },
         { "sentence": 2, "at": "省下", "do": "state", "target": 0, "value": "active" }
       ],
       "note": "高举304凭证回扣开头，留下冰箱缓存印象"

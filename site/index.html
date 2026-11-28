@@ -226,7 +226,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
     <p class="lead">L1 渲染器按这份设计实现：<a href="https://github.com/xiongcp/short-video-skill/blob/main/docs/lite/%E5%87%BA%E7%89%87%E8%B4%A8%E9%87%8F%E8%AE%BE%E8%AE%A1.md">出片质量设计</a>。</p>
     <div class="grid">
       <div class="card"><h3>60fps</h3><p>默认 1080p60，可选 30fps。动画按连续时间计算，与帧率无关。</p></div>
-      <div class="card"><h3>同元素补间</h3><p>前后镜头里同名的节点、数字和主持人平滑移动到新位置；没有共同元素时做 0.3 秒缓动叠化。</p></div>
+      <div class="card"><h3>同元素补间</h3><p>前后镜头里同名的节点、数字和主持人平滑移动到新位置；其余内容先退后进：旧画面先退场，新画面再进场，叠化 0.4 秒。</p></div>
       <div class="card"><h3>关键词对齐</h3><p>画面变化卡在句中的关键词上，优先用 TTS 的逐词时间；元素提前 0.15 秒入场，说到时正好落定。</p></div>
       <div class="card"><h3>表演贴合</h3><p>问句歪头挑眉，重读处点头，图解出现时视线跟过去；表情和手势按句意切换，同台互动手脚精准落点。</p></div>
       <div class="card"><h3>画面不空泛</h3><p>72 个内置手绘物件（含太阳、原子、眼睛等科普物件）与自定义几何道具，5 套风格包与 8 个手绘场景，<code>timeline</code>/<code>cycle</code> 模板；画面关键词对不上口播、画面长时间不动时自检会提醒。</p></div>
@@ -243,7 +243,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
       <thead><tr><th>镜头</th><th>口播</th><th>画面</th><th>主持人</th></tr></thead>
       <tbody>
         <tr><td>sh04</td><td>浏览器向超市发请求，搬回新包裹。先把货装进冰箱，下次才省事。</td><td>街景同台：冰箱 ↔ 新包裹 ↔ 超市，信封与包裹沿线往返传递</td><td>抱起包裹走到冰箱旁放下</td></tr>
-        <tr><td>sh10</td><td>先留着别扔，给超市打个电话。货没变，超市回张三零四凭证。盖上章，旧货继续放心用！</td><td>街景同台：电话 ↔ 304 凭证 ↔ 超市，回传票据并标 count:304 与盖章</td><td>好奇 · 接住凭证双手高举</td></tr>
+        <tr><td>sh10</td><td>先留着别扔，给超市打个电话。货没变，超市回张304凭证。盖上章，旧货继续放心用！</td><td>街景同台：电话 ↔ 304 凭证 ↔ 超市，回传票据并标 count:304 与盖章</td><td>好奇 · 接住凭证双手高举</td></tr>
         <tr><td>sh12</td><td>其实缓存就三招，坐下来记一记。新鲜直接拿，过期先打个电话。</td><td>厨房同台：货箱、冰箱直接拿、先问 304 凭证</td><td>坐上货箱 · 高亮冰箱并欢呼反应</td></tr>
       </tbody>
     </table></div>

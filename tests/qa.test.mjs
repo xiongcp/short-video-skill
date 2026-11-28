@@ -400,3 +400,29 @@ test('qa.mjs runs when invoked through a symlinked skill directory', async (t) =
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('qa.md lists how every number is read and asks for a listen (字幕与转场设计 §3.3)', async (t) => {
+  if (spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).status !== 0) {
+    t.skip('ffmpeg unavailable');
+    return;
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'svs-qa-reading-'));
+  try {
+    const p = minimal();
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(p, null, 2));
+    const videoPath = makeQaClip(dir);
+    const plain = await runQa(dir, { videoPath, audio: null });
+    assert.equal(plain.manual_review.number_reading, 'not_checked');
+    assert.match(readFileSync(join(dir, 'out/qa.md'), 'utf8'), /## 读法对照\n- 无\n/);
+
+    p.sections[0].text = '科创50大涨15.07%？答案藏在阳光里。';
+    p.sections[0].pronunciation = [{ term: '科创50', reading: '科创五零' }];
+    writeFileSync(join(dir, 'project.json'), JSON.stringify(p, null, 2));
+    await runQa(dir, { videoPath, audio: null });
+    const md = readFileSync(join(dir, 'out/qa.md'), 'utf8');
+    assert.match(md, /## 读法对照\n\| 句子 \| 写法 → 读法 \|\n\| --- \| --- \|\n\| s01-0 \| 科创50 → 科创五零；15\.07% → 百分之十五点零七 \|\n\n/);
+    assert.match(md, /- 数字读法：`not_checked`/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
